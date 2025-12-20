@@ -7,10 +7,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from api.finance.webhooks import stripe_webhook
 
 urlpatterns = [
     # Django Admin
-    path('admin/', admin.site.URLs),
+    path('admin/', admin.site.urls),
+
+    # API Documentation
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # Webhooks
+    path('webhooks/stripe/', stripe_webhook, name='stripe-webhook'),
 
     # API Endpoints (REST Framework)
     path('api/auth/', include('modules.auth.urls')),
