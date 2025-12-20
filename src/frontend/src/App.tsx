@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -11,12 +12,14 @@ import Contracts from './pages/Contracts'
 import Projects from './pages/Projects'
 import ProjectKanban from './pages/ProjectKanban'
 import TimeTracking from './pages/TimeTracking'
+import Documents from './pages/Documents'
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
+    <ErrorBoundary>
+      <Router>
+        <AuthProvider>
+          <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -37,7 +40,7 @@ function App() {
             <Route path="/projects/:projectId/kanban" element={<ProjectKanban />} />
             <Route path="/time-tracking" element={<TimeTracking />} />
             <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />
-            <Route path="/documents" element={<div>Documents Module (Coming Soon)</div>} />
+            <Route path="/documents" element={<Documents />} />
           </Route>
 
           {/* Catch all - redirect to home */}
@@ -45,6 +48,7 @@ function App() {
         </Routes>
       </AuthProvider>
     </Router>
+  </ErrorBoundary>
   )
 }
 
