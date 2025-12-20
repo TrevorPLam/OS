@@ -30,8 +30,12 @@ Pillow==10.1.0
 # Production Server (optional, for deployment)
 gunicorn==21.2.0
 
+# Logging
+python-json-logger==2.0.7
+
 # Development & Testing
 pytest==7.4.3
 pytest-django==4.7.0
+pytest-cov==4.1.0
 factory-boy==3.3.0
 faker==22.0.0
