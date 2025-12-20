@@ -6,6 +6,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
+import Proposals from './pages/Proposals'
+import Contracts from './pages/Contracts'
 import TimeTracking from './pages/TimeTracking'
 
 function App() {
@@ -27,7 +29,8 @@ function App() {
           >
             <Route path="/" element={<Dashboard />} />
             <Route path="/clients" element={<Clients />} />
-            <Route path="/proposals" element={<div>Proposals Module (Coming Soon)</div>} />
+            <Route path="/proposals" element={<Proposals />} />
+            <Route path="/contracts" element={<Contracts />} />
             <Route path="/projects" element={<div>Projects Module (Coming Soon)</div>} />
             <Route path="/time-tracking" element={<TimeTracking />} />
             <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />

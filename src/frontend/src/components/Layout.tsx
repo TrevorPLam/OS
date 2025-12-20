@@ -35,6 +35,7 @@ const Layout: React.FC = () => {
         <Link to="/">Dashboard</Link>
         <Link to="/clients">Clients</Link>
         <Link to="/proposals">Proposals</Link>
+        <Link to="/contracts">Contracts</Link>
         <Link to="/projects">Projects</Link>
         <Link to="/time-tracking">Time Tracking</Link>
         <Link to="/invoices">Invoices</Link>

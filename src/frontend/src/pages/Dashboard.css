@@ -1,5 +1,132 @@
-.dashboard h2 {
+.dashboard-header {
   margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #2d3748;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.metric-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.metric-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.metric-content h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 2rem;
+  color: #2d3748;
+}
+
+.metric-content p {
+  margin: 0 0 0.5rem 0;
+  color: #4a5568;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.metric-detail {
+  font-size: 0.8rem;
+  color: #718096;
+}
+
+.metric-warning {
+  border-left: 4px solid #ed8936;
+}
+
+.metric-alert {
+  border-left: 4px solid #f56565;
+}
+
+.quick-actions {
+  margin-bottom: 3rem;
+}
+
+.quick-actions h2 {
+  margin-bottom: 1.5rem;
+  color: #2d3748;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.action-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+}
+
+.action-icon {
+  font-size: 2rem;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.action-card h3 {
+  margin: 0 0 0.25rem 0;
+  color: #2d3748;
+  font-size: 1.1rem;
+}
+
+.action-card p {
+  margin: 0;
+  color: #718096;
+  font-size: 0.85rem;
+}
+
+.modules-overview h2 {
+  margin-bottom: 1.5rem;
   color: #2d3748;
 }
 
@@ -34,18 +161,24 @@
   margin: 0 0 1rem 0;
 }
 
-.module-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.module-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.module-card li {
-  padding: 0.5rem 0;
-  color: #4a5568;
-  border-bottom: 1px solid #f7fafc;
+.module-links a {
+  padding: 0.5rem 1rem;
+  background: #f7fafc;
+  border-radius: 6px;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.module-card li:last-child {
-  border-bottom: none;
+.module-links a:hover {
+  background: #667eea;
+  color: white;
 }

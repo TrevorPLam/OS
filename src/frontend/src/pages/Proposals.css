@@ -1,0 +1,116 @@
+.proposals-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.proposals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+.proposal-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.proposal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.proposal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f7fafc;
+}
+
+.proposal-header h3 {
+  margin: 0 0 0.25rem 0;
+  color: #2d3748;
+  font-size: 1.25rem;
+}
+
+.proposal-number {
+  margin: 0;
+  color: #718096;
+  font-size: 0.875rem;
+  font-family: monospace;
+}
+
+.status-sent {
+  background: #e6f7ff;
+  color: #0066cc;
+}
+
+.status-under_review {
+  background: #fff7e6;
+  color: #d46b08;
+}
+
+.status-accepted {
+  background: #dffce7;
+  color: #065f46;
+}
+
+.status-rejected {
+  background: #fee;
+  color: #991b1b;
+}
+
+.status-expired {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.status-draft {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.proposal-details {
+  margin-bottom: 1rem;
+}
+
+.proposal-details p {
+  margin: 0.5rem 0;
+  color: #4a5568;
+  font-size: 0.9rem;
+}
+
+.proposal-description {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f7fafc;
+  color: #718096 !important;
+  line-height: 1.5;
+  max-height: 4.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.proposal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f7fafc;
+}
+
+.modal-large {
+  max-width: 800px;
+}
+
+.proposal-form textarea {
+  resize: vertical;
+}
