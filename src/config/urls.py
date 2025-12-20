@@ -13,6 +13,7 @@ urlpatterns = [
     path('admin/', admin.site.URLs),
 
     # API Endpoints (REST Framework)
+    path('api/auth/', include('modules.auth.urls')),
     path('api/crm/', include('api.crm.urls')),
     path('api/projects/', include('api.projects.urls')),
     path('api/finance/', include('api.finance.urls')),

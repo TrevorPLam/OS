@@ -1,0 +1,51 @@
+.dashboard h2 {
+  margin-bottom: 2rem;
+  color: #2d3748;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.module-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.module-card h3 {
+  margin: 0 0 0.5rem 0;
+  color: #667eea;
+  font-size: 1.5rem;
+}
+
+.module-card p {
+  color: #718096;
+  margin: 0 0 1rem 0;
+}
+
+.module-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.module-card li {
+  padding: 0.5rem 0;
+  color: #4a5568;
+  border-bottom: 1px solid #f7fafc;
+}
+
+.module-card li:last-child {
+  border-bottom: none;
+}

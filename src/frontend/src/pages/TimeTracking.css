@@ -1,0 +1,80 @@
+.time-tracking-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.stat {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.stat-label {
+  color: #718096;
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  color: #667eea;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.time-form textarea {
+  resize: vertical;
+}
+
+.time-entries {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.time-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.time-table th {
+  text-align: left;
+  padding: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+}
+
+.time-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f7fafc;
+  color: #2d3748;
+}
+
+.time-table tbody tr:hover {
+  background: #f7fafc;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-yes {
+  background: #dffce7;
+  color: #065f46;
+}
+
+.badge-no {
+  background: #fef2f2;
+  color: #991b1b;
+}
