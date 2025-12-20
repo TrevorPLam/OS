@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
 import Proposals from './pages/Proposals'
 import Contracts from './pages/Contracts'
+import Projects from './pages/Projects'
+import ProjectKanban from './pages/ProjectKanban'
 import TimeTracking from './pages/TimeTracking'
 
 function App() {
@@ -31,7 +33,8 @@ function App() {
             <Route path="/clients" element={<Clients />} />
             <Route path="/proposals" element={<Proposals />} />
             <Route path="/contracts" element={<Contracts />} />
-            <Route path="/projects" element={<div>Projects Module (Coming Soon)</div>} />
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:projectId/kanban" element={<ProjectKanban />} />
             <Route path="/time-tracking" element={<TimeTracking />} />
             <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />
             <Route path="/documents" element={<div>Documents Module (Coming Soon)</div>} />
