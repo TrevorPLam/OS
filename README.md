@@ -171,10 +171,33 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
 
 ### Prerequisites
 
-- Docker & Docker Compose
-- Node.js 18+ (for local frontend development)
+- **Docker & Docker Compose** (required for backend)
+- **Node.js 18+** (for frontend development)
+- **Git** (for version control)
 
-### Quick Start
+### Quick Start (Automated Setup)
+
+**NEW:** Use our automated setup script for first-time setup:
+
+```bash
+# 1. Clone the repository
+git clone <repository-url>
+cd OS
+
+# 2. Run automated setup (creates migrations, initializes database, creates admin user)
+./setup-migrations.sh
+```
+
+The script will:
+- ✅ Start PostgreSQL database
+- ✅ Build web container with all dependencies
+- ✅ Create database migrations for all 5 modules
+- ✅ Apply migrations to database
+- ✅ Prompt you to create superuser account
+
+### Manual Setup (Alternative)
+
+If you prefer step-by-step control:
 
 1. **Clone the repository**
 
@@ -183,26 +206,44 @@ git clone <repository-url>
 cd OS
 ```
 
-2. **Start the services**
+2. **Copy environment variables**
 
 ```bash
-docker-compose up -d
+cp .env.example .env
+# Edit .env with your configuration (see Environment Variables section below)
 ```
 
-This will start:
-- PostgreSQL database (port 5432)
-- Django backend (port 8000)
+3. **Start the database**
 
-3. **Access the application**
+```bash
+docker-compose up -d db
+```
 
-- **Backend API:** http://localhost:8000/api/
-- **Django Admin:** http://localhost:8000/admin/
+4. **Build and run the web container**
 
-4. **Create a superuser**
+```bash
+docker-compose build web
+docker-compose up web
+```
+
+This will:
+- Install Python dependencies (including pytest-cov, python-json-logger)
+- Auto-create database migrations on first run
+- Auto-apply migrations
+- Start Django development server
+
+5. **Create a superuser**
 
 ```bash
 docker-compose exec web python manage.py createsuperuser
 ```
+
+6. **Access the application**
+
+- **Backend API:** http://localhost:8000/api/
+- **API Documentation (Swagger):** http://localhost:8000/api/docs/
+- **API Documentation (ReDoc):** http://localhost:8000/api/redoc/
+- **Django Admin:** http://localhost:8000/admin/
 
 ### Frontend Development
 
@@ -213,6 +254,21 @@ npm run dev
 ```
 
 Frontend will run on http://localhost:3000
+
+### Verify Installation
+
+Run these commands to verify everything is working:
+
+```bash
+# Check backend health
+curl http://localhost:8000/api/
+
+# Run tests with coverage
+docker-compose exec web pytest --cov=modules --cov=api
+
+# Check frontend
+curl http://localhost:3000
+```
 
 ---
 
@@ -236,37 +292,86 @@ docker-compose exec web python manage.py shell
 
 ### Testing
 
+Run the full test suite with coverage reporting:
+
 ```bash
+# Run all tests with coverage
 docker-compose exec web pytest
+
+# Run specific test modules
+docker-compose exec web pytest tests/crm/
+docker-compose exec web pytest tests/projects/
+docker-compose exec web pytest tests/finance/
+
+# Run with detailed coverage report
+docker-compose exec web pytest --cov=modules --cov=api --cov-report=html
+
+# View coverage report (opens in browser)
+open src/htmlcov/index.html
 ```
+
+**Test Coverage Target:** 70% minimum (enforced in CI/CD)
+
+**Available Test Suites:**
+- `tests/crm/test_serializers.py` - CRM validation tests
+- `tests/projects/test_serializers.py` - Projects validation tests
+- `tests/finance/test_serializers.py` - Finance validation tests
+- `tests/documents/test_serializers.py` - Documents tests
+- `tests/assets/test_serializers.py` - Assets tests
+
+### Continuous Integration
+
+All pull requests automatically run:
+- ✅ Code linting (flake8, black, isort)
+- ✅ Test suite with coverage
+- ✅ Security audit (safety, trufflehog)
+- ✅ Docker build verification
+- ✅ Frontend build
+
+See `.github/workflows/ci.yml` for full CI/CD configuration.
 
 ---
 
-## API Endpoints
+## API Documentation
 
-### CRM Module
-- `GET /api/crm/clients/` - List clients
-- `POST /api/crm/clients/` - Create client
-- `GET /api/crm/proposals/` - List proposals
-- `GET /api/crm/contracts/` - List contracts
+### Interactive Documentation
 
-### Projects Module
-- `GET /api/projects/projects/` - List projects
-- `GET /api/projects/tasks/` - List tasks
-- `GET /api/projects/time-entries/` - List time entries
+- **Swagger UI:** http://localhost:8000/api/docs/ - Try API endpoints directly in the browser
+- **ReDoc:** http://localhost:8000/api/redoc/ - Clean, searchable API reference
 
-### Finance Module
-- `GET /api/finance/invoices/` - List invoices
-- `GET /api/finance/bills/` - List bills
-- `GET /api/finance/ledger-entries/` - List ledger entries
+### Complete API Guide
 
-### Documents Module
-- `GET /api/documents/folders/` - List folders
-- `GET /api/documents/documents/` - List documents
+See **[API_USAGE.md](API_USAGE.md)** for comprehensive documentation including:
+- Authentication (JWT tokens)
+- Complete endpoint reference for all 5 modules
+- Request/response examples
+- Error handling
+- Rate limiting
+- Pagination and filtering
+- Best practices
 
-### Assets Module
-- `GET /api/assets/assets/` - List assets
-- `GET /api/assets/maintenance-logs/` - List maintenance logs
+### Quick Reference
+
+| Module | Endpoints | Key Features |
+|--------|-----------|--------------|
+| **CRM** | `/api/crm/` | Clients, Proposals (auto-generate numbers), Contracts (auto-timestamps via signals) |
+| **Projects** | `/api/projects/` | Projects, Tasks (Kanban), Time Entries (auto-calculate billed amounts) |
+| **Finance** | `/api/finance/` | Invoices, Bills, Ledger Entries, Stripe integration with webhook handler |
+| **Documents** | `/api/documents/` | Folders (hierarchical), Documents (S3 upload/download with presigned URLs) |
+| **Assets** | `/api/assets/` | Assets (depreciation tracking), Maintenance Logs |
+
+### Authentication Example
+
+```bash
+# Get token
+curl -X POST http://localhost:8000/api/auth/login/ \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "your_password"}'
+
+# Use token
+curl http://localhost:8000/api/crm/clients/ \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
 
 ---
 
@@ -310,16 +415,28 @@ Business logic stays in the app.
 
 ### Phase 1: ConsultantPro (Current)
 
-**Status:** Core Skeleton Complete
+**Status:** ✅ Core Features Complete - Production Ready (with deployment hardening)
 
-**Next Steps:**
-- [ ] Implement authentication
-- [ ] Build CRM UI (React)
-- [ ] Implement proposal generation
-- [ ] Build time tracking UI
-- [ ] Implement invoice generation
-- [ ] S3 integration for documents
-- [ ] Stripe integration for payments
+**Completed Features:**
+- ✅ Authentication (JWT with token refresh & blacklist)
+- ✅ CRM UI (React with TypeScript)
+- ✅ Proposal & Contract management (auto-numbering, workflow signals)
+- ✅ Time tracking UI (Kanban board)
+- ✅ Invoice generation & management
+- ✅ S3 integration for documents (upload/download with presigned URLs)
+- ✅ Stripe integration for payments (webhook handler for 5 event types)
+- ✅ Comprehensive test suite (70%+ coverage target)
+- ✅ CI/CD pipeline (GitHub Actions)
+- ✅ Environment validation on startup
+- ✅ Error boundaries & loading states
+- ✅ API documentation (Swagger + ReDoc)
+
+**Deployment Readiness:**
+- ✅ NOW Phase: Development blockers resolved
+- 🔄 NEXT Phase: Stabilization (5-7 days) - In Progress
+- ⏳ LATER Phase: Production hardening (4-5 weeks) - Planned
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for complete production deployment guide.
 
 ### Phase 2: ArchitectPro (Q2 2024)
 
@@ -349,33 +466,45 @@ Business logic stays in the app.
 
 ## Environment Variables
 
-Create a `.env` file in the root directory:
+### Configuration
 
-```env
-# Django
-DJANGO_SECRET_KEY=your-secret-key
-DJANGO_DEBUG=True
-DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+Create a `.env` file from the template:
 
-# Database
-POSTGRES_DB=consultantpro
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
+```bash
+cp .env.example .env
+```
 
-# CORS
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+Then edit `.env` with your actual values. See **[.env.example](.env.example)** for complete documentation of all variables.
 
-# AWS S3 (for Documents module)
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_STORAGE_BUCKET_NAME=your-bucket-name
-AWS_S3_REGION_NAME=us-east-1
+### Required Variables
 
-# Stripe (for Finance module)
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
+**Django Core:**
+- `DJANGO_SECRET_KEY` - Cryptographically random string (50+ chars)
+- `DJANGO_DEBUG` - Set to `False` in production
+- `DJANGO_ALLOWED_HOSTS` - Comma-separated domain list
+
+**Database:**
+- `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`
+
+**Production-Only (when DEBUG=False):**
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_STORAGE_BUCKET_NAME`
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+
+### Environment Validation
+
+The application automatically validates environment variables on startup:
+- ✅ Checks all required variables are present
+- ✅ Detects insecure default values in production
+- ✅ Validates `SECRET_KEY` strength
+- ✅ Validates `ALLOWED_HOSTS` configuration
+- ❌ **Blocks startup** if critical issues detected
+
+See `src/config/env_validator.py` for validation logic.
+
+### Generate Secure SECRET_KEY
+
+```python
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
 ---

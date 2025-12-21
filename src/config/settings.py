@@ -310,3 +310,9 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+# =============================================================================
+# Environment Validation (runs on startup)
+# =============================================================================
+# Import at end to validate after all settings are loaded
+from config.env_validator import validate_environment  # noqa
