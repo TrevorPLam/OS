@@ -2,7 +2,7 @@
 Django Admin configuration for CRM models (Pre-Sale).
 """
 from django.contrib import admin
-from .models import Lead, Prospect, Campaign, Proposal, Contract, Client
+from .models import Lead, Prospect, Campaign, Proposal, Contract
 
 
 @admin.register(Lead)
@@ -52,44 +52,6 @@ class CampaignAdmin(admin.ModelAdmin):
     list_filter = ['type', 'status', 'owner']
     search_fields = ['name', 'description']
     readonly_fields = ['leads_generated', 'created_at', 'updated_at']
-
-
-# DEPRECATED: Old Client admin - kept for data migration compatibility
-@admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
-    list_display = [
-        'company_name',
-        'status',
-        'primary_contact_name',
-        'primary_contact_email',
-        'owner',
-        'created_at'
-    ]
-    list_filter = ['status', 'industry', 'created_at']
-    search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
-    readonly_fields = ['created_at', 'updated_at']
-    fieldsets = (
-        ('DEPRECATED', {
-            'description': 'This model is deprecated. Use modules.clients.Client for new clients.',
-            'fields': ()
-        }),
-        ('Company Information', {
-            'fields': ('company_name', 'industry', 'status', 'website', 'employee_count', 'annual_revenue')
-        }),
-        ('Primary Contact', {
-            'fields': ('primary_contact_name', 'primary_contact_email', 'primary_contact_phone')
-        }),
-        ('Address', {
-            'fields': ('street_address', 'city', 'state', 'postal_code', 'country')
-        }),
-        ('Internal Tracking', {
-            'fields': ('owner', 'source', 'notes')
-        }),
-        ('Audit', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
 
 
 @admin.register(Proposal)

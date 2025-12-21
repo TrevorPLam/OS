@@ -309,82 +309,6 @@ class Campaign(models.Model):
         return f"{self.name} ({self.get_type_display()})"
 
 
-# DEPRECATED: Old Client model - kept temporarily for data migration
-# Will be removed after migration to modules.clients.Client
-class Client(models.Model):
-    """
-    Client (Company) entity.
-
-    Represents the organization the consultant works with.
-    Each client can have multiple contacts, proposals, and contracts.
-    """
-    STATUS_CHOICES = [
-        ('lead', 'Lead'),
-        ('prospect', 'Prospect'),
-        ('active', 'Active Client'),
-        ('inactive', 'Inactive'),
-        ('lost', 'Lost'),
-    ]
-
-    # Core Fields
-    company_name = models.CharField(max_length=255, unique=True)
-    industry = models.CharField(max_length=100, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='lead')
-
-    # Contact Information
-    primary_contact_name = models.CharField(max_length=255)
-    primary_contact_email = models.EmailField()
-    primary_contact_phone = models.CharField(max_length=50, blank=True)
-
-    # Address
-    street_address = models.CharField(max_length=255, blank=True)
-    city = models.CharField(max_length=100, blank=True)
-    state = models.CharField(max_length=100, blank=True)
-    postal_code = models.CharField(max_length=20, blank=True)
-    country = models.CharField(max_length=100, default='USA')
-
-    # Business Metadata
-    website = models.URLField(blank=True)
-    employee_count = models.IntegerField(null=True, blank=True)
-    annual_revenue = models.DecimalField(
-        max_digits=15,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Estimated annual revenue"
-    )
-
-    # Internal Tracking
-    source = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="How did we acquire this lead? (e.g., referral, cold outreach)"
-    )
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='owned_clients',
-        help_text="The consultant who owns this relationship"
-    )
-
-    # Audit Fields
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    notes = models.TextField(blank=True)
-
-    class Meta:
-        db_table = 'crm_clients'
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['owner']),
-        ]
-
-    def __str__(self):
-        return self.company_name
-
-
 class Proposal(models.Model):
     """
     Proposal (Quote) entity - PRE-SALE.
@@ -408,17 +332,6 @@ class Proposal(models.Model):
         related_name='proposals',
         help_text="The prospect this proposal is for"
     )
-
-    # DEPRECATED: Legacy client reference for data migration compatibility
-    client = models.ForeignKey(
-        Client,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='legacy_proposals',
-        help_text="DEPRECATED - Use prospect instead"
-    )
-
     created_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -473,7 +386,7 @@ class Proposal(models.Model):
         db_table = 'crm_proposals'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['client', 'status']),
+            models.Index(fields=['prospect', 'status']),
             models.Index(fields=['proposal_number']),
         ]
 
