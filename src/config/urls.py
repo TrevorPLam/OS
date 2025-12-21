@@ -24,7 +24,8 @@ urlpatterns = [
 
     # API Endpoints (REST Framework)
     path('api/auth/', include('modules.auth.urls')),
-    path('api/crm/', include('api.crm.urls')),
+    path('api/crm/', include('api.crm.urls')),          # Pre-sale: Leads, Prospects, Campaigns, Proposals
+    path('api/clients/', include('api.clients.urls')),   # Post-sale: Client management & portal
     path('api/projects/', include('api.projects.urls')),
     path('api/finance/', include('api.finance.urls')),
     path('api/documents/', include('api.documents.urls')),

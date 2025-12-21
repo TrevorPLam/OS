@@ -8,7 +8,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
-from modules.crm.models import Contract, Client
+from modules.crm.models import Contract
 
 
 class Project(models.Model):
@@ -16,7 +16,7 @@ class Project(models.Model):
     Project entity.
 
     Represents a consulting engagement or deliverable.
-    Typically linked to a Contract, but can exist independently.
+    Linked to a post-sale Client (modules.clients.Client) and optionally a Contract.
     """
     STATUS_CHOICES = [
         ('planning', 'Planning'),
@@ -33,11 +33,12 @@ class Project(models.Model):
         ('non_billable', 'Non-Billable'),
     ]
 
-    # Relationships
+    # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
-        Client,
+        'clients.Client',
         on_delete=models.CASCADE,
-        related_name='projects'
+        related_name='projects',
+        help_text="The post-sale client this project belongs to"
     )
     contract = models.ForeignKey(
         Contract,

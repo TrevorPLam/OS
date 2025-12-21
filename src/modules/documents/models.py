@@ -6,7 +6,6 @@ Supports hierarchical folders and client portal access.
 """
 from django.db import models
 from django.contrib.auth.models import User
-from modules.crm.models import Client
 from modules.projects.models import Project
 
 
@@ -22,12 +21,12 @@ class Folder(models.Model):
         ('client', 'Visible to Client'),
     ]
 
-    # Relationships
+    # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
-        Client,
+        'clients.Client',
         on_delete=models.CASCADE,
         related_name='folders',
-        help_text="The client who owns this folder"
+        help_text="The post-sale client who owns this folder"
     )
     project = models.ForeignKey(
         Project,
@@ -94,17 +93,17 @@ class Document(models.Model):
         ('client', 'Visible to Client'),
     ]
 
-    # Relationships
+    # Relationships - UPDATED to reference clients.Client
     folder = models.ForeignKey(
         Folder,
         on_delete=models.CASCADE,
         related_name='documents'
     )
     client = models.ForeignKey(
-        Client,
+        'clients.Client',
         on_delete=models.CASCADE,
         related_name='documents',
-        help_text="Denormalized for quick filtering"
+        help_text="Denormalized for quick filtering (post-sale client)"
     )
     project = models.ForeignKey(
         Project,

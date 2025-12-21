@@ -1,15 +1,12 @@
 """
-URL routes for CRM API.
+URL routes for CRM API (Pre-Sale: Marketing & Sales).
+
+UPDATED: Clients moved to /api/clients/ (Post-Sale module)
+CRM now handles: Leads, Prospects, Campaigns, Proposals, Contracts
 """
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import ClientViewSet, ProposalViewSet, ContractViewSet
 
-router = DefaultRouter()
-router.register(r'clients', ClientViewSet, basename='client')
-router.register(r'proposals', ProposalViewSet, basename='proposal')
-router.register(r'contracts', ContractViewSet, basename='contract')
-
+# Use the CRM module's URL configuration
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', include('modules.crm.urls')),
 ]

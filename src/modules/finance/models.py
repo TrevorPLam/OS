@@ -10,7 +10,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
-from modules.crm.models import Client
 from modules.projects.models import Project
 
 
@@ -18,7 +17,7 @@ class Invoice(models.Model):
     """
     Invoice entity (Accounts Receivable).
 
-    Represents money owed to us by clients.
+    Represents money owed to us by post-sale clients.
     Can be linked to Projects for Time & Materials billing.
     """
     STATUS_CHOICES = [
@@ -30,11 +29,12 @@ class Invoice(models.Model):
         ('cancelled', 'Cancelled'),
     ]
 
-    # Relationships
+    # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
-        Client,
+        'clients.Client',
         on_delete=models.CASCADE,
-        related_name='invoices'
+        related_name='invoices',
+        help_text="The post-sale client being invoiced"
     )
     project = models.ForeignKey(
         Project,

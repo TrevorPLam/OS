@@ -42,7 +42,8 @@ INSTALLED_APPS = [
 
     # USP Business Modules (Organized by Domain)
     'modules.auth',
-    'modules.crm',
+    'modules.crm',          # Pre-sale: Leads, Prospects, Proposals
+    'modules.clients',      # Post-sale: Client management and portal
     'modules.projects',
     'modules.finance',
     'modules.documents',

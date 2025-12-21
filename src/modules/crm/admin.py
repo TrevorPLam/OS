@@ -1,10 +1,60 @@
 """
-Django Admin configuration for CRM models.
+Django Admin configuration for CRM models (Pre-Sale).
 """
 from django.contrib import admin
-from .models import Client, Proposal, Contract
+from .models import Lead, Prospect, Campaign, Proposal, Contract, Client
 
 
+@admin.register(Lead)
+class LeadAdmin(admin.ModelAdmin):
+    list_display = [
+        'company_name',
+        'contact_name',
+        'status',
+        'source',
+        'lead_score',
+        'assigned_to',
+        'captured_date'
+    ]
+    list_filter = ['status', 'source', 'assigned_to', 'campaign']
+    search_fields = ['company_name', 'contact_name', 'contact_email']
+    readonly_fields = ['captured_date', 'created_at', 'updated_at']
+
+
+@admin.register(Prospect)
+class ProspectAdmin(admin.ModelAdmin):
+    list_display = [
+        'company_name',
+        'pipeline_stage',
+        'estimated_value',
+        'close_date_estimate',
+        'probability',
+        'assigned_to',
+        'created_at'
+    ]
+    list_filter = ['pipeline_stage', 'assigned_to']
+    search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
+    readonly_fields = ['created_at', 'updated_at', 'won_date', 'lost_date']
+
+
+@admin.register(Campaign)
+class CampaignAdmin(admin.ModelAdmin):
+    list_display = [
+        'name',
+        'type',
+        'status',
+        'leads_generated',
+        'opportunities_created',
+        'budget',
+        'start_date',
+        'end_date'
+    ]
+    list_filter = ['type', 'status', 'owner']
+    search_fields = ['name', 'description']
+    readonly_fields = ['leads_generated', 'created_at', 'updated_at']
+
+
+# DEPRECATED: Old Client admin - kept for data migration compatibility
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     list_display = [
@@ -19,6 +69,10 @@ class ClientAdmin(admin.ModelAdmin):
     search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
     readonly_fields = ['created_at', 'updated_at']
     fieldsets = (
+        ('DEPRECATED', {
+            'description': 'This model is deprecated. Use modules.clients.Client for new clients.',
+            'fields': ()
+        }),
         ('Company Information', {
             'fields': ('company_name', 'industry', 'status', 'website', 'employee_count', 'annual_revenue')
         }),
@@ -42,25 +96,29 @@ class ClientAdmin(admin.ModelAdmin):
 class ProposalAdmin(admin.ModelAdmin):
     list_display = [
         'proposal_number',
-        'client',
+        'prospect',
         'title',
         'status',
         'total_value',
         'valid_until',
+        'converted_to_client',
         'created_at'
     ]
-    list_filter = ['status', 'created_at', 'valid_until']
-    search_fields = ['proposal_number', 'title', 'client__company_name']
-    readonly_fields = ['created_at', 'updated_at', 'sent_at', 'accepted_at']
+    list_filter = ['status', 'converted_to_client', 'created_at', 'valid_until']
+    search_fields = ['proposal_number', 'title', 'prospect__company_name']
+    readonly_fields = ['created_at', 'updated_at', 'sent_at', 'accepted_at', 'converted_to_client']
     fieldsets = (
         ('Basic Information', {
-            'fields': ('proposal_number', 'client', 'created_by', 'title', 'description', 'status')
+            'fields': ('proposal_number', 'prospect', 'created_by', 'title', 'description', 'status')
         }),
         ('Financial Terms', {
             'fields': ('total_value', 'currency')
         }),
         ('Timeline', {
             'fields': ('valid_until', 'estimated_start_date', 'estimated_end_date')
+        }),
+        ('Conversion Settings', {
+            'fields': ('auto_create_project', 'enable_portal_on_acceptance', 'converted_to_client')
         }),
         ('Audit', {
             'fields': ('sent_at', 'accepted_at', 'created_at', 'updated_at'),

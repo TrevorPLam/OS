@@ -1,0 +1,152 @@
+"""
+Django Admin configuration for Clients module.
+"""
+from django.contrib import admin
+from modules.clients.models import Client, ClientPortalUser, ClientNote, ClientEngagement
+
+
+@admin.register(Client)
+class ClientAdmin(admin.ModelAdmin):
+    list_display = (
+        'company_name',
+        'status',
+        'account_manager',
+        'portal_enabled',
+        'active_projects_count',
+        'total_lifetime_value',
+        'client_since',
+    )
+    list_filter = ('status', 'portal_enabled', 'client_since')
+    search_fields = ('company_name', 'primary_contact_name', 'primary_contact_email')
+    readonly_fields = ('created_at', 'updated_at', 'source_prospect', 'source_proposal')
+    filter_horizontal = ('assigned_team',)
+
+    fieldsets = (
+        ('Origin Tracking', {
+            'fields': ('source_prospect', 'source_proposal'),
+            'classes': ('collapse',),
+        }),
+        ('Company Information', {
+            'fields': ('company_name', 'industry', 'website', 'employee_count'),
+        }),
+        ('Contact Information', {
+            'fields': (
+                'primary_contact_name',
+                'primary_contact_email',
+                'primary_contact_phone',
+            ),
+        }),
+        ('Address', {
+            'fields': ('street_address', 'city', 'state', 'postal_code', 'country'),
+            'classes': ('collapse',),
+        }),
+        ('Status & Team', {
+            'fields': ('status', 'account_manager', 'assigned_team'),
+        }),
+        ('Portal', {
+            'fields': ('portal_enabled',),
+        }),
+        ('Metrics', {
+            'fields': ('total_lifetime_value', 'active_projects_count', 'client_since'),
+        }),
+        ('Notes', {
+            'fields': ('notes',),
+            'classes': ('collapse',),
+        }),
+        ('Audit', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+@admin.register(ClientPortalUser)
+class ClientPortalUserAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'client',
+        'role',
+        'can_upload_documents',
+        'can_view_billing',
+        'invited_at',
+        'last_login',
+    )
+    list_filter = ('role', 'can_upload_documents', 'can_view_billing')
+    search_fields = ('user__username', 'user__email', 'client__company_name')
+    readonly_fields = ('invited_at', 'invited_by')
+
+    fieldsets = (
+        ('User & Client', {
+            'fields': ('client', 'user', 'role'),
+        }),
+        ('Permissions', {
+            'fields': (
+                'can_upload_documents',
+                'can_view_billing',
+                'can_message_team',
+                'can_view_projects',
+            ),
+        }),
+        ('Audit', {
+            'fields': ('invited_by', 'invited_at', 'last_login'),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+@admin.register(ClientNote)
+class ClientNoteAdmin(admin.ModelAdmin):
+    list_display = ('client', 'author', 'is_pinned', 'created_at')
+    list_filter = ('is_pinned', 'created_at')
+    search_fields = ('client__company_name', 'note', 'author__username')
+    readonly_fields = ('created_at', 'updated_at')
+
+    fieldsets = (
+        (None, {
+            'fields': ('client', 'author', 'note', 'is_pinned'),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+@admin.register(ClientEngagement)
+class ClientEngagementAdmin(admin.ModelAdmin):
+    list_display = (
+        'client',
+        'contract',
+        'version',
+        'status',
+        'start_date',
+        'end_date',
+        'contracted_value',
+        'actual_revenue',
+    )
+    list_filter = ('status', 'start_date')
+    search_fields = ('client__company_name', 'contract__contract_number')
+    readonly_fields = ('created_at', 'updated_at')
+
+    fieldsets = (
+        ('Client & Contract', {
+            'fields': ('client', 'contract', 'status'),
+        }),
+        ('Versioning', {
+            'fields': ('version', 'parent_engagement'),
+        }),
+        ('Timeline', {
+            'fields': ('start_date', 'end_date', 'actual_end_date'),
+        }),
+        ('Financial', {
+            'fields': ('contracted_value', 'actual_revenue'),
+        }),
+        ('Notes', {
+            'fields': ('notes',),
+            'classes': ('collapse',),
+        }),
+        ('Audit', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
