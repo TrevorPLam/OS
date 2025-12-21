@@ -32,14 +32,18 @@ const Layout: React.FC = () => {
       </header>
 
       <nav className="app-nav">
-        <Link to="/">Dashboard</Link>
-        <Link to="/clients">Clients</Link>
-        <Link to="/proposals">Proposals</Link>
-        <Link to="/contracts">Contracts</Link>
-        <Link to="/projects">Projects</Link>
-        <Link to="/time-tracking">Time Tracking</Link>
-        <Link to="/invoices">Invoices</Link>
-        <Link to="/documents">Documents</Link>
+        <Link to="/">📊 Dashboard</Link>
+        <Link to="/clients">👥 Clients</Link>
+        <Link to="/proposals">📄 Proposals</Link>
+        <Link to="/contracts">📝 Contracts</Link>
+        <Link to="/projects">📋 Projects</Link>
+        <Link to="/time-tracking">⏱️ Time Tracking</Link>
+        <Link to="/invoices">💰 Invoices</Link>
+        <Link to="/documents">📁 Documents</Link>
+        <Link to="/client-portal">🌐 Client Portal</Link>
+        <Link to="/assets">💻 Assets</Link>
+        <Link to="/knowledge">📚 Knowledge Center</Link>
+        <Link to="/communications">💬 Communications</Link>
       </nav>
 
       <main className="app-main">

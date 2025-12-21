@@ -13,6 +13,10 @@ import Projects from './pages/Projects'
 import ProjectKanban from './pages/ProjectKanban'
 import TimeTracking from './pages/TimeTracking'
 import Documents from './pages/Documents'
+import { ClientPortal } from './pages/ClientPortal'
+import { AssetManagement } from './pages/AssetManagement'
+import { KnowledgeCenter } from './pages/KnowledgeCenter'
+import { Communications } from './pages/Communications'
 
 function App() {
   return (
@@ -41,6 +45,10 @@ function App() {
             <Route path="/time-tracking" element={<TimeTracking />} />
             <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />
             <Route path="/documents" element={<Documents />} />
+            <Route path="/client-portal" element={<ClientPortal />} />
+            <Route path="/assets" element={<AssetManagement />} />
+            <Route path="/knowledge" element={<KnowledgeCenter />} />
+            <Route path="/communications" element={<Communications />} />
           </Route>
 
           {/* Catch all - redirect to home */}
