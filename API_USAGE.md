@@ -8,13 +8,14 @@ Complete guide to using the ConsultantPro REST API.
 
 1. [Authentication](#authentication)
 2. [API Overview](#api-overview)
-3. [CRM Module](#crm-module)
-4. [Projects Module](#projects-module)
-5. [Finance Module](#finance-module)
-6. [Documents Module](#documents-module)
-7. [Assets Module](#assets-module)
-8. [Error Handling](#error-handling)
-9. [Rate Limiting](#rate-limiting)
+3. [CRM Module (Pre-Sale)](#crm-module-pre-sale)
+4. [Clients Module (Post-Sale)](#clients-module-post-sale)
+5. [Projects Module](#projects-module)
+6. [Finance Module](#finance-module)
+7. [Documents Module](#documents-module)
+8. [Assets Module](#assets-module)
+9. [Error Handling](#error-handling)
+10. [Rate Limiting](#rate-limiting)
 
 ---
 
@@ -84,11 +85,12 @@ Production: https://your-domain.com
 
 | Module | Endpoint Base | Description |
 |--------|--------------|-------------|
-| CRM | `/api/crm/` | Clients, Proposals, Contracts |
-| Projects | `/api/projects/` | Projects, Tasks, Time Entries |
-| Finance | `/api/finance/` | Invoices, Bills, Ledger Entries |
-| Documents | `/api/documents/` | Folders, Documents, Versions |
-| Assets | `/api/assets/` | Assets, Maintenance Logs |
+| **CRM (Pre-Sale)** | `/api/crm/` | Leads, Prospects, Campaigns, Proposals, Contracts |
+| **Clients (Post-Sale)** | `/api/clients/` | Clients, Client Engagements, Portal Users, Notes |
+| **Projects** | `/api/projects/` | Projects, Tasks, Time Entries |
+| **Finance** | `/api/finance/` | Invoices, Bills, Ledger Entries |
+| **Documents** | `/api/documents/` | Folders, Documents, Versions |
+| **Assets** | `/api/assets/` | Assets, Maintenance Logs |
 
 ### API Documentation
 
@@ -98,99 +100,209 @@ Interactive API documentation available at:
 
 ---
 
-## CRM Module
+## CRM Module (Pre-Sale)
 
-### Clients
+The CRM module handles the pre-sale workflow: **Lead → Prospect → Proposal → Client Creation**
 
-#### List All Clients
+### Leads
+
+Leads are marketing-captured prospects before sales qualification.
+
+#### List All Leads
 
 ```http
-GET /api/crm/clients/
+GET /api/crm/leads/
 Authorization: Bearer {token}
 ```
 
 **Query Parameters:**
-- `status` - Filter by status (active, inactive, lead, archived)
-- `industry` - Filter by industry
+- `status` - Filter by status (new, contacted, qualified, converted, lost)
+- `source` - Filter by source (website, referral, campaign, event, cold_outreach)
 - `search` - Search company name, contact name, email
-- `ordering` - Sort by field (e.g., `-created_at`, `company_name`)
-- `page` - Page number for pagination
-
-**Example:**
-```http
-GET /api/crm/clients/?status=active&search=tech&ordering=-created_at
-```
+- `ordering` - Sort by field (e.g., `-lead_score`, `captured_date`)
 
 **Response:**
 ```json
 {
-  "count": 42,
-  "next": "http://localhost:8000/api/crm/clients/?page=2",
-  "previous": null,
+  "count": 23,
   "results": [
     {
       "id": 1,
-      "company_name": "Tech Innovations Inc",
-      "primary_contact_name": "John Smith",
-      "primary_contact_email": "john@techinnovations.com",
-      "primary_contact_phone": "+1-555-0100",
-      "website": "https://techinnovations.com",
-      "industry": "Technology",
-      "status": "active",
-      "created_at": "2025-01-15T10:30:00Z"
+      "company_name": "Tech Startups LLC",
+      "contact_name": "Sarah Johnson",
+      "email": "sarah@techstartups.com",
+      "phone": "+1-555-0100",
+      "source": "website",
+      "status": "new",
+      "lead_score": 75,
+      "captured_date": "2025-01-15",
+      "assigned_to": 2,
+      "campaign": 5
     }
   ]
 }
 ```
 
-#### Create Client
+#### Create Lead
 
 ```http
-POST /api/crm/clients/
+POST /api/crm/leads/
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "company_name": "Acme Corporation",
-  "primary_contact_name": "Jane Doe",
-  "primary_contact_email": "jane@acme.com",
+  "company_name": "Tech Startups LLC",
+  "contact_name": "Sarah Johnson",
+  "email": "sarah@techstartups.com",
+  "phone": "+1-555-0100",
+  "source": "website",
+  "assigned_to": 2,
+  "campaign": 5,
+  "notes": "Interested in strategic planning services"
+}
+```
+
+#### Convert Lead to Prospect
+
+```http
+POST /api/crm/leads/1/convert_to_prospect/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "message": "Lead converted to Prospect successfully",
+  "prospect_id": 15,
+  "lead_id": 1
+}
+```
+
+### Prospects
+
+Prospects are qualified sales opportunities in the active pipeline.
+
+#### List All Prospects
+
+```http
+GET /api/crm/prospects/
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `pipeline_stage` - Filter by stage (discovery, proposal, negotiation, won, lost)
+- `search` - Search company name, contact name
+- `ordering` - Sort by field (e.g., `-estimated_value`, `close_date_estimate`)
+
+**Response:**
+```json
+{
+  "count": 12,
+  "results": [
+    {
+      "id": 15,
+      "lead": 1,
+      "company_name": "Tech Startups LLC",
+      "primary_contact_name": "Sarah Johnson",
+      "primary_contact_email": "sarah@techstartups.com",
+      "pipeline_stage": "discovery",
+      "estimated_value": "50000.00",
+      "close_date_estimate": "2025-03-31",
+      "assigned_to": 2,
+      "created_at": "2025-01-20T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### Create Prospect
+
+```http
+POST /api/crm/prospects/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "company_name": "Acme Manufacturing",
+  "primary_contact_name": "David Chen",
+  "primary_contact_email": "david@acme.com",
   "primary_contact_phone": "+1-555-0200",
-  "website": "https://acme.com",
-  "address": "123 Main St",
-  "city": "San Francisco",
-  "state": "CA",
-  "postal_code": "94105",
-  "country": "USA",
-  "industry": "Manufacturing",
-  "status": "lead",
-  "lead_source": "referral",
-  "notes": "Interested in Q2 engagement"
+  "pipeline_stage": "discovery",
+  "estimated_value": "75000.00",
+  "close_date_estimate": "2025-04-15",
+  "assigned_to": 3
 }
 ```
 
-#### Update Client
+### Campaigns
+
+Marketing campaigns for tracking lead generation performance.
+
+#### List All Campaigns
 
 ```http
-PATCH /api/crm/clients/1/
+GET /api/crm/campaigns/
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `type` - Filter by type (new_business, client_engagement)
+- `search` - Search campaign name
+
+**Response:**
+```json
+{
+  "count": 8,
+  "results": [
+    {
+      "id": 5,
+      "name": "Q1 2025 Webinar Series",
+      "type": "new_business",
+      "description": "Monthly webinars on digital transformation",
+      "budget": "10000.00",
+      "leads_generated": 47,
+      "opportunities_created": 12,
+      "revenue_generated": "150000.00",
+      "roi": 1400.00,
+      "start_date": "2025-01-01",
+      "end_date": "2025-03-31"
+    }
+  ]
+}
+```
+
+#### Create Campaign
+
+```http
+POST /api/crm/campaigns/
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "status": "active",
-  "notes": "Signed contract on 2025-01-20"
+  "name": "Q2 2025 Content Marketing",
+  "type": "new_business",
+  "description": "Blog posts and whitepapers",
+  "budget": "5000.00",
+  "start_date": "2025-04-01",
+  "end_date": "2025-06-30"
 }
-```
-
-#### Get Client Detail
-
-```http
-GET /api/crm/clients/1/
-Authorization: Bearer {token}
 ```
 
 ### Proposals
 
-#### Create Proposal
+ConsultantPro supports **3 types of proposals**:
+
+1. **`prospective_client`** - New business proposals (linked to Prospect)
+2. **`update_client`** - Expansion/upsell proposals (linked to Client)
+3. **`renewal_client`** - Contract renewal proposals (linked to Client)
+
+When a `prospective_client` proposal is **accepted**, the system automatically:
+- Creates a new Client record
+- Creates a Contract
+- Optionally creates initial Project
+- Optionally enables Client Portal access
+
+#### Create Proposal (New Business)
 
 ```http
 POST /api/crm/proposals/
@@ -198,13 +310,16 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "client": 1,
+  "proposal_type": "prospective_client",
+  "prospect": 15,
   "title": "Digital Transformation Strategy",
   "description": "6-month engagement for digital transformation assessment and implementation roadmap",
   "estimated_value": "75000.00",
   "currency": "USD",
   "valid_until": "2025-03-31",
-  "status": "draft"
+  "status": "draft",
+  "auto_create_project": true,
+  "enable_portal_on_acceptance": true
 }
 ```
 
@@ -213,17 +328,58 @@ Content-Type: application/json
 {
   "id": 1,
   "proposal_number": "PROP-2025-001",
-  "client": 1,
-  "client_name": "Acme Corporation",
+  "proposal_type": "prospective_client",
+  "prospect": 15,
+  "prospect_name": "Tech Startups LLC",
+  "client": null,
   "title": "Digital Transformation Strategy",
   "estimated_value": "75000.00",
   "status": "draft",
   "is_expired": false,
+  "converted_to_client": false,
   "created_at": "2025-01-20T14:00:00Z"
 }
 ```
 
-#### Send Proposal to Client
+#### Create Proposal (Client Expansion/Upsell)
+
+```http
+POST /api/crm/proposals/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "proposal_type": "update_client",
+  "client": 5,
+  "title": "Additional Consulting Services - Phase 2",
+  "description": "Expansion scope for implementation support",
+  "estimated_value": "50000.00",
+  "currency": "USD",
+  "valid_until": "2025-04-30",
+  "status": "draft"
+}
+```
+
+#### Create Proposal (Client Renewal)
+
+```http
+POST /api/crm/proposals/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "proposal_type": "renewal_client",
+  "client": 5,
+  "title": "Annual Retainer Renewal - Year 2",
+  "description": "Continuation of ongoing consulting engagement",
+  "estimated_value": "120000.00",
+  "currency": "USD",
+  "valid_until": "2025-05-31",
+  "status": "draft"
+}
+```
+
+#### Accept Proposal (Triggers Client Creation)
 
 ```http
 PATCH /api/crm/proposals/1/
@@ -231,11 +387,25 @@ Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-  "status": "sent"
+  "status": "accepted"
 }
 ```
 
-*Note: Changing status to "sent" automatically sets `sent_at` timestamp via Django signals.*
+**Response (for prospective_client type):**
+```json
+{
+  "id": 1,
+  "proposal_number": "PROP-2025-001",
+  "proposal_type": "prospective_client",
+  "status": "accepted",
+  "converted_to_client": true,
+  "client": 42,
+  "contract": 18,
+  "message": "Proposal accepted. Client and Contract created automatically."
+}
+```
+
+*Note: For `update_client` and `renewal_client` types, acceptance creates a new Contract and updates the ClientEngagement version history, but does NOT create a new Client.*
 
 ### Contracts
 
@@ -271,6 +441,262 @@ Content-Type: application/json
   "contract_value": "75000.00",
   "status": "draft",
   "is_active": false
+}
+```
+
+---
+
+## Clients Module (Post-Sale)
+
+The Clients module handles post-sale client management. Clients are created automatically when a `prospective_client` proposal is accepted, or can be created manually for existing relationships.
+
+### Clients
+
+#### List All Clients
+
+```http
+GET /api/clients/
+Authorization: Bearer {token}
+```
+
+**Query Parameters:**
+- `status` - Filter by status (active, inactive, terminated)
+- `search` - Search company name, contact name, email
+- `account_manager` - Filter by account manager ID
+- `ordering` - Sort by field (e.g., `-client_since`, `company_name`)
+
+**Response:**
+```json
+{
+  "count": 38,
+  "results": [
+    {
+      "id": 42,
+      "company_name": "Tech Startups LLC",
+      "primary_contact_name": "Sarah Johnson",
+      "primary_contact_email": "sarah@techstartups.com",
+      "primary_contact_phone": "+1-555-0100",
+      "status": "active",
+      "account_manager": 2,
+      "account_manager_name": "Jane Smith",
+      "portal_enabled": true,
+      "client_since": "2025-01-20",
+      "total_lifetime_value": "150000.00",
+      "active_projects_count": 2,
+      "source_prospect": 15,
+      "source_proposal": 1
+    }
+  ]
+}
+```
+
+#### Get Client Detail
+
+```http
+GET /api/clients/42/
+Authorization: Bearer {token}
+```
+
+**Response includes related data:**
+```json
+{
+  "id": 42,
+  "company_name": "Tech Startups LLC",
+  "primary_contact_name": "Sarah Johnson",
+  "primary_contact_email": "sarah@techstartups.com",
+  "status": "active",
+  "account_manager": 2,
+  "assigned_team": [2, 5, 8],
+  "portal_enabled": true,
+  "client_since": "2025-01-20",
+  "total_lifetime_value": "150000.00",
+  "active_projects_count": 2,
+  "source_prospect": 15,
+  "source_proposal": 1,
+  "active_contracts": [
+    {
+      "id": 18,
+      "contract_number": "CTR-2025-018",
+      "title": "Digital Transformation Engagement",
+      "status": "active",
+      "start_date": "2025-02-01",
+      "end_date": "2025-07-31"
+    }
+  ],
+  "recent_projects": [...],
+  "recent_invoices": [...]
+}
+```
+
+#### Update Client
+
+```http
+PATCH /api/clients/42/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "status": "inactive",
+  "portal_enabled": false
+}
+```
+
+#### Create Client (Manual)
+
+```http
+POST /api/clients/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "company_name": "Manual Entry Corp",
+  "primary_contact_name": "Bob Wilson",
+  "primary_contact_email": "bob@manual.com",
+  "primary_contact_phone": "+1-555-0300",
+  "account_manager": 3,
+  "status": "active",
+  "client_since": "2025-01-22"
+}
+```
+
+### Client Engagements
+
+Track all contracts and engagements with version history.
+
+#### List Client Engagements
+
+```http
+GET /api/clients/42/engagements/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "count": 3,
+  "results": [
+    {
+      "id": 12,
+      "client": 42,
+      "contract": 18,
+      "status": "current",
+      "version": 1,
+      "parent_engagement": null,
+      "started_at": "2025-02-01",
+      "ended_at": null
+    },
+    {
+      "id": 8,
+      "client": 42,
+      "contract": 15,
+      "status": "renewed",
+      "version": 1,
+      "parent_engagement": null,
+      "started_at": "2024-08-01",
+      "ended_at": "2025-01-31"
+    }
+  ]
+}
+```
+
+### Client Portal Users
+
+Manage client-side users who can access the Client Portal.
+
+#### List Portal Users for Client
+
+```http
+GET /api/clients/42/portal-users/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "count": 3,
+  "results": [
+    {
+      "id": 5,
+      "client": 42,
+      "user": 101,
+      "user_email": "sarah@techstartups.com",
+      "role": "admin",
+      "can_upload_documents": true,
+      "can_view_billing": true,
+      "can_message_team": true,
+      "created_at": "2025-01-20T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### Create Portal User
+
+```http
+POST /api/clients/42/portal-users/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "email": "john@techstartups.com",
+  "first_name": "John",
+  "last_name": "Doe",
+  "role": "member",
+  "can_upload_documents": true,
+  "can_view_billing": false,
+  "can_message_team": true
+}
+```
+
+**Response:**
+```json
+{
+  "id": 6,
+  "client": 42,
+  "user": 102,
+  "user_email": "john@techstartups.com",
+  "role": "member",
+  "message": "Portal user created. Invitation email sent."
+}
+```
+
+### Client Notes
+
+Internal notes about clients (not visible to client users).
+
+#### Add Client Note
+
+```http
+POST /api/clients/42/notes/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "note": "Client requested additional consulting services for Q2. Follow up on 2/15."
+}
+```
+
+#### List Client Notes
+
+```http
+GET /api/clients/42/notes/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "count": 5,
+  "results": [
+    {
+      "id": 23,
+      "client": 42,
+      "author": 2,
+      "author_name": "Jane Smith",
+      "note": "Client requested additional consulting services for Q2. Follow up on 2/15.",
+      "created_at": "2025-01-22T14:30:00Z"
+    }
+  ]
 }
 ```
 

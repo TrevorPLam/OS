@@ -70,9 +70,14 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
     asgi.py
 
   /modules                  # Business Domain Modules
-    /crm                    # Customer Relationship Management
-      models.py             # Client, Proposal, Contract
+    /crm                    # Marketing & Sales (Pre-Sale)
+      models.py             # Lead, Prospect, Campaign, Proposal, Contract
       admin.py
+      signals.py            # Proposal acceptance → Client creation
+    /clients                # Client Management (Post-Sale)
+      models.py             # Client, ClientEngagement, ClientPortalUser
+      admin.py
+      signals.py
     /projects               # Project Execution & Time Tracking
       models.py             # Project, Task, TimeEntry
       admin.py
@@ -85,12 +90,15 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
     /assets                 # Asset & Equipment Tracking
       models.py             # Asset, MaintenanceLog
       admin.py
+    /knowledge              # Knowledge Center
+      models.py             # Article, Category
 
   /api                      # REST API Endpoints
-    /crm                    # CRM API
+    /crm                    # CRM API (Pre-Sale)
       serializers.py
       views.py
       urls.py
+    /clients                # Clients API (Post-Sale)
     /projects               # Projects API
     /finance                # Finance API
     /documents              # Documents API
@@ -100,6 +108,7 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
     /src
       /components
       /pages
+        /crm                # CRM pages (Leads, Prospects, Campaigns)
       /api
       /hooks
       /types
@@ -113,23 +122,53 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
 
 ## Business Modules
 
-### 1. CRM (Customer Relationship Management)
+### 1. CRM (Marketing & Sales - Pre-Sale)
 
-**Purpose:** Quote-to-Cash workflow
+**Purpose:** Lead capture through proposal acceptance
 
 **Models:**
-- `Client` - Company entities with contact info
-- `Proposal` - Quotes sent to clients
-- `Contract` - Signed agreements
+- `Lead` - Marketing-captured prospects (new)
+- `Prospect` - Qualified sales opportunities (new)
+- `Campaign` - Marketing campaign tracking (new)
+- `Proposal` - Quotes for prospects AND client renewals/upsells
+- `Contract` - Signed engagement letters
 
-**Flow:** Lead → Proposal → Contract
+**Flow:** Lead → Prospect → Proposal → **[Acceptance triggers Client creation]**
 
-### 2. Projects (Execution & Time Tracking)
+**Key Features:**
+- Lead scoring and qualification
+- Sales pipeline management
+- Campaign performance tracking
+- 3 Proposal types:
+  - `prospective_client`: New business (linked to Prospect)
+  - `update_client`: Expansion/Upsell (linked to Client)
+  - `renewal_client`: Contract renewal (linked to Client)
+- Automated client conversion on proposal acceptance
+
+### 2. Clients (Post-Sale Management)
+
+**Purpose:** Manage active client relationships and engagements
+
+**Models:**
+- `Client` - Post-sale client records (created from accepted proposals)
+- `ClientEngagement` - Engagement history with version tracking
+- `ClientPortalUser` - Client portal access and permissions
+- `ClientNote` - Internal notes about clients
+
+**Flow:** Proposal Acceptance → Client Creation → Ongoing Engagement
+
+**Key Features:**
+- Client hub with unified view of projects, documents, invoices
+- Engagement versioning for renewals
+- Portal access management
+- Source tracking (from which prospect/proposal)
+
+### 3. Projects (Execution & Time Tracking)
 
 **Purpose:** Deliver work and track billable time
 
 **Models:**
-- `Project` - Consulting engagements
+- `Project` - Consulting engagements (linked to Clients, not CRM)
 - `Task` - Kanban-style work items
 - `TimeEntry` - Time tracking for billing
 
@@ -354,7 +393,8 @@ See **[API_USAGE.md](API_USAGE.md)** for comprehensive documentation including:
 
 | Module | Endpoints | Key Features |
 |--------|-----------|--------------|
-| **CRM** | `/api/crm/` | Clients, Proposals (auto-generate numbers), Contracts (auto-timestamps via signals) |
+| **CRM** | `/api/crm/` | Leads, Prospects, Campaigns, Proposals (3 types), Contracts, auto-conversion to Clients |
+| **Clients** | `/api/clients/` | Client management, Engagements, Portal users, Notes |
 | **Projects** | `/api/projects/` | Projects, Tasks (Kanban), Time Entries (auto-calculate billed amounts) |
 | **Finance** | `/api/finance/` | Invoices, Bills, Ledger Entries, Stripe integration with webhook handler |
 | **Documents** | `/api/documents/` | Folders (hierarchical), Documents (S3 upload/download with presigned URLs) |
@@ -415,12 +455,27 @@ Business logic stays in the app.
 
 ### Phase 1: ConsultantPro (Current)
 
-**Status:** ✅ Core Features Complete - Production Ready (with deployment hardening)
+**Status:** ✅ CRM Frontend Complete - Backend Migrations Pending
 
 **Completed Features:**
 - ✅ Authentication (JWT with token refresh & blacklist)
-- ✅ CRM UI (React with TypeScript)
-- ✅ Proposal & Contract management (auto-numbering, workflow signals)
+- ✅ **NEW: Complete CRM Frontend**
+  - ✅ Leads page (capture, scoring, convert to prospect)
+  - ✅ Prospects page (sales pipeline, filtering, metrics)
+  - ✅ Campaigns page (performance tracking for new business + client engagement)
+  - ✅ Proposals page (3 types: new business, expansion, renewal)
+- ✅ **NEW: Clients Module Separation**
+  - ✅ Post-sale client management separate from CRM
+  - ✅ Automated client creation on proposal acceptance
+  - ✅ Engagement versioning for renewals
+- ✅ **NEW: Reorganized Navigation**
+  - ✅ Sidebar layout with 4 sections
+  - ✅ CRM & Sales section (pre-sale)
+  - ✅ Client Management section (post-sale)
+  - ✅ Delivery section (projects, time)
+  - ✅ Resources section (documents, assets, knowledge)
+- ✅ CRM Backend (Lead, Prospect, Campaign, Proposal models with signals)
+- ✅ Clients Backend (Client, ClientEngagement, ClientPortalUser models)
 - ✅ Time tracking UI (Kanban board)
 - ✅ Invoice generation & management
 - ✅ S3 integration for documents (upload/download with presigned URLs)
@@ -431,12 +486,18 @@ Business logic stays in the app.
 - ✅ Error boundaries & loading states
 - ✅ API documentation (Swagger + ReDoc)
 
+**Next Steps:**
+- 🔄 Run database migrations for new CRM/Clients structure
+- 🔄 Test end-to-end CRM workflow (Lead → Client)
+- ⏳ Client Portal enhancement (Work, Chat, Billing sections)
+
 **Deployment Readiness:**
 - ✅ NOW Phase: Development blockers resolved
 - 🔄 NEXT Phase: Stabilization (5-7 days) - In Progress
 - ⏳ LATER Phase: Production hardening (4-5 weeks) - Planned
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** for complete production deployment guide.
+See **[TODO.md](TODO.md)** for prioritized task list.
 
 ### Phase 2: ArchitectPro (Q2 2024)
 
