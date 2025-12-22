@@ -216,10 +216,12 @@ class Prospect(models.Model):
 
 class Campaign(models.Model):
     """
-    Marketing campaign tracking.
+    Marketing & Sales Campaign tracking.
 
-    Tracks marketing initiatives and measures their effectiveness
-    in generating leads and pipeline opportunities.
+    Tracks campaigns for both new business acquisition AND existing client engagement:
+    - Lead generation (new prospects)
+    - Client renewals and upsells
+    - Client annual reviews
     """
     TYPE_CHOICES = [
         ('email', 'Email Campaign'),
@@ -228,6 +230,8 @@ class Campaign(models.Model):
         ('event', 'Event/Conference'),
         ('social', 'Social Media'),
         ('partnership', 'Partnership'),
+        ('renewal', 'Renewal Campaign'),
+        ('annual_review', 'Annual Review'),
         ('other', 'Other'),
     ]
 
@@ -268,8 +272,19 @@ class Campaign(models.Model):
         default=Decimal('0.00')
     )
 
-    # Performance Metrics
-    target_leads = models.IntegerField(default=0)
+    # Target Audience - Can target BOTH prospects AND clients
+    targeted_clients = models.ManyToManyField(
+        'clients.Client',
+        blank=True,
+        related_name='targeted_campaigns',
+        help_text="Existing clients targeted by this campaign (renewals, upsells, etc.)"
+    )
+
+    # Performance Metrics - New Business
+    target_leads = models.IntegerField(
+        default=0,
+        help_text="Target number of new leads"
+    )
     leads_generated = models.IntegerField(
         default=0,
         help_text="Auto-calculated from Lead.campaign foreign key"
@@ -278,11 +293,27 @@ class Campaign(models.Model):
         default=0,
         help_text="Number of Prospects created from campaign leads"
     )
+
+    # Performance Metrics - Client Engagement
+    clients_contacted = models.IntegerField(
+        default=0,
+        help_text="Number of existing clients contacted"
+    )
+    renewal_proposals_sent = models.IntegerField(
+        default=0,
+        help_text="Number of renewal/upsell proposals generated"
+    )
+    renewals_won = models.IntegerField(
+        default=0,
+        help_text="Number of successful renewals/upsells"
+    )
+
+    # Financial Metrics
     revenue_generated = models.DecimalField(
         max_digits=12,
         decimal_places=2,
         default=Decimal('0.00'),
-        help_text="Revenue from won deals attributed to this campaign"
+        help_text="Revenue from won deals (new + renewal) attributed to this campaign"
     )
 
     # Ownership
@@ -311,26 +342,54 @@ class Campaign(models.Model):
 
 class Proposal(models.Model):
     """
-    Proposal (Quote) entity - PRE-SALE.
+    Proposal (Quote/Engagement Letter) entity.
 
-    Represents a formal proposal sent to a prospect.
-    When accepted, triggers creation of Client and Contract.
+    Handles both new business and existing client proposals:
+    - prospective_client: New business (links to Prospect)
+    - update_client: Expansion/upsell to existing Client
+    - renewal_client: Renewal for existing Client
+
+    When accepted, becomes an Engagement Letter (Contract).
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
-        ('sent', 'Sent to Prospect'),
+        ('sent', 'Sent'),
         ('under_review', 'Under Review'),
         ('accepted', 'Accepted'),
         ('rejected', 'Rejected'),
         ('expired', 'Expired'),
     ]
 
-    # Relationships - UPDATED to reference Prospect
+    TYPE_CHOICES = [
+        ('prospective_client', 'Prospective Client - New Business'),
+        ('update_client', 'Update Client - Expansion/Upsell'),
+        ('renewal_client', 'Renewal Client - Contract Renewal'),
+    ]
+
+    # Proposal Type
+    proposal_type = models.CharField(
+        max_length=20,
+        choices=TYPE_CHOICES,
+        default='prospective_client',
+        help_text="Type of proposal: new business, expansion, or renewal"
+    )
+
+    # Relationships - EITHER prospect OR client (based on type)
     prospect = models.ForeignKey(
         Prospect,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name='proposals',
-        help_text="The prospect this proposal is for"
+        help_text="For prospective_client proposals (new business)"
+    )
+    client = models.ForeignKey(
+        'clients.Client',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='proposals',
+        help_text="For update_client or renewal_client proposals"
     )
     created_by = models.ForeignKey(
         User,
@@ -363,9 +422,9 @@ class Proposal(models.Model):
     estimated_end_date = models.DateField(null=True, blank=True)
 
     # Conversion Tracking (when accepted)
-    converted_to_client = models.BooleanField(
+    converted_to_engagement = models.BooleanField(
         default=False,
-        help_text="Whether this proposal has been converted to a client"
+        help_text="Whether this proposal has been converted to engagement/contract"
     )
     auto_create_project = models.BooleanField(
         default=True,
@@ -373,7 +432,7 @@ class Proposal(models.Model):
     )
     enable_portal_on_acceptance = models.BooleanField(
         default=True,
-        help_text="Enable client portal when proposal accepted"
+        help_text="Enable client portal when proposal accepted (for prospective_client only)"
     )
 
     # Audit Fields
@@ -386,12 +445,33 @@ class Proposal(models.Model):
         db_table = 'crm_proposals'
         ordering = ['-created_at']
         indexes = [
+            models.Index(fields=['proposal_type', 'status']),
             models.Index(fields=['prospect', 'status']),
+            models.Index(fields=['client', 'status']),
             models.Index(fields=['proposal_number']),
         ]
 
+    def clean(self):
+        """Validate that proposal has either prospect OR client based on type."""
+        from django.core.exceptions import ValidationError
+
+        if self.proposal_type == 'prospective_client':
+            if not self.prospect:
+                raise ValidationError("Prospective client proposals must have a prospect.")
+            if self.client:
+                raise ValidationError("Prospective client proposals cannot have a client.")
+        else:  # update_client or renewal_client
+            if not self.client:
+                raise ValidationError(f"{self.get_proposal_type_display()} proposals must have a client.")
+            if self.prospect:
+                raise ValidationError(f"{self.get_proposal_type_display()} proposals cannot have a prospect.")
+
     def __str__(self):
-        return f"{self.proposal_number} - {self.prospect.company_name}"
+        if self.proposal_type == 'prospective_client' and self.prospect:
+            return f"{self.proposal_number} - {self.prospect.company_name} (New Business)"
+        elif self.client:
+            return f"{self.proposal_number} - {self.client.company_name} ({self.get_proposal_type_display()})"
+        return f"{self.proposal_number}"
 
 
 class Contract(models.Model):

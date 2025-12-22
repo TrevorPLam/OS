@@ -44,34 +44,58 @@ class CampaignAdmin(admin.ModelAdmin):
         'type',
         'status',
         'leads_generated',
-        'opportunities_created',
+        'renewals_won',
+        'revenue_generated',
         'budget',
         'start_date',
         'end_date'
     ]
     list_filter = ['type', 'status', 'owner']
     search_fields = ['name', 'description']
-    readonly_fields = ['leads_generated', 'created_at', 'updated_at']
+    readonly_fields = [
+        'leads_generated',
+        'opportunities_created',
+        'clients_contacted',
+        'renewal_proposals_sent',
+        'renewals_won',
+        'created_at',
+        'updated_at'
+    ]
+    filter_horizontal = ['targeted_clients']
 
 
 @admin.register(Proposal)
 class ProposalAdmin(admin.ModelAdmin):
     list_display = [
         'proposal_number',
-        'prospect',
+        'proposal_type',
+        'get_company',
         'title',
         'status',
         'total_value',
         'valid_until',
-        'converted_to_client',
+        'converted_to_engagement',
         'created_at'
     ]
-    list_filter = ['status', 'converted_to_client', 'created_at', 'valid_until']
-    search_fields = ['proposal_number', 'title', 'prospect__company_name']
-    readonly_fields = ['created_at', 'updated_at', 'sent_at', 'accepted_at', 'converted_to_client']
+    list_filter = ['proposal_type', 'status', 'converted_to_engagement', 'created_at', 'valid_until']
+    search_fields = [
+        'proposal_number',
+        'title',
+        'prospect__company_name',
+        'client__company_name'
+    ]
+    readonly_fields = ['created_at', 'updated_at', 'sent_at', 'accepted_at', 'converted_to_engagement']
+
     fieldsets = (
+        ('Proposal Type', {
+            'fields': ('proposal_type',)
+        }),
+        ('Relationship', {
+            'fields': ('prospect', 'client'),
+            'description': 'Select EITHER prospect (new business) OR client (renewal/expansion)'
+        }),
         ('Basic Information', {
-            'fields': ('proposal_number', 'prospect', 'created_by', 'title', 'description', 'status')
+            'fields': ('proposal_number', 'created_by', 'title', 'description', 'status')
         }),
         ('Financial Terms', {
             'fields': ('total_value', 'currency')
@@ -80,13 +104,22 @@ class ProposalAdmin(admin.ModelAdmin):
             'fields': ('valid_until', 'estimated_start_date', 'estimated_end_date')
         }),
         ('Conversion Settings', {
-            'fields': ('auto_create_project', 'enable_portal_on_acceptance', 'converted_to_client')
+            'fields': ('auto_create_project', 'enable_portal_on_acceptance', 'converted_to_engagement')
         }),
         ('Audit', {
             'fields': ('sent_at', 'accepted_at', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
+
+    def get_company(self, obj):
+        """Get company name (either prospect or client)."""
+        if obj.proposal_type == 'prospective_client' and obj.prospect:
+            return obj.prospect.company_name
+        elif obj.client:
+            return obj.client.company_name
+        return '-'
+    get_company.short_description = 'Company'
 
 
 @admin.register(Contract)

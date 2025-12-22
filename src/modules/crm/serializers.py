@@ -111,16 +111,28 @@ class CampaignSerializer(serializers.ModelSerializer):
             'end_date',
             'budget',
             'actual_cost',
+            'targeted_clients',
             'target_leads',
             'leads_generated',
             'opportunities_created',
+            'clients_contacted',
+            'renewal_proposals_sent',
+            'renewals_won',
             'revenue_generated',
             'owner',
             'owner_name',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'leads_generated', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id',
+            'leads_generated',
+            'clients_contacted',
+            'renewal_proposals_sent',
+            'renewals_won',
+            'created_at',
+            'updated_at'
+        ]
 
     def get_owner_name(self, obj):
         """Get campaign owner's name."""
@@ -132,15 +144,19 @@ class CampaignSerializer(serializers.ModelSerializer):
 class ProposalSerializer(serializers.ModelSerializer):
     """Serializer for Proposal model."""
 
-    prospect_name = serializers.CharField(source='prospect.company_name', read_only=True)
+    prospect_name = serializers.CharField(source='prospect.company_name', read_only=True, allow_null=True)
+    client_name = serializers.CharField(source='client.company_name', read_only=True, allow_null=True)
     created_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Proposal
         fields = [
             'id',
+            'proposal_type',
             'prospect',
             'prospect_name',
+            'client',
+            'client_name',
             'created_by',
             'created_by_name',
             'proposal_number',
@@ -152,7 +168,7 @@ class ProposalSerializer(serializers.ModelSerializer):
             'valid_until',
             'estimated_start_date',
             'estimated_end_date',
-            'converted_to_client',
+            'converted_to_engagement',
             'auto_create_project',
             'enable_portal_on_acceptance',
             'sent_at',
@@ -162,12 +178,39 @@ class ProposalSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'id',
-            'converted_to_client',
+            'converted_to_engagement',
             'sent_at',
             'accepted_at',
             'created_at',
             'updated_at',
         ]
+
+    def validate(self, data):
+        """Validate proposal has either prospect OR client based on type."""
+        proposal_type = data.get('proposal_type', 'prospective_client')
+        prospect = data.get('prospect')
+        client = data.get('client')
+
+        if proposal_type == 'prospective_client':
+            if not prospect:
+                raise serializers.ValidationError(
+                    "Prospective client proposals must have a prospect."
+                )
+            if client:
+                raise serializers.ValidationError(
+                    "Prospective client proposals cannot have a client."
+                )
+        else:  # update_client or renewal_client
+            if not client:
+                raise serializers.ValidationError(
+                    f"{dict(Proposal.TYPE_CHOICES)[proposal_type]} proposals must have a client."
+                )
+            if prospect:
+                raise serializers.ValidationError(
+                    f"{dict(Proposal.TYPE_CHOICES)[proposal_type]} proposals cannot have a prospect."
+                )
+
+        return data
 
     def get_created_by_name(self, obj):
         """Get proposal creator's name."""
