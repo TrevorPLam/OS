@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { crmApi, Client } from '../api/crm'
+import { clientsApi, Client } from '../api/clients'
 import './Clients.css'
 
 const Clients: React.FC = () => {
@@ -10,11 +10,13 @@ const Clients: React.FC = () => {
   const [formData, setFormData] = useState<Partial<Client>>({
     company_name: '',
     industry: '',
-    status: 'lead',
+    status: 'active',
     primary_contact_name: '',
     primary_contact_email: '',
     primary_contact_phone: '',
     country: 'USA',
+    portal_enabled: false,
+    assigned_team: [],
   })
 
   useEffect(() => {
@@ -23,7 +25,7 @@ const Clients: React.FC = () => {
 
   const loadClients = async () => {
     try {
-      const data = await crmApi.getClients()
+      const data = await clientsApi.getClients()
       setClients(data)
     } catch (error) {
       console.error('Failed to load clients:', error)
@@ -36,9 +38,9 @@ const Clients: React.FC = () => {
     e.preventDefault()
     try {
       if (editingClient) {
-        await crmApi.updateClient(editingClient.id, formData)
+        await clientsApi.updateClient(editingClient.id, formData)
       } else {
-        await crmApi.createClient(formData)
+        await clientsApi.createClient(formData)
       }
       loadClients()
       resetForm()
@@ -56,7 +58,7 @@ const Clients: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this client?')) {
       try {
-        await crmApi.deleteClient(id)
+        await clientsApi.deleteClient(id)
         loadClients()
       } catch (error) {
         console.error('Failed to delete client:', error)
@@ -68,11 +70,13 @@ const Clients: React.FC = () => {
     setFormData({
       company_name: '',
       industry: '',
-      status: 'lead',
+      status: 'active',
       primary_contact_name: '',
       primary_contact_email: '',
       primary_contact_phone: '',
       country: 'USA',
+      portal_enabled: false,
+      assigned_team: [],
     })
     setEditingClient(null)
     setShowForm(false)
@@ -122,11 +126,10 @@ const Clients: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     required
                   >
-                    <option value="lead">Lead</option>
-                    <option value="prospect">Prospect</option>
-                    <option value="active">Active Client</option>
+                    <option value="active">Active</option>
+                    <option value="at_risk">At Risk</option>
                     <option value="inactive">Inactive</option>
-                    <option value="lost">Lost</option>
+                    <option value="churned">Churned</option>
                   </select>
                 </div>
               </div>

@@ -6,6 +6,9 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Leads from './pages/crm/Leads'
+import Prospects from './pages/crm/Prospects'
+import Campaigns from './pages/crm/Campaigns'
 import Clients from './pages/Clients'
 import Proposals from './pages/Proposals'
 import Contracts from './pages/Contracts'
@@ -37,15 +40,26 @@ function App() {
             }
           >
             <Route path="/" element={<Dashboard />} />
-            <Route path="/clients" element={<Clients />} />
+
+            {/* CRM Routes */}
+            <Route path="/crm/leads" element={<Leads />} />
+            <Route path="/crm/prospects" element={<Prospects />} />
+            <Route path="/crm/campaigns" element={<Campaigns />} />
             <Route path="/proposals" element={<Proposals />} />
+
+            {/* Client Management Routes */}
+            <Route path="/clients" element={<Clients />} />
             <Route path="/contracts" element={<Contracts />} />
+            <Route path="/client-portal" element={<ClientPortal />} />
+
+            {/* Delivery Routes */}
             <Route path="/projects" element={<Projects />} />
             <Route path="/projects/:projectId/kanban" element={<ProjectKanban />} />
             <Route path="/time-tracking" element={<TimeTracking />} />
             <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />
+
+            {/* Resources Routes */}
             <Route path="/documents" element={<Documents />} />
-            <Route path="/client-portal" element={<ClientPortal />} />
             <Route path="/assets" element={<AssetManagement />} />
             <Route path="/knowledge" element={<KnowledgeCenter />} />
             <Route path="/communications" element={<Communications />} />

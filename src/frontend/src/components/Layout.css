@@ -4,6 +4,11 @@
   flex-direction: column;
 }
 
+.app-body {
+  display: flex;
+  flex: 1;
+}
+
 .app-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -60,30 +65,76 @@
 
 .app-nav {
   background: #2d3748;
-  padding: 0;
+  padding: 1rem;
   display: flex;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  min-width: 240px;
+  max-width: 240px;
+  overflow-y: auto;
 }
 
-.app-nav a {
+.app-nav > a {
   color: white;
   text-decoration: none;
-  font-weight: 500;
-  padding: 1rem 1.5rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
   transition: background 0.2s;
-  border-bottom: 3px solid transparent;
+  border-left: 3px solid transparent;
 }
 
-.app-nav a:hover {
+.app-nav > a:hover {
   background: #4a5568;
 }
 
-.app-nav a.active {
+.app-nav > a.active {
   background: #4a5568;
-  border-bottom-color: #667eea;
+  border-left-color: #667eea;
+}
+
+.nav-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-section:first-of-type {
+  margin-top: 0.5rem;
+}
+
+.nav-section-title {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.5rem 1rem 0.25rem;
+  margin-bottom: 4px;
+}
+
+.nav-section a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.65rem 1rem;
+  display: block;
+  border-radius: 6px;
+  transition: background 0.2s;
+  border-left: 3px solid transparent;
+  font-size: 0.95rem;
+}
+
+.nav-section a:hover {
+  background: #4a5568;
+  color: white;
+}
+
+.nav-section a.active {
+  background: #4a5568;
+  border-left-color: #667eea;
+  color: white;
 }
 
 .app-main {
