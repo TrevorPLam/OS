@@ -3,7 +3,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { assetsApi, Asset, MaintenanceLog } from '../api/assets';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './AssetManagement.css';
 
 export const AssetManagement: React.FC = () => {
