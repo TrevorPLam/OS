@@ -700,6 +700,329 @@ Authorization: Bearer {token}
 }
 ```
 
+### Client Portal API
+
+The Client Portal API provides read-only access for client users to view their projects, invoices, contracts, and communicate with the firm.
+
+#### Work Section - List Projects
+
+```http
+GET /api/clients/projects/
+Authorization: Bearer {token}
+```
+
+**Auto-filters by authenticated client**
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "id": 5,
+      "project_code": "DT-2025-01",
+      "name": "Digital Transformation Phase 1",
+      "status": "in_progress",
+      "progress_percentage": 65,
+      "tasks_summary": {
+        "todo": 3,
+        "in_progress": 5,
+        "review": 2,
+        "done": 12,
+        "total": 22
+      }
+    }
+  ]
+}
+```
+
+#### Work Section - Get Project Tasks
+
+```http
+GET /api/clients/projects/5/tasks/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 42,
+    "title": "Requirements gathering",
+    "status": "done",
+    "priority": "high",
+    "progress_percentage": 100,
+    "comments": [
+      {
+        "id": 15,
+        "author_name": "Sarah Johnson",
+        "comment": "Can we schedule a follow-up meeting?",
+        "created_at": "2025-01-22T14:30:00Z"
+      }
+    ]
+  }
+]
+```
+
+#### Work Section - Add Task Comment
+
+```http
+POST /api/clients/comments/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "task": 42,
+  "comment": "Thanks for the update. I'll review by tomorrow."
+}
+```
+
+#### Billing Section - List Invoices
+
+```http
+GET /api/clients/invoices/
+Authorization: Bearer {token}
+```
+
+**Auto-filters by authenticated client**
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "id": 18,
+      "invoice_number": "INV-2025-018",
+      "total_amount": "15000.00",
+      "amount_paid": "0.00",
+      "balance_due": "15000.00",
+      "status": "sent",
+      "issue_date": "2025-01-15",
+      "due_date": "2025-02-14",
+      "is_overdue": false,
+      "days_until_due": 22,
+      "can_pay_online": true
+    }
+  ]
+}
+```
+
+#### Billing Section - Get Invoice Summary
+
+```http
+GET /api/clients/invoices/summary/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "total_invoices": 12,
+  "total_billed": "150000.00",
+  "total_paid": "125000.00",
+  "total_outstanding": "25000.00",
+  "overdue_count": 1,
+  "by_status": {
+    "paid": {"count": 10, "total": 125000.00},
+    "sent": {"count": 2, "total": 25000.00}
+  }
+}
+```
+
+#### Billing Section - Generate Payment Link
+
+```http
+POST /api/clients/invoices/18/generate_payment_link/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "status": "payment_link_generated",
+  "payment_url": "https://checkout.stripe.com/pay/...",
+  "invoice_number": "INV-2025-018",
+  "amount_due": "15000.00",
+  "currency": "USD"
+}
+```
+
+#### Chat Section - Get Active Thread
+
+```http
+GET /api/clients/chat-threads/active/
+Authorization: Bearer {token}
+```
+
+**Returns or creates today's chat thread**
+
+**Response:**
+```json
+{
+  "id": 42,
+  "client_name": "Tech Startups LLC",
+  "date": "2025-01-22",
+  "is_active": true,
+  "message_count": 15,
+  "last_message_at": "2025-01-22T16:45:00Z",
+  "recent_messages": [
+    {
+      "id": 156,
+      "sender_name": "Jane Smith",
+      "is_from_client": false,
+      "content": "Your deliverables are ready for review.",
+      "created_at": "2025-01-22T16:45:00Z"
+    }
+  ]
+}
+```
+
+#### Chat Section - Send Message
+
+```http
+POST /api/clients/messages/
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "thread": 42,
+  "content": "Great! I'll review them this afternoon."
+}
+```
+
+#### Chat Section - Get Unread Messages
+
+```http
+GET /api/clients/messages/unread/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 156,
+    "thread": 42,
+    "sender_name": "Jane Smith",
+    "is_from_client": false,
+    "content": "Your deliverables are ready for review.",
+    "is_read": false,
+    "created_at": "2025-01-22T16:45:00Z"
+  }
+]
+```
+
+#### Engagement Section - List Proposals
+
+```http
+GET /api/clients/proposals/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "id": 8,
+      "proposal_number": "PROP-2025-008",
+      "proposal_type": "renewal_client",
+      "type_display": "Renewal Client - Contract Renewal",
+      "title": "2025 Retainer Renewal",
+      "status": "sent",
+      "total_value": "90000.00",
+      "valid_until": "2025-02-15",
+      "is_expired": false,
+      "days_until_expiry": 24
+    }
+  ]
+}
+```
+
+#### Engagement Section - List Contracts
+
+```http
+GET /api/clients/contracts/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "id": 18,
+      "contract_number": "CTR-2025-018",
+      "title": "Digital Transformation Engagement",
+      "status": "active",
+      "total_value": "75000.00",
+      "start_date": "2025-02-01",
+      "end_date": "2025-07-31",
+      "signed_date": "2025-01-20",
+      "contract_file_url": "https://s3.../CTR-2025-018.pdf",
+      "is_active": true,
+      "days_remaining": 190
+    }
+  ]
+}
+```
+
+#### Engagement Section - Download Contract
+
+```http
+GET /api/clients/contracts/18/download/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "download_url": "https://s3.amazonaws.com/bucket/contracts/CTR-2025-018.pdf?...",
+  "contract_number": "CTR-2025-018",
+  "filename": "CTR-2025-018.pdf"
+}
+```
+
+#### Engagement Section - Get Engagement Timeline
+
+```http
+GET /api/clients/engagement-history/timeline/
+Authorization: Bearer {token}
+```
+
+**Response:**
+```json
+{
+  "client_name": "Tech Startups LLC",
+  "total_versions": 3,
+  "timeline": [
+    {
+      "id": 12,
+      "version": 3,
+      "status": "current",
+      "start_date": "2025-02-01",
+      "end_date": "2025-07-31",
+      "has_parent": true,
+      "has_renewals": false,
+      "contract": {
+        "contract_number": "CTR-2025-018",
+        "title": "Digital Transformation Engagement - Phase 2",
+        "total_value": "75000.00"
+      }
+    },
+    {
+      "id": 8,
+      "version": 2,
+      "status": "renewed",
+      "start_date": "2024-08-01",
+      "end_date": "2025-01-31",
+      "has_parent": true,
+      "has_renewals": true,
+      "contract": {...}
+    }
+  ]
+}
+```
+
 ---
 
 ## Projects Module

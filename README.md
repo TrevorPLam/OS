@@ -154,6 +154,9 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
 - `ClientEngagement` - Engagement history with version tracking
 - `ClientPortalUser` - Client portal access and permissions
 - `ClientNote` - Internal notes about clients
+- `ClientComment` - Two-way communication on project tasks
+- `ClientChatThread` - Daily chat threads between client and firm
+- `ClientMessage` - Individual chat messages
 
 **Flow:** Proposal Acceptance → Client Creation → Ongoing Engagement
 
@@ -162,6 +165,12 @@ This solves the "Complexity vs. Variance" problem while maintaining a shared fou
 - Engagement versioning for renewals
 - Portal access management
 - Source tracking (from which prospect/proposal)
+- **Client Portal with 5 sections:**
+  1. **Work** - Project/task tracking with commenting
+  2. **Documents** - Secure document access
+  3. **Billing** - Invoice viewing and payment
+  4. **Messages** - Real-time team chat
+  5. **Engagement** - Contracts, proposals, and history
 
 ### 3. Projects (Execution & Time Tracking)
 
@@ -476,6 +485,32 @@ Business logic stays in the app.
   - ✅ Resources section (documents, assets, knowledge)
 - ✅ CRM Backend (Lead, Prospect, Campaign, Proposal models with signals)
 - ✅ Clients Backend (Client, ClientEngagement, ClientPortalUser models)
+- ✅ **NEW: Client Portal - Work Section**
+  - ✅ Project/task viewing with progress tracking
+  - ✅ Two-way commenting on tasks
+  - ✅ Read-only serializers for client data
+  - ✅ Auto-filtering by client
+- ✅ **NEW: Client Portal - Billing Section**
+  - ✅ Invoice listing with summary statistics
+  - ✅ Stripe payment link generation
+  - ✅ Days until due / overdue tracking
+  - ✅ Line item detail view
+- ✅ **NEW: Client Portal - Chat Section**
+  - ✅ Daily thread organization
+  - ✅ REST API with 5-second polling
+  - ✅ Read receipts and unread tracking
+  - ✅ Client/firm message separation
+- ✅ **NEW: Client Portal - Engagement Section**
+  - ✅ Contract viewing and downloads
+  - ✅ Proposal tracking with expiry alerts
+  - ✅ Engagement history timeline
+  - ✅ Version tracking for renewals
+  - ✅ E-signature placeholder (DocuSign/HelloSign pending)
+- ✅ **NEW: Backend Signal Enhancements**
+  - ✅ Email notification service
+  - ✅ Proposal acceptance notifications
+  - ✅ Task assignment notifications
+  - ✅ Project completion workflow with metrics
 - ✅ Time tracking UI (Kanban board)
 - ✅ Invoice generation & management
 - ✅ S3 integration for documents (upload/download with presigned URLs)
@@ -489,7 +524,9 @@ Business logic stays in the app.
 **Next Steps:**
 - 🔄 Run database migrations for new CRM/Clients structure
 - 🔄 Test end-to-end CRM workflow (Lead → Client)
-- ⏳ Client Portal enhancement (Work, Chat, Billing sections)
+- ⏳ WebSocket upgrade for Chat (Django Channels + Redis)
+- ⏳ E-signature integration (DocuSign or HelloSign)
+- ⏳ File attachments for chat and comments
 
 **Deployment Readiness:**
 - ✅ NOW Phase: Development blockers resolved
