@@ -5,6 +5,8 @@ This module handles PRE-SALE operations only (Marketing & Sales).
 Post-sale Client management moved to modules.clients.
 
 Workflow: Lead → Prospect → Proposal → (Accepted) → Client (in modules.clients)
+
+TIER 0: All CRM entities MUST belong to exactly one Firm for tenant isolation.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -18,6 +20,8 @@ class Lead(models.Model):
 
     Represents initial contact before qualification.
     When qualified, converts to Prospect for sales pipeline.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STATUS_CHOICES = [
         ('new', 'New Lead'),
@@ -36,6 +40,14 @@ class Lead(models.Model):
         ('partnership', 'Partnership'),
         ('other', 'Other'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='leads',
+        help_text="Firm (workspace) this lead belongs to"
+    )
 
     # Company Information
     company_name = models.CharField(max_length=255)
@@ -97,8 +109,9 @@ class Lead(models.Model):
         db_table = 'crm_leads'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['assigned_to']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'assigned_to']),  # TIER 0: Firm scoping
             models.Index(fields=['campaign']),
         ]
 
@@ -112,6 +125,8 @@ class Prospect(models.Model):
 
     Active sales opportunity after lead qualification.
     Can have multiple proposals. Converts to Client when won.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STAGE_CHOICES = [
         ('discovery', 'Discovery'),
@@ -121,6 +136,14 @@ class Prospect(models.Model):
         ('won', 'Won - Converting to Client'),
         ('lost', 'Lost'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='prospects',
+        help_text="Firm (workspace) this prospect belongs to"
+    )
 
     # Origin
     lead = models.ForeignKey(
@@ -205,9 +228,10 @@ class Prospect(models.Model):
         db_table = 'crm_prospects'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['pipeline_stage']),
-            models.Index(fields=['assigned_to']),
-            models.Index(fields=['close_date_estimate']),
+            models.Index(fields=['firm', 'pipeline_stage']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'assigned_to']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'close_date_estimate']),  # TIER 0: Firm scoping
         ]
 
     def __str__(self):
@@ -222,6 +246,8 @@ class Campaign(models.Model):
     - Lead generation (new prospects)
     - Client renewals and upsells
     - Client annual reviews
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     TYPE_CHOICES = [
         ('email', 'Email Campaign'),
@@ -242,6 +268,14 @@ class Campaign(models.Model):
         ('paused', 'Paused'),
         ('cancelled', 'Cancelled'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='campaigns',
+        help_text="Firm (workspace) this campaign belongs to"
+    )
 
     # Campaign Details
     name = models.CharField(max_length=255)
@@ -332,8 +366,9 @@ class Campaign(models.Model):
         db_table = 'crm_campaigns'
         ordering = ['-start_date']
         indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['start_date', 'end_date']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-start_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'type']),  # TIER 0: Firm scoping
         ]
 
     def __str__(self):
@@ -350,6 +385,8 @@ class Proposal(models.Model):
     - renewal_client: Renewal for existing Client
 
     When accepted, becomes an Engagement Letter (Contract).
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -365,6 +402,14 @@ class Proposal(models.Model):
         ('update_client', 'Update Client - Expansion/Upsell'),
         ('renewal_client', 'Renewal Client - Contract Renewal'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='proposals',
+        help_text="Firm (workspace) this proposal belongs to"
+    )
 
     # Proposal Type
     proposal_type = models.CharField(
@@ -399,7 +444,7 @@ class Proposal(models.Model):
     )
 
     # Proposal Details
-    proposal_number = models.CharField(max_length=50, unique=True)
+    proposal_number = models.CharField(max_length=50)  # TIER 0: Unique per firm (see Meta)
     title = models.CharField(max_length=255)
     description = models.TextField(
         help_text="Scope of work, deliverables, timeline"
@@ -445,11 +490,14 @@ class Proposal(models.Model):
         db_table = 'crm_proposals'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['proposal_type', 'status']),
-            models.Index(fields=['prospect', 'status']),
-            models.Index(fields=['client', 'status']),
-            models.Index(fields=['proposal_number']),
+            models.Index(fields=['firm', 'proposal_type', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'prospect', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'client', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'proposal_number']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: Proposal numbers must be unique within a firm (not globally)
+        unique_together = [['firm', 'proposal_number']]
 
     def clean(self):
         """Validate that proposal has either prospect OR client based on type."""
@@ -480,6 +528,8 @@ class Contract(models.Model):
 
     Represents a signed contract with a client.
     Created from an accepted Proposal. Links CRM (pre-sale) to Clients (post-sale).
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -497,6 +547,14 @@ class Contract(models.Model):
         ('due_on_receipt', 'Due on Receipt'),
         ('milestone', 'Milestone-based'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='contracts',
+        help_text="Firm (workspace) this contract belongs to"
+    )
 
     # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
@@ -522,7 +580,7 @@ class Contract(models.Model):
     )
 
     # Contract Details
-    contract_number = models.CharField(max_length=50, unique=True)
+    contract_number = models.CharField(max_length=50)  # TIER 0: Unique per firm (see Meta)
     title = models.CharField(max_length=255)
     description = models.TextField(
         help_text="Statement of work, deliverables, terms"
@@ -562,10 +620,13 @@ class Contract(models.Model):
         db_table = 'crm_contracts'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['client', 'status']),
-            models.Index(fields=['contract_number']),
-            models.Index(fields=['start_date', 'end_date']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'client', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'contract_number']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'start_date', 'end_date']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: Contract numbers must be unique within a firm (not globally)
+        unique_together = [['firm', 'contract_number']]
 
     def __str__(self):
         return f"{self.contract_number} - {self.client.company_name}"

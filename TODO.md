@@ -20,10 +20,16 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ### Tasks
 
-- [ ] **0.1** Introduce Firm / Workspace tenancy
-  - [ ] Create Firm (Workspace) model
-  - [ ] Establish Firm ↔ User relationship
-  - [ ] Establish Firm ↔ Client relationship
+- [x] **0.1** Introduce Firm / Workspace tenancy (IN PROGRESS)
+  - [x] Create Firm (Workspace) model
+  - [x] Establish Firm ↔ User relationship (FirmMembership)
+  - [x] Establish Firm ↔ Client relationship
+  - [ ] Add Firm ↔ CRM relationships (Lead, Prospect, Campaign, Proposal, Contract)
+  - [ ] Add Firm ↔ Projects relationships (Project, Task, TimeEntry)
+  - [ ] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry)
+  - [ ] Add Firm ↔ Documents relationships (Folder, Document)
+  - [ ] Add Firm ↔ Assets relationships (Asset)
+  - [ ] Create and apply database migrations
   - [ ] Add firm propagation through request lifecycle
 
 - [ ] **0.2** Implement Firm context resolution (subdomain/session/token)
