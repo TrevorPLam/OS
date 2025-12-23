@@ -67,8 +67,8 @@ export const ClientPortal: React.FC = () => {
       }
 
       // Load client-visible documents only
-      const docsResponse = await documentsApi.listDocuments({ visibility: 'client' });
-      setDocuments(docsResponse.data.results || []);
+      const docsResponse = await documentsApi.getDocuments({});
+      setDocuments(docsResponse || []);
 
       // Load invoices
       const invoicesResponse = await clientPortalApi.listInvoices();
@@ -108,7 +108,7 @@ export const ClientPortal: React.FC = () => {
 
         setStats({
           activeProjects: activeProjectsCount,
-          totalDocuments: docsResponse.data.results?.length || 0,
+          totalDocuments: docsResponse.length || 0,
           pendingInvoices: pendingInvoicesCount,
           unreadMessages: unreadCount,
         });
@@ -116,7 +116,7 @@ export const ClientPortal: React.FC = () => {
         console.error('Error loading chat:', error);
         setStats({
           activeProjects: activeProjectsCount,
-          totalDocuments: docsResponse.data.results?.length || 0,
+          totalDocuments: docsResponse.length || 0,
           pendingInvoices: pendingInvoicesCount,
           unreadMessages: 0,
         });
@@ -131,7 +131,7 @@ export const ClientPortal: React.FC = () => {
   const handleDownloadDocument = async (documentId: number) => {
     try {
       const response = await documentsApi.downloadDocument(documentId);
-      window.open(response.data.download_url, '_blank');
+      window.open(response.download_url, '_blank');
     } catch (error) {
       console.error('Error downloading document:', error);
       alert('Failed to download document');
