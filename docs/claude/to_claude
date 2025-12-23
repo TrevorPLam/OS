@@ -1,0 +1,2358 @@
+# To Claude…
+
+Below is notes to you, each tier explained, and then prompts for each tier.
+
+Before executing any tasks, reproduce this as a master document, then pull the prompts and update or create to do lists for you to tackle. 
+
+Below is the reproduced consolidation with the previously implicit items explicitly injected.
+
+Nothing else is changed. No decisions are altered. This is a completeness pass, not a rewrite.
+
+---
+
+# I. NOTES TO CLAUDE (FINAL, COMPLETE)
+
+(Drop into /docs/claude/NOTES_TO_CLAUDE.md)
+
+## Purpose
+
+This document is authoritative. If code conflicts with these rules, code must change unless the system owner explicitly revises this document.
+
+---
+
+## Platform & Tenancy Model
+
+* The system is a multi-firm SaaS.
+* Firm is the top-level tenant boundary.
+* Client belongs to exactly one Firm.
+* Portal users belong to a Client.
+* Organizations are optional context/grouping; not a security boundary.
+* Cross-client interaction is allowed only within the same Organization.
+
+### Firm Context Resolution (Explicit)
+
+Every request must resolve an active Firm context using a combination of:
+
+* URL/subdomain (preferred where available)
+* user-selected firm (session state)
+* token/session claims
+
+No operation may proceed without a resolved Firm context.
+
+---
+
+## Privacy & Platform Access
+
+* Platform staff cannot read customer content by default:
+
+  * documents
+  * messages
+  * comments
+  * notes
+  * invoice line items
+* Customer content is end-to-end encrypted.
+* Platform retains liability metadata only:
+
+  * billing totals and subscription records
+  * payment processor events
+  * auth and authorization logs
+  * break-glass audit records
+  * operational metadata (counts, timestamps, error traces)
+
+### Break-Glass Access (Explicit)
+
+* Exists for support/emergencies only.
+* Triggered by firm consent OR predefined emergency policy.
+* Requires:
+
+  * explicit activation
+  * reason string
+  * time limit
+  * immutable audit log
+* Includes impersonation safeguards:
+
+  * clear “impersonation mode” indicator
+  * automatic expiry
+  * explicit logging of all actions taken
+* Not visible to firms by default.
+---
+
+## Roles
+
+Platform
+
+* Platform Operator: metadata-only access
+* Break-Glass Operator: rare, audited content access
+
+Firm
+
+* Firm Master Admin (Owner): full control, overrides
+* Firm Admin: granular permissions
+* Staff: least privilege, permissions enabled explicitly
+
+Client
+
+* Portal Users: client-scoped access only
+---
+
+## Engagements (Agreements)
+
+* Engagement defines scope and pricing (package, hourly, or both).
+* Once SIGNED, engagement is immutable.
+* Changes occur via new draft engagement (renewal/update).
+* Renewals create new engagement records.
+* Clients can view current and historical engagements.
+---
+
+## Projects & Tasks (Work)
+
+* Projects always belong to a Client.
+* Projects may optionally reference the Engagement that created them.
+* Engagement confirmation may create projects/tasks:
+
+  * never duplicates
+  * never deletes existing work
+* Clients can:
+
+  * view projects/tasks
+  * comment
+  * upload documents
+  * mark client-actionable tasks complete
+* Client task completion updates firm workflow state.
+---
+
+## Documents (Single Source of Truth)
+
+* All files live in Documents module (canonical).
+* Other modules link to documents; no duplicate storage.
+* Documents are always client-scoped.
+* Documents may be associated to:
+
+  * client-general
+  * engagement
+  * project
+  * task
+* Deleting/archiving a project/task must not delete documents.
+
+### Portal Folder Rules
+
+* Client Folder:
+
+  * Firm: CRUD
+  * Client: read/download
+* Upload Folder:
+
+  * Client: CRUD
+  * Firm: CRUD
+
+### Document Signing (Explicit)
+
+* Signing events are immutable.
+* Signature evidence must be retained even if document content is purged.
+* Signing metadata (who, when, version) must remain auditable.
+---
+
+## Communications
+
+* Messages and comments are immutable.
+* No edits or deletes by firm or clients.
+* Master Admin may purge content only if legally required:
+
+  * content removed
+  * metadata preserved (tombstone)
+  * action logged with reason
+---
+
+## Billing & Payments
+
+* Invoice belongs to a Client.
+* Default: invoice links to an Engagement (Master Admin can override).
+* Invoices may optionally link to Projects.
+* Billing supports:
+
+  * package fees (auto-invoiced)
+  * hourly fees (approved by staff/admin)
+  * mixed invoices
+* Recurring payments auto-pay invoices as issued.
+* Credits (if enabled) are tracked via a ledger.
+
+### Payment Exceptions (Explicit)
+
+* Payment failures, disputes, and chargebacks must be tracked as first-class events.
+* Platform retains dispute metadata but not billing context/content.
+---
+
+## Deletion & Audit
+
+* Soft delete/archive by default across client-facing records.
+* Hard delete/purge:
+
+  * Master Admin only
+  * explicit confirmation
+  * reason required
+  * fully logged
+* History must remain visible unless legally purged.
+
+### Audit Governance (Explicit)
+
+* Audit events must be categorized (auth, billing, break-glass, purge).
+* Logs must have defined retention windows.
+* Ownership of audit review (who reviews, how often) must be defined.
+---
+
+## CI & Correctness
+
+* CI must be truthful.
+* No skipped checks that claim enforcement.
+* If lint/build/tests exist, failures must fail CI.
+---
+
+## Expectations for Claude
+
+* Enforce firm + client scoping everywhere.
+* Default-deny for portal users.
+* Never introduce unscoped querysets.
+* Always cite exact file targets.
+* Prefer small, verifiable diffs.
+* Stop and ask if rules are ambiguous.
+---
+
+# II. UNIFIED PRIORITIZED TO-DO LIST (COMPLETE)
+
+## TIER 0 — FOUNDATIONAL SAFETY
+
+1. Introduce Firm / Workspace tenancy
+2. Implement Firm context resolution (subdomain/session/token)
+3. Enforce firm + client scoping everywhere
+4. Portal containment (default-deny)
+5. Platform privacy enforcement (metadata-only)
+6. Break-glass access with impersonation safeguards
+
+⠀
+---
+
+## TIER 1 — SCHEMA TRUTH & CI TRUTH
+
+1. Fix deterministic backend crashes (CRM imports, Spectacular enum paths, auth AppConfig)
+2. Commit all missing migrations (Assets, Documents, Client portal/chat)
+3. Make CI honest (remove skipped lint, add frontend build gate)
+
+⠀
+---
+
+## TIER 2 — AUTHORIZATION & OWNERSHIP
+
+1. Standardize permissions across all ViewSets
+2. Replace direct User imports with AUTH_USER_MODEL
+3. Add firm + client context to all background/async jobs
+
+⠀
+---
+
+## TIER 3 — DATA INTEGRITY & PRIVACY
+
+1. Implement purge semantics (tombstones, metadata retention)
+2. Define audit event taxonomy + retention policy
+3. Define audit review ownership and cadence
+4. Implement privacy-first support workflows (metadata-only diagnostics)
+
+⠀
+---
+
+## TIER 4 — BILLING & MONETIZATION
+
+1. Enforce billing invariants (package/hourly/mixed, approval gates)
+2. Implement credit ledger
+3. Handle payment failures, disputes, and chargebacks explicitly
+
+⠀
+---
+
+## TIER 5 — PRODUCT & SCALE
+
+1. Hero workflow integration tests (Engagement → Project → Invoice → Portal)
+2. Performance safeguards (tenant-indexed queries, select/prefetch discipline)
+3. Document signing lifecycle & evidence retention
+4. Firm offboarding + data exit flows (retention + deletion)
+
+---
+
+# TIER 0 — FOUNDATIONAL SAFETY (FULL EXPANSION)
+
+> Rule: Tier 0 must be complete before any feature, billing, or UX work proceeds.
+
+> If Tier 0 is wrong or incomplete, privacy, tenancy, and trust all fail.
+
+---
+
+## 0.1 Firm / Workspace Tenancy (Hard Tenant Boundary)
+
+### Purpose
+
+Establish Firm as the top-level tenant boundary in a multi-firm SaaS. All isolation, authorization, and privacy guarantees depend on this.
+
+### Scope
+
+Applies to:
+
+* all firm-side users
+* all clients
+* all engagements, projects, tasks, documents, billing records
+* all API requests
+* all background jobs
+
+### What must be true
+
+* Every firm-side object belongs to exactly one Firm (directly or via Client).
+* No firm user can ever access another firm’s data.
+* Platform operators cannot bypass firm boundaries except via break-glass.
+
+### Required components
+
+* Firm (Workspace) model
+* Firm ↔ User relationship
+* Firm ↔ Client relationship
+* Firm propagation through request lifecycle
+
+### File / area targets (conceptual)
+
+* New Firm module (models, admin)
+* User profile or membership model (user → firm)
+* Client model (client → firm)
+* Shared permission helpers
+* Request context resolution (middleware or equivalent)
+
+### Acceptance criteria
+
+* Any attempt to query another firm’s data returns zero results or 403.
+* Removing firm scoping from a queryset causes tests to fail.
+* A firm user cannot infer the existence of other firms.
+
+### Failure modes to avoid
+
+* “Global admin” querysets
+* Implicit joins without firm filtering
+* Assuming client_id alone is sufficient isolation
+---
+
+## 0.2 Firm Context Resolution (Explicit, Deterministic)
+
+### Purpose
+
+Ensure the system always knows which firm it is acting for, in every request and job.
+
+### Decision (locked)
+
+Firm context is resolved via a combination of:
+
+* subdomain / URL
+* user-selected firm (session)
+* token or session claims
+
+### Scope
+
+Applies to:
+
+* API requests
+* admin views
+* background jobs
+* webhooks
+* scheduled tasks
+
+### What must be true
+
+* A request without a resolved firm context must fail.
+* Firm context is resolved before authorization or queries.
+* Background jobs must explicitly carry firm context.
+
+### Required components
+
+* Firm context resolver
+* Firm context attached to request object
+* Firm context validation guard
+
+### Acceptance criteria
+
+* Requests without firm context are rejected.
+* Logs always include firm identifier.
+* Background jobs cannot run without firm context.
+
+### Failure modes to avoid
+
+* Defaulting to “first firm”
+* Using user alone to infer firm
+* Background jobs that assume global access
+---
+
+## 0.3 Platform Privacy Enforcement (Metadata-Only by Default)
+
+### Purpose
+
+Enforce the privacy-first posture: platform staff cannot read customer content.
+
+### Scope
+
+Applies to:
+
+* documents
+* messages
+* comments
+* notes
+* invoice line items
+* engagement/project/task content
+
+### What must be true
+
+* Platform roles can access only:
+
+  * billing metadata
+  * subscription state
+  * audit logs
+  * operational metadata
+* Customer content is end-to-end encrypted.
+* No admin convenience shortcuts exist.
+
+### Required components
+
+* Platform role separation
+* Explicit deny rules for content models
+* Metadata/content separation in models and APIs
+
+### Acceptance criteria
+
+* Platform Operator APIs never return content fields.
+* Attempts to access content tables as platform user are blocked.
+* Content encryption keys are not available to platform roles.
+
+### Failure modes to avoid
+
+* “Support admin” with silent read access
+* Mixing metadata and content in the same API responses
+* Logging content accidentally
+---
+
+## 0.4 Break-Glass Access (Rare, Audited, Controlled)
+
+### Purpose
+
+Allow exceptional access for emergencies or consented support without normalizing surveillance.
+
+### Decision (locked)
+
+Break-glass can be triggered by:
+
+* explicit firm owner consent OR
+* predefined emergency policy
+
+### Scope
+
+Applies to:
+
+* debugging
+* legal obligations
+* critical outages
+
+### What must be true
+
+* Break-glass is time-limited.
+* Reason is mandatory.
+* All actions are logged.
+* Impersonation is obvious and bounded.
+
+### Required components
+
+* Break-glass activation mechanism
+* Impersonation mode indicator
+* Automatic expiration
+* Immutable audit records
+
+### Acceptance criteria
+
+* Break-glass sessions auto-expire.
+* Every action taken is attributable.
+* Normal platform roles cannot access content.
+
+### Failure modes to avoid
+
+* Silent impersonation
+* Long-lived elevated sessions
+* Unlogged emergency access
+---
+
+## 0.5 Portal Containment (Client Default-Deny)
+
+### Purpose
+
+Ensure portal users cannot escape the client portal surface, even accidentally.
+
+### Scope
+
+Applies to:
+
+* all portal users
+* all API endpoints
+* all ViewSets
+
+### What must be true
+
+* Portal users can access only explicitly allowed endpoints.
+* All portal querysets are client-scoped and firm-scoped.
+* No “shared” admin endpoints are accessible.
+
+### Required components
+
+* Portal-only permission classes
+* Separate routing or namespace
+* Explicit allowlist of portal endpoints
+
+### Acceptance criteria
+
+* Portal user receives 403 on any non-portal endpoint.
+* Portal user cannot access other clients’ data.
+* Portal user cannot infer firm-level data.
+
+### Failure modes to avoid
+
+* Reusing firm endpoints for portal
+* Assuming frontend hides access is sufficient
+* Missing queryset scoping in read-only endpoints
+---
+
+## 0.6 Background Job Tenant Safety
+
+### Purpose
+
+Prevent cross-tenant data leaks via async processing, the most common SaaS failure mode.
+
+### Scope
+
+Applies to:
+
+* billing runs
+* renewal generation
+* notifications
+* document processing
+* scheduled jobs
+
+### What must be true
+
+* Every job explicitly includes:
+
+  * firm_id
+  * client_id (if applicable)
+* Jobs fail if context is missing.
+* Logs include firm/client context.
+
+### Required components
+
+* Job payload schema
+* Validation on job execution
+* Context-aware logging
+
+### Acceptance criteria
+
+* No job executes without firm context.
+* Jobs cannot accidentally operate across firms.
+* Errors are traceable to firm/client.
+
+### Failure modes to avoid
+
+* “Global” scheduled jobs
+* Implicit queries inside async tasks
+* Reusing requestless helpers
+---
+
+## Tier 0 Completion Definition
+
+Tier 0 is complete only when:
+
+* Firm isolation is provable.
+* Platform cannot read content by default.
+* Portal users are fully contained.
+* Break-glass is rare, visible, and audited.
+* Async jobs are tenant-safe.
+
+Until then, nothing else is safe to build.
+
+---
+
+# TIER 2 — AUTHORIZATION & OWNERSHIP (FULL EXPANSION)
+
+> Rule: Tier 2 ensures who can do what is explicit, enforced, and impossible to bypass.
+
+> If Tier 2 is weak, privacy and tenancy fail even if Tier 0 and Tier 1 are correct.
+
+---
+
+## 2.1 Standardize Authorization Model Across the Codebase
+
+### Purpose
+
+Eliminate inconsistent, ad-hoc permission checks and replace them with a single, predictable authorization system.
+
+### Scope
+
+Applies to:
+
+* all API endpoints
+* all ViewSets
+* all admin-accessible surfaces
+* all background-triggered actions
+
+### What must be true
+
+* Every endpoint has an explicit permission class.
+* Authorization logic is centralized, not duplicated.
+* Permissions reflect role + tenant context, not UI assumptions.
+
+### Required actions
+
+* Inventory all ViewSets and endpoints.
+* Attach explicit permission classes everywhere.
+* Remove inline or duplicated permission checks.
+
+### Acceptance criteria
+
+* No endpoint relies on implicit access.
+* Permission logic is discoverable in one place.
+* Unauthorized requests fail with 403, not empty results.
+
+### Failure modes to avoid
+
+* Mixing authorization with business logic
+* Relying on frontend to hide actions
+* “Temporary” bypasses left in place
+---
+
+## 2.2 Firm-Scoped Querysets (Zero Global Access)
+
+### Purpose
+
+Make cross-firm access structurally impossible at the query level.
+
+### Scope
+
+Applies to:
+
+* all ORM querysets
+* list/detail views
+* background queries
+
+### What must be true
+
+* Querysets always filter by firm_id.
+* Client-scoped data also filters by client_id.
+* Platform roles cannot bypass scoping except via break-glass.
+
+### Required actions
+
+* Introduce firm-scoped queryset mixins/helpers.
+* Refactor existing queries to use them.
+* Forbid Model.objects.all() in firm-facing code.
+
+### Acceptance criteria
+
+* Removing firm filter breaks tests.
+* Code review can easily spot unscoped queries.
+* Portal users cannot infer other clients or firms.
+
+### Failure modes to avoid
+
+* Filtering in serializers instead of querysets
+* Applying scoping conditionally
+* Using raw SQL without tenant constraints
+---
+
+## 2.3 Portal Authorization (Client-Scoped, Explicit Allowlist)
+
+### Purpose
+
+Ensure portal users are fully contained within their allowed surface area.
+
+### Scope
+
+Applies to:
+
+* portal APIs
+* client-facing views
+* file access endpoints
+
+### What must be true
+
+* Portal users can access only allowlisted endpoints.
+* Every portal queryset enforces firm + client scope.
+* Portal permissions are separate from firm permissions.
+
+### Required actions
+
+* Create portal-specific permission classes.
+* Define an explicit portal endpoint allowlist.
+* Ensure portal users never hit firm admin endpoints.
+
+### Acceptance criteria
+
+* Portal users receive 403 on any non-portal endpoint.
+* Portal users cannot access other clients’ data.
+* Portal users cannot elevate privileges.
+
+### Failure modes to avoid
+
+* Reusing firm endpoints for portal access
+* Assuming read-only equals safe
+* Missing scoping in “harmless” endpoints
+---
+
+## 2.4 Cross-Client Access Within Organizations
+
+### Purpose
+
+Allow intentional collaboration while preventing accidental data leakage.
+
+### Scope
+
+Applies only when:
+
+* multiple clients share the same organization
+* access is explicitly enabled
+
+### What must be true
+
+* Cross-client visibility is limited to shared-org context.
+* No access across orgs or firms.
+* Permissions are explicit and revocable.
+
+### Required actions
+
+* Enforce org-based access checks in addition to client checks.
+* Ensure shared-org views are clearly scoped.
+* Prevent default cross-client visibility.
+
+### Acceptance criteria
+
+* Clients only see other clients when org-shared.
+* No cross-org or cross-firm leakage.
+* Access can be disabled without data loss.
+
+### Failure modes to avoid
+
+* Treating orgs as tenants
+* Implicit sharing assumptions
+* Hard-to-audit sharing rules
+---
+
+## 2.5 Replace Direct User Model Imports
+
+### Purpose
+
+Prevent auth model drift and future breakage.
+
+### Scope
+
+Applies to:
+
+* all backend code referencing User
+* serializers, permissions, signals
+
+### What must be true
+
+* All references use AUTH_USER_MODEL or get_user_model().
+* No direct imports from django.contrib.auth.models.User.
+
+### Required actions
+
+* Search and replace direct imports.
+* Update type hints and serializers accordingly.
+
+### Acceptance criteria
+
+* Changing the user model does not break code.
+* No direct User imports remain.
+
+### Failure modes to avoid
+
+* Partial refactors
+* Leaving User references in signals or admin
+---
+
+## 2.6 Background Job Authorization & Context Enforcement
+
+### Purpose
+
+Ensure async operations respect the same authorization and tenancy rules as requests.
+
+### Scope
+
+Applies to:
+
+* Celery/RQ tasks
+* scheduled jobs
+* webhook handlers
+
+### What must be true
+
+* Jobs include firm_id and client_id where applicable.
+* Jobs enforce authorization rules explicitly.
+* Jobs cannot escalate privileges.
+
+### Required actions
+
+* Define standard job payload schema.
+* Validate tenant context on job execution.
+* Apply permission checks inside jobs where relevant.
+
+### Acceptance criteria
+
+* Jobs fail without tenant context.
+* Jobs cannot affect other firms’ data.
+* Logs clearly show firm/client per job.
+
+### Failure modes to avoid
+
+* Trusting caller context implicitly
+* Using shared helpers without scoping
+* Silent failures in background tasks
+---
+
+## Tier 2 Completion Definition
+
+Tier 2 is complete only when:
+
+* Every endpoint has explicit permissions.
+* All data access is tenant-scoped.
+* Portal users are fully contained.
+* Cross-client access is intentional and auditable.
+* Async jobs obey the same rules as synchronous code.
+
+Until Tier 2 is complete, privacy and trust guarantees are unenforceable.
+
+---
+
+# TIER 3 — DATA INTEGRITY & PRIVACY (FULL EXPANSION)
+
+> Rule: Tier 3 makes the platform trustworthy under stress: legal requests, disputes, incidents, employee misuse, and customer exits.
+
+> If Tier 0–2 prevent most accidents, Tier 3 prevents reputational and legal catastrophe.
+
+---
+
+## 3.1 Purge Semantics (Tombstones, Not Silent Deletes)
+
+### Purpose
+
+Reconcile two locked requirements:
+
+* Communications/documents are immutable (audit)
+* Master Admin can purge if legally required (privacy/legality)
+
+### Scope
+
+Applies to:
+
+* chat messages
+* comments
+* documents and document versions
+* any user-generated “content fields”
+
+### What must be true
+
+* Purge removes content but preserves metadata.
+* A purged record becomes a tombstone:
+
+  * identifiers remain
+  * timestamps remain
+  * relationships remain (as appropriate)
+  * “purged_by / purged_at / purge_reason” metadata is recorded
+* Purge is explicit, logged, and irreversible (except restore from backup, if allowed).
+
+### Required actions
+
+* Define and implement a tombstone model strategy for:
+
+  * Message/Comment body fields
+  * Document content pointers
+  * Any rich text notes
+* Implement purge flows for Master Admin and/or Break-Glass Operator depending on policy.
+* Ensure purge is guarded with:
+
+  * confirmation step
+  * reason required
+
+### Acceptance criteria
+
+* After purge, content is no longer retrievable via API or database reads.
+* Audit shows that a purge happened (who/when/why).
+* Referential integrity remains intact (no broken threads or orphan rows due to purge).
+
+### Failure modes to avoid
+
+* Hard-deleting rows and losing audit history
+* Purging without recording who/why
+* Purging that breaks UI or relationships (threads/tasks/docs)
+---
+
+## 3.2 Audit Event Taxonomy (What Gets Logged, What Never Does)
+
+### Purpose
+
+Make “platform retains liability metadata only” concrete and consistent.
+
+### Scope
+
+Applies to:
+
+* authentication and session events
+* authorization/role changes
+* break-glass activation and actions
+* billing and payment events (metadata)
+* purge events
+* admin changes affecting security posture
+
+### What must be true
+
+* Audit logs capture events, not content.
+* Audit log schema is consistent and queryable.
+* Logs include tenant context:
+
+  * firm_id always
+  * client_id when applicable
+* Logs never include:
+
+  * message bodies
+  * document content
+  * notes content
+
+### Required actions
+
+* Define event categories:
+
+  * AUTH (login/logout/MFA/session)
+  * PERMISSIONS (role changes, access grants)
+  * BREAK_GLASS (activate/deactivate, impersonation, actions)
+  * BILLING (invoice issued metadata, payment received metadata)
+  * PURGE (content removed)
+  * CONFIG (security-critical config changes)
+* Define event fields:
+
+  * actor (who)
+  * tenant context (firm/client)
+  * target identifiers (what object, not content)
+  * timestamp
+  * action type
+  * reason (required for break-glass/purge)
+* Implement structured audit writes everywhere required.
+
+### Acceptance criteria
+
+* Every break-glass activation produces an audit record.
+* Every purge produces an audit record.
+* Every permission change produces an audit record.
+* Audit records are tenant-scoped and cannot be tampered with via normal roles.
+
+### Failure modes to avoid
+
+* “Logging everything” including content
+* Unstructured logs that can’t be queried
+* Missing tenant context on events
+---
+
+## 3.3 Audit Retention Policy (How Long, Who Can Read)
+
+### Purpose
+
+Define how long liability metadata is kept and who can access it.
+
+### Scope
+
+Applies to:
+
+* audit events
+* operational metadata
+* billing/payment metadata
+* break-glass records
+
+### What must be true
+
+* Retention periods exist and are enforced.
+* Access to audit logs is restricted (least privilege).
+* Audit logs survive application-level purges of content.
+
+### Required actions
+
+* Define retention windows for each category (policy-level).
+* Implement retention enforcement (archival + deletion) for metadata stores.
+* Implement access controls:
+
+  * platform operator read access (metadata only)
+  * firm access per your choice (currently: firms do not see platform access logs)
+
+### Acceptance criteria
+
+* Old logs expire according to policy.
+* Audit logs cannot be modified by standard app roles.
+* Audit logs remain accessible for liability windows even if content is purged.
+
+### Failure modes to avoid
+
+* Infinite retention without policy (risk)
+* Retention that deletes critical evidence
+* Exposing audit logs to end customers unintentionally
+---
+
+## 3.4 Audit Review Governance (Who Reviews What, How Often)
+
+### Purpose
+
+Turn logs into defensible evidence.
+
+### Scope
+
+Applies to:
+
+* break-glass events
+* admin role changes
+* purge events
+* unusual access patterns
+* billing anomalies
+
+### What must be true
+
+* Someone is responsible for review.
+* There is a cadence (weekly/monthly).
+* There is an escalation path for anomalies.
+
+### Required actions
+
+* Define review owner(s) (platform ops/security).
+* Define cadence:
+
+  * break-glass review (e.g., weekly)
+  * role changes review (e.g., monthly)
+  * purge review (immediate + monthly)
+* Define escalation:
+
+  * freeze break-glass permissions
+  * incident workflow trigger
+
+### Acceptance criteria
+
+* Every break-glass activation is reviewed.
+* Every purge is reviewed.
+* Review outcomes are recorded (metadata-only).
+
+### Failure modes to avoid
+
+* “We log it” without any review
+* Reviews that require reading content
+* No escalation process
+---
+
+## 3.5 Privacy-First Support Workflows (No Content Access)
+
+### Purpose
+
+Make support actually operable while remaining blind to content.
+
+### Scope
+
+Applies to:
+
+* customer support tickets
+* incident response
+* performance/debugging
+
+### What must be true
+
+* Support uses:
+
+  1. metadata plane (counts, timestamps, errors)
+  2. event plane (audit logs)
+  3. customer-provided exports (optional)
+* No “open the customer account and browse data” workflow exists by default.
+
+### Required actions
+
+* Define the minimum support dataset the platform can see:
+
+  * subscription status
+  * feature flags
+  * usage counters
+  * error codes and traces (sanitized)
+* Define a customer export package format:
+
+  * firm-generated diagnostics bundle
+  * redacted logs
+  * reproducible steps
+* Define secure intake:
+
+  * limited retention
+  * access controls
+  * redaction rules
+
+### Acceptance criteria
+
+* Support can resolve common issues without content visibility.
+* Any customer-provided exports are handled securely and expire.
+* Break-glass is rarely needed and always logged.
+
+### Failure modes to avoid
+
+* Support pipelines that ingest customer content by default
+* Long-lived attachments with sensitive info
+* “Just give support admin access” shortcuts
+---
+
+## 3.6 Document Signing Lifecycle & Evidence Retention (Legal Defensibility)
+
+### Purpose
+
+Support “view/upload/download/sign” with defensible evidence while maintaining privacy posture.
+
+### Scope
+
+Applies to:
+
+* signature requests
+* signed documents
+* signature metadata
+
+### What must be true
+
+* Signing events are immutable.
+* Signature evidence metadata remains even if document content is purged.
+* Platform retains only metadata required for liability; content remains E2EE.
+
+### Required actions
+
+* Define signature event schema:
+
+  * who signed (identifier)
+  * when signed
+  * what version/hash was signed
+  * signing method (clickwrap, drawn signature, etc.)
+* Define what the platform can store:
+
+  * event metadata
+  * cryptographic hashes
+  * timestamps
+* Define purge interaction:
+
+  * content removed
+  * signature event metadata retained
+
+### Acceptance criteria
+
+* Signed version is uniquely identifiable (hash/version id).
+* Signature events survive document content purge.
+* Signature history is auditable without exposing content.
+
+### Failure modes to avoid
+
+* No link between signature and document version
+* Signatures lost due to purge/deletion
+* Storing plaintext document content for “evidence”
+
+
+⸻
+
+TIER 4 — BILLING & MONETIZATION (FULL EXPANSION)
+
+Rule: Tier 4 ensures money, scope, and incentives align.
+If Tier 4 is wrong, firms lose trust, clients get confused, and disputes become existential.
+
+⸻
+
+4.1 Engagement-Centric Billing Model (Source of Truth)
+
+Purpose
+
+Ensure billing is anchored to what was agreed, not ad-hoc activity.
+
+Scope
+
+Applies to:
+	•	invoices
+	•	pricing logic
+	•	renewals
+	•	scope enforcement
+
+What must be true
+	•	Every invoice belongs to a Client.
+	•	By default, every invoice is linked to an Engagement.
+	•	Engagement defines:
+	•	pricing mode (package, hourly, mixed)
+	•	recurrence (one-time vs recurring)
+	•	Master Admin may override engagement linkage if explicitly enabled.
+
+Required actions
+	•	Enforce default invoice → engagement linkage.
+	•	Ensure engagement pricing configuration is the billing source of truth.
+	•	Prevent silent billing outside engagement scope unless explicitly allowed.
+
+Acceptance criteria
+	•	Invoices without engagement linkage are blocked by default.
+	•	Overriding linkage is explicit and auditable.
+	•	Billing logic always resolves through engagement terms.
+
+Failure modes to avoid
+	•	Invoices created “free-hand” without agreement context
+	•	Engagement changes mutating historical invoices
+	•	Implicit scope creep
+
+⸻
+
+4.2 Package Fees (Predictable, Automated Revenue)
+
+Purpose
+
+Support tiered/package pricing that firms rely on for predictable revenue.
+
+Scope
+
+Applies to:
+	•	monthly retainers
+	•	annual packages
+	•	fixed-fee engagements
+
+What must be true
+	•	Package fees are defined at engagement creation.
+	•	Package invoices are auto-generated on schedule.
+	•	Package fees survive renewals correctly.
+
+Required actions
+	•	Define package pricing schema:
+	•	amount
+	•	cadence
+	•	start/end
+	•	Implement scheduled invoice generation.
+	•	Define renewal behavior:
+	•	carry forward
+	•	reset
+	•	replace
+
+Acceptance criteria
+	•	Package invoices generate without manual action.
+	•	Renewal does not retroactively alter past invoices.
+	•	Billing schedule is deterministic.
+
+Failure modes to avoid
+	•	Manual recurring billing
+	•	Package logic mixed with hourly logic
+	•	Silent changes to billing cadence
+
+⸻
+
+4.3 Hourly Billing (Controlled, Auditable)
+
+Purpose
+
+Allow flexible work while preventing billing abuse and disputes.
+
+Scope
+
+Applies to:
+	•	time entry
+	•	approvals
+	•	invoice line items
+
+What must be true
+	•	Time entries exist independently of invoices.
+	•	Time entries are not billable by default.
+	•	Staff/Admin approval is required before billing.
+	•	Client approval is optional (future-ready).
+
+Required actions
+	•	Define time entry schema:
+	•	who logged
+	•	when
+	•	duration
+	•	related project/task
+	•	Implement approval states:
+	•	draft
+	•	approved
+	•	rejected
+	•	Gate invoice inclusion on approval state.
+
+Acceptance criteria
+	•	Unapproved time never appears on invoices.
+	•	Approval events are auditable.
+	•	Rejected time cannot be billed accidentally.
+
+Failure modes to avoid
+	•	Auto-billing time on creation
+	•	Missing approval audit trail
+	•	Editing time after approval without logging
+
+⸻
+
+4.4 Mixed Billing (Package + Hourly Together)
+
+Purpose
+
+Support real-world engagements that combine retainers and variable work.
+
+Scope
+
+Applies to:
+	•	invoice generation
+	•	engagement pricing configuration
+
+What must be true
+	•	Engagement can specify mixed billing.
+	•	Package and hourly line items are distinct.
+	•	Reporting clearly separates the two.
+
+Required actions
+	•	Allow engagement pricing mode = “mixed”.
+	•	Ensure invoice generation handles both streams.
+	•	Present invoices clearly to clients.
+
+Acceptance criteria
+	•	Mixed invoices reconcile correctly.
+	•	Clients can understand what is fixed vs variable.
+	•	No double-billing.
+
+Failure modes to avoid
+	•	Conflating hourly and package charges
+	•	Hidden or unclear invoice lines
+	•	Incorrect totals
+
+⸻
+
+4.5 Credit Ledger (Auditable Balance, Not Magic Numbers)
+
+Purpose
+
+Handle overpayments, credits, and adjustments safely.
+
+Scope
+
+Applies to:
+	•	credits
+	•	refunds
+	•	unapplied payments
+
+What must be true
+	•	Credits are tracked in a ledger, not ad-hoc fields.
+	•	Credit creation and application are auditable.
+	•	Credit balance always reconciles.
+
+Required actions
+	•	Implement credit ledger model:
+	•	credit issued
+	•	credit applied
+	•	remaining balance
+	•	Link credits to invoices/payments.
+	•	Prevent negative or inconsistent balances.
+
+Acceptance criteria
+	•	Credit balance equals ledger sum.
+	•	Applying credit generates ledger entry.
+	•	Ledger survives billing disputes.
+
+Failure modes to avoid
+	•	“Remaining balance” fields without history
+	•	Manual credit adjustments
+	•	Silent credit application
+
+⸻
+
+4.6 Recurring Payments (Autopay, Not Subscriptions)
+
+Purpose
+
+Make payments reliable without confusing billing logic.
+
+Scope
+
+Applies to:
+	•	saved payment methods
+	•	autopay behavior
+
+What must be true
+	•	Recurring payments auto-pay invoices as issued.
+	•	Recurring payments do not generate invoices themselves.
+	•	Autopay can be disabled per client.
+
+Required actions
+	•	Implement payment method storage (securely).
+	•	Link autopay to invoice issuance.
+	•	Define failure handling (see 4.7).
+
+Acceptance criteria
+	•	Invoice issuance triggers payment attempt.
+	•	Failed payment is visible and logged.
+	•	Manual payment remains possible.
+
+Failure modes to avoid
+	•	Subscription-style charging
+	•	Hidden payment attempts
+	•	Invoices marked paid without confirmation
+
+⸻
+
+4.7 Payment Failures, Disputes & Chargebacks
+
+Purpose
+
+Survive real-world payment problems without chaos.
+
+Scope
+
+Applies to:
+	•	failed payments
+	•	disputes
+	•	chargebacks
+	•	reversals
+
+What must be true
+	•	Payment failures are first-class events.
+	•	Disputes and chargebacks are tracked explicitly.
+	•	Platform retains dispute metadata only (no billing context).
+
+Required actions
+	•	Define payment event types:
+	•	failed
+	•	retried
+	•	disputed
+	•	chargeback
+	•	resolved
+	•	Link events to invoices and payments.
+	•	Ensure dispute metadata is auditable.
+
+Acceptance criteria
+	•	Payment issues do not corrupt invoice state.
+	•	Disputes do not delete billing history.
+	•	Metadata is sufficient for legal/processor review.
+
+Failure modes to avoid
+	•	Deleting invoices on chargeback
+	•	Losing dispute history
+	•	Platform storing sensitive billing context
+
+⸻
+
+4.8 Renewal Billing Behavior (Continuity Without Mutation)
+
+Purpose
+
+Ensure renewals don’t rewrite financial history.
+
+Scope
+
+Applies to:
+	•	engagement renewal
+	•	billing continuity
+
+What must be true
+	•	Renewals create new engagements.
+	•	Old engagement invoices remain untouched.
+	•	New billing terms apply only going forward.
+
+Required actions
+	•	Ensure renewal workflow forks billing terms.
+	•	Prevent retroactive invoice changes.
+	•	Display billing history clearly across renewals.
+
+Acceptance criteria
+	•	Past invoices never change after renewal.
+	•	New invoices reflect new terms only.
+	•	Clients can see historical continuity.
+
+Failure modes to avoid
+	•	Mutating past invoices
+	•	Carrying stale pricing forward unintentionally
+	•	Confusing client billing history
+
+⸻
+
+Tier 4 Completion Definition
+
+Tier 4 is complete only when:
+	•	Billing always traces back to an engagement.
+	•	Package, hourly, and mixed billing are correct and auditable.
+	•	Credits, payments, disputes, and renewals are survivable.
+	•	Autopay behaves predictably.
+	•	No financial state mutates history silently.
+
+⸻
+
+TIER 5 — PRODUCT DURABILITY, SCALE & EXIT (FULL EXPANSION)
+
+Rule: Tier 5 ensures the system survives growth, change, and scrutiny.
+If Tier 0–4 make the system correct, Tier 5 makes it last.
+
+⸻
+
+5.1 Hero Workflow Integration Tests (End-to-End Truth)
+
+Purpose
+
+Prove that the system works as a coherent whole, not just as isolated modules.
+
+Scope
+
+Covers the canonical workflow:
+Client → Engagement → Engagement signed → Projects/Tasks → Billing → Invoice → Payment → Client Portal visibility → Renewal
+
+What must be true
+	•	The full lifecycle can run without manual intervention.
+	•	State transitions occur exactly once and in the correct order.
+	•	Client-visible state matches firm-side truth.
+
+Required actions
+	•	Define 1–2 canonical “hero” scenarios:
+	•	Package-only engagement
+	•	Mixed (package + hourly) engagement
+	•	Implement integration tests that:
+	•	create firm, client, engagement
+	•	sign engagement
+	•	auto-create projects/tasks
+	•	generate invoice
+	•	process payment (mocked)
+	•	verify portal visibility
+	•	renew engagement and verify continuity
+
+Acceptance criteria
+	•	End-to-end tests pass from clean database.
+	•	No step silently fails or auto-repairs state.
+	•	Portal and firm views remain consistent.
+
+Failure modes to avoid
+	•	Only unit tests without lifecycle coverage
+	•	Hidden background jobs “fixing” broken state
+	•	Portal showing stale or contradictory data
+
+⸻
+
+5.2 Performance Safeguards (Tenant-Safe at Scale)
+
+Purpose
+
+Prevent performance issues from becoming security or isolation issues as data grows.
+
+Scope
+
+Applies to:
+	•	list endpoints
+	•	dashboard queries
+	•	background jobs
+	•	reporting
+
+What must be true
+	•	All tenant-scoped queries are index-backed.
+	•	No N+1 queries on client-visible paths.
+	•	Performance degradation cannot expose cross-tenant data.
+
+Required actions
+	•	Audit queries for:
+	•	missing tenant indexes
+	•	unbounded list endpoints
+	•	Enforce query patterns:
+	•	select_related / prefetch_related
+	•	pagination on all list views
+	•	Add performance regression tests for critical paths.
+
+Acceptance criteria
+	•	Large datasets do not degrade correctness.
+	•	Slow queries are detectable and traceable.
+	•	Pagination and limits are enforced everywhere.
+
+Failure modes to avoid
+	•	“Works in dev” assumptions
+	•	Unpaginated admin/portal lists
+	•	Query optimizations that bypass scoping
+
+⸻
+
+5.3 Firm Offboarding & Data Exit (Trust Completion)
+
+Purpose
+
+Allow firms to leave cleanly, preserving trust and legal safety.
+
+Scope
+
+Applies to:
+	•	firm cancellation
+	•	data export
+	•	data retention
+	•	final deletion
+
+What must be true
+	•	Firms can export their data.
+	•	Data is retained for a defined window after exit.
+	•	Firms can request deletion at any time.
+	•	Data is automatically deleted after retention window expires.
+
+Required actions
+	•	Define firm-level export capability:
+	•	structured data (CSV/JSON)
+	•	document bundle (encrypted)
+	•	Implement retention timer on offboarding.
+	•	Implement deletion workflow that:
+	•	purges content
+	•	preserves liability metadata per policy
+	•	Confirm offboarding does not affect other firms.
+
+Acceptance criteria
+	•	Export completes without platform content access.
+	•	Retention window is enforced automatically.
+	•	Post-deletion, no firm data is accessible.
+
+Failure modes to avoid
+	•	Manual offboarding steps
+	•	Forgotten data after cancellation
+	•	Accidental cross-firm impact during deletion
+
+⸻
+
+5.4 Configuration Change Safety (Future-Proofing)
+
+Purpose
+
+Ensure future feature flags, pricing changes, or permission tweaks do not corrupt existing data.
+
+Scope
+
+Applies to:
+	•	feature flags
+	•	pricing configuration
+	•	permission model evolution
+
+What must be true
+	•	Configuration changes do not retroactively alter history.
+	•	Changes are scoped to firm and/or engagement going forward.
+	•	Critical changes are auditable.
+
+Required actions
+	•	Version pricing/config schemas where needed.
+	•	Ensure new config applies prospectively.
+	•	Log config changes that affect billing or access.
+
+Acceptance criteria
+	•	Historical invoices remain unchanged.
+	•	Old engagements continue to behave correctly.
+	•	Config change history is auditable.
+
+Failure modes to avoid
+	•	Global config mutations
+	•	Retroactive behavior changes
+	•	Silent config drift
+
+⸻
+
+5.5 Operational Observability (Without Content)
+
+Purpose
+
+Enable reliable operations without violating privacy posture.
+
+Scope
+
+Applies to:
+	•	uptime monitoring
+	•	error tracking
+	•	usage metrics
+	•	capacity planning
+
+What must be true
+	•	Observability uses metadata only.
+	•	Errors are traceable to firm/client context.
+	•	No customer content is ingested into monitoring systems.
+
+Required actions
+	•	Define observability data set:
+	•	request counts
+	•	error codes
+	•	latency
+	•	job failures
+	•	Ensure logs/metrics include firm_id (never content).
+	•	Define alert thresholds for critical failures.
+
+Acceptance criteria
+	•	Incidents can be diagnosed without content access.
+	•	Metrics scale with number of firms.
+	•	Alerts are actionable and not noisy.
+
+Failure modes to avoid
+	•	Logging payloads containing content
+	•	Aggregated metrics without tenant context
+	•	Blind spots in async/background systems
+
+⸻
+
+Tier 5 Completion Definition
+
+Tier 5 is complete only when:
+	•	The full lifecycle is proven end-to-end.
+	•	Performance and isolation hold at scale.
+	•	Firms can exit cleanly.
+	•	Configuration changes are safe.
+	•	Operations are observable without content visibility.
+
+At this point, the system is:
+	•	architecturally sound
+	•	privacy-defensible
+	•	commercially viable
+	•	operationally mature
+
+⸻
+
+
+⸻
+
+🔒 TIER 0 EXECUTION PROMPT — FOUNDATIONAL SAFETY
+
+You are executing Tier 0 only of a multi-tier build.
+Tier 0 is foundational safety. Nothing else is allowed.
+
+Authority
+	•	/docs/claude/NOTES_TO_CLAUDE.md is authoritative.
+	•	If code conflicts with Notes, code must change.
+	•	Do not assume or invent requirements.
+
+Scope (WHAT YOU MAY DO)
+
+You may modify only what is required to enforce:
+	1.	Firm / Workspace tenancy
+	2.	Firm context resolution
+	3.	Portal containment (default-deny)
+	4.	Platform privacy (metadata-only access)
+	5.	Break-glass access framework
+	6.	Tenant-safe background job context
+
+Explicitly IN SCOPE
+	•	Firm (Workspace) model + relationships
+	•	User → Firm → Client ownership wiring
+	•	Firm context resolution (subdomain + session + token)
+	•	Request-level firm enforcement
+	•	Firm-scoped query helpers/mixins
+	•	Portal permission classes & endpoint allowlist
+	•	Platform role restrictions (no content access)
+	•	Break-glass activation + impersonation safeguards
+	•	Audit logging for break-glass actions
+	•	Background job payload validation (firm/client required)
+
+Explicitly OUT OF SCOPE (DO NOT TOUCH)
+	•	Billing, pricing, invoices, payments
+	•	Engagement logic beyond ownership wiring
+	•	UI/UX changes (unless required for enforcement)
+	•	Performance optimization
+	•	Feature flags
+	•	CI, tests, or migrations beyond what Tier 0 strictly requires
+	•	“Temporary” bypasses or weakening constraints
+
+Invariants (MUST HOLD)
+	•	Every request resolves an active Firm context or fails.
+	•	No firm user can access another firm’s data.
+	•	Portal users are default-denied outside portal endpoints.
+	•	Platform operators cannot read customer content by default.
+	•	Break-glass access is:
+	•	explicit
+	•	time-limited
+	•	reason-required
+	•	fully audited
+	•	Background jobs cannot run without firm (and client if applicable).
+
+Break-Glass Rules
+	•	Triggered only by firm consent OR emergency policy.
+	•	Impersonation mode must be obvious and auto-expire.
+	•	All actions during break-glass are logged.
+	•	No silent or persistent elevation.
+
+Completion Checklist (STOP WHEN TRUE)
+	•	Firm tenancy enforced everywhere.
+	•	Firm context resolution is deterministic and mandatory.
+	•	Portal containment blocks all non-portal access.
+	•	Platform roles cannot access content models.
+	•	Break-glass exists and is auditable.
+	•	Async jobs fail without tenant context.
+
+Output Requirements
+
+Before stopping, report:
+	1.	Files modified
+	2.	How firm context is resolved
+	3.	How portal containment is enforced
+	4.	How platform content access is blocked
+	5.	How break-glass is implemented
+	6.	What was intentionally NOT touched
+
+Stop Conditions
+	•	If blocked by ambiguity or missing info: STOP AND ASK
+	•	Do not proceed to Tier 1.
+	•	Do not “stub” future functionality.
+
+⸻
+
+🔒 TIER 1 EXECUTION PROMPT — SCHEMA TRUTH & CI TRUTH (Token-Optimized, Detailed)
+
+You are executing Tier 1 only of a multi-tier build.
+Tier 1 ensures the database schema and CI reflect reality. No feature work.
+
+Authority
+	•	/docs/claude/NOTES_TO_CLAUDE.md is authoritative.
+	•	Tier 0 must already be implemented. Do not re-architect Tier 0—only adjust if a Tier 1 change forces it.
+
+Scope (WHAT YOU MAY DO)
+
+You may modify only what is required to:
+	1.	Remove deterministic runtime blockers that prevent boot/schema generation
+	2.	Ensure all Django models have migrations committed
+	3.	Ensure tenant keys + referential integrity are structurally enforced (firm/client ownership FKs where required)
+	4.	Make CI truthful (no skipped checks; frontend build/typecheck enforced)
+	5.	Add a minimum safety test set protecting core invariants (tenant isolation/portal containment/engagement immutability/billing approval gates)
+	6.	Ensure makemigrations is clean and migrate works from a fresh DB
+
+Explicitly IN SCOPE
+	•	Fix app loading errors (AppConfig, label conflicts, import errors)
+	•	Fix API schema generation errors (e.g., drf-spectacular enum/path issues)
+	•	Create/commit missing migrations for all apps/models (including portal/chat/doc/assets)
+	•	Tighten FK constraints and add required indexes needed for tenancy correctness (firm_id/client_id propagation)
+	•	CI pipeline edits to:
+	•	remove || true / “skip on fail”
+	•	enforce backend lint/test failures
+	•	enforce frontend build + TS typecheck failures
+	•	Add targeted tests that fail hard if invariants break:
+	•	cross-firm isolation
+	•	portal default-deny
+	•	signed engagement immutability (if model exists)
+	•	time entry approval gate (if model exists; otherwise add placeholder test that asserts no unapproved time is invoiceable via current APIs)
+
+Explicitly OUT OF SCOPE (DO NOT TOUCH)
+	•	Implementing new billing features, payment flows, pricing calculator, renewals
+	•	Refactoring architecture “for cleanliness”
+	•	UI/UX work except what’s required for build/typecheck correctness
+	•	Performance tuning beyond indexes required for tenant-scoped queries
+	•	Large test suites; only minimum invariant coverage
+
+Invariants (MUST HOLD)
+	•	CI must fail on real failures (lint/build/tests/typecheck)
+	•	No model exists without migrations
+	•	Tenant boundaries are enforced structurally (FKs + indexes where required)
+	•	No “fix” may weaken scoping or permissions to make tests pass
+
+Execution Steps (DO THESE IN ORDER)
+	1.	Identify and fix deterministic backend blockers preventing:
+	•	server boot
+	•	migrations
+	•	schema generation
+	2.	Inventory all Django models; ensure migrations exist for every model.
+	3.	Run/ensure makemigrations is a no-op and migrate is clean from empty DB.
+	4.	Ensure tenant keys exist where required (firm/client), with non-null constraints where ownership is mandatory; add indexes supporting tenant-scoped queries.
+	5.	Fix frontend compilation/type errors that block truthful CI gates (only to restore build correctness; no feature work).
+	6.	Update CI so it cannot lie:
+	•	remove skipped lint
+	•	add frontend build + TS checks
+	7.	Add minimal invariant tests (small count, high value) and wire into CI.
+
+Completion Checklist (STOP WHEN TRUE)
+	•	Backend boots without deterministic exceptions.
+	•	API schema generation completes without error.
+	•	Fresh DB: migrations apply cleanly.
+	•	makemigrations yields no changes.
+	•	CI fails on lint errors and build/type errors (backend + frontend).
+	•	Minimal invariant tests exist and run in CI.
+
+Output Requirements
+
+Before stopping, report:
+	1.	Files modified
+	2.	Blockers found + exact fixes applied
+	3.	Migration summary (apps touched, key tables/FKs/indexes)
+	4.	CI changes (what gates added/removed)
+	5.	Tests added (what each protects)
+	6.	What was intentionally NOT touched
+
+Stop Conditions
+	•	If a Tier 1 fix requires a product decision: STOP AND ASK.
+	•	Do not proceed to Tier 2.
+	•	Do not add “temporary bypasses” (no try/except swallowing, no || true, no skipping checks).
+
+———
+
+🔒 TIER 2 EXECUTION PROMPT — AUTHORIZATION & OWNERSHIP (Token-Optimized, Detailed)
+
+You are executing Tier 2 only of a multi-tier build.
+Tier 2 makes permissions explicit, centralized, and unbypassable. No new features.
+
+Authority
+	•	/docs/claude/NOTES_TO_CLAUDE.md is authoritative.
+	•	Assume Tier 0 (tenant safety) and Tier 1 (schema/CI truth) exist. Do not re-architect prior tiers unless a Tier 2 change requires a surgical fix.
+
+Scope (WHAT YOU MAY DO)
+
+You may modify only what is required to:
+	1.	Standardize permissions on every endpoint/ViewSet
+	2.	Enforce firm-scoped querysets everywhere (and client-scoped where applicable)
+	3.	Enforce portal containment via explicit allowlist + portal-only permission model
+	4.	Implement cross-client access only within same Organization (and only where intended)
+	5.	Replace direct User imports with AUTH_USER_MODEL / get_user_model()
+	6.	Ensure background jobs enforce the same tenant/permission rules as request paths (authorization + firm/client context validation)
+
+Explicitly IN SCOPE
+	•	Create/normalize permission classes:
+	•	PlatformOperator (metadata-only)
+	•	BreakGlassOperator (rare, audited)
+	•	FirmOwner / FirmAdmin / Staff (granular)
+	•	PortalUser (default-deny, allowlist)
+	•	Ensure every ViewSet has:
+	•	explicit permission_classes
+	•	a tenant-scoped get_queryset() (or equivalent)
+	•	Add reusable helpers/mixins:
+	•	firm-scoped queryset mixin
+	•	client-scoped queryset mixin
+	•	organization-sharing constraint helper
+	•	Separate portal routing/namespace (if not already) or implement a strict allowlist check
+	•	Replace all direct imports of django.contrib.auth.models.User
+	•	Ensure async tasks validate:
+	•	firm context exists
+	•	client context exists when required
+	•	authorization rules are applied (no “system” bypass without break-glass)
+
+Explicitly OUT OF SCOPE (DO NOT TOUCH)
+	•	Billing feature implementation (invoices/payments/credits logic changes)
+	•	Renewal logic changes
+	•	Encryption implementation details (beyond access boundaries)
+	•	Performance tuning (except tenant-scope correctness)
+	•	Large refactors not required for authorization correctness
+	•	UI/UX improvements beyond what is required to enforce access control
+
+Invariants (MUST HOLD)
+	•	Default deny: if an endpoint is not explicitly permitted, access is forbidden.
+	•	No endpoint may return cross-firm data.
+	•	Portal users must not access firm-admin endpoints.
+	•	Cross-client visibility is allowed only when clients share the same Organization and the endpoint is explicitly designed for shared-org context.
+	•	No permissions may rely on frontend hiding buttons.
+	•	No “temporary” admin bypasses.
+
+Execution Steps (DO THESE IN ORDER)
+	1.	Inventory all endpoints/ViewSets and classify into:
+	•	platform-only (metadata)
+	•	firm-only
+	•	portal-only
+	•	shared-org portal (explicitly)
+	2.	Implement/standardize permission classes for each category.
+	3.	Enforce tenant scoping in get_queryset() for every ViewSet:
+	•	firm_id filter always for firm-facing endpoints
+	•	portal endpoints must filter by firm_id AND portal client_id
+	4.	Implement portal containment:
+	•	allowlist of portal endpoints
+	•	403 for anything else
+	5.	Implement shared-org rule:
+	•	only allow portal cross-client access in endpoints explicitly intended for org-shared views
+	6.	Remove direct User imports and update references.
+	7.	Ensure async tasks:
+	•	validate tenant context
+	•	never operate globally
+	•	apply equivalent authorization logic or require break-glass for exceptional operations
+
+Completion Checklist (STOP WHEN TRUE)
+	•	Every endpoint has explicit permissions.
+	•	Every endpoint has tenant-scoped querysets.
+	•	Portal users cannot access non-portal endpoints (403).
+	•	Cross-client access only works for shared-org context and only via explicit endpoints.
+	•	No direct User imports remain.
+	•	Async tasks cannot execute without required firm/client context and do not bypass permissions.
+
+Output Requirements
+
+Before stopping, report:
+	1.	Endpoint inventory summary (counts by category)
+	2.	Permission classes introduced/updated (names + purpose)
+	3.	Where tenant scoping is enforced (common mixins/helpers)
+	4.	Portal allowlist mechanism (how enforced)
+	5.	Shared-org access mechanism (how enforced)
+	6.	User import refactor summary
+	7.	What was intentionally NOT touched
+
+Stop Conditions
+	•	If you discover endpoints that require product intent (e.g., should this be portal-visible?): STOP AND ASK.
+	•	Do not proceed to Tier 3.
+	•	Do not relax Tier 0–1 safeguards to “make things work.”
+
+———
+
+🔒 TIER 3 EXECUTION PROMPT — DATA INTEGRITY & PRIVACY (Token-Optimized, Detailed)
+
+You are executing Tier 3 only of a multi-tier build.
+Tier 3 makes the system defensible: purge/tombstones, audit taxonomy+retention, privacy-first support flows, and signing evidence retention. No billing feature work.
+
+Authority
+	•	/docs/claude/NOTES_TO_CLAUDE.md is authoritative.
+	•	Assume Tier 0–2 are implemented. Do not re-architect prior tiers except for surgical fixes required by Tier 3 guarantees.
+
+Scope (WHAT YOU MAY DO)
+
+You may modify only what is required to implement:
+	1.	Purge semantics (tombstones; content removed, metadata retained)
+	2.	Audit event taxonomy (structured events; no content logging)
+	3.	Audit retention policy hooks (enforceable retention mechanism, not necessarily full ops automation)
+	4.	Audit review governance plumbing (fields/workflow primitives to support reviews)
+	5.	Privacy-first support workflow primitives (metadata-only diagnostics; customer-export intake scaffolding)
+	6.	Document signing lifecycle metadata (immutable signing events; evidence retention independent of content)
+
+Explicitly IN SCOPE
+	•	Tombstone strategy for:
+	•	messages/comments bodies
+	•	document content pointers/versions
+	•	any rich-text notes fields that contain customer content
+	•	Purge API/actions:
+	•	Master Admin purge (firm-side)
+	•	Break-glass purge (platform-side) only if already required by Notes/policy
+	•	reason-required, confirmation-required, immutable audit entry
+	•	Audit logging system:
+	•	structured event model/table (or equivalent)
+	•	event categories:
+	•	AUTH, PERMISSIONS, BREAK_GLASS, BILLING_METADATA, PURGE, CONFIG
+	•	required fields:
+	•	firm_id always
+	•	client_id when applicable
+	•	actor_id / actor_role
+	•	action_type
+	•	target_type + target_id(s)
+	•	timestamp
+	•	reason (mandatory for break-glass/purge)
+	•	prohibition: do not store content payloads
+	•	Retention policy primitives:
+	•	retention fields/config (per category)
+	•	ability to expire/archive audit rows without touching customer content
+	•	Review governance primitives:
+	•	“review status” and “reviewed_by/at” for break-glass and purge events (or a review table)
+	•	Support primitives (no content):
+	•	diagnostic snapshots using metadata only (counts, timestamps, error codes)
+	•	customer-provided export intake model with:
+	•	firm_id
+	•	uploader
+	•	retention/expiry timestamp
+	•	storage pointer (must be treated as sensitive)
+	•	Document signing evidence:
+	•	immutable signing event model
+	•	link to document version/hash (not plaintext content)
+	•	signer identity, timestamp, method, document_version_id/hash
+	•	signing evidence survives content purge (tombstone retains hashes + event metadata)
+
+Explicitly OUT OF SCOPE (DO NOT TOUCH)
+	•	Implementing billing/payment workflows (Tier 4)
+	•	Changing pricing logic
+	•	Broad refactors unrelated to purge/audit/support/signing
+	•	Storing or logging customer content “for debugging”
+	•	UI polish beyond minimal admin/serviceability
+	•	Building full SOC2 program (only primitives here)
+
+Invariants (MUST HOLD)
+	•	Purge removes content but preserves metadata and relationships (tombstone).
+	•	Audit logs never contain customer content.
+	•	Platform remains blind by default (privacy-first).
+	•	Break-glass actions are fully auditable; purge actions are fully auditable.
+	•	Signing events are immutable and remain provable without storing document plaintext.
+
+Execution Steps (DO THESE IN ORDER)
+	1.	Identify all “content-bearing” fields/models (messages, comments, docs, notes).
+	2.	Implement tombstone schema changes (purged_at, purged_by, purge_reason, is_purged, content_hash/version refs as needed).
+	3.	Implement purge operations:
+	•	permission-gated (Master Admin / Break-glass as applicable)
+	•	confirmation + reason required
+	•	write immutable audit event
+	4.	Implement structured audit event model + writer utilities:
+	•	central helper for emitting events
+	•	banlist/guardrails preventing content fields being logged
+	5.	Add retention + review primitives:
+	•	retention policy representation
+	•	review record/status for break-glass + purge events
+	6.	Implement privacy-first support primitives:
+	•	metadata-only diagnostic snapshot generator
+	•	customer export intake model with expiry/retention fields
+	7.	Implement document signing evidence model:
+	•	immutable events
+	•	document version/hash binding
+	•	survives purge (tombstone keeps version/hash + event metadata)
+
+Completion Checklist (STOP WHEN TRUE)
+	•	Purge works via tombstones for all content-bearing models in scope.
+	•	Every purge emits an immutable audit event with required fields.
+	•	Audit event system exists, structured, tenant-scoped, content-free.
+	•	Retention + review primitives exist for auditability.
+	•	Support diagnostics can be generated without content access.
+	•	Signing events are immutable and bound to a document version/hash, and survive purges.
+
+Output Requirements
+
+Before stopping, report:
+	1.	Models/fields treated as “content-bearing”
+	2.	Tombstone fields added and where
+	3.	Purge entry points and permission gates
+	4.	Audit event schema + categories + writer utility location
+	5.	How you prevented content from being logged
+	6.	Retention/review primitives added (what/where)
+	7.	Support primitives added (what metadata, where stored, expiry)
+	8.	Signing evidence model details (fields + link to version/hash)
+	9.	What was intentionally NOT touched
+
+Stop Conditions
+	•	If you hit a decision requiring policy (e.g., retention durations, which roles can purge): STOP AND ASK.
+	•	Do not proceed to Tier 4.
+	•	No temporary shortcuts, no content logging for debugging.
+
+🔒 TIER 4 EXECUTION PROMPT — BILLING & MONETIZATION (Token-Optimized, Detailed)
+
+You are executing Tier 4 only of a multi-tier build.
+Tier 4 implements engagement-centric billing with package + hourly + mixed, credit ledger, autopay, and explicit failure/dispute handling. No Tier 5 scale/exit work.
+
+Authority
+	•	/docs/claude/NOTES_TO_CLAUDE.md is authoritative.
+	•	Assume Tier 0–3 are implemented. Do not weaken tenant/privacy/audit rules to make billing work.
+
+Scope (WHAT YOU MAY DO)
+
+You may modify only what is required to implement:
+	1.	Engagement-centric invoicing (invoice belongs to client; default requires engagement link)
+	2.	Package fee invoicing (scheduled/auto invoice generation)
+	3.	Hourly billing (time entries + staff/admin approval gate; optional client approval ready)
+	4.	Mixed billing (package + hourly on one invoice)
+	5.	Credit ledger (auditable credit balance and application)
+	6.	Recurring payments (autopay invoices as issued)
+	7.	Payment failures + disputes + chargebacks as first-class events
+	8.	Renewal billing continuity (no retroactive mutation)
+
+Explicitly IN SCOPE
+	•	Models and logic for:
+	•	engagements billing terms (package/hourly/mixed)
+	•	invoices + invoice line items (no plaintext “context” in platform logs)
+	•	time entries, approval states, billing inclusion gates
+	•	credit ledger entries and balance computation
+	•	payment methods (secure references), payment attempts, payment events
+	•	dispute/chargeback event tracking
+	•	Default behavior:
+	•	invoice must link to engagement (Master Admin can override explicitly)
+	•	unapproved time cannot be invoiced
+	•	autopay triggers on invoice issuance
+	•	Audit events (metadata only) for:
+	•	invoice issued
+	•	payment attempted / succeeded / failed
+	•	dispute opened / resolved
+	•	chargeback received
+	•	credits issued/applied
+	•	Strict “no history mutation” rules:
+	•	renewal creates new engagement; past invoices remain unchanged
+
+Explicitly OUT OF SCOPE (DO NOT TOUCH)
+	•	Pricing calculator module (configurable CPQ) beyond basic “firm enters package fee”
+	•	Full accounting integrations
+	•	Tier 5 (performance, exit flows, observability)
+	•	UI polish beyond what is required to validate workflows
+	•	Any change that exposes customer content to platform roles
+
+Invariants (MUST HOLD)
+	•	Billing traces back to engagement terms by default.
+	•	Signed engagements remain immutable; renewals do not rewrite history.
+	•	Time entries are not invoiceable until approved.
+	•	Credits are ledger-based (auditable).
+	•	Payment failures/disputes do not corrupt invoice state.
+	•	Platform retains billing metadata only; no customer content is logged.
+
+Execution Steps (DO THESE IN ORDER)
+	1.	Confirm engagement billing term structure:
+	•	pricing_mode: package/hourly/mixed
+	•	package amount + cadence + start/end
+	•	hourly rates and rules (as minimal viable)
+	2.	Implement invoice rules:
+	•	invoice belongs to client
+	•	default requires engagement_id (override flag controlled by Firm Master Admin)
+	•	optional project linkage
+	3.	Implement package auto-invoicing:
+	•	scheduled job creates invoices from engagement terms
+	•	idempotent (no duplicates)
+	4.	Implement hourly workflow:
+	•	time entry creation
+	•	approval states: draft/approved/rejected
+	•	only approved entries can be included on invoices
+	•	client approval optional (data model ready)
+	5.	Implement mixed invoices:
+	•	invoice supports package line(s) + hourly line(s)
+	•	reporting clarity (separate categories)
+	6.	Implement credit ledger:
+	•	credit issuance event
+	•	credit application event
+	•	balance derived from ledger entries
+	7.	Implement autopay:
+	•	stored payment method references
+	•	on invoice issuance: attempt payment
+	•	record payment attempt outcomes
+	8.	Implement failure + dispute + chargeback events:
+	•	event types and lifecycle
+	•	link to invoice/payment
+	•	preserve history and metadata
+	9.	Implement renewal continuity:
+	•	renewal creates new engagement with new terms
+	•	no retroactive changes to invoices/payments for prior engagement
+	10.	Add minimal billing invariant tests:
+
+	•	invoice requires engagement by default
+	•	unapproved time cannot be invoiced
+	•	mixed invoice totals reconcile
+	•	chargeback/dispute does not flip invoice state incorrectly
+
+Completion Checklist (STOP WHEN TRUE)
+	•	Package invoicing can run on schedule without duplicates.
+	•	Hourly time cannot be billed unless approved.
+	•	Mixed invoices work (fixed + variable) and reconcile totals.
+	•	Credits are ledger-based and auditable.
+	•	Autopay triggers on invoice issuance; failures are recorded cleanly.
+	•	Disputes/chargebacks are tracked as explicit events and do not delete history.
+	•	Renewals do not mutate past invoices.
+
+Output Requirements
+
+Before stopping, report:
+	1.	Billing data model summary (engagement terms, invoices, time entries, credits, payments, disputes)
+	2.	Default rules + override rules (engagement link requirement)
+	3.	Package invoicing idempotency mechanism
+	4.	Time approval gating mechanism
+	5.	Credit ledger mechanics and reconciliation approach
+	6.	Autopay workflow and failure paths
+	7.	Dispute/chargeback event lifecycle
+	8.	Renewal continuity guarantees
+	9.	Tests added and what they assert
+	10.	What was intentionally NOT touched
+
+Stop Conditions
+	•	If payment processor choice or legal policy is required: STOP AND ASK (do not guess).
+	•	Do not proceed to Tier 5.
+	•	No shortcuts that weaken auditability or tenant/privacy boundaries.
+
+🔒 TIER 5 EXECUTION PROMPT — DURABILITY, SCALE & EXIT (Token-Optimized, Detailed)
+
+You are executing Tier 5 only of a multi-tier build.
+Tier 5 proves the system works end-to-end, scales safely, and allows clean exit. No new product features.
+
+Authority
+	•	/docs/claude/NOTES_TO_CLAUDE.md is authoritative.
+	•	Assume Tier 0–4 are complete and correct.
+	•	Do not weaken privacy, audit, or billing invariants to make Tier 5 easier.
+
+⸻
+
+Scope (WHAT YOU MAY DO)
+
+You may modify only what is required to implement:
+	1.	Hero end-to-end integration tests
+	2.	Performance safeguards for tenant-scoped systems
+	3.	Firm offboarding & data exit flows
+	4.	Configuration change safety (no retroactive mutation)
+	5.	Operational observability (metadata-only)
+
+⸻
+
+Explicitly IN SCOPE
+
+A) Hero Workflow Integration Tests
+	•	End-to-end lifecycle coverage for:
+	•	Firm → Client → Engagement → Signed
+	•	Auto-created Projects/Tasks
+	•	Package invoicing
+	•	Hourly approval → invoice inclusion
+	•	Autopay success/failure (mocked)
+	•	Client portal visibility
+	•	Renewal → new engagement → continuity
+	•	Use real models + transactions; mock only external processors.
+
+B) Performance & Isolation Safeguards
+	•	Pagination on all list endpoints (portal + firm).
+	•	Ensure tenant indexes exist and are used for:
+	•	firm_id
+	•	client_id
+	•	Eliminate N+1 queries on critical paths.
+	•	Add lightweight performance regression checks where feasible.
+
+C) Firm Offboarding & Data Exit
+	•	Firm-initiated export:
+	•	structured data (JSON/CSV)
+	•	document bundle (encrypted)
+	•	Retention window logic:
+	•	firm data retained for policy window
+	•	firm can request deletion at any time
+	•	Deletion workflow:
+	•	content purged (tombstones)
+	•	liability metadata retained per policy
+	•	no cross-firm impact
+
+D) Configuration Change Safety
+	•	Ensure pricing/config changes:
+	•	apply prospectively only
+	•	do not mutate historical invoices or engagements
+	•	Version config where necessary.
+	•	Log security- or billing-relevant config changes (metadata only).
+
+E) Operational Observability (Privacy-Preserving)
+	•	Metrics/logs for:
+	•	request counts
+	•	error rates/codes
+	•	latency
+	•	background job failures
+	•	All telemetry must include:
+	•	firm_id
+	•	optional client_id
+	•	Telemetry must never include customer content.
+
+⸻
+
+Explicitly OUT OF SCOPE (DO NOT TOUCH)
+	•	New billing features
+	•	Pricing calculator/CPQ
+	•	UI/UX redesigns
+	•	Encryption scheme changes
+	•	SOC2 documentation (only primitives already added)
+	•	Cross-tier refactors
+
+⸻
+
+Invariants (MUST HOLD)
+	•	No end-to-end test may bypass tenant or permission checks.
+	•	Performance optimizations must not weaken scoping.
+	•	Offboarding must not delete liability metadata prematurely.
+	•	Observability must not ingest content.
+	•	Historical data must remain immutable.
+
+⸻
+
+Execution Steps (DO THESE IN ORDER)
+	1.	Define 1–2 hero workflows and implement full integration tests.
+	2.	Audit critical queries; add pagination, indexes, and prefetching.
+	3.	Implement firm export mechanism (data + docs).
+	4.	Implement retention timer + deletion trigger for offboarding.
+	5.	Add safeguards so config changes do not affect historical records.
+	6.	Implement metadata-only metrics/logging for ops visibility.
+
+⸻
+
+Completion Checklist (STOP WHEN TRUE)
+	•	End-to-end tests pass from a clean database.
+	•	Large datasets do not degrade correctness or isolation.
+	•	Firms can export, exit, and be deleted safely.
+	•	Config changes do not rewrite history.
+	•	Ops can diagnose issues without content access.
+
+⸻
+
+Output Requirements
+
+Before stopping, report:
+	1.	Hero workflows tested (what they cover)
+	2.	Performance safeguards added (indexes, pagination, N+1 fixes)
+	3.	Offboarding flow (export, retention, deletion)
+	4.	Config versioning / mutation safeguards
+	5.	Observability signals added (what, where)
+	6.	What was intentionally NOT touched
+
+⸻
+
+Stop Conditions
+	•	If retention durations, export formats, or legal policy must be decided: STOP AND ASK.
+	•	Do not proceed to any further work.
+	•	No shortcuts that weaken privacy, audit, billing, or tenancy guarantees.
+
+⸻
+
+✅ END OF BUILD PROMPTS
+
