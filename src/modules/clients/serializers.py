@@ -7,7 +7,9 @@ from modules.clients.models import (
     ClientPortalUser,
     ClientNote,
     ClientEngagement,
-    ClientComment
+    ClientComment,
+    ClientChatThread,
+    ClientMessage,
 )
 
 
@@ -456,3 +458,110 @@ class ClientInvoiceSerializer(serializers.ModelSerializer):
         # Can pay if status is sent, partial, or overdue and has balance due
         payable_statuses = ['sent', 'partial', 'overdue']
         return obj.status in payable_statuses and obj.balance_due > 0
+
+
+class ClientMessageSerializer(serializers.ModelSerializer):
+    """Serializer for ClientMessage model."""
+
+    sender_name = serializers.SerializerMethodField()
+    sender_email = serializers.EmailField(source='sender.email', read_only=True)
+
+    class Meta:
+        model = ClientMessage
+        fields = [
+            'id',
+            'thread',
+            'sender',
+            'sender_name',
+            'sender_email',
+            'is_from_client',
+            'message_type',
+            'content',
+            'attachment_url',
+            'attachment_filename',
+            'attachment_size_bytes',
+            'is_read',
+            'read_at',
+            'read_by',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'sender',
+            'is_from_client',
+            'is_read',
+            'read_at',
+            'read_by',
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_sender_name(self, obj):
+        """Get sender's full name."""
+        if obj.sender:
+            return f"{obj.sender.first_name} {obj.sender.last_name}".strip() or obj.sender.username
+        return None
+
+    def create(self, validated_data):
+        """Set sender and is_from_client from request context."""
+        request = self.context.get('request')
+        validated_data['sender'] = request.user
+
+        # Check if sender is a client portal user
+        from modules.clients.models import ClientPortalUser
+        try:
+            ClientPortalUser.objects.get(user=request.user)
+            validated_data['is_from_client'] = True
+        except ClientPortalUser.DoesNotExist:
+            validated_data['is_from_client'] = False
+
+        return super().create(validated_data)
+
+
+class ClientChatThreadSerializer(serializers.ModelSerializer):
+    """Serializer for ClientChatThread model."""
+
+    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    last_message_by_name = serializers.SerializerMethodField()
+    messages = ClientMessageSerializer(many=True, read_only=True)
+    recent_messages = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClientChatThread
+        fields = [
+            'id',
+            'client',
+            'client_name',
+            'date',
+            'is_active',
+            'archived_at',
+            'message_count',
+            'last_message_at',
+            'last_message_by',
+            'last_message_by_name',
+            'created_at',
+            'updated_at',
+            'messages',
+            'recent_messages',
+        ]
+        read_only_fields = [
+            'id',
+            'message_count',
+            'last_message_at',
+            'last_message_by',
+            'archived_at',
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_last_message_by_name(self, obj):
+        """Get last message sender's name."""
+        if obj.last_message_by:
+            return f"{obj.last_message_by.first_name} {obj.last_message_by.last_name}".strip() or obj.last_message_by.username
+        return None
+
+    def get_recent_messages(self, obj):
+        """Get recent messages (last 50) for efficiency."""
+        messages = obj.messages.all().order_by('-created_at')[:50]
+        return ClientMessageSerializer(messages, many=True).data

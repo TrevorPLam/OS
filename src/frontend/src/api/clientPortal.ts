@@ -135,6 +135,51 @@ export interface PaymentLinkResponse {
   message?: string;
 }
 
+export interface ClientMessage {
+  id: number;
+  thread: number;
+  sender: number;
+  sender_name: string;
+  sender_email: string;
+  is_from_client: boolean;
+  message_type: 'text' | 'file' | 'system';
+  content: string;
+  attachment_url: string;
+  attachment_filename: string;
+  attachment_size_bytes: number | null;
+  is_read: boolean;
+  read_at: string | null;
+  read_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientChatThread {
+  id: number;
+  client: number;
+  client_name: string;
+  date: string;
+  is_active: boolean;
+  archived_at: string | null;
+  message_count: number;
+  last_message_at: string | null;
+  last_message_by: number | null;
+  last_message_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+  messages: ClientMessage[];
+  recent_messages: ClientMessage[];
+}
+
+export interface CreateMessageData {
+  thread: number;
+  content: string;
+  message_type?: 'text' | 'file' | 'system';
+  attachment_url?: string;
+  attachment_filename?: string;
+  attachment_size_bytes?: number;
+}
+
 /**
  * Client Portal Projects API
  */
@@ -216,5 +261,54 @@ export const clientPortalApi = {
    */
   generatePaymentLink: (invoiceId: number) => {
     return apiClient.post<PaymentLinkResponse>(`/api/clients/invoices/${invoiceId}/generate_payment_link/`);
+  },
+
+  /**
+   * Get active chat thread for today
+   */
+  getActiveThread: () => {
+    return apiClient.get<ClientChatThread>('/api/clients/chat-threads/active/');
+  },
+
+  /**
+   * List chat threads
+   */
+  listThreads: (params?: { is_active?: boolean }) => {
+    return apiClient.get<{ results: ClientChatThread[] }>('/api/clients/chat-threads/', { params });
+  },
+
+  /**
+   * Get thread detail
+   */
+  getThread: (threadId: number) => {
+    return apiClient.get<ClientChatThread>(`/api/clients/chat-threads/${threadId}/`);
+  },
+
+  /**
+   * List messages in a thread
+   */
+  listMessages: (params?: { thread?: number }) => {
+    return apiClient.get<{ results: ClientMessage[] }>('/api/clients/messages/', { params });
+  },
+
+  /**
+   * Send a message
+   */
+  sendMessage: (data: CreateMessageData) => {
+    return apiClient.post<ClientMessage>('/api/clients/messages/', data);
+  },
+
+  /**
+   * Mark message as read
+   */
+  markMessageAsRead: (messageId: number) => {
+    return apiClient.post<{ status: string; message: ClientMessage }>(`/api/clients/messages/${messageId}/mark_as_read/`);
+  },
+
+  /**
+   * Get unread messages
+   */
+  getUnreadMessages: () => {
+    return apiClient.get<ClientMessage[]>('/api/clients/messages/unread/');
   },
 };

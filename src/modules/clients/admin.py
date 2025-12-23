@@ -7,7 +7,9 @@ from modules.clients.models import (
     ClientPortalUser,
     ClientNote,
     ClientEngagement,
-    ClientComment
+    ClientComment,
+    ClientChatThread,
+    ClientMessage,
 )
 
 
@@ -186,6 +188,76 @@ class ClientCommentAdmin(admin.ModelAdmin):
         }),
         ('Read Status', {
             'fields': ('is_read_by_firm', 'read_by', 'read_at'),
+        }),
+        ('Audit', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+@admin.register(ClientChatThread)
+class ClientChatThreadAdmin(admin.ModelAdmin):
+    list_display = (
+        'client',
+        'date',
+        'is_active',
+        'message_count',
+        'last_message_at',
+        'last_message_by',
+    )
+    list_filter = ('is_active', 'date', 'client')
+    search_fields = (
+        'client__company_name',
+    )
+    readonly_fields = ('created_at', 'updated_at', 'archived_at', 'message_count', 'last_message_at', 'last_message_by')
+
+    fieldsets = (
+        ('Thread Details', {
+            'fields': ('client', 'date', 'is_active'),
+        }),
+        ('Statistics', {
+            'fields': ('message_count', 'last_message_at', 'last_message_by'),
+        }),
+        ('Archive', {
+            'fields': ('archived_at',),
+        }),
+        ('Audit', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+@admin.register(ClientMessage)
+class ClientMessageAdmin(admin.ModelAdmin):
+    list_display = (
+        'sender',
+        'thread',
+        'message_type',
+        'is_from_client',
+        'is_read',
+        'created_at',
+    )
+    list_filter = ('message_type', 'is_from_client', 'is_read', 'created_at')
+    search_fields = (
+        'content',
+        'sender__username',
+        'sender__email',
+        'thread__client__company_name',
+    )
+    readonly_fields = ('created_at', 'updated_at', 'read_at')
+
+    fieldsets = (
+        ('Message Details', {
+            'fields': ('thread', 'sender', 'is_from_client', 'message_type', 'content'),
+        }),
+        ('Attachment', {
+            'fields': ('attachment_url', 'attachment_filename', 'attachment_size_bytes'),
+            'classes': ('collapse',),
+        }),
+        ('Read Status', {
+            'fields': ('is_read', 'read_by', 'read_at'),
         }),
         ('Audit', {
             'fields': ('created_at', 'updated_at'),

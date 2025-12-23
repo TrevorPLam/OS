@@ -371,3 +371,171 @@ class ClientComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author.get_full_name()} on task {self.task.title}"
+
+
+class ClientChatThread(models.Model):
+    """
+    Daily chat thread between client and firm team.
+
+    Threads rotate daily (00:00 UTC) to keep conversations organized.
+    Archived threads are stored in ClientChatArchive.
+    """
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name='chat_threads',
+        help_text="Client this thread belongs to"
+    )
+    date = models.DateField(
+        help_text="Date of this thread (YYYY-MM-DD)"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this is the current active thread"
+    )
+    archived_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this thread was archived"
+    )
+
+    # Statistics
+    message_count = models.IntegerField(
+        default=0,
+        help_text="Total messages in this thread"
+    )
+    last_message_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp of last message"
+    )
+    last_message_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='last_chat_message_threads',
+        help_text="User who sent last message"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'clients_chat_thread'
+        ordering = ['-date']
+        indexes = [
+            models.Index(fields=['client', '-date']),
+            models.Index(fields=['is_active']),
+            models.Index(fields=['-last_message_at']),
+        ]
+        unique_together = [['client', 'date']]
+
+    def __str__(self):
+        return f"{self.client.company_name} - Chat Thread {self.date}"
+
+
+class ClientMessage(models.Model):
+    """
+    Individual message in a client chat thread.
+
+    Messages are sent between client portal users and firm team members.
+    Supports text messages and file attachments.
+    """
+    MESSAGE_TYPE_CHOICES = [
+        ('text', 'Text Message'),
+        ('file', 'File Attachment'),
+        ('system', 'System Notification'),
+    ]
+
+    thread = models.ForeignKey(
+        ClientChatThread,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        help_text="Thread this message belongs to"
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='sent_client_messages',
+        help_text="User who sent this message"
+    )
+    is_from_client = models.BooleanField(
+        default=False,
+        help_text="Whether sender is a client portal user"
+    )
+
+    # Message Content
+    message_type = models.CharField(
+        max_length=20,
+        choices=MESSAGE_TYPE_CHOICES,
+        default='text'
+    )
+    content = models.TextField(
+        help_text="Message text content"
+    )
+
+    # File Attachment (optional)
+    attachment_url = models.URLField(
+        blank=True,
+        help_text="S3 URL for file attachment (if message_type=file)"
+    )
+    attachment_filename = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Original filename of attachment"
+    )
+    attachment_size_bytes = models.BigIntegerField(
+        null=True,
+        blank=True,
+        help_text="File size in bytes"
+    )
+
+    # Read Status
+    is_read = models.BooleanField(
+        default=False,
+        help_text="Whether message has been read by recipient"
+    )
+    read_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When message was read"
+    )
+    read_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='read_client_messages',
+        help_text="User who read this message"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'clients_message'
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['thread', 'created_at']),
+            models.Index(fields=['sender', '-created_at']),
+            models.Index(fields=['is_read']),
+        ]
+
+    def __str__(self):
+        sender_name = self.sender.get_full_name() or self.sender.username
+        return f"Message from {sender_name} at {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+
+    def save(self, *args, **kwargs):
+        """Update thread statistics when message is saved."""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new:
+            # Update thread statistics
+            self.thread.message_count = self.thread.messages.count()
+            self.thread.last_message_at = self.created_at
+            self.thread.last_message_by = self.sender
+            self.thread.save()

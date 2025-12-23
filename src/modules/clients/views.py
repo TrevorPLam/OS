@@ -11,7 +11,9 @@ from modules.clients.models import (
     ClientPortalUser,
     ClientNote,
     ClientEngagement,
-    ClientComment
+    ClientComment,
+    ClientChatThread,
+    ClientMessage,
 )
 from modules.clients.serializers import (
     ClientSerializer,
@@ -20,6 +22,8 @@ from modules.clients.serializers import (
     ClientEngagementSerializer,
     ClientCommentSerializer,
     ClientProjectSerializer,
+    ClientMessageSerializer,
+    ClientChatThreadSerializer,
 )
 
 
@@ -441,3 +445,187 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         summary['overdue_count'] = overdue_count
 
         return Response(summary)
+
+
+class ClientChatThreadViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Client Chat Threads.
+
+    Manages daily chat threads between clients and firm team.
+    Threads auto-rotate daily for organization.
+    """
+    serializer_class = ClientChatThreadSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['client', 'is_active', 'date']
+    ordering_fields = ['date', 'last_message_at']
+    ordering = ['-date']
+
+    def get_queryset(self):
+        """
+        Filter threads based on user type.
+
+        - Client portal users: only see their client's threads
+        - Firm users: see all threads
+        """
+        user = self.request.user
+        queryset = ClientChatThread.objects.all().prefetch_related('messages')
+
+        # Check if user is a client portal user
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+
+            # Check if user has permission to message team
+            if not portal_user.can_message_team:
+                return ClientChatThread.objects.none()
+
+            # Filter to only this client's threads
+            queryset = queryset.filter(client=portal_user.client)
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - can see all threads
+            pass
+
+        return queryset
+
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """
+        Get or create today's active thread for the client.
+
+        Returns the active thread with recent messages.
+        """
+        user = request.user
+
+        # Get client
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+            client = portal_user.client
+        except ClientPortalUser.DoesNotExist:
+            return Response(
+                {'error': 'Only client portal users can access this endpoint'},
+                status=403
+            )
+
+        # Get or create today's thread
+        from django.utils import timezone
+        today = timezone.now().date()
+
+        thread, created = ClientChatThread.objects.get_or_create(
+            client=client,
+            date=today,
+            defaults={'is_active': True}
+        )
+
+        serializer = self.get_serializer(thread)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        """
+        Archive a chat thread.
+
+        Only accessible to firm users.
+        """
+        # Check if user is a firm user
+        try:
+            ClientPortalUser.objects.get(user=request.user)
+            return Response(
+                {'error': 'Only firm team members can archive threads'},
+                status=403
+            )
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - can archive
+            thread = self.get_object()
+            from django.utils import timezone
+            thread.is_active = False
+            thread.archived_at = timezone.now()
+            thread.save()
+
+            return Response({
+                'status': 'thread archived',
+                'thread': ClientChatThreadSerializer(thread).data
+            })
+
+
+class ClientMessageViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Client Messages.
+
+    Handles real-time messaging between clients and firm team.
+    Messages are organized by daily threads.
+    """
+    serializer_class = ClientMessageSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['thread', 'is_from_client', 'message_type', 'is_read']
+    ordering_fields = ['created_at']
+    ordering = ['created_at']
+
+    def get_queryset(self):
+        """
+        Filter messages based on user type.
+
+        - Client portal users: only see their client's messages
+        - Firm users: see all messages
+        """
+        user = self.request.user
+        queryset = ClientMessage.objects.all().select_related('thread', 'sender')
+
+        # Check if user is a client portal user
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+
+            # Check if user has permission to message team
+            if not portal_user.can_message_team:
+                return ClientMessage.objects.none()
+
+            # Filter to only this client's messages
+            queryset = queryset.filter(thread__client=portal_user.client)
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - can see all messages
+            pass
+
+        return queryset
+
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        """
+        Mark a message as read.
+
+        Accessible to both clients and firm users.
+        """
+        message = self.get_object()
+
+        from django.utils import timezone
+        message.is_read = True
+        message.read_by = request.user
+        message.read_at = timezone.now()
+        message.save()
+
+        return Response({
+            'status': 'marked as read',
+            'message': ClientMessageSerializer(message).data
+        })
+
+    @action(detail=False, methods=['get'])
+    def unread(self, request):
+        """
+        Get unread messages for the current user.
+
+        For clients: get unread messages from firm
+        For firm: get unread messages from all clients
+        """
+        user = request.user
+        queryset = self.get_queryset()
+
+        # Check if user is a client portal user
+        try:
+            ClientPortalUser.objects.get(user=user)
+            # Client: get unread messages from firm (is_from_client=False)
+            unread = queryset.filter(is_read=False, is_from_client=False)
+        except ClientPortalUser.DoesNotExist:
+            # Firm: get unread messages from clients (is_from_client=True)
+            unread = queryset.filter(is_read=False, is_from_client=True)
+
+        serializer = self.get_serializer(unread, many=True)
+        return Response(serializer.data)

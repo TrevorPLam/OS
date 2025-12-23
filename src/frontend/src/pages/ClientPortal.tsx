@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { documentsApi } from '../api/documents';
-import { clientPortalApi, ClientProject, ClientTask, CreateCommentData, ClientInvoice, InvoiceSummary } from '../api/clientPortal';
+import { clientPortalApi, ClientProject, ClientTask, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage } from '../api/clientPortal';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import './ClientPortal.css';
 
@@ -18,15 +18,7 @@ interface Document {
   description: string;
 }
 
-// Invoice interface now imported from clientPortal.ts
-
-interface Message {
-  id: number;
-  from_user: string;
-  message: string;
-  created_at: string;
-  read: boolean;
-}
+// Invoice and Chat interfaces now imported from clientPortal.ts
 
 export const ClientPortal: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'work' | 'documents' | 'invoices' | 'messages' | 'analytics'>('work');
@@ -40,7 +32,10 @@ export const ClientPortal: React.FC = () => {
   const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary | null>(null);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
   const [generatingPaymentLink, setGeneratingPaymentLink] = useState<number | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [chatThread, setChatThread] = useState<ClientChatThread | null>(null);
+  const [messages, setMessages] = useState<ClientMessage[]>([]);
+  const [newMessage, setNewMessage] = useState<string>('');
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeProjects: 0,
@@ -86,12 +81,32 @@ export const ClientPortal: React.FC = () => {
         ['sent', 'partial', 'overdue'].includes(inv.status)
       ).length;
 
-      setStats({
-        activeProjects: activeProjectsCount,
-        totalDocuments: docsResponse.data.results?.length || 0,
-        pendingInvoices: pendingInvoicesCount,
-        unreadMessages: 0,
-      });
+      // Load chat thread and messages
+      try {
+        const threadResponse = await clientPortalApi.getActiveThread();
+        setChatThread(threadResponse.data);
+        setMessages(threadResponse.data.recent_messages || []);
+
+        // Count unread messages from firm
+        const unreadCount = (threadResponse.data.recent_messages || []).filter(
+          (msg: ClientMessage) => !msg.is_read && !msg.is_from_client
+        ).length;
+
+        setStats({
+          activeProjects: activeProjectsCount,
+          totalDocuments: docsResponse.data.results?.length || 0,
+          pendingInvoices: pendingInvoicesCount,
+          unreadMessages: unreadCount,
+        });
+      } catch (error) {
+        console.error('Error loading chat:', error);
+        setStats({
+          activeProjects: activeProjectsCount,
+          totalDocuments: docsResponse.data.results?.length || 0,
+          pendingInvoices: pendingInvoicesCount,
+          unreadMessages: 0,
+        });
+      }
     } catch (error) {
       console.error('Error loading portal data:', error);
     } finally {
@@ -164,6 +179,50 @@ export const ClientPortal: React.FC = () => {
       setGeneratingPaymentLink(null);
     }
   };
+
+  const handleSendMessage = async () => {
+    const messageContent = newMessage.trim();
+    if (!messageContent || !chatThread) return;
+
+    try {
+      setSendingMessage(true);
+      await clientPortalApi.sendMessage({
+        thread: chatThread.id,
+        content: messageContent,
+      });
+
+      // Clear input
+      setNewMessage('');
+
+      // Reload messages
+      const threadResponse = await clientPortalApi.getActiveThread();
+      setMessages(threadResponse.data.recent_messages || []);
+      setChatThread(threadResponse.data);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message. Please try again.');
+    } finally {
+      setSendingMessage(false);
+    }
+  };
+
+  // Auto-refresh messages every 5 seconds when on messages tab
+  useEffect(() => {
+    if (activeTab !== 'messages' || !chatThread) return;
+
+    const refreshMessages = async () => {
+      try {
+        const threadResponse = await clientPortalApi.getActiveThread();
+        setMessages(threadResponse.data.recent_messages || []);
+        setChatThread(threadResponse.data);
+      } catch (error) {
+        console.error('Error refreshing messages:', error);
+      }
+    };
+
+    const interval = setInterval(refreshMessages, 5000); // Refresh every 5 seconds
+    return () => clearInterval(interval);
+  }, [activeTab, chatThread]);
 
   const getInvoiceStatusBadgeClass = (status: string): string => {
     const statusMap: { [key: string]: string } = {
@@ -729,8 +788,87 @@ export const ClientPortal: React.FC = () => {
 
         {activeTab === 'messages' && (
           <div className="messages-tab">
-            <h2>Messages</h2>
-            <p className="coming-soon">Messaging feature coming soon. Direct communication with your consulting team.</p>
+            <h2>Team Chat</h2>
+
+            {!chatThread ? (
+              <p className="empty-state">Loading chat...</p>
+            ) : (
+              <div className="chat-container">
+                {/* Chat Header */}
+                <div className="chat-header">
+                  <div className="chat-header-info">
+                    <h3>Today's Conversation</h3>
+                    <p className="chat-date">{new Date(chatThread.date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="chat-stats">
+                    <span className="message-count">{chatThread.message_count} messages</span>
+                    {chatThread.last_message_at && (
+                      <span className="last-activity">
+                        Last activity: {new Date(chatThread.last_message_at).toLocaleTimeString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Messages List */}
+                <div className="chat-messages">
+                  {messages.length === 0 ? (
+                    <p className="empty-state">No messages yet. Start the conversation!</p>
+                  ) : (
+                    messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`message ${message.is_from_client ? 'message-client' : 'message-team'}`}
+                      >
+                        <div className="message-header">
+                          <span className="message-sender">{message.sender_name}</span>
+                          <span className="message-time">
+                            {new Date(message.created_at).toLocaleTimeString()}
+                          </span>
+                        </div>
+                        <div className="message-content">
+                          {message.content}
+                        </div>
+                        {message.attachment_url && (
+                          <div className="message-attachment">
+                            <a href={message.attachment_url} target="_blank" rel="noopener noreferrer">
+                              📎 {message.attachment_filename}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Message Input */}
+                <div className="chat-input-container">
+                  <textarea
+                    className="chat-input"
+                    placeholder="Type your message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    rows={3}
+                  />
+                  <button
+                    className="send-button"
+                    onClick={handleSendMessage}
+                    disabled={sendingMessage || !newMessage.trim()}
+                  >
+                    {sendingMessage ? 'Sending...' : '💬 Send'}
+                  </button>
+                  <p className="chat-hint">
+                    Press Enter to send • Shift+Enter for new line • Messages refresh every 5 seconds
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
