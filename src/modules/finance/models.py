@@ -5,6 +5,8 @@ Implements basic accounting for management consulting:
 - Invoice: Accounts Receivable (AR) - client billing
 - Bill: Accounts Payable (AP) - vendor payments
 - LedgerEntry: Double-entry bookkeeping for P&L
+
+TIER 0: All financial records MUST belong to exactly one Firm for tenant isolation.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -19,6 +21,9 @@ class Invoice(models.Model):
 
     Represents money owed to us by post-sale clients.
     Can be linked to Projects for Time & Materials billing.
+
+    TIER 0: Belongs to a Firm through Client relationship.
+    Direct firm FK included for efficient queries.
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -28,6 +33,14 @@ class Invoice(models.Model):
         ('overdue', 'Overdue'),
         ('cancelled', 'Cancelled'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED for efficient queries)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        help_text="Firm (workspace) this invoice belongs to"
+    )
 
     # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
@@ -52,7 +65,7 @@ class Invoice(models.Model):
     )
 
     # Invoice Details
-    invoice_number = models.CharField(max_length=50, unique=True)
+    invoice_number = models.CharField(max_length=50)  # TIER 0: Unique per firm (see Meta)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
 
     # Financial Amounts
@@ -122,10 +135,14 @@ class Invoice(models.Model):
         db_table = 'finance_invoices'
         ordering = ['-issue_date', '-created_at']
         indexes = [
-            models.Index(fields=['client', 'status']),
-            models.Index(fields=['invoice_number']),
-            models.Index(fields=['due_date']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'client', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'invoice_number']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'due_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-issue_date']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: Invoice numbers must be unique within a firm (not globally)
+        unique_together = [['firm', 'invoice_number']]
 
     @property
     def balance_due(self):
@@ -148,6 +165,8 @@ class Bill(models.Model):
 
     Represents money we owe to vendors/suppliers.
     Used for expense tracking and cash flow management.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STATUS_CHOICES = [
         ('received', 'Received'),
@@ -157,6 +176,14 @@ class Bill(models.Model):
         ('overdue', 'Overdue'),
         ('disputed', 'Disputed'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='bills',
+        help_text="Firm (workspace) this bill belongs to"
+    )
 
     # Vendor Information
     vendor_name = models.CharField(max_length=255)
@@ -179,8 +206,7 @@ class Bill(models.Model):
     )
     reference_number = models.CharField(
         max_length=50,
-        unique=True,
-        help_text="Our internal reference number"
+        help_text="Our internal reference number (unique per firm)"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='received')
 
@@ -252,10 +278,14 @@ class Bill(models.Model):
         db_table = 'finance_bills'
         ordering = ['-bill_date', '-created_at']
         indexes = [
-            models.Index(fields=['vendor_name', 'status']),
-            models.Index(fields=['reference_number']),
-            models.Index(fields=['due_date']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'vendor_name', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'reference_number']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'due_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-bill_date']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: Reference numbers must be unique within a firm (not globally)
+        unique_together = [['firm', 'reference_number']]
 
     @property
     def balance_due(self):
@@ -276,6 +306,9 @@ class LedgerEntry(models.Model):
     Example: When we receive payment for an invoice:
     - Entry 1: Debit "Cash" (asset increase)
     - Entry 2: Credit "Accounts Receivable" (asset decrease)
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    Firm is inherited through Invoice/Bill references, but included directly for efficiency.
     """
     ENTRY_TYPE_CHOICES = [
         ('debit', 'Debit'),
@@ -307,6 +340,14 @@ class LedgerEntry(models.Model):
         ('office_expense', 'Office Supplies'),
         ('other_expense', 'Other Expense'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='ledger_entries',
+        help_text="Firm (workspace) this ledger entry belongs to"
+    )
 
     # Core Double-Entry Fields
     entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES)
@@ -356,8 +397,10 @@ class LedgerEntry(models.Model):
         db_table = 'finance_ledger_entries'
         ordering = ['-transaction_date', '-created_at']
         indexes = [
-            models.Index(fields=['account', 'transaction_date']),
-            models.Index(fields=['transaction_group_id']),
+            models.Index(fields=['firm', 'account', 'transaction_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'transaction_group_id']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-transaction_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'entry_type']),  # TIER 0: Firm scoping
         ]
         verbose_name_plural = 'Ledger Entries'
 
