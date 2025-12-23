@@ -42,6 +42,11 @@ def proposal_status_workflow(sender, instance, **kwargs):
                     instance.sent_at = timezone.now()
                     logger.info(f"Auto-set sent_at for proposal {instance.proposal_number}")
 
+                    # Send notification when proposal is sent
+                    if old_instance.status == 'draft':
+                        from modules.core.notifications import EmailNotification
+                        EmailNotification.send_proposal_sent(instance)
+
                 # Auto-set accepted_at when status changes to 'accepted'
                 if instance.status == 'accepted' and not instance.accepted_at:
                     instance.accepted_at = timezone.now()
@@ -61,23 +66,18 @@ def proposal_accepted_notification(sender, instance, created, **kwargs):
     """
     Send notification when proposal is accepted.
 
-    In production, this would send:
-    - Email to sales team
-    - Slack notification
-    - CRM update
+    Sends email notifications to:
+    - Sales team member who created the proposal
+    - Account manager (if assigned)
     """
     if not created and instance.status == 'accepted':
         logger.info(
             f"🎉 Proposal {instance.proposal_number} accepted! "
             f"Value: {instance.estimated_value} {instance.currency}"
         )
-        # TODO: Send actual notifications when email system is integrated
-        # send_email_notification(
-        #     to=instance.created_by.email,
-        #     subject=f"Proposal {instance.proposal_number} Accepted!",
-        #     template='proposal_accepted',
-        #     context={'proposal': instance}
-        # )
+        # Send email notification
+        from modules.core.notifications import EmailNotification
+        EmailNotification.send_proposal_accepted(instance)
 
 
 @receiver(pre_save, sender=Contract)
@@ -126,6 +126,11 @@ def contract_status_workflow(sender, instance, **kwargs):
 def contract_activation_notification(sender, instance, created, **kwargs):
     """
     Send notification when contract is activated.
+
+    Sends email notifications to:
+    - Project managers
+    - Account manager
+    - Finance team (for billing setup)
     """
     if not created and instance.status == 'active':
         logger.info(
@@ -133,7 +138,11 @@ def contract_activation_notification(sender, instance, created, **kwargs):
             f"Value: {instance.contract_value} {instance.currency}, "
             f"Duration: {instance.start_date} to {instance.end_date}"
         )
-        # TODO: Send notifications
-        # - Notify project managers
-        # - Create initial project skeleton
+        # Send email notification
+        from modules.core.notifications import EmailNotification
+        EmailNotification.send_contract_activated(instance)
+
+        # TODO: Future enhancements
+        # - Create initial project skeleton automatically
         # - Set up billing schedule
+        # - Initialize client portal if not already enabled

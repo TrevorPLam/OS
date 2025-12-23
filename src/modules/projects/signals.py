@@ -51,7 +51,9 @@ def task_status_workflow(sender, instance, **kwargs):
                     logger.info(
                         f"Task '{instance.title}' assigned to {instance.assigned_to.username}"
                     )
-                    # TODO: Send email notification to assigned user
+                    # Send email notification to assigned user
+                    from modules.core.notifications import EmailNotification
+                    EmailNotification.send_task_assignment(instance)
                 else:
                     logger.info(f"Task '{instance.title}' unassigned")
 
@@ -70,8 +72,9 @@ def task_created_notification(sender, instance, created, **kwargs):
             f"assigned to {instance.assigned_to.username} "
             f"in project {instance.project.name}"
         )
-        # TODO: Send email/slack notification
-        # notify_task_assignment(task=instance)
+        # Send email notification
+        from modules.core.notifications import EmailNotification
+        EmailNotification.send_task_assignment(instance)
 
 
 @receiver(pre_save, sender=TimeEntry)
@@ -169,12 +172,70 @@ def project_status_workflow(sender, instance, **kwargs):
 def project_completion_notification(sender, instance, created, **kwargs):
     """
     Send notification when project is completed.
+
+    Implements project completion workflow:
+    1. Send notifications to stakeholders
+    2. Calculate final billing metrics
+    3. Log completion for reporting
     """
     if not created and instance.status == 'completed':
         logger.info(
             f"🎊 Project '{instance.name}' completed! "
             f"Duration: {instance.start_date} to {instance.actual_completion_date or instance.end_date}"
         )
-        # TODO: Generate project completion report
-        # TODO: Calculate final billing
-        # TODO: Send completion notification to stakeholders
+
+        # Send email notification to stakeholders
+        from modules.core.notifications import EmailNotification
+        EmailNotification.send_project_completed(instance)
+
+        # Log project metrics for completion report
+        _log_project_completion_metrics(instance)
+
+        # TODO: Future enhancements
+        # - Automatically generate project completion PDF report
+        # - Calculate final budget vs. actual comparison
+        # - Trigger client satisfaction survey
+        # - Archive project files
+
+
+def _log_project_completion_metrics(project):
+    """
+    Log project completion metrics for reporting.
+
+    Args:
+        project: Project model instance
+    """
+    try:
+        # Calculate total time logged
+        from django.db.models import Sum
+        total_hours = TimeEntry.objects.filter(
+            project=project
+        ).aggregate(total=Sum('hours'))['total'] or 0
+
+        # Calculate billable vs non-billable hours
+        billable_hours = TimeEntry.objects.filter(
+            project=project,
+            is_billable=True
+        ).aggregate(total=Sum('hours'))['total'] or 0
+
+        non_billable_hours = total_hours - billable_hours
+
+        # Count completed tasks
+        total_tasks = Task.objects.filter(project=project).count()
+        completed_tasks = Task.objects.filter(
+            project=project,
+            status='done'
+        ).count()
+
+        # Log metrics
+        logger.info(
+            f"Project '{project.name}' Completion Metrics:\n"
+            f"  - Total Hours: {total_hours}\n"
+            f"  - Billable Hours: {billable_hours}\n"
+            f"  - Non-Billable Hours: {non_billable_hours}\n"
+            f"  - Tasks Completed: {completed_tasks}/{total_tasks}\n"
+            f"  - Completion Date: {project.actual_completion_date or project.end_date}"
+        )
+
+    except Exception as e:
+        logger.error(f"Error calculating project completion metrics: {str(e)}")
