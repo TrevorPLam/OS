@@ -13,6 +13,9 @@ from modules.clients.views import (
     ClientInvoiceViewSet,
     ClientChatThreadViewSet,
     ClientMessageViewSet,
+    ClientProposalViewSet,
+    ClientContractViewSet,
+    ClientEngagementHistoryViewSet,
 )
 
 router = DefaultRouter()
@@ -25,6 +28,9 @@ router.register(r'comments', ClientCommentViewSet, basename='client-comment')
 router.register(r'invoices', ClientInvoiceViewSet, basename='client-invoice')
 router.register(r'chat-threads', ClientChatThreadViewSet, basename='client-chat-thread')
 router.register(r'messages', ClientMessageViewSet, basename='client-message')
+router.register(r'proposals', ClientProposalViewSet, basename='client-proposal')
+router.register(r'contracts', ClientContractViewSet, basename='client-contract')
+router.register(r'engagement-history', ClientEngagementHistoryViewSet, basename='client-engagement-history')
 
 urlpatterns = [
     path('', include(router.urls)),

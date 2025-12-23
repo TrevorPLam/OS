@@ -24,6 +24,9 @@ from modules.clients.serializers import (
     ClientProjectSerializer,
     ClientMessageSerializer,
     ClientChatThreadSerializer,
+    ClientProposalSerializer,
+    ClientContractSerializer,
+    ClientEngagementDetailSerializer,
 )
 
 
@@ -629,3 +632,198 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(unread, many=True)
         return Response(serializer.data)
+
+
+class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Client Portal - Proposals (read-only).
+
+    Shows proposals sent to the client.
+    Clients can view proposal details but cannot modify them.
+    """
+    serializer_class = ClientProposalSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status', 'proposal_type']
+    ordering_fields = ['created_at', 'valid_until']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """
+        Filter proposals by authenticated client portal user's client.
+
+        Only returns proposals for the client that the portal user belongs to.
+        """
+        from modules.crm.models import Proposal
+
+        user = self.request.user
+
+        # Check if user is a client portal user
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+
+            # Return proposals for this client (update/renewal proposals)
+            queryset = Proposal.objects.filter(
+                client=portal_user.client
+            ).select_related('client', 'prospect')
+
+            return queryset
+
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - can view all proposals
+            return Proposal.objects.all().select_related('client', 'prospect')
+
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        """
+        Accept a proposal (client-side acceptance).
+
+        This is a placeholder for e-signature integration.
+        In production, this would trigger DocuSign/HelloSign workflow.
+        """
+        proposal = self.get_object()
+
+        # Verify proposal can be accepted
+        if proposal.status not in ['sent', 'under_review']:
+            return Response(
+                {'error': 'Proposal cannot be accepted. Status must be sent or under review.'},
+                status=400
+            )
+
+        # TODO: Implement e-signature workflow
+        # For now, return placeholder response
+        return Response({
+            'status': 'pending_signature',
+            'message': 'E-signature integration pending. This would trigger DocuSign/HelloSign workflow.',
+            'proposal_number': proposal.proposal_number,
+        })
+
+
+class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Client Portal - Contracts (read-only).
+
+    Shows active and historical contracts for the client.
+    Includes contract document download links.
+    """
+    serializer_class = ClientContractSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status']
+    ordering_fields = ['start_date', 'end_date', 'created_at']
+    ordering = ['-start_date']
+
+    def get_queryset(self):
+        """
+        Filter contracts by authenticated client portal user's client.
+
+        Only returns contracts for the client that the portal user belongs to.
+        """
+        from modules.crm.models import Contract
+
+        user = self.request.user
+
+        # Check if user is a client portal user
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+
+            # Return contracts for this client
+            queryset = Contract.objects.filter(
+                client=portal_user.client
+            ).select_related('client', 'proposal', 'signed_by')
+
+            return queryset
+
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - can view all contracts
+            return Contract.objects.all().select_related('client', 'proposal', 'signed_by')
+
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        """
+        Get download link for contract document.
+
+        Returns the S3 URL for the signed contract PDF.
+        """
+        contract = self.get_object()
+
+        if not contract.contract_file_url:
+            return Response(
+                {'error': 'No contract document available for download.'},
+                status=404
+            )
+
+        return Response({
+            'download_url': contract.contract_file_url,
+            'contract_number': contract.contract_number,
+            'filename': f"{contract.contract_number}.pdf"
+        })
+
+
+class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Client Portal - Engagement History (read-only).
+
+    Shows engagement version history with renewal tracking.
+    Displays the full engagement timeline for the client.
+    """
+    serializer_class = ClientEngagementDetailSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status']
+    ordering_fields = ['version', 'start_date']
+    ordering = ['-version']
+
+    def get_queryset(self):
+        """
+        Filter engagements by authenticated client portal user's client.
+
+        Only returns engagements for the client that the portal user belongs to.
+        """
+        user = self.request.user
+
+        # Check if user is a client portal user
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+
+            # Return engagements for this client
+            queryset = ClientEngagement.objects.filter(
+                client=portal_user.client
+            ).select_related('client', 'contract', 'parent_engagement').prefetch_related('renewals')
+
+            return queryset
+
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - can view all engagements
+            return ClientEngagement.objects.all().select_related('client', 'contract', 'parent_engagement').prefetch_related('renewals')
+
+    @action(detail=False, methods=['get'])
+    def timeline(self, request):
+        """
+        Get engagement timeline visualization data.
+
+        Returns all engagements ordered by version for timeline display.
+        """
+        user = request.user
+
+        # Get client
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+            client = portal_user.client
+        except ClientPortalUser.DoesNotExist:
+            return Response(
+                {'error': 'Only client portal users can access this endpoint'},
+                status=403
+            )
+
+        engagements = ClientEngagement.objects.filter(
+            client=client
+        ).select_related('contract').order_by('version')
+
+        serializer = self.get_serializer(engagements, many=True)
+
+        return Response({
+            'client_name': client.company_name,
+            'total_versions': engagements.count(),
+            'timeline': serializer.data
+        })

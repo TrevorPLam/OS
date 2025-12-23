@@ -565,3 +565,167 @@ class ClientChatThreadSerializer(serializers.ModelSerializer):
         """Get recent messages (last 50) for efficiency."""
         messages = obj.messages.all().order_by('-created_at')[:50]
         return ClientMessageSerializer(messages, many=True).data
+
+
+class ClientProposalSerializer(serializers.ModelSerializer):
+    """
+    Client-facing Proposal serializer (read-only).
+
+    Shows proposal details suitable for client portal.
+    Hides internal firm information and decision-making details.
+    """
+    client_name = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    type_display = serializers.CharField(source='get_proposal_type_display', read_only=True)
+    is_expired = serializers.SerializerMethodField()
+    days_until_expiry = serializers.SerializerMethodField()
+
+    class Meta:
+        from modules.crm.models import Proposal
+        model = Proposal
+        fields = [
+            'id',
+            'proposal_number',
+            'proposal_type',
+            'type_display',
+            'title',
+            'description',
+            'status',
+            'status_display',
+            'total_value',
+            'currency',
+            'valid_until',
+            'estimated_start_date',
+            'estimated_end_date',
+            'sent_at',
+            'accepted_at',
+            'is_expired',
+            'days_until_expiry',
+            'client_name',
+            'created_at',
+        ]
+        read_only_fields = fields  # All fields are read-only for clients
+
+    def get_client_name(self, obj):
+        """Get client or prospect company name."""
+        if obj.client:
+            return obj.client.company_name
+        elif obj.prospect:
+            return obj.prospect.company_name
+        return None
+
+    def get_is_expired(self, obj):
+        """Check if proposal has expired."""
+        from django.utils import timezone
+        if obj.valid_until:
+            return obj.valid_until < timezone.now().date()
+        return False
+
+    def get_days_until_expiry(self, obj):
+        """Calculate days until expiry."""
+        from django.utils import timezone
+        if obj.valid_until:
+            today = timezone.now().date()
+            delta = (obj.valid_until - today).days
+            return delta
+        return None
+
+
+class ClientContractSerializer(serializers.ModelSerializer):
+    """
+    Client-facing Contract serializer (read-only).
+
+    Shows contract details suitable for client portal.
+    Hides internal firm notes and sensitive information.
+    """
+    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    payment_terms_display = serializers.CharField(source='get_payment_terms_display', read_only=True)
+    proposal_number = serializers.SerializerMethodField()
+    is_active = serializers.SerializerMethodField()
+    days_remaining = serializers.SerializerMethodField()
+
+    class Meta:
+        from modules.crm.models import Contract
+        model = Contract
+        fields = [
+            'id',
+            'contract_number',
+            'title',
+            'description',
+            'status',
+            'status_display',
+            'total_value',
+            'currency',
+            'payment_terms',
+            'payment_terms_display',
+            'start_date',
+            'end_date',
+            'signed_date',
+            'contract_file_url',
+            'proposal_number',
+            'is_active',
+            'days_remaining',
+            'client_name',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = fields  # All fields are read-only for clients
+
+    def get_proposal_number(self, obj):
+        """Get related proposal number if exists."""
+        if obj.proposal:
+            return obj.proposal.proposal_number
+        return None
+
+    def get_is_active(self, obj):
+        """Check if contract is currently active."""
+        return obj.status == 'active'
+
+    def get_days_remaining(self, obj):
+        """Calculate days remaining in contract."""
+        from django.utils import timezone
+        if obj.end_date:
+            today = timezone.now().date()
+            delta = (obj.end_date - today).days
+            return delta
+        return None
+
+
+class ClientEngagementDetailSerializer(serializers.ModelSerializer):
+    """
+    Client-facing ClientEngagement serializer with nested contract.
+
+    Shows engagement history with version tracking.
+    """
+    contract = ClientContractSerializer(read_only=True)
+    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    has_parent = serializers.SerializerMethodField()
+    has_renewals = serializers.SerializerMethodField()
+
+    class Meta:
+        from modules.clients.models import ClientEngagement
+        model = ClientEngagement
+        fields = [
+            'id',
+            'client_name',
+            'contract',
+            'status',
+            'status_display',
+            'version',
+            'start_date',
+            'end_date',
+            'actual_end_date',
+            'has_parent',
+            'has_renewals',
+        ]
+        read_only_fields = fields  # All fields are read-only for clients
+
+    def get_has_parent(self, obj):
+        """Check if this engagement is a renewal."""
+        return obj.parent_engagement is not None
+
+    def get_has_renewals(self, obj):
+        """Check if this engagement has been renewed."""
+        return obj.renewals.exists()

@@ -180,6 +180,71 @@ export interface CreateMessageData {
   attachment_size_bytes?: number;
 }
 
+export interface ClientProposal {
+  id: number;
+  proposal_number: string;
+  proposal_type: 'prospective_client' | 'update_client' | 'renewal_client';
+  type_display: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'sent' | 'under_review' | 'accepted' | 'rejected' | 'expired';
+  status_display: string;
+  total_value: string;
+  currency: string;
+  valid_until: string;
+  estimated_start_date: string | null;
+  estimated_end_date: string | null;
+  sent_at: string | null;
+  accepted_at: string | null;
+  is_expired: boolean;
+  days_until_expiry: number | null;
+  client_name: string | null;
+  created_at: string;
+}
+
+export interface ClientContract {
+  id: number;
+  contract_number: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'active' | 'completed' | 'terminated' | 'on_hold';
+  status_display: string;
+  total_value: string;
+  currency: string;
+  payment_terms: string;
+  payment_terms_display: string;
+  start_date: string;
+  end_date: string;
+  signed_date: string | null;
+  contract_file_url: string;
+  proposal_number: string | null;
+  is_active: boolean;
+  days_remaining: number | null;
+  client_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientEngagement {
+  id: number;
+  client_name: string;
+  contract: ClientContract;
+  status: 'current' | 'completed' | 'renewed';
+  status_display: string;
+  version: number;
+  start_date: string;
+  end_date: string;
+  actual_end_date: string | null;
+  has_parent: boolean;
+  has_renewals: boolean;
+}
+
+export interface EngagementTimeline {
+  client_name: string;
+  total_versions: number;
+  timeline: ClientEngagement[];
+}
+
 /**
  * Client Portal Projects API
  */
@@ -310,5 +375,61 @@ export const clientPortalApi = {
    */
   getUnreadMessages: () => {
     return apiClient.get<ClientMessage[]>('/api/clients/messages/unread/');
+  },
+
+  /**
+   * List proposals for authenticated client
+   */
+  listProposals: (params?: { status?: string; proposal_type?: string }) => {
+    return apiClient.get<{ results: ClientProposal[] }>('/api/clients/proposals/', { params });
+  },
+
+  /**
+   * Get proposal detail
+   */
+  getProposal: (proposalId: number) => {
+    return apiClient.get<ClientProposal>(`/api/clients/proposals/${proposalId}/`);
+  },
+
+  /**
+   * Accept a proposal (e-signature placeholder)
+   */
+  acceptProposal: (proposalId: number) => {
+    return apiClient.post<{ status: string; message: string; proposal_number: string }>(`/api/clients/proposals/${proposalId}/accept/`);
+  },
+
+  /**
+   * List contracts for authenticated client
+   */
+  listContracts: (params?: { status?: string }) => {
+    return apiClient.get<{ results: ClientContract[] }>('/api/clients/contracts/', { params });
+  },
+
+  /**
+   * Get contract detail
+   */
+  getContract: (contractId: number) => {
+    return apiClient.get<ClientContract>(`/api/clients/contracts/${contractId}/`);
+  },
+
+  /**
+   * Download contract document
+   */
+  downloadContract: (contractId: number) => {
+    return apiClient.get<{ download_url: string; contract_number: string; filename: string }>(`/api/clients/contracts/${contractId}/download/`);
+  },
+
+  /**
+   * List engagement history
+   */
+  listEngagementHistory: (params?: { status?: string }) => {
+    return apiClient.get<{ results: ClientEngagement[] }>('/api/clients/engagement-history/', { params });
+  },
+
+  /**
+   * Get engagement timeline
+   */
+  getEngagementTimeline: () => {
+    return apiClient.get<EngagementTimeline>('/api/clients/engagement-history/timeline/');
   },
 };
