@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { documentsApi } from '../api/documents';
-import { clientPortalApi, ClientProject, ClientTask, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage, ClientProposal, ClientContract, ClientEngagement } from '../api/clientPortal';
+import { clientPortalApi, ClientProject, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage, ClientProposal, ClientContract, ClientEngagement } from '../api/clientPortal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClientPortal.css';
 
