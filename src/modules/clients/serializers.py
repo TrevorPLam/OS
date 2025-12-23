@@ -392,3 +392,67 @@ class ClientProjectSerializer(serializers.ModelSerializer):
             result['total'] += count
 
         return result
+
+
+class ClientInvoiceSerializer(serializers.ModelSerializer):
+    """
+    Client-facing Invoice serializer (read-only).
+
+    Shows invoice details suitable for client portal.
+    Hides sensitive firm information like internal notes and markup details.
+    """
+    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    project_name = serializers.CharField(source='project.name', read_only=True)
+    project_code = serializers.SerializerMethodField()
+    balance_due = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    is_overdue = serializers.BooleanField(read_only=True)
+    days_until_due = serializers.SerializerMethodField()
+    can_pay_online = serializers.SerializerMethodField()
+
+    class Meta:
+        from modules.finance.models import Invoice
+        model = Invoice
+        fields = [
+            'id',
+            'invoice_number',
+            'client_name',
+            'project',
+            'project_name',
+            'project_code',
+            'status',
+            'subtotal',
+            'tax_amount',
+            'total_amount',
+            'amount_paid',
+            'balance_due',
+            'issue_date',
+            'due_date',
+            'paid_date',
+            'line_items',
+            'is_overdue',
+            'days_until_due',
+            'can_pay_online',
+            'created_at',
+        ]
+        read_only_fields = fields  # All fields are read-only for clients
+
+    def get_project_code(self, obj):
+        """Get project code if available."""
+        if obj.project and hasattr(obj.project, 'project_code'):
+            return obj.project.project_code
+        return None
+
+    def get_days_until_due(self, obj):
+        """Calculate days until due date."""
+        from django.utils import timezone
+        if obj.due_date:
+            today = timezone.now().date()
+            delta = (obj.due_date - today).days
+            return delta
+        return None
+
+    def get_can_pay_online(self, obj):
+        """Check if invoice can be paid online."""
+        # Can pay if status is sent, partial, or overdue and has balance due
+        payable_statuses = ['sent', 'partial', 'overdue']
+        return obj.status in payable_statuses and obj.balance_due > 0

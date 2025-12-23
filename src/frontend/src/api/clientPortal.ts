@@ -84,6 +84,57 @@ export interface CreateCommentData {
   has_attachment?: boolean;
 }
 
+export interface ClientInvoice {
+  id: number;
+  invoice_number: string;
+  client_name: string;
+  project: number | null;
+  project_name: string | null;
+  project_code: string | null;
+  status: 'draft' | 'sent' | 'paid' | 'partial' | 'overdue' | 'cancelled';
+  subtotal: string;
+  tax_amount: string;
+  total_amount: string;
+  amount_paid: string;
+  balance_due: string;
+  issue_date: string;
+  due_date: string;
+  paid_date: string | null;
+  line_items: Array<{
+    description: string;
+    quantity: number;
+    rate: string;
+    amount: string;
+  }>;
+  is_overdue: boolean;
+  days_until_due: number | null;
+  can_pay_online: boolean;
+  created_at: string;
+}
+
+export interface InvoiceSummary {
+  total_invoices: number;
+  total_billed: number;
+  total_paid: number;
+  total_outstanding: number;
+  overdue_count: number;
+  by_status: {
+    [status: string]: {
+      count: number;
+      total: number;
+    };
+  };
+}
+
+export interface PaymentLinkResponse {
+  status: string;
+  payment_url: string;
+  invoice_number: string;
+  amount_due: string;
+  currency: string;
+  message?: string;
+}
+
 /**
  * Client Portal Projects API
  */
@@ -137,5 +188,33 @@ export const clientPortalApi = {
    */
   getUnreadComments: () => {
     return apiClient.get<ClientComment[]>('/api/clients/comments/unread/');
+  },
+
+  /**
+   * List invoices for authenticated client
+   */
+  listInvoices: (params?: { status?: string }) => {
+    return apiClient.get<{ results: ClientInvoice[] }>('/api/clients/invoices/', { params });
+  },
+
+  /**
+   * Get invoice detail
+   */
+  getInvoice: (invoiceId: number) => {
+    return apiClient.get<ClientInvoice>(`/api/clients/invoices/${invoiceId}/`);
+  },
+
+  /**
+   * Get invoice summary statistics
+   */
+  getInvoiceSummary: () => {
+    return apiClient.get<InvoiceSummary>('/api/clients/invoices/summary/');
+  },
+
+  /**
+   * Generate Stripe payment link for invoice
+   */
+  generatePaymentLink: (invoiceId: number) => {
+    return apiClient.post<PaymentLinkResponse>(`/api/clients/invoices/${invoiceId}/generate_payment_link/`);
   },
 };

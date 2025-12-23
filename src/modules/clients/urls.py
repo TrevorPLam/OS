@@ -10,6 +10,7 @@ from modules.clients.views import (
     ClientEngagementViewSet,
     ClientProjectViewSet,
     ClientCommentViewSet,
+    ClientInvoiceViewSet,
 )
 
 router = DefaultRouter()
@@ -19,6 +20,7 @@ router.register(r'notes', ClientNoteViewSet, basename='clientnote')
 router.register(r'engagements', ClientEngagementViewSet, basename='engagement')
 router.register(r'projects', ClientProjectViewSet, basename='client-project')
 router.register(r'comments', ClientCommentViewSet, basename='client-comment')
+router.register(r'invoices', ClientInvoiceViewSet, basename='client-invoice')
 
 urlpatterns = [
     path('', include(router.urls)),

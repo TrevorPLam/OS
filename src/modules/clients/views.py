@@ -297,3 +297,147 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
             unread_comments = self.queryset.filter(is_read_by_firm=False)
             serializer = self.get_serializer(unread_comments, many=True)
             return Response(serializer.data)
+
+
+class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Client Portal - Invoices (read-only).
+
+    Shows invoices for the authenticated client portal user.
+    Clients can view their invoices but cannot modify them.
+    Includes payment link generation for Stripe.
+    """
+    serializer_class = None  # Will be imported below
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status']
+    ordering_fields = ['invoice_number', 'issue_date', 'due_date', 'total_amount']
+    ordering = ['-issue_date']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from modules.clients.serializers import ClientInvoiceSerializer
+        self.serializer_class = ClientInvoiceSerializer
+
+    def get_queryset(self):
+        """
+        Filter invoices by authenticated client portal user's client.
+
+        Only returns invoices for the client that the portal user belongs to.
+        """
+        from modules.finance.models import Invoice
+
+        user = self.request.user
+
+        # Check if user is a client portal user
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+
+            # Check if user has permission to view billing
+            if not portal_user.can_view_billing:
+                return Invoice.objects.none()
+
+            # Return invoices for this client
+            return Invoice.objects.filter(
+                client=portal_user.client
+            ).select_related('client', 'project').order_by('-issue_date')
+
+        except ClientPortalUser.DoesNotExist:
+            # Not a client portal user - check if firm user
+            # Firm users can view all invoices (handled by permissions)
+            return Invoice.objects.all().select_related('client', 'project')
+
+    @action(detail=True, methods=['post'])
+    def generate_payment_link(self, request, pk=None):
+        """
+        Generate Stripe payment link for an invoice.
+
+        Returns a Stripe Checkout session URL that the client can use to pay.
+        """
+        invoice = self.get_object()
+
+        # Verify invoice can be paid
+        if invoice.status not in ['sent', 'partial', 'overdue']:
+            return Response(
+                {'error': 'Invoice cannot be paid online. Status must be sent, partial, or overdue.'},
+                status=400
+            )
+
+        if invoice.balance_due <= 0:
+            return Response(
+                {'error': 'Invoice has no outstanding balance.'},
+                status=400
+            )
+
+        # TODO: Implement Stripe Checkout session creation
+        # For now, return a placeholder response
+        # In production, this would create a Stripe Checkout session:
+        # 1. Create Stripe checkout session with invoice details
+        # 2. Return the session URL for redirect
+        # 3. Handle webhook for payment confirmation
+
+        payment_link = f"https://checkout.stripe.com/pay/placeholder_{invoice.invoice_number}"
+
+        return Response({
+            'status': 'payment_link_generated',
+            'payment_url': payment_link,
+            'invoice_number': invoice.invoice_number,
+            'amount_due': str(invoice.balance_due),
+            'currency': invoice.currency,
+            'message': 'Stripe integration pending - this is a placeholder URL'
+        })
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """
+        Get invoice summary for the client.
+
+        Returns counts and totals by status.
+        """
+        user = request.user
+
+        # Get client
+        try:
+            portal_user = ClientPortalUser.objects.get(user=user)
+            client = portal_user.client
+        except ClientPortalUser.DoesNotExist:
+            return Response(
+                {'error': 'Only client portal users can access this endpoint'},
+                status=403
+            )
+
+        from modules.finance.models import Invoice
+        from django.db.models import Sum, Count
+
+        invoices = Invoice.objects.filter(client=client)
+
+        # Get summary statistics
+        summary = {
+            'total_invoices': invoices.count(),
+            'total_billed': invoices.aggregate(total=Sum('total_amount'))['total'] or 0,
+            'total_paid': invoices.aggregate(total=Sum('amount_paid'))['total'] or 0,
+            'total_outstanding': sum(inv.balance_due for inv in invoices),
+            'by_status': {},
+        }
+
+        # Count by status
+        status_counts = invoices.values('status').annotate(
+            count=Count('id'),
+            total=Sum('total_amount')
+        )
+
+        for item in status_counts:
+            summary['by_status'][item['status']] = {
+                'count': item['count'],
+                'total': float(item['total']) if item['total'] else 0,
+            }
+
+        # Overdue invoices
+        overdue_invoices = invoices.filter(status__in=['sent', 'partial'])
+        from django.utils import timezone
+        today = timezone.now().date()
+        overdue_count = sum(1 for inv in overdue_invoices if inv.due_date < today)
+
+        summary['overdue_count'] = overdue_count
+
+        return Response(summary)

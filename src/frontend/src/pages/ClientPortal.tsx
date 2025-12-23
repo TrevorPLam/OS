@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { documentsApi } from '../api/documents';
-import { clientPortalApi, ClientProject, ClientTask, CreateCommentData } from '../api/clientPortal';
+import { clientPortalApi, ClientProject, ClientTask, CreateCommentData, ClientInvoice, InvoiceSummary } from '../api/clientPortal';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import './ClientPortal.css';
 
@@ -18,16 +18,7 @@ interface Document {
   description: string;
 }
 
-interface Invoice {
-  id: number;
-  invoice_number: string;
-  total_amount: string;
-  amount_paid: string;
-  status: string;
-  issue_date: string;
-  due_date: string;
-  balance_due: string;
-}
+// Invoice interface now imported from clientPortal.ts
 
 interface Message {
   id: number;
@@ -45,7 +36,10 @@ export const ClientPortal: React.FC = () => {
   const [expandedTask, setExpandedTask] = useState<number | null>(null);
   const [commentText, setCommentText] = useState<{ [taskId: number]: string }>({});
   const [submittingComment, setSubmittingComment] = useState<number | null>(null);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoices, setInvoices] = useState<ClientInvoice[]>([]);
+  const [invoiceSummary, setInvoiceSummary] = useState<InvoiceSummary | null>(null);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
+  const [generatingPaymentLink, setGeneratingPaymentLink] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -77,12 +71,25 @@ export const ClientPortal: React.FC = () => {
       const docsResponse = await documentsApi.listDocuments({ visibility: 'client' });
       setDocuments(docsResponse.data.results || []);
 
+      // Load invoices
+      const invoicesResponse = await clientPortalApi.listInvoices();
+      const invoicesList = invoicesResponse.data.results || [];
+      setInvoices(invoicesList);
+
+      // Load invoice summary
+      const summaryResponse = await clientPortalApi.getInvoiceSummary();
+      setInvoiceSummary(summaryResponse.data);
+
       // Calculate stats
       const activeProjectsCount = projectsList.filter(p => p.status === 'in_progress').length;
+      const pendingInvoicesCount = invoicesList.filter(inv =>
+        ['sent', 'partial', 'overdue'].includes(inv.status)
+      ).length;
+
       setStats({
         activeProjects: activeProjectsCount,
         totalDocuments: docsResponse.data.results?.length || 0,
-        pendingInvoices: 0,
+        pendingInvoices: pendingInvoicesCount,
         unreadMessages: 0,
       });
     } catch (error) {
@@ -136,6 +143,38 @@ export const ClientPortal: React.FC = () => {
     } finally {
       setSubmittingComment(null);
     }
+  };
+
+  const handleGeneratePaymentLink = async (invoiceId: number) => {
+    try {
+      setGeneratingPaymentLink(invoiceId);
+      const response = await clientPortalApi.generatePaymentLink(invoiceId);
+
+      // Open payment link in new tab
+      window.open(response.data.payment_url, '_blank');
+
+      if (response.data.message) {
+        alert(response.data.message);
+      }
+    } catch (error: any) {
+      console.error('Error generating payment link:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to generate payment link. Please try again.';
+      alert(errorMessage);
+    } finally {
+      setGeneratingPaymentLink(null);
+    }
+  };
+
+  const getInvoiceStatusBadgeClass = (status: string): string => {
+    const statusMap: { [key: string]: string } = {
+      'draft': 'invoice-status-draft',
+      'sent': 'invoice-status-sent',
+      'paid': 'invoice-status-paid',
+      'partial': 'invoice-status-partial',
+      'overdue': 'invoice-status-overdue',
+      'cancelled': 'invoice-status-cancelled',
+    };
+    return statusMap[status] || 'invoice-status-default';
   };
 
   const getStatusBadgeClass = (status: string): string => {
@@ -504,8 +543,187 @@ export const ClientPortal: React.FC = () => {
 
         {activeTab === 'invoices' && (
           <div className="invoices-tab">
-            <h2>Your Invoices</h2>
-            <p className="coming-soon">Invoice viewing coming soon. You'll be able to view and pay invoices directly from this portal.</p>
+            <h2>Billing & Invoices</h2>
+
+            {/* Invoice Summary Cards */}
+            {invoiceSummary && (
+              <div className="invoice-summary-cards">
+                <div className="summary-card-billing">
+                  <div className="card-icon">💵</div>
+                  <div className="card-content">
+                    <h3>${Number(invoiceSummary.total_billed).toLocaleString()}</h3>
+                    <p>Total Billed</p>
+                  </div>
+                </div>
+                <div className="summary-card-billing">
+                  <div className="card-icon">✅</div>
+                  <div className="card-content">
+                    <h3>${Number(invoiceSummary.total_paid).toLocaleString()}</h3>
+                    <p>Total Paid</p>
+                  </div>
+                </div>
+                <div className="summary-card-billing outstanding">
+                  <div className="card-icon">⏳</div>
+                  <div className="card-content">
+                    <h3>${Number(invoiceSummary.total_outstanding).toLocaleString()}</h3>
+                    <p>Outstanding Balance</p>
+                  </div>
+                </div>
+                {invoiceSummary.overdue_count > 0 && (
+                  <div className="summary-card-billing overdue">
+                    <div className="card-icon">⚠️</div>
+                    <div className="card-content">
+                      <h3>{invoiceSummary.overdue_count}</h3>
+                      <p>Overdue Invoices</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Invoices List */}
+            {invoices.length === 0 ? (
+              <p className="empty-state">No invoices yet.</p>
+            ) : (
+              <div className="invoices-list">
+                {invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className={`invoice-card ${selectedInvoiceId === invoice.id ? 'expanded' : ''}`}
+                  >
+                    <div
+                      className="invoice-header"
+                      onClick={() => setSelectedInvoiceId(selectedInvoiceId === invoice.id ? null : invoice.id)}
+                    >
+                      <div className="invoice-header-left">
+                        <h4>{invoice.invoice_number}</h4>
+                        <p className="invoice-project">
+                          {invoice.project_name ? (
+                            <>
+                              Project: {invoice.project_name}
+                              {invoice.project_code && <span className="project-code-badge">{invoice.project_code}</span>}
+                            </>
+                          ) : (
+                            'General Invoice'
+                          )}
+                        </p>
+                      </div>
+                      <div className="invoice-header-right">
+                        <span className={`invoice-status-badge ${getInvoiceStatusBadgeClass(invoice.status)}`}>
+                          {invoice.status.toUpperCase()}
+                        </span>
+                        <div className="invoice-amount">
+                          <strong>${Number(invoice.total_amount).toLocaleString()}</strong>
+                        </div>
+                        <button className="expand-btn">
+                          {selectedInvoiceId === invoice.id ? '▼' : '▶'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {selectedInvoiceId === invoice.id && (
+                      <div className="invoice-details">
+                        {/* Invoice Metadata */}
+                        <div className="invoice-meta-section">
+                          <div className="invoice-meta-grid">
+                            <div className="meta-item">
+                              <strong>Issue Date:</strong> {formatDate(invoice.issue_date)}
+                            </div>
+                            <div className="meta-item">
+                              <strong>Due Date:</strong> {formatDate(invoice.due_date)}
+                              {invoice.days_until_due !== null && (
+                                <span className={invoice.days_until_due < 0 ? 'overdue-text' : 'days-text'}>
+                                  {invoice.days_until_due < 0
+                                    ? ` (${Math.abs(invoice.days_until_due)} days overdue)`
+                                    : ` (${invoice.days_until_due} days remaining)`
+                                  }
+                                </span>
+                              )}
+                            </div>
+                            {invoice.paid_date && (
+                              <div className="meta-item">
+                                <strong>Paid Date:</strong> {formatDate(invoice.paid_date)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Invoice Amounts */}
+                        <div className="invoice-amounts-section">
+                          <div className="amount-row">
+                            <span>Subtotal:</span>
+                            <span>${Number(invoice.subtotal).toLocaleString()}</span>
+                          </div>
+                          <div className="amount-row">
+                            <span>Tax:</span>
+                            <span>${Number(invoice.tax_amount).toLocaleString()}</span>
+                          </div>
+                          <div className="amount-row total">
+                            <span>Total Amount:</span>
+                            <span>${Number(invoice.total_amount).toLocaleString()}</span>
+                          </div>
+                          {Number(invoice.amount_paid) > 0 && (
+                            <div className="amount-row paid">
+                              <span>Amount Paid:</span>
+                              <span>-${Number(invoice.amount_paid).toLocaleString()}</span>
+                            </div>
+                          )}
+                          {Number(invoice.balance_due) > 0 && (
+                            <div className="amount-row balance">
+                              <span>Balance Due:</span>
+                              <span className="balance-amount">${Number(invoice.balance_due).toLocaleString()}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Line Items */}
+                        {invoice.line_items && invoice.line_items.length > 0 && (
+                          <div className="line-items-section">
+                            <h5>Line Items</h5>
+                            <table className="line-items-table">
+                              <thead>
+                                <tr>
+                                  <th>Description</th>
+                                  <th>Quantity</th>
+                                  <th>Rate</th>
+                                  <th>Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {invoice.line_items.map((item, index) => (
+                                  <tr key={index}>
+                                    <td>{item.description}</td>
+                                    <td>{item.quantity}</td>
+                                    <td>${Number(item.rate).toLocaleString()}</td>
+                                    <td>${Number(item.amount).toLocaleString()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                        {/* Payment Actions */}
+                        {invoice.can_pay_online && (
+                          <div className="invoice-actions">
+                            <button
+                              className="pay-now-btn"
+                              onClick={() => handleGeneratePaymentLink(invoice.id)}
+                              disabled={generatingPaymentLink === invoice.id}
+                            >
+                              {generatingPaymentLink === invoice.id ? 'Processing...' : '💳 Pay Now'}
+                            </button>
+                            <p className="payment-note">
+                              Secure payment via Stripe • ${Number(invoice.balance_due).toLocaleString()} due
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
