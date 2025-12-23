@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { documentsApi } from '../api/documents';
-import { clientPortalApi, ClientProject, ClientTask, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage } from '../api/clientPortal';
+import { clientPortalApi, ClientProject, ClientTask, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage, ClientProposal, ClientContract, ClientEngagement } from '../api/clientPortal';
 import { LoadingSpinner } from '../components/LoadingSpinner';
 import './ClientPortal.css';
 
@@ -21,7 +21,7 @@ interface Document {
 // Invoice and Chat interfaces now imported from clientPortal.ts
 
 export const ClientPortal: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'work' | 'documents' | 'invoices' | 'messages' | 'analytics'>('work');
+  const [activeTab, setActiveTab] = useState<'work' | 'documents' | 'invoices' | 'messages' | 'engagement'>('work');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<ClientProject[]>([]);
   const [selectedProject, setSelectedProject] = useState<ClientProject | null>(null);
@@ -36,6 +36,10 @@ export const ClientPortal: React.FC = () => {
   const [messages, setMessages] = useState<ClientMessage[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const [proposals, setProposals] = useState<ClientProposal[]>([]);
+  const [contracts, setContracts] = useState<ClientContract[]>([]);
+  const [engagementHistory, setEngagementHistory] = useState<ClientEngagement[]>([]);
+  const [selectedEngagementView, setSelectedEngagementView] = useState<'proposals' | 'contracts' | 'history'>('contracts');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeProjects: 0,
@@ -74,6 +78,16 @@ export const ClientPortal: React.FC = () => {
       // Load invoice summary
       const summaryResponse = await clientPortalApi.getInvoiceSummary();
       setInvoiceSummary(summaryResponse.data);
+
+      // Load engagement data
+      const proposalsResponse = await clientPortalApi.listProposals();
+      setProposals(proposalsResponse.data.results || []);
+
+      const contractsResponse = await clientPortalApi.listContracts();
+      setContracts(contractsResponse.data.results || []);
+
+      const engagementResponse = await clientPortalApi.listEngagementHistory();
+      setEngagementHistory(engagementResponse.data.results || []);
 
       // Calculate stats
       const activeProjectsCount = projectsList.filter(p => p.status === 'in_progress').length;
@@ -344,10 +358,10 @@ export const ClientPortal: React.FC = () => {
           💬 Messages
         </button>
         <button
-          className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
-          onClick={() => setActiveTab('analytics')}
+          className={`tab-button ${activeTab === 'engagement' ? 'active' : ''}`}
+          onClick={() => setActiveTab('engagement')}
         >
-          📊 Analytics
+          📋 Engagement
         </button>
       </div>
 
@@ -872,10 +886,215 @@ export const ClientPortal: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'analytics' && (
-          <div className="analytics-tab">
-            <h2>Project Analytics</h2>
-            <p className="coming-soon">Analytics dashboard coming soon. Track project progress, budget utilization, and milestones.</p>
+        {activeTab === 'engagement' && (
+          <div className="engagement-tab">
+            <h2>Contracts & Engagements</h2>
+
+            {/* Sub-navigation */}
+            <div className="engagement-sub-nav">
+              <button
+                className={`sub-nav-btn ${selectedEngagementView === 'contracts' ? 'active' : ''}`}
+                onClick={() => setSelectedEngagementView('contracts')}
+              >
+                Active Contracts
+              </button>
+              <button
+                className={`sub-nav-btn ${selectedEngagementView === 'proposals' ? 'active' : ''}`}
+                onClick={() => setSelectedEngagementView('proposals')}
+              >
+                Proposals
+              </button>
+              <button
+                className={`sub-nav-btn ${selectedEngagementView === 'history' ? 'active' : ''}`}
+                onClick={() => setSelectedEngagementView('history')}
+              >
+                Engagement History
+              </button>
+            </div>
+
+            {/* Contracts View */}
+            {selectedEngagementView === 'contracts' && (
+              <div className="contracts-section">
+                <h3>Your Contracts</h3>
+                {contracts.length === 0 ? (
+                  <p className="empty-state">No contracts yet.</p>
+                ) : (
+                  <div className="contracts-list">
+                    {contracts.map((contract) => (
+                      <div key={contract.id} className="contract-card">
+                        <div className="contract-header">
+                          <div>
+                            <h4>{contract.title}</h4>
+                            <p className="contract-number">{contract.contract_number}</p>
+                          </div>
+                          <span className={`status-badge contract-status-${contract.status}`}>
+                            {contract.status_display}
+                          </span>
+                        </div>
+                        <div className="contract-body">
+                          <p className="contract-description">{contract.description}</p>
+                          <div className="contract-meta">
+                            <div className="meta-item">
+                              <strong>Value:</strong> ${Number(contract.total_value).toLocaleString()} {contract.currency}
+                            </div>
+                            <div className="meta-item">
+                              <strong>Period:</strong> {formatDate(contract.start_date)} - {formatDate(contract.end_date)}
+                            </div>
+                            <div className="meta-item">
+                              <strong>Payment Terms:</strong> {contract.payment_terms_display}
+                            </div>
+                            {contract.signed_date && (
+                              <div className="meta-item">
+                                <strong>Signed:</strong> {formatDate(contract.signed_date)}
+                              </div>
+                            )}
+                            {contract.days_remaining !== null && contract.is_active && (
+                              <div className="meta-item">
+                                <strong>Days Remaining:</strong>
+                                <span className={contract.days_remaining < 30 ? 'expiring-soon' : ''}>
+                                  {contract.days_remaining} days
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {contract.contract_file_url && (
+                          <div className="contract-actions">
+                            <button
+                              className="download-contract-btn"
+                              onClick={() => window.open(contract.contract_file_url, '_blank')}
+                            >
+                              📄 Download Contract
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Proposals View */}
+            {selectedEngagementView === 'proposals' && (
+              <div className="proposals-section">
+                <h3>Your Proposals</h3>
+                {proposals.length === 0 ? (
+                  <p className="empty-state">No proposals yet.</p>
+                ) : (
+                  <div className="proposals-list">
+                    {proposals.map((proposal) => (
+                      <div key={proposal.id} className="proposal-card">
+                        <div className="proposal-header">
+                          <div>
+                            <h4>{proposal.title}</h4>
+                            <p className="proposal-number">{proposal.proposal_number}</p>
+                            <p className="proposal-type">{proposal.type_display}</p>
+                          </div>
+                          <span className={`status-badge proposal-status-${proposal.status}`}>
+                            {proposal.status_display}
+                          </span>
+                        </div>
+                        <div className="proposal-body">
+                          <p className="proposal-description">{proposal.description}</p>
+                          <div className="proposal-meta">
+                            <div className="meta-item">
+                              <strong>Value:</strong> ${Number(proposal.total_value).toLocaleString()} {proposal.currency}
+                            </div>
+                            <div className="meta-item">
+                              <strong>Valid Until:</strong> {formatDate(proposal.valid_until)}
+                              {proposal.days_until_expiry !== null && (
+                                <span className={proposal.is_expired ? 'expired-text' : proposal.days_until_expiry < 7 ? 'expiring-soon' : ''}>
+                                  {proposal.is_expired
+                                    ? ' (Expired)'
+                                    : ` (${proposal.days_until_expiry} days remaining)`
+                                  }
+                                </span>
+                              )}
+                            </div>
+                            {proposal.estimated_start_date && proposal.estimated_end_date && (
+                              <div className="meta-item">
+                                <strong>Estimated Duration:</strong> {formatDate(proposal.estimated_start_date)} - {formatDate(proposal.estimated_end_date)}
+                              </div>
+                            )}
+                            {proposal.sent_at && (
+                              <div className="meta-item">
+                                <strong>Sent:</strong> {formatDateTime(proposal.sent_at)}
+                              </div>
+                            )}
+                            {proposal.accepted_at && (
+                              <div className="meta-item">
+                                <strong>Accepted:</strong> {formatDateTime(proposal.accepted_at)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {proposal.status === 'sent' && !proposal.is_expired && (
+                          <div className="proposal-actions">
+                            <button
+                              className="accept-proposal-btn"
+                              onClick={() => alert('E-signature integration pending. This would trigger DocuSign/HelloSign workflow.')}
+                            >
+                              ✍️ Review & Sign
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Engagement History View */}
+            {selectedEngagementView === 'history' && (
+              <div className="engagement-history-section">
+                <h3>Engagement History</h3>
+                {engagementHistory.length === 0 ? (
+                  <p className="empty-state">No engagement history yet.</p>
+                ) : (
+                  <div className="engagement-timeline">
+                    {engagementHistory.map((engagement) => (
+                      <div key={engagement.id} className="engagement-card">
+                        <div className="engagement-version-badge">
+                          Version {engagement.version}
+                        </div>
+                        <div className="engagement-header">
+                          <h4>{engagement.contract.title}</h4>
+                          <span className={`status-badge engagement-status-${engagement.status}`}>
+                            {engagement.status_display}
+                          </span>
+                        </div>
+                        <div className="engagement-body">
+                          <div className="engagement-meta">
+                            <div className="meta-item">
+                              <strong>Contract:</strong> {engagement.contract.contract_number}
+                            </div>
+                            <div className="meta-item">
+                              <strong>Period:</strong> {formatDate(engagement.start_date)} - {formatDate(engagement.end_date)}
+                            </div>
+                            {engagement.actual_end_date && (
+                              <div className="meta-item">
+                                <strong>Actual End:</strong> {formatDate(engagement.actual_end_date)}
+                              </div>
+                            )}
+                            <div className="meta-item">
+                              <strong>Value:</strong> ${Number(engagement.contract.total_value).toLocaleString()} {engagement.contract.currency}
+                            </div>
+                          </div>
+                          {engagement.has_parent && (
+                            <p className="engagement-note">🔄 This is a renewal of a previous engagement</p>
+                          )}
+                          {engagement.has_renewals && (
+                            <p className="engagement-note">✅ This engagement has been renewed</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
