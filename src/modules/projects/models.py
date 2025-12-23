@@ -3,6 +3,9 @@ Projects Models: Project, Task, TimeEntry.
 
 Implements project execution and time tracking for management consulting.
 All relationships are enforced at the database level with foreign keys.
+
+TIER 0: Projects belong to a Firm (through Client).
+Tasks and TimeEntry inherit firm context through Project.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -17,6 +20,9 @@ class Project(models.Model):
 
     Represents a consulting engagement or deliverable.
     Linked to a post-sale Client (modules.clients.Client) and optionally a Contract.
+
+    TIER 0: Belongs to a Firm through Client relationship.
+    Note: Firm is accessed via project.client.firm for tenant isolation.
     """
     STATUS_CHOICES = [
         ('planning', 'Planning'),
@@ -32,6 +38,14 @@ class Project(models.Model):
         ('retainer', 'Retainer'),
         ('non_billable', 'Non-Billable'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED for efficient queries)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='projects',
+        help_text="Firm (workspace) this project belongs to"
+    )
 
     # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
@@ -57,7 +71,7 @@ class Project(models.Model):
     )
 
     # Project Details
-    project_code = models.CharField(max_length=50, unique=True)
+    project_code = models.CharField(max_length=50)  # TIER 0: Unique per firm (see Meta)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='planning')
@@ -99,10 +113,14 @@ class Project(models.Model):
         db_table = 'projects_projects'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['client', 'status']),
-            models.Index(fields=['project_manager']),
-            models.Index(fields=['project_code']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'client', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'project_manager']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'project_code']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: Project codes must be unique within a firm (not globally)
+        unique_together = [['firm', 'project_code']]
 
     def __str__(self):
         return f"{self.project_code} - {self.name}"
@@ -114,6 +132,8 @@ class Task(models.Model):
 
     Represents a work item within a project.
     Supports basic Kanban workflow (To Do -> In Progress -> Done).
+
+    TIER 0: Belongs to a Firm through Project (task.project.firm).
     """
     STATUS_CHOICES = [
         ('todo', 'To Do'),
@@ -191,6 +211,8 @@ class TimeEntry(models.Model):
 
     Tracks billable and non-billable time spent on projects/tasks.
     Critical for Time & Materials billing and productivity analysis.
+
+    TIER 0: Belongs to a Firm through Project (time_entry.project.firm).
     """
     # Relationships
     project = models.ForeignKey(
