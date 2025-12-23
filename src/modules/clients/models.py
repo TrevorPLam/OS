@@ -300,3 +300,74 @@ class ClientEngagement(models.Model):
 
     def __str__(self):
         return f"{self.client.company_name} - Engagement v{self.version}"
+
+
+class ClientComment(models.Model):
+    """
+    Comments from clients on project tasks.
+
+    Allows client portal users to comment on tasks in their projects.
+    Visible to both firm team and client.
+    """
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name='task_comments',
+        help_text="Client who owns this comment"
+    )
+    task = models.ForeignKey(
+        'projects.Task',
+        on_delete=models.CASCADE,
+        related_name='client_comments',
+        help_text="Task being commented on"
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='client_task_comments',
+        help_text="Portal user who wrote this comment"
+    )
+
+    # Comment Content
+    comment = models.TextField()
+
+    # Attachments (optional)
+    has_attachment = models.BooleanField(
+        default=False,
+        help_text="Whether this comment has file attachments"
+    )
+
+    # Read Status (for firm team)
+    is_read_by_firm = models.BooleanField(
+        default=False,
+        help_text="Whether firm team has read this client comment"
+    )
+    read_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='read_client_comments',
+        help_text="Firm team member who read this comment"
+    )
+    read_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the comment was read by firm"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'clients_comment'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['task', '-created_at']),
+            models.Index(fields=['client', '-created_at']),
+            models.Index(fields=['is_read_by_firm']),
+        ]
+
+    def __str__(self):
+        return f"Comment by {self.author.get_full_name()} on task {self.task.title}"

@@ -2,7 +2,13 @@
 Serializers for Clients module.
 """
 from rest_framework import serializers
-from modules.clients.models import Client, ClientPortalUser, ClientNote, ClientEngagement
+from modules.clients.models import (
+    Client,
+    ClientPortalUser,
+    ClientNote,
+    ClientEngagement,
+    ClientComment
+)
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -163,3 +169,226 @@ class ClientEngagementSerializer(serializers.ModelSerializer):
             'notes',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class ClientCommentSerializer(serializers.ModelSerializer):
+    """Serializer for ClientComment model."""
+
+    author_name = serializers.SerializerMethodField()
+    author_email = serializers.EmailField(source='user.email', read_only=True)
+    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    task_title = serializers.CharField(source='task.title', read_only=True)
+    task_project = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ClientComment
+        fields = [
+            'id',
+            'client',
+            'client_name',
+            'task',
+            'task_title',
+            'task_project',
+            'author',
+            'author_name',
+            'author_email',
+            'comment',
+            'has_attachment',
+            'is_read_by_firm',
+            'read_by',
+            'read_at',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'author',
+            'is_read_by_firm',
+            'read_by',
+            'read_at',
+            'created_at',
+            'updated_at',
+        ]
+
+    def get_author_name(self, obj):
+        """Get author's full name."""
+        if obj.author:
+            return f"{obj.author.first_name} {obj.author.last_name}".strip() or obj.author.username
+        return None
+
+    def get_task_project(self, obj):
+        """Get task's project info."""
+        if obj.task and obj.task.project:
+            return {
+                'id': obj.task.project.id,
+                'name': obj.task.project.name,
+                'project_code': obj.task.project.project_code if hasattr(obj.task.project, 'project_code') else None,
+            }
+        return None
+
+    def create(self, validated_data):
+        """Set author and client from request context."""
+        request = self.context.get('request')
+        validated_data['author'] = request.user
+
+        # Get client from portal user
+        from modules.clients.models import ClientPortalUser
+        try:
+            portal_user = ClientPortalUser.objects.get(user=request.user)
+            validated_data['client'] = portal_user.client
+        except ClientPortalUser.DoesNotExist:
+            raise serializers.ValidationError("User is not a client portal user")
+
+        return super().create(validated_data)
+
+
+class ClientTaskSerializer(serializers.ModelSerializer):
+    """
+    Client-facing Task serializer (read-only).
+
+    Shows task details without exposing sensitive firm information.
+    """
+    assigned_to_name = serializers.SerializerMethodField()
+    hours_logged = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
+    progress_percentage = serializers.SerializerMethodField()
+
+    class Meta:
+        from modules.projects.models import Task
+        model = Task
+        fields = [
+            'id',
+            'title',
+            'description',
+            'status',
+            'priority',
+            'position',
+            'estimated_hours',
+            'due_date',
+            'completed_at',
+            'created_at',
+            'updated_at',
+            'assigned_to_name',
+            'hours_logged',
+            'comments',
+            'progress_percentage',
+        ]
+        read_only_fields = fields  # All fields are read-only for clients
+
+    def get_assigned_to_name(self, obj):
+        """Get assigned team member's name (hide sensitive info)."""
+        if obj.assigned_to:
+            return f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}".strip() or "Team Member"
+        return None
+
+    def get_hours_logged(self, obj):
+        """Calculate total hours logged for this task."""
+        from django.db.models import Sum
+        total = obj.time_entries.aggregate(total=Sum('hours'))['total']
+        return float(total) if total else 0.0
+
+    def get_comments(self, obj):
+        """Get client comments for this task."""
+        from modules.clients.models import ClientComment
+        comments = ClientComment.objects.filter(task=obj).order_by('-created_at')[:10]
+        return [{
+            'id': comment.id,
+            'author_name': comment.author.get_full_name() or comment.author.username,
+            'comment': comment.comment,
+            'created_at': comment.created_at,
+        } for comment in comments]
+
+    def get_progress_percentage(self, obj):
+        """Calculate progress percentage based on status."""
+        status_progress = {
+            'todo': 0,
+            'in_progress': 50,
+            'review': 75,
+            'done': 100,
+        }
+        return status_progress.get(obj.status, 0)
+
+
+class ClientProjectSerializer(serializers.ModelSerializer):
+    """
+    Client-facing Project serializer (read-only).
+
+    Shows project details with tasks, suitable for client portal.
+    Hides sensitive firm information like hourly rates and internal notes.
+    """
+    project_manager_name = serializers.SerializerMethodField()
+    tasks = ClientTaskSerializer(many=True, read_only=True, source='tasks_set')
+    total_hours_logged = serializers.SerializerMethodField()
+    progress_percentage = serializers.SerializerMethodField()
+    tasks_summary = serializers.SerializerMethodField()
+
+    class Meta:
+        from modules.projects.models import Project
+        model = Project
+        fields = [
+            'id',
+            'project_code',
+            'name',
+            'description',
+            'status',
+            'budget',  # Show budget but hide hourly_rate
+            'start_date',
+            'end_date',
+            'actual_completion_date',
+            'created_at',
+            'updated_at',
+            'project_manager_name',
+            'tasks',
+            'total_hours_logged',
+            'progress_percentage',
+            'tasks_summary',
+        ]
+        read_only_fields = fields  # All fields are read-only for clients
+
+    def get_project_manager_name(self, obj):
+        """Get project manager's name."""
+        if obj.project_manager:
+            return f"{obj.project_manager.first_name} {obj.project_manager.last_name}".strip() or "Project Manager"
+        return None
+
+    def get_total_hours_logged(self, obj):
+        """Calculate total hours logged for this project."""
+        from django.db.models import Sum
+        total = obj.time_entries.aggregate(total=Sum('hours'))['total']
+        return float(total) if total else 0.0
+
+    def get_progress_percentage(self, obj):
+        """Calculate overall project progress based on completed tasks."""
+        from modules.projects.models import Task
+        total_tasks = Task.objects.filter(project=obj).count()
+        if total_tasks == 0:
+            return 0
+
+        completed_tasks = Task.objects.filter(project=obj, status='done').count()
+        return int((completed_tasks / total_tasks) * 100)
+
+    def get_tasks_summary(self, obj):
+        """Get task counts by status."""
+        from modules.projects.models import Task
+        from django.db.models import Count
+
+        summary = Task.objects.filter(project=obj).values('status').annotate(
+            count=Count('id')
+        )
+
+        result = {
+            'todo': 0,
+            'in_progress': 0,
+            'review': 0,
+            'done': 0,
+            'total': 0,
+        }
+
+        for item in summary:
+            status = item['status']
+            count = item['count']
+            if status in result:
+                result[status] = count
+            result['total'] += count
+
+        return result

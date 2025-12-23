@@ -2,7 +2,13 @@
 Django Admin configuration for Clients module.
 """
 from django.contrib import admin
-from modules.clients.models import Client, ClientPortalUser, ClientNote, ClientEngagement
+from modules.clients.models import (
+    Client,
+    ClientPortalUser,
+    ClientNote,
+    ClientEngagement,
+    ClientComment
+)
 
 
 @admin.register(Client)
@@ -144,6 +150,42 @@ class ClientEngagementAdmin(admin.ModelAdmin):
         ('Notes', {
             'fields': ('notes',),
             'classes': ('collapse',),
+        }),
+        ('Audit', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+
+@admin.register(ClientComment)
+class ClientCommentAdmin(admin.ModelAdmin):
+    list_display = (
+        'task',
+        'client',
+        'author',
+        'is_read_by_firm',
+        'read_by',
+        'created_at',
+    )
+    list_filter = ('is_read_by_firm', 'created_at', 'client')
+    search_fields = (
+        'comment',
+        'task__title',
+        'client__company_name',
+        'author__username',
+        'author__email',
+    )
+    readonly_fields = ('created_at', 'updated_at', 'read_at')
+
+    fieldsets = (
+        ('Comment Details', {
+            'fields': ('client', 'task', 'author', 'comment'),
+        }),
+        ('Attachments', {
+            'fields': ('has_attachment',),
+        }),
+        ('Read Status', {
+            'fields': ('is_read_by_firm', 'read_by', 'read_at'),
         }),
         ('Audit', {
             'fields': ('created_at', 'updated_at'),
