@@ -24,8 +24,13 @@ urlpatterns = [
 
     # API Endpoints (REST Framework)
     path('api/auth/', include('modules.auth.urls')),
+
+    # TIER 0: Client Portal (portal users ONLY - default-deny)
+    path('api/portal/', include('api.portal.urls')),
+
+    # Firm Admin Endpoints (portal users BLOCKED)
     path('api/crm/', include('api.crm.urls')),          # Pre-sale: Leads, Prospects, Campaigns, Proposals
-    path('api/clients/', include('api.clients.urls')),   # Post-sale: Client management & portal
+    path('api/clients/', include('api.clients.urls')),   # Post-sale: Client management & firm-only views
     path('api/projects/', include('api.projects.urls')),
     path('api/finance/', include('api.finance.urls')),
     path('api/documents/', include('api.documents.urls')),

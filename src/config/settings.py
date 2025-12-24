@@ -62,6 +62,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # TIER 0: Firm context resolution (must come after AuthenticationMiddleware)
     'modules.firm.middleware.FirmContextMiddleware',
+    # TIER 0: Portal containment (must come after FirmContextMiddleware)
+    'modules.clients.middleware.PortalContainmentMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

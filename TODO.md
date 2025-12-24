@@ -44,11 +44,11 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Forbid `Model.objects.all()` in firm-facing code ✅
   - [x] Client-scoped queries where applicable ✅
 
-- [ ] **0.4** Portal containment (default-deny)
-  - [ ] Portal-only permission classes
-  - [ ] Separate routing or namespace for portal
-  - [ ] Explicit allowlist of portal endpoints
-  - [ ] Portal users receive 403 on non-portal endpoints
+- [x] **0.4** Portal containment (default-deny) ✅ COMPLETE
+  - [x] Portal-only permission classes ✅
+  - [x] Separate routing or namespace for portal ✅
+  - [x] Explicit allowlist of portal endpoints ✅
+  - [x] Portal users receive 403 on non-portal endpoints ✅
 
 - [ ] **0.5** Platform privacy enforcement (metadata-only)
   - [ ] Platform role separation (Operator vs Break-Glass)
@@ -319,7 +319,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 | Tier | Status | Completion % |
 |------|--------|-------------|
-| Tier 0 | 🟡 In Progress | 50% (3/6 tasks complete) |
+| Tier 0 | 🟡 In Progress | 67% (4/6 tasks complete) |
 | Tier 1 | 🔴 Not Started | 0% |
 | Tier 2 | 🔴 Not Started | 0% |
 | Tier 3 | 🔴 Not Started | 0% |
