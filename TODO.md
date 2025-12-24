@@ -1,431 +1,360 @@
-# ConsultantPro - Prioritized TODO List
+# ConsultantPro - Unified Prioritized TODO List
 
-**Last Updated:** December 23, 2025
-
----
-
-## 🔴 CRITICAL - IMMEDIATE (Blocking Progress)
-
-### 1. Database Migrations
-**Priority:** P0 - BLOCKER
-**Effort:** 10 minutes
-**Blocker For:** All testing, all development
-
-**Tasks:**
-- [ ] Run `./migrate.sh` to create and apply migrations for CRM/Clients refactor
-- [ ] Verify migrations applied successfully
-- [ ] Create superuser for testing
-
-**Why Critical:** All new CRM frontend features cannot be tested without database migrations. This blocks all further development and testing.
-
-**Commands:**
-```bash
-./migrate.sh
-# OR manually:
-docker-compose up -d db
-docker-compose run --rm web python manage.py makemigrations
-docker-compose run --rm web python manage.py migrate
-docker-compose run --rm web python manage.py createsuperuser
-```
+**Last Updated:** December 24, 2025
 
 ---
 
-## 🟠 HIGH PRIORITY (Core Workflow Validation)
+## Overview
 
-### 2. End-to-End CRM Workflow Testing
-**Priority:** P1
-**Effort:** 2-3 hours
-**Dependencies:** #1 (migrations)
+This TODO list is organized by **Tiers (0-5)**, representing architectural priorities. Each tier must be complete before proceeding to the next.
 
-**Test Scenarios:**
-- [ ] Create Lead → Convert to Prospect
-- [ ] Create Prospect → Create Proposal (prospective_client)
-- [ ] Accept Proposal → Verify Client creation
-- [ ] Verify Contract created
-- [ ] Verify Project auto-creation (if enabled)
-- [ ] Verify Portal enablement (if enabled)
-- [ ] Test Campaign tracking (new business metrics)
-- [ ] Create Client renewal proposal (renewal_client type)
-- [ ] Accept renewal → Verify engagement versioning
-- [ ] Create Client expansion proposal (update_client type)
-- [ ] Pipeline report accuracy
-
-**Expected Outcome:** Full Lead → Client workflow works end-to-end with no errors.
-
-### 3. Backend Signal Enhancements
-**Priority:** P1 - COMPLETED ✅
-**Effort:** 4-6 hours
-**Status:** Completed - Email notifications and project completion workflow implemented
-
-**Tasks:**
-- [x] Implement email notifications in `src/modules/crm/signals.py:74,136`
-  - Lead conversion notifications
-  - Proposal sent/accepted notifications
-  - Client creation notifications
-- [x] Implement project completion workflow in `src/modules/projects/signals.py:178-180`
-  - Generate completion report
-  - Calculate final billing
-  - Send stakeholder notifications
-- [x] Created notification service (`src/modules/core/notifications.py`)
-- [ ] Add notification preferences model (User preferences for email/in-app) - FUTURE
-- [ ] Create email templates for each notification type - FUTURE
+**See:** `docs/claude/NOTES_TO_CLAUDE.md` for authoritative rules.
 
 ---
 
-## 🟡 MEDIUM PRIORITY (Client Portal Enhancement)
+## TIER 0 — FOUNDATIONAL SAFETY
 
-### 4. Client Portal - Work Section
-**Priority:** P2 - COMPLETED ✅
-**Effort:** 8-12 hours
-**Status:** Completed - Full work section with projects, tasks, and comments
+> **Rule:** Tier 0 must be complete before any feature, billing, or UX work proceeds.
+>
+> If Tier 0 is wrong or incomplete, privacy, tenancy, and trust all fail.
 
-**Backend Tasks:**
-- [x] Create `ClientComment` model for task comments
-- [x] Add API endpoint: `POST /api/clients/comments/`
-- [x] Add API endpoint: `GET /api/clients/projects/` (filtered by client)
-- [x] Add API endpoint: `GET /api/clients/projects/{id}/tasks/`
-- [x] Add permissions: clients can view assigned projects, add comments only
-- [x] ClientTaskSerializer and ClientProjectSerializer (read-only)
-- [x] Comment mark-as-read functionality for firm users
+### Tasks
 
-**Frontend Tasks:**
-- [x] Build Work section UI (`src/frontend/src/pages/ClientPortal.tsx`)
-- [x] Display client's projects with progress bars
-- [x] Show task checklists (read-only for client)
-- [x] Comment input for each task
-- [x] Real-time comment updates after submission
-- [x] Expandable task details with metadata
-- [x] Progress visualization (bars and percentages)
-- [ ] File attachment upload for tasks - FUTURE
+- [x] **0.1** Introduce Firm / Workspace tenancy ✅ COMPLETE
+  - [x] Create Firm (Workspace) model ✅
+  - [x] Establish Firm ↔ User relationship (FirmMembership) ✅
+  - [x] Establish Firm ↔ Client relationship ✅
+  - [x] Add Firm ↔ CRM relationships (Lead, Prospect, Campaign, Proposal, Contract) ✅
+  - [x] Add Firm ↔ Projects relationships (Project, Task, TimeEntry) ✅
+  - [x] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry) ✅
+  - [x] Add Firm ↔ Documents relationships (Folder, Document, Version) ✅
+  - [x] Add Firm ↔ Assets relationships (Asset, MaintenanceLog) ✅
+  - [x] Create database migrations ✅
+  - [ ] Verify data integrity constraints work correctly (requires DB setup)
 
-### 5. Client Portal - Chat Section
-**Priority:** P2 - COMPLETED ✅
-**Effort:** 12-16 hours
-**Status:** Completed - REST API with polling (WebSocket upgrade path available)
+- [x] **0.2** Implement Firm context resolution (subdomain/session/token) ✅ COMPLETE
+  - [x] Firm context resolver (subdomain + session + token) ✅
+  - [x] Firm context attached to request object ✅
+  - [x] Firm context validation guard ✅
+  - [x] Requests without firm context are rejected ✅
 
-**Backend Tasks:**
-- [x] Create `ClientMessage` model
-- [x] Create `ClientChatThread` model (daily threads)
-- [x] REST API endpoints for chat (`POST /api/clients/messages/`, `GET /api/clients/chat-threads/active/`)
-- [x] Message read status tracking
-- [x] Auto-filtering by client for portal users
-- [x] Unread message count endpoint
-- [ ] Setup Django Channels for WebSocket support - FUTURE UPGRADE
-- [ ] Setup Redis for message queueing - FUTURE UPGRADE
-- [ ] WebSocket consumer for real-time messaging - FUTURE UPGRADE
-- [ ] Daily thread rotation cron job (00:00 UTC) - FUTURE
+- [x] **0.3** Enforce firm + client scoping everywhere ✅ COMPLETE
+  - [x] Firm-scoped queryset mixins/helpers ✅
+  - [x] Refactor existing queries to use firm scoping ✅
+  - [x] Forbid `Model.objects.all()` in firm-facing code ✅
+  - [x] Client-scoped queries where applicable ✅
 
-**Frontend Tasks:**
-- [x] Chat UI component (message list, input)
-- [x] Auto-refresh every 5 seconds for near real-time updates
-- [x] Read receipts (is_read tracking)
-- [x] Daily thread indicator
-- [x] Sender name display (client vs team)
-- [x] Keyboard shortcuts (Enter to send, Shift+Enter for new line)
-- [x] Unread message counter in dashboard
-- [ ] WebSocket connection management - FUTURE UPGRADE
-- [ ] Search archived threads - FUTURE
-- [ ] File attachments in chat - FUTURE
+- [x] **0.4** Portal containment (default-deny) ✅ COMPLETE
+  - [x] Portal-only permission classes ✅
+  - [x] Separate routing or namespace for portal ✅
+  - [x] Explicit allowlist of portal endpoints ✅
+  - [x] Portal users receive 403 on non-portal endpoints ✅
 
-### 6. Client Portal - Billing Section
-**Priority:** P2 - COMPLETED ✅
-**Effort:** 6-8 hours
-**Status:** Completed - Full billing with payment link generation
+- [ ] **0.5** Platform privacy enforcement (metadata-only)
+  - [ ] Platform role separation (Operator vs Break-Glass)
+  - [ ] Explicit deny rules for content models
+  - [ ] Metadata/content separation in models and APIs
+  - [ ] Content encryption (E2EE)
 
-**Backend Tasks:**
-- [x] Update Finance API for client-filtered invoices (`GET /api/clients/invoices/`)
-- [x] ClientInvoiceSerializer with calculated fields (balance_due, is_overdue, days_until_due)
-- [x] Stripe payment link generation endpoint (placeholder)
-- [x] Invoice summary endpoint with statistics
-- [x] Auto-filtering by client for portal users
-- [x] Permission checks (can_view_billing)
-- [ ] ACH payment via Plaid integration - FUTURE
-- [ ] Payment plan setup endpoints - FUTURE
-- [ ] Auto-pay configuration endpoints - FUTURE
+- [ ] **0.6** Break-glass access with impersonation safeguards
+  - [ ] Break-glass activation mechanism
+  - [ ] Impersonation mode indicator
+  - [ ] Automatic expiration
+  - [ ] Immutable audit records for break-glass actions
+  - [ ] Time limit enforcement
+  - [ ] Reason string requirement
 
-**Frontend Tasks:**
-- [x] Load invoices from client portal API
-- [x] Display invoice list with status badges
-- [x] "Pay Now" button → Stripe Checkout (placeholder)
-- [x] Invoice summary cards (total billed, paid, outstanding, overdue)
-- [x] Expandable invoice details with line items
-- [x] Days until due / days overdue indicators
-- [x] Payment history display
-- [ ] ACH payment option - FUTURE
-- [ ] Payment plan display and management - FUTURE
-- [ ] Auto-pay toggle - FUTURE
+### Completion Criteria
 
-### 7. Client Portal - Engagement Section
-**Priority:** P2 - COMPLETED ✅
-**Effort:** 6-8 hours
-**Status:** Completed - Full engagement management with contracts, proposals, and history
-
-**Backend Tasks:**
-- [x] Create endpoints for client-visible contracts (`GET /api/clients/contracts/`)
-- [x] Create endpoints for client-visible proposals (`GET /api/clients/proposals/`)
-- [x] ClientContractSerializer with calculated fields (is_active, days_remaining)
-- [x] ClientProposalSerializer with expiry tracking
-- [x] ClientEngagementDetailSerializer with version history
-- [x] Contract download endpoint (`GET /api/clients/contracts/{id}/download/`)
-- [x] Engagement timeline endpoint
-- [x] E-signature placeholder (DocuSign or HelloSign integration pending)
-- [ ] E-signature integration (DocuSign or HelloSign) - FUTURE
-- [ ] Renewal request workflow endpoint - FUTURE
-
-**Frontend Tasks:**
-- [x] Display current contracts with metadata
-- [x] Display pending proposals (renewals, expansions)
-- [x] Contract download buttons
-- [x] E-signature workflow UI (placeholder)
-- [x] Engagement history timeline with version badges
-- [x] Expiry warnings for contracts and proposals
-- [x] Days remaining indicators
-- [x] Parent/renewal relationship visualization
-- [x] 3-panel sub-navigation (Contracts, Proposals, History)
-- [ ] "Request Renewal" button - FUTURE
-- [ ] Upcoming renewal alerts (90 days out) - FUTURE
+- [ ] Firm isolation is provable
+- [ ] Platform cannot read content by default
+- [ ] Portal users are fully contained
+- [ ] Break-glass is rare, visible, and audited
+- [ ] Async jobs are tenant-safe
 
 ---
 
-## 🟢 LOW PRIORITY (Future Enhancements)
+## TIER 1 — SCHEMA TRUTH & CI TRUTH
 
-### 8. Email Triage Module
-**Priority:** P3
-**Effort:** 20-24 hours
-**Status:** Not Started
+> **Rule:** Tier 1 ensures the database schema and CI reflect reality.
 
-**Backend Tasks:**
-- [ ] Create Email models (`Email`, `EmailAccount`, `EmailTag`)
-- [ ] OAuth integration for Outlook
-- [ ] OAuth integration for Gmail
-- [ ] IMAP sync worker (background job)
-- [ ] Email assignment API
-- [ ] Tag management API
-- [ ] Client linking API
+### Tasks
 
-**Frontend Tasks:**
-- [ ] Unified inbox component
-- [ ] Email detail view
-- [ ] Assignment dropdown
-- [ ] Priority tagging
-- [ ] Quick response templates
-- [ ] Link to client records
-- [ ] Search and filters
+- [ ] **1.1** Fix deterministic backend crashes
+  - [ ] Fix CRM import errors
+  - [ ] Fix Spectacular enum paths
+  - [ ] Fix auth AppConfig issues
+  - [ ] Backend boots without deterministic exceptions
 
-### 9. Scheduling Module
-**Priority:** P3
-**Effort:** 16-20 hours
-**Status:** Not Started
+- [ ] **1.2** Commit all missing migrations
+  - [ ] Assets module migrations
+  - [ ] Documents module migrations
+  - [ ] Client portal migrations
+  - [ ] Chat module migrations
+  - [ ] Verify `makemigrations` is clean (no-op)
+  - [ ] Verify `migrate` works from fresh DB
 
-**Backend Tasks:**
-- [ ] Create Calendar models (`Calendar`, `Event`)
-- [ ] OAuth integration for Outlook Calendar
-- [ ] OAuth integration for Google Calendar
-- [ ] Two-way sync worker (background job)
-- [ ] Event CRUD APIs
-- [ ] Recurrence rule parsing (RRULE)
-- [ ] Client/Project linking
+- [ ] **1.3** Make CI honest
+  - [ ] Remove skipped lint checks
+  - [ ] Add frontend build gate to CI
+  - [ ] Add frontend typecheck to CI
+  - [ ] Ensure lint/build/test failures fail CI
+  - [ ] No `|| true` or skip-on-fail patterns
 
-**Frontend Tasks:**
-- [ ] Calendar view (month, week, day)
-- [ ] Multi-calendar display
-- [ ] Event creation modal
-- [ ] Team scheduling view
-- [ ] Meeting room booking
-- [ ] Client meeting links
+- [ ] **1.4** Add minimum safety test set
+  - [ ] Tenant isolation tests (cross-firm access blocked)
+  - [ ] Portal containment tests (default-deny)
+  - [ ] Engagement immutability tests (signed engagements)
+  - [ ] Billing approval gate tests (time entry approval)
 
-### 10. Message Board Module
-**Priority:** P3
-**Effort:** 4-6 hours
-**Status:** Not Started
+### Completion Criteria
 
-**Backend Tasks:**
-- [ ] Create MessageBoard models
-- [ ] Post CRUD API
-- [ ] Comment API
-- [ ] Pin/unpin posts
-- [ ] Category filtering
-
-**Frontend Tasks:**
-- [ ] Board list view
-- [ ] Post creation modal
-- [ ] Comment threads
-- [ ] Pin indicator
-- [ ] Category badges
-
-### 11. Error Tracking Integration
-**Priority:** P3
-**Effort:** 2-3 hours
-
-**Tasks:**
-- [ ] Sign up for Sentry account
-- [ ] Install Sentry SDK
-- [ ] Configure Sentry DSN in environment
-- [ ] Update `src/frontend/src/components/ErrorBoundary.tsx:37` to send errors to Sentry
-- [ ] Test error reporting
-- [ ] Setup alert rules
-
-### 12. Advanced Client Portal Dashboard
-**Priority:** P3
-**Effort:** 8-10 hours
-
-**Tasks:**
-- [ ] Build analytics widgets
-  - Active projects summary
-  - Pending tasks count
-  - Unread messages badge
-  - Outstanding invoices total
-  - Recent documents list
-  - Upcoming milestones
-- [ ] Build charts
-  - Project progress (% complete)
-  - Budget utilization
-  - Time tracking summary
-- [ ] Real-time updates via WebSocket
-- [ ] Customizable widget layout
+- [ ] Backend boots without deterministic exceptions
+- [ ] API schema generation completes without error
+- [ ] Fresh DB: migrations apply cleanly
+- [ ] `makemigrations` yields no changes
+- [ ] CI fails on lint/build/type errors (backend + frontend)
+- [ ] Minimal invariant tests exist and run in CI
 
 ---
 
-## 📋 MAINTENANCE & DOCUMENTATION
+## TIER 2 — AUTHORIZATION & OWNERSHIP
 
-### 13. Update Documentation
-**Priority:** P2
-**Effort:** 2-3 hours
+> **Rule:** Tier 2 ensures who can do what is explicit, enforced, and impossible to bypass.
 
-**Tasks:**
-- [x] Update README.md with CRM refactor details
-- [ ] Update API_USAGE.md with new CRM endpoints
-  - `/api/crm/leads/`
-  - `/api/crm/prospects/`
-  - `/api/crm/campaigns/`
-  - `/api/clients/`
-  - Proposal type documentation
-- [ ] Create Client Portal user guide
-- [ ] Update DEPLOYMENT.md with new modules
-- [ ] Document WebSocket setup (when implemented)
+### Tasks
 
-### 14. Code Cleanup
-**Priority:** P3
-**Effort:** 2-3 hours
+- [ ] **2.1** Standardize permissions across all ViewSets
+  - [ ] Inventory all ViewSets and endpoints
+  - [ ] Attach explicit permission classes everywhere
+  - [ ] Remove inline or duplicated permission checks
+  - [ ] Centralize authorization logic
 
-**Tasks:**
-- [ ] Remove all TODO comments after implementing features
-- [ ] Remove deprecated code references
-- [ ] Standardize error messages
-- [ ] Add JSDoc comments to complex functions
-- [ ] Run linting and fix warnings
+- [ ] **2.2** Replace direct User imports with AUTH_USER_MODEL
+  - [ ] Search and replace direct User imports
+  - [ ] Update type hints and serializers
+  - [ ] Update signals and admin references
 
-### 15. Performance Optimization
-**Priority:** P3
-**Effort:** 4-6 hours
+- [ ] **2.3** Add firm + client context to all background/async jobs
+  - [ ] Define standard job payload schema (firm_id, client_id)
+  - [ ] Validate tenant context on job execution
+  - [ ] Apply permission checks inside jobs
+  - [ ] Jobs fail without tenant context
 
-**Tasks:**
-- [ ] Add database indexes on frequently queried fields
-  - `crm.Lead.status`
-  - `crm.Prospect.pipeline_stage`
-  - `crm.Campaign.type`
-  - `clients.Client.status`
-- [ ] Implement query optimization (select_related, prefetch_related)
-- [ ] Add API response caching for read-heavy endpoints
-- [ ] Frontend lazy loading for large lists
-- [ ] Image optimization for uploaded files
+- [ ] **2.4** Firm-scoped querysets (zero global access)
+  - [ ] All querysets filter by firm_id
+  - [ ] Client-scoped data also filters by client_id
+  - [ ] Platform roles cannot bypass scoping (except break-glass)
 
----
+- [ ] **2.5** Portal authorization (client-scoped, explicit allowlist)
+  - [ ] Portal-specific permission classes
+  - [ ] Define portal endpoint allowlist
+  - [ ] Portal users never hit firm admin endpoints
 
-## 📊 TESTING & QA
+- [ ] **2.6** Cross-client access within Organizations
+  - [ ] Enforce org-based access checks
+  - [ ] Ensure shared-org views are clearly scoped
+  - [ ] Prevent default cross-client visibility
 
-### 16. Expand Test Coverage
-**Priority:** P2
-**Effort:** 6-8 hours
+### Completion Criteria
 
-**Tasks:**
-- [ ] Write tests for CRM signals
-  - Test Lead → Prospect conversion
-  - Test Proposal → Client conversion (3 types)
-  - Test engagement versioning
-- [ ] Write tests for Client endpoints
-- [ ] Write tests for Campaign performance calculations
-- [ ] Write tests for Pipeline report
-- [ ] Frontend integration tests for CRM pages
-- [ ] E2E tests with Playwright or Cypress
+- [ ] Every endpoint has explicit permissions
+- [ ] All data access is tenant-scoped
+- [ ] Portal users are fully contained
+- [ ] Cross-client access is intentional and auditable
+- [ ] Async jobs obey the same rules as synchronous code
 
 ---
 
-## 🎯 SUCCESS CRITERIA
+## TIER 3 — DATA INTEGRITY & PRIVACY
 
-### Phase 1 Complete When:
-- [x] Backend: CRM (Lead, Prospect, Campaign, Proposal with 3 types)
-- [x] Backend: Clients (Client, ClientEngagement, ClientPortalUser)
-- [x] Frontend: CRM pages (Leads, Prospects, Campaigns, updated Proposals)
-- [x] Frontend: Navigation reorganized (sidebar with sections)
-- [ ] Migrations: All applied and tested
-- [ ] Workflow: Lead → Client tested end-to-end
-- [ ] Client Portal: All 6 sections functional
-  - [x] Dashboard (basic)
-  - [x] Documents (complete)
-  - [ ] Work (not started)
-  - [ ] Chat (not started)
-  - [ ] Billing (partially implemented)
-  - [ ] Engagement (not started)
+> **Rule:** Tier 3 makes the platform trustworthy under stress: legal requests, disputes, incidents, employee misuse, and customer exits.
 
-### Ready for Production When:
-- [ ] All P0 and P1 tasks complete
-- [ ] 70%+ test coverage maintained
-- [ ] All workflows tested end-to-end
-- [ ] Performance benchmarks met
-- [ ] Documentation complete
-- [ ] Security audit passed
-- [ ] Deployment guide validated
+### Tasks
 
----
+- [ ] **3.1** Implement purge semantics (tombstones, metadata retention)
+  - [ ] Define tombstone model strategy (messages, comments, documents)
+  - [ ] Implement purge flows for Master Admin
+  - [ ] Confirmation + reason required for purge
+  - [ ] Purge removes content but preserves metadata
 
-## 📅 TIMELINE ESTIMATE
+- [ ] **3.2** Define audit event taxonomy + retention policy
+  - [ ] Define event categories (AUTH, PERMISSIONS, BREAK_GLASS, BILLING_METADATA, PURGE, CONFIG)
+  - [ ] Define event fields (actor, tenant context, target, timestamp, action, reason)
+  - [ ] Implement structured audit writes
+  - [ ] Audit records are tenant-scoped
 
-**Week 1 (Current):**
-- Complete migrations and workflow testing (P0, P1)
-- Backend signal enhancements (P1)
+- [ ] **3.3** Define audit review ownership and cadence
+  - [ ] Define review owner(s) (platform ops/security)
+  - [ ] Define review cadence (break-glass: weekly, role changes: monthly)
+  - [ ] Define escalation path for anomalies
 
-**Week 2-3:**
-- Client Portal Work section (P2)
-- Client Portal Chat section (P2)
-- Client Portal Billing section (P2)
+- [ ] **3.4** Implement privacy-first support workflows
+  - [ ] Metadata-only diagnostics
+  - [ ] Customer export package format
+  - [ ] Secure intake with limited retention
+  - [ ] Support can resolve issues without content visibility
 
-**Week 4:**
-- Client Portal Engagement section (P2)
-- Documentation updates (P2)
-- Testing and QA (P2)
+- [ ] **3.5** Document signing lifecycle & evidence retention
+  - [ ] Immutable signing events
+  - [ ] Link to document version/hash (not plaintext)
+  - [ ] Signature evidence survives content purge
 
-**Future (Phase 2):**
-- Email Triage (P3)
-- Scheduling (P3)
-- Message Board (P3)
-- Advanced features (P3)
+### Completion Criteria
+
+- [ ] Purge works via tombstones for all content-bearing models
+- [ ] Every purge emits an immutable audit event
+- [ ] Audit event system exists, structured, tenant-scoped, content-free
+- [ ] Retention + review primitives exist
+- [ ] Support diagnostics can be generated without content access
+- [ ] Signing events are immutable and survive purges
 
 ---
 
-## 🚀 NEXT IMMEDIATE ACTIONS
+## TIER 4 — BILLING & MONETIZATION
 
-1. **Run database migrations** (`./migrate.sh`)
-2. **Test CRM workflow** (Lead → Prospect → Proposal → Client)
-3. **Implement email notifications** (signals.py TODOs)
-4. **Start Client Portal Work section** (highest value for clients)
+> **Rule:** Tier 4 ensures money, scope, and incentives align.
+
+### Tasks
+
+- [ ] **4.1** Enforce billing invariants (package/hourly/mixed, approval gates)
+  - [ ] Invoice belongs to Client
+  - [ ] Invoice links to Engagement by default
+  - [ ] Engagement defines pricing mode (package/hourly/mixed)
+  - [ ] Master Admin can override engagement linkage
+
+- [ ] **4.2** Package fee invoicing
+  - [ ] Package fees defined at engagement creation
+  - [ ] Package invoices auto-generated on schedule
+  - [ ] Package fees survive renewals correctly
+  - [ ] No duplicate invoices
+
+- [ ] **4.3** Hourly billing with approval gates
+  - [ ] Time entries exist independently of invoices
+  - [ ] Time entries not billable by default
+  - [ ] Staff/Admin approval required before billing
+  - [ ] Client approval optional (future-ready)
+
+- [ ] **4.4** Mixed billing (package + hourly together)
+  - [ ] Engagement can specify mixed billing
+  - [ ] Package and hourly line items are distinct
+  - [ ] Reporting clearly separates the two
+
+- [ ] **4.5** Implement credit ledger
+  - [ ] Credits tracked in ledger (not ad-hoc fields)
+  - [ ] Credit creation and application auditable
+  - [ ] Credit balance always reconciles
+
+- [ ] **4.6** Recurring payments (autopay)
+  - [ ] Recurring payments auto-pay invoices as issued
+  - [ ] Recurring payments do not generate invoices themselves
+  - [ ] Autopay can be disabled per client
+
+- [ ] **4.7** Handle payment failures, disputes, and chargebacks explicitly
+  - [ ] Payment failures are first-class events
+  - [ ] Disputes and chargebacks tracked explicitly
+  - [ ] Platform retains dispute metadata only
+
+- [ ] **4.8** Renewal billing behavior (continuity without mutation)
+  - [ ] Renewals create new engagements
+  - [ ] Old engagement invoices remain untouched
+  - [ ] New billing terms apply only going forward
+
+### Completion Criteria
+
+- [ ] Billing always traces back to an engagement
+- [ ] Package, hourly, and mixed billing are correct and auditable
+- [ ] Credits, payments, disputes, and renewals are survivable
+- [ ] Autopay behaves predictably
+- [ ] No financial state mutates history silently
+
+---
+
+## TIER 5 — PRODUCT DURABILITY, SCALE & EXIT
+
+> **Rule:** Tier 5 ensures the system survives growth, change, and scrutiny.
+
+### Tasks
+
+- [ ] **5.1** Hero workflow integration tests (end-to-end truth)
+  - [ ] Define 1-2 canonical hero scenarios (package-only, mixed)
+  - [ ] Test: Firm → Client → Engagement → Signed
+  - [ ] Test: Auto-created Projects/Tasks
+  - [ ] Test: Generate invoice → Process payment → Portal visibility
+  - [ ] Test: Renew engagement → Verify continuity
+
+- [ ] **5.2** Performance safeguards (tenant-safe at scale)
+  - [ ] Audit queries for missing tenant indexes
+  - [ ] Enforce select_related / prefetch_related
+  - [ ] Add pagination on all list views
+  - [ ] Add performance regression tests
+
+- [ ] **5.3** Firm offboarding + data exit flows
+  - [ ] Firm-level export capability (CSV/JSON + document bundle)
+  - [ ] Implement retention timer on offboarding
+  - [ ] Implement deletion workflow (purges content, preserves liability metadata)
+  - [ ] Confirm offboarding does not affect other firms
+
+- [ ] **5.4** Configuration change safety (future-proofing)
+  - [ ] Version pricing/config schemas
+  - [ ] Ensure new config applies prospectively
+  - [ ] Log config changes affecting billing or access
+
+- [ ] **5.5** Operational observability (without content)
+  - [ ] Metrics/logs for: request counts, error rates, latency, job failures
+  - [ ] All telemetry includes firm_id
+  - [ ] Telemetry never includes customer content
+
+### Completion Criteria
+
+- [ ] Full lifecycle is proven end-to-end
+- [ ] Performance and isolation hold at scale
+- [ ] Firms can exit cleanly
+- [ ] Configuration changes are safe
+- [ ] Operations are observable without content visibility
+
+---
+
+## 🎯 TIER COMPLETION STATUS
+
+| Tier | Status | Completion % |
+|------|--------|-------------|
+| Tier 0 | 🟡 In Progress | 67% (4/6 tasks complete) |
+| Tier 1 | 🔴 Not Started | 0% |
+| Tier 2 | 🔴 Not Started | 0% |
+| Tier 3 | 🔴 Not Started | 0% |
+| Tier 4 | 🔴 Not Started | 0% |
+| Tier 5 | 🔴 Not Started | 0% |
+
+---
+
+## 📋 REFERENCE DOCUMENTS
+
+- **Authoritative Rules:** `docs/claude/NOTES_TO_CLAUDE.md`
+- **Source Document:** `docs/claude/to_claude`
+- **Tier Details:** See `docs/claude/tiers/` for full expansions
+- **Execution Prompts:** See `docs/claude/prompts/` for tier-specific execution instructions
+
+---
+
+## 🚨 CRITICAL RULES
+
+1. **No tier may be skipped**
+2. **No tier may be partially completed and left**
+3. **If code conflicts with NOTES_TO_CLAUDE.md, code must change**
+4. **All changes must preserve tenant isolation and privacy guarantees**
+5. **CI must never lie**
 
 ---
 
 ## 📞 QUESTIONS / DECISIONS NEEDED
 
-1. **Client Portal Chat:** Daily reset at what time zone? (Currently: 00:00 UTC)
-2. **Payment Methods:** ACH via Plaid - priority level? Additional costs?
-3. **E-Signature:** DocuSign vs. HelloSign vs. other? (Licensing costs)
-4. **Email Integration:** Outlook + Gmail sufficient? Need Exchange/IMAP?
-5. **Scheduling:** Two-way sync or read-only calendar integration?
-6. **Error Tracking:** Sentry approved for error monitoring? (Paid service)
-7. **WebSocket Hosting:** Redis hosting solution for production? (AWS ElastiCache, Upstash, etc.)
+_Document any blockers or decisions needed here as work progresses._
 
 ---
 
 **Status Legend:**
-- 🔴 P0 = Critical/Blocker
-- 🟠 P1 = High Priority
-- 🟡 P2 = Medium Priority
-- 🟢 P3 = Low Priority/Future
+- 🔴 Not Started
+- 🟡 In Progress
+- 🟢 Complete
+- ⚠️ Blocked

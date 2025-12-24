@@ -3,10 +3,13 @@ Documents Models: Folder, Document, Version.
 
 Implements S3-backed secure document storage with versioning.
 Supports hierarchical folders and client portal access.
+
+TIER 0: All documents belong to exactly one Firm for tenant isolation.
 """
 from django.db import models
 from django.contrib.auth.models import User
 from modules.projects.models import Project
+from modules.firm.utils import FirmScopedManager
 
 
 class Folder(models.Model):
@@ -15,11 +18,22 @@ class Folder(models.Model):
 
     Represents a folder in the document management system.
     Supports nested folders (self-referential relationship).
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    Firm is inherited through Client, but included directly for efficient queries.
     """
     VISIBILITY_CHOICES = [
         ('internal', 'Internal Only'),
         ('client', 'Visible to Client'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED for efficient queries)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='folders',
+        help_text="Firm (workspace) this folder belongs to"
+    )
 
     # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
@@ -67,13 +81,19 @@ class Folder(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
     class Meta:
         db_table = 'documents_folders'
         ordering = ['name']
         indexes = [
-            models.Index(fields=['client', 'parent']),
+            models.Index(fields=['firm', 'client', 'parent']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'visibility']),  # TIER 0: Firm scoping
         ]
-        unique_together = [['client', 'parent', 'name']]
+        # TIER 0: Folder names must be unique within firm+client+parent (not globally)
+        unique_together = [['firm', 'client', 'parent', 'name']]
 
     def __str__(self):
         if self.parent:
@@ -87,11 +107,22 @@ class Document(models.Model):
 
     Represents a file stored in S3.
     Supports versioning through the Version model.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    Firm is inherited through Folder/Client, but included directly for efficient queries.
     """
     VISIBILITY_CHOICES = [
         ('internal', 'Internal Only'),
         ('client', 'Visible to Client'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED for efficient queries)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='documents',
+        help_text="Firm (workspace) this document belongs to"
+    )
 
     # Relationships - UPDATED to reference clients.Client
     folder = models.ForeignKey(
@@ -136,8 +167,7 @@ class Document(models.Model):
     # S3 Storage
     s3_key = models.CharField(
         max_length=500,
-        unique=True,
-        help_text="S3 object key (path in bucket)"
+        help_text="S3 object key (path in bucket, unique per firm)"
     )
     s3_bucket = models.CharField(
         max_length=255,
@@ -160,13 +190,21 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
     class Meta:
         db_table = 'documents_documents'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['client', 'folder']),
-            models.Index(fields=['s3_bucket', 's3_key']),
+            models.Index(fields=['firm', 'client', 'folder']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'visibility']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 's3_bucket', 's3_key']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: S3 keys must be unique within a firm (not globally)
+        unique_together = [['firm', 's3_bucket', 's3_key']]
 
     def __str__(self):
         return f"{self.folder} / {self.name}"
@@ -178,7 +216,18 @@ class Version(models.Model):
 
     Tracks all versions of a document.
     Each upload creates a new Version record.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    Firm is inherited through Document, but included directly for efficient queries.
     """
+    # TIER 0: Firm tenancy (REQUIRED for efficient queries)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='document_versions',
+        help_text="Firm (workspace) this version belongs to"
+    )
+
     # Relationships
     document = models.ForeignKey(
         Document,
@@ -200,8 +249,7 @@ class Version(models.Model):
     # S3 Storage (each version has its own S3 object)
     s3_key = models.CharField(
         max_length=500,
-        unique=True,
-        help_text="S3 object key for this version"
+        help_text="S3 object key for this version (unique per firm)"
     )
     s3_bucket = models.CharField(max_length=255)
 
@@ -214,13 +262,22 @@ class Version(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
     class Meta:
         db_table = 'documents_versions'
         ordering = ['-version_number']
         indexes = [
-            models.Index(fields=['document', 'version_number']),
+            models.Index(fields=['firm', 'document', 'version_number']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 's3_bucket', 's3_key']),  # TIER 0: Firm scoping
         ]
-        unique_together = [['document', 'version_number']]
+        # TIER 0: Version numbers unique within firm+document, S3 keys unique within firm
+        unique_together = [
+            ['firm', 'document', 'version_number'],
+            ['firm', 's3_bucket', 's3_key']
+        ]
 
     def __str__(self):
         return f"{self.document.name} (v{self.version_number})"

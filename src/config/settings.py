@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     # USP Business Modules (Organized by Domain)
+    'modules.firm',         # TIER 0: Multi-tenant foundation (Workspace/Firm)
     'modules.auth',
     'modules.crm',          # Pre-sale: Leads, Prospects, Proposals
     'modules.clients',      # Post-sale: Client management and portal
@@ -59,6 +60,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # TIER 0: Firm context resolution (must come after AuthenticationMiddleware)
+    'modules.firm.middleware.FirmContextMiddleware',
+    # TIER 0: Portal containment (must come after FirmContextMiddleware)
+    'modules.clients.middleware.PortalContainmentMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

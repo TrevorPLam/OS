@@ -3,11 +3,14 @@ Clients Models - Post-Sale Client Management
 
 This module contains all post-sale client entities.
 Clients are created when a Proposal is accepted in the CRM module.
+
+TIER 0: All clients MUST belong to exactly one Firm for tenant isolation.
 """
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from modules.firm.utils import FirmScopedManager
 
 
 class Client(models.Model):
@@ -16,12 +19,22 @@ class Client(models.Model):
 
     Created when a CRM Proposal is accepted. Represents an active
     business relationship with a company that has signed a contract.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive - No Active Projects'),
         ('terminated', 'Terminated'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='clients',
+        help_text="Firm (workspace) this client belongs to"
+    )
 
     # Origin Tracking (from CRM)
     source_prospect = models.ForeignKey(
@@ -115,17 +128,24 @@ class Client(models.Model):
         help_text="Internal notes (not visible to client)"
     )
 
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
     class Meta:
         db_table = 'clients_client'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['status']),
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
             models.Index(fields=['account_manager']),
             models.Index(fields=['company_name']),
         ]
+        # TIER 0: Company names must be unique within a firm (not globally)
+        unique_together = [['firm', 'company_name']]
 
     def __str__(self):
-        return self.company_name
+        return f"{self.company_name} ({self.firm.name})"
 
 
 class ClientPortalUser(models.Model):
