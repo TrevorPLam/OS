@@ -3,33 +3,49 @@ Tests for Documents module serializers.
 """
 import pytest
 from django.contrib.auth.models import User
-from modules.crm.models import Client
-from modules.documents.models import Folder, Document
-from api.documents.serializers import FolderSerializer, DocumentSerializer
+import pytest
+
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+
+from api.documents.serializers import DocumentSerializer, FolderSerializer
+from modules.clients.models import Client
+from modules.documents.models import Document, Folder
+from modules.firm.models import Firm
 
 
 @pytest.fixture
 def user(db):
     """Create test user."""
+    User = get_user_model()
     return User.objects.create_user(username='testuser', password='testpass123')
 
 
 @pytest.fixture
-def client_obj(db, user):
+def firm(db):
+    """Create test firm."""
+    return Firm.objects.create(name='Docs Firm', slug='docs-firm')
+
+
+@pytest.fixture
+def client_obj(db, user, firm):
     """Create test client."""
     return Client.objects.create(
         company_name='Test Company',
         primary_contact_name='John Doe',
         primary_contact_email='john@test.com',
-        owner=user,
+        firm=firm,
+        client_since=timezone.now().date(),
+        account_manager=user,
         status='active'
     )
 
 
 @pytest.fixture
-def folder(db, client_obj, user):
+def folder(db, client_obj, user, firm):
     """Create test folder."""
     return Folder.objects.create(
+        firm=firm,
         client=client_obj,
         name='Test Folder',
         visibility='internal',
@@ -45,6 +61,7 @@ class TestFolderSerializer:
     def test_valid_folder_data(self, client_obj, user):
         """Test serializer accepts valid folder data."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'name': 'Test Folder',
             'description': 'A test folder',
@@ -57,6 +74,7 @@ class TestFolderSerializer:
     def test_folder_hierarchy(self, client_obj, folder, user):
         """Test nested folder creation."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'parent': folder.id,
             'name': 'Subfolder',
@@ -83,6 +101,7 @@ class TestDocumentSerializer:
     def test_valid_document_data(self, client_obj, folder, user):
         """Test serializer accepts valid document data."""
         data = {
+            'firm': client_obj.firm_id,
             'folder': folder.id,
             'client': client_obj.id,
             'name': 'Test Document.pdf',
@@ -99,6 +118,7 @@ class TestDocumentSerializer:
     def test_document_metadata_fields(self, client_obj, folder, user):
         """Test document includes all metadata fields."""
         document = Document.objects.create(
+            firm=client_obj.firm,
             folder=folder,
             client=client_obj,
             name='Test.pdf',
@@ -123,6 +143,7 @@ class TestDocumentWorkflow:
     def test_document_visibility_change(self, client_obj, folder, user):
         """Test changing document visibility."""
         document = Document.objects.create(
+            firm=client_obj.firm,
             folder=folder,
             client=client_obj,
             name='Secret.pdf',

@@ -30,7 +30,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Add Firm ↔ Documents relationships (Folder, Document, Version) ✅
   - [x] Add Firm ↔ Assets relationships (Asset, MaintenanceLog) ✅
   - [x] Create database migrations ✅
-  - [ ] Verify data integrity constraints work correctly (requires DB setup)
+- [ ] Verify data integrity constraints work correctly ⚠️ BLOCKED (no Postgres service; docker/docker-compose and psql binaries still missing and repeated `apt-get update` attempts return proxy 403s from Ubuntu/LLVM and other repos, so required tooling cannot be installed)
 
 - [x] **0.2** Implement Firm context resolution (subdomain/session/token) ✅ COMPLETE
   - [x] Firm context resolver (subdomain + session + token) ✅
@@ -80,20 +80,20 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ### Tasks
 
-- [ ] **1.1** Fix deterministic backend crashes ⚠️ BLOCKED (no Python environment)
+- [ ] **1.1** Fix deterministic backend crashes ⚠️ BLOCKED (Python deps now installed, but backend cannot run without Postgres; docker/compose and psql still missing because `apt-get update` continues to fail with proxy 403s from Ubuntu/LLVM/mise repos)
   - [ ] Fix CRM import errors ⚠️ Cannot verify without Django running
   - [ ] Fix Spectacular enum paths ⚠️ Cannot verify without Django running
   - [ ] Fix auth AppConfig issues ⚠️ Cannot verify without Django running
-  - [ ] Backend boots without deterministic exceptions ⚠️ Requires environment setup
-  - [ ] Create requirements.txt with all Python dependencies
+  - [ ] Backend boots without deterministic exceptions ⚠️ Blocked pending Postgres; `python manage.py check` now passes with only the missing frontend build/static warning after adding a local .env
+  - [x] Create requirements.txt with all Python dependencies ✅ (captured in repository)
 
 - [x] **1.2** Commit all missing migrations ✅ SUBSTANTIALLY COMPLETE
   - [x] Assets module migrations ✅ (0001_initial.py exists)
   - [x] Documents module migrations ✅ (0001, 0002 exist)
   - [x] Client portal migrations ✅ (in clients module)
   - [x] Chat module migrations ✅ N/A (module does not exist)
-  - [ ] Verify `makemigrations` is clean (no-op) ⚠️ Requires environment
-  - [ ] Verify `migrate` works from fresh DB ⚠️ Requires environment
+- [x] Verify `makemigrations` is clean (no-op) ✅ (no changes detected; connection warning persists without Postgres)
+  - [ ] Verify `migrate` works from fresh DB ⚠️ BLOCKED (fails with OperationalError: connection refused to Postgres on `localhost:5432`; no Postgres service available and docker/compose/psql binaries still missing due to proxy 403s)
 
 - [x] **1.3** Make CI honest ✅ COMPLETE
   - [x] Remove skipped lint checks ✅ (removed --exit-zero from flake8)
@@ -101,9 +101,9 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Add frontend typecheck to CI ✅ (added typecheck step)
   - [x] Ensure lint/build/test failures fail CI ✅ (removed || echo patterns)
   - [x] No `|| true` or skip-on-fail patterns ✅ (removed --continue-on-error)
-  - [ ] Add typecheck script to package.json ⚠️ Pending
+  - [x] Add typecheck script to package.json ✅ (verified `"typecheck": "tsc --noEmit"` exists)
 
-- [ ] **1.4** Add minimum safety test set ⚠️ NOT STARTED (requires environment)
+- [ ] **1.4** Add minimum safety test set ⚠️ BLOCKED (pytest updated to reference post-sale Clients, but `PYTHONPATH=src pytest --maxfail=1` now fails immediately while creating the test database because Postgres is unavailable; docker/compose/psql binaries still missing)
   - [ ] Tenant isolation tests (cross-firm access blocked)
   - [ ] Portal containment tests (default-deny)
   - [ ] Engagement immutability tests (signed engagements)
@@ -356,7 +356,13 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ### Tier 0 Blockers (2025-12-24)
 
-1. **E2EE Implementation (Task 0.5)** — ⚠️ BLOCKED
+1. **Data Integrity Verification (Task 0.1)** — ⚠️ BLOCKED
+   - **What:** Validate database constraints and integrity protections on Postgres
+   - **Blocker:** Dev container has no running Postgres instance; docker/compose and psql binaries are still missing and `apt-get update` now fails with proxy 403 errors, so we cannot install the missing tools to start the bundled DB
+   - **Decision Needed:** Provide Postgres service (docker-compose or local instance) for validation; installing docker in the dev container would unblock (requires apt/proxy access)
+   - **Next Steps:** Restore apt connectivity or preinstall docker/compose/psql, start Postgres, run migrations, and execute integrity verification plan
+
+2. **E2EE Implementation (Task 0.5)** — ⚠️ BLOCKED
    - **What:** Content encryption (E2EE) for customer documents, messages, and notes
    - **Blocker:** Requires AWS KMS or HashiCorp Vault infrastructure setup
    - **Decision Needed:** Choose secrets management solution (AWS KMS recommended)
@@ -364,19 +370,19 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
    - **Documentation:** See `docs/tier0/E2EE_IMPLEMENTATION_PLAN.md`
    - **Recommendation:** Defer to post-Tier 2 as separate epic; access controls are in place
 
-2. **Immutable Audit Records (Task 0.6)** — ⚠️ PENDING
+3. **Immutable Audit Records (Task 0.6)** — ⚠️ PENDING
    - **What:** Audit logging for all break-glass content access
    - **Blocker:** Requires Tier 3 audit event system implementation
    - **Decision Needed:** Audit system architecture and storage
    - **Note:** Break-glass sessions are tracked, but action-level auditing needs Tier 3
 
-3. **Impersonation Mode Indicator (Task 0.6)** — ⚠️ PENDING
+4. **Impersonation Mode Indicator (Task 0.6)** — ⚠️ PENDING
    - **What:** UI/UX indicator when platform operator is in break-glass mode
    - **Blocker:** Requires frontend integration (banner, session indicator)
    - **Decision Needed:** Frontend implementation approach
    - **Note:** Backend enforcement exists, frontend integration pending
 
-4. **Tier 0 Completion Criteria** — 🟡 DISCUSSION NEEDED
+5. **Tier 0 Completion Criteria** — 🟡 DISCUSSION NEEDED
    - **Question:** Can we mark Tier 0 as "complete" with E2EE deferred?
    - **Current State:** Access controls implemented, E2EE documented but not implemented
    - **Proposal:** Mark Tier 0 as "substantially complete" and proceed to Tier 1
@@ -386,21 +392,22 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 ### Tier 1 Blockers (2025-12-24)
 
 1. **Python Environment Not Set Up (Tasks 1.1, 1.4)** — ⚠️ CRITICAL BLOCKER
-   - **What:** Cannot run Django, pytest, or backend checks
-   - **Blocker:** No Python virtual environment, no requirements.txt file
-   - **Impact:** Cannot verify backend crashes, cannot run makemigrations, cannot write/run tests
+   - **What:** Cannot run Django, pytest, or backend checks against the actual database
+   - **Blocker:** Python dependencies are now installed and environment validation (`python manage.py check`) passes once required env vars are exported, but there is still no Postgres service; docker/compose/psql binaries remain missing, and `apt-get update` continues to fail with proxy 403 errors so we cannot install or start Postgres
+   - **Impact:** Cannot run migrations or backend crash verification; tests remain blocked without a database even though `makemigrations --check --dry-run` now shows no pending changes (with the expected connection warning) and Django checks succeed aside from the staticfiles build warning. Latest attempts:
+     - `python manage.py migrate --check` still fails immediately with `OperationalError: connection refused` because Postgres is unavailable.
+     - `PYTHONPATH=src pytest --maxfail=1` now gets past import errors after aligning CRM/finance/projects/document serializers/tests to `modules.clients.Client`, but fails while creating the test database with the same Postgres connection refusal (and coverage gate fails as a result).
    - **Next Steps:**
-     1. Create `requirements.txt` with all Python dependencies
-     2. Set up Python 3.11 virtual environment
-     3. Install dependencies
-     4. Run `python manage.py check --deploy`
-   - **Estimated Effort:** 2-3 hours (dependency research + setup)
+     1. Restore apt connectivity or preinstall docker/compose/psql so the bundled Postgres service can be started
+     2. Launch Postgres (via docker-compose or managed instance) and run migrations against a fresh database
+     3. Run `python manage.py migrate --check` again once Postgres is reachable to confirm a clean migration graph
+     4. Run `python manage.py check --deploy` and start the backend to surface remaining crashers
+     5. Execute the blocked crash fixes/tests once the database is available
+   - **Estimated Effort:** 2-3 hours after network issue resolved (dependency research + setup)
 
-2. **Frontend Typecheck Script Missing (Task 1.3)** — ⚠️ MINOR BLOCKER
-   - **What:** CI now expects `npm run typecheck` but package.json doesn't have it
-   - **Blocker:** Missing script in package.json
-   - **Fix:** Add `"typecheck": "tsc --noEmit"` to `src/frontend/package.json` scripts
-   - **Estimated Effort:** 5 minutes
+2. **Frontend Typecheck Script Missing (Task 1.3)** — ✅ RESOLVED
+   - **What:** `npm run typecheck` script now present (`tsc --noEmit` in src/frontend/package.json`)
+   - **Remaining Action:** None
 
 ---
 
@@ -473,6 +480,8 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
     - Verified CRM and Projects signals are tenant-safe (updates only)
     - Defined standard async job payload schema (firm_id, user_id, client_id)
     - Created comprehensive audit documentation: docs/tier2/ASYNC_JOB_TENANT_CONTEXT.md
+
+- 2025-12-24 23:40 UTC — ChatGPT: Updated CRM serializers/tests (plus finance/projects/documents) to reference `modules.clients.Client` and ran `PYTHONPATH=src pytest --maxfail=1`; test run now fails at database setup with Postgres connection refused (no service, docker/psql binaries still missing).
     - Security impact: HIGH RISK → LOW RISK
   - **COMPLETED Task 2.4 (Firm-scoped querysets verification):**
     - Comprehensive queryset audit across 110+ Python files
@@ -487,3 +496,18 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
     - Security assessment: PRODUCTION-READY - Tier 0 scoping fully enforced
   - Tier 2 now 67% complete (4/6 tasks complete)
   - Environment setup complete: CI can now run all checks
+- 2025-12-24 21:13 UTC — ChatGPT: Reviewed open Tier 0/1 tasks; data integrity verification still blocked without Postgres, confirmed frontend typecheck script present and updated TODO/blockers accordingly.
+- 2025-12-24 22:00 UTC — ChatGPT: Attempted to start Postgres via docker compose for Tier 0.1 integrity verification; docker binaries are absent in dev container, so task remains blocked pending containerized DB availability.
+- 2025-12-24 21:25 UTC — ChatGPT: Attempted to install Python dependencies inside `.venv` for Tier 1 backend checks; pip failed with ProxyError (HTTP 403) when contacting PyPI, so backend verification remains blocked until network access or an internal mirror is available.
+- 2025-12-24 21:36 UTC — ChatGPT: Reconfirmed docker, docker-compose, and psql binaries are absent in the dev container; Tier 0.1 data integrity verification remains blocked without a Postgres service.
+- 2025-12-24 21:38 UTC — ChatGPT: Recreated `.venv` and reran `pip install -r requirements.txt`; ProxyError 403 persists fetching Django from PyPI, so Tier 1 backend crash fixes stay blocked pending network/mirror access.
+  - 2025-12-24 23:05 UTC — ChatGPT: Confirmed docker/docker-compose binaries are still missing; unable to start bundled Postgres DB for Tier 0.1 data integrity validation.
+  - 2025-12-24 23:08 UTC — ChatGPT: Recreated virtualenv and re-ran `pip install -r requirements.txt`; installs still fail with ProxyError 403 reaching PyPI (e.g., Django==4.2.8), so backend crash fixes remain blocked pending proxy/mirror access.
+  - 2025-12-24 23:40 UTC — ChatGPT: Re-verified docker, docker-compose, and psql binaries are absent; recreated `.venv` and dependency install still fails with ProxyError 403 when fetching Django, keeping Tier 0.1 and 1.1 blocked until Postgres and package access are provided.
+  - 2025-12-24 23:55 UTC — ChatGPT: Attempted `apt-get update` to install Postgres tooling; proxy returns HTTP 403 for Ubuntu/LLVM repositories, so docker/compose/psql remain unavailable and Tier 0.1 stays blocked.
+  - 2025-12-24 23:59 UTC — ChatGPT: Reattempted `apt-get update`; proxy still returns HTTP 403 for Ubuntu/LLVM repositories, so docker/compose/psql remain unavailable and Tier 0.1 data integrity validation is still blocked.
+  - 2025-12-24 22:16 UTC — ChatGPT: Re-ran `apt-get update`; proxy still returns HTTP 403 for Ubuntu/LLVM repositories, so Postgres tooling (docker/compose/psql) cannot be installed and Tier 0.1 remains blocked.
+  - 2025-12-24 22:18 UTC — ChatGPT: Exported required Django/Postgres environment variables and reran `python manage.py check`; environment validation now passes with only the missing frontend build/static warning, but backend work remains gated on an actual Postgres instance.
+  - 2025-12-24 22:34 UTC — ChatGPT: Re-ran `apt-get update`; proxy still returns HTTP 403 for archive/security.ubuntu.com, apt.llvm.org, and mise.jdx.dev, so Postgres tooling cannot be installed and Tier 0.1 stays blocked.
+  - 2025-12-24 22:37 UTC — ChatGPT: Ran `python src/manage.py makemigrations --check --dry-run`; no model changes detected, expected connection warning persists without Postgres.
+  - 2025-12-24 22:45 UTC — ChatGPT: Exported Django/Postgres env vars and attempted `python src/manage.py migrate --check`; command fails with OperationalError (connection refused to localhost:5432) because no Postgres service is available in the dev container.

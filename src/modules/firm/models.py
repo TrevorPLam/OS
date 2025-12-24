@@ -576,8 +576,14 @@ class PlatformUserProfile(models.Model):
         db_table = 'firm_platform_user_profile'
         ordering = ['-granted_at']
         indexes = [
-            models.Index(fields=['platform_role', 'is_platform_active']),
-            models.Index(fields=['can_activate_break_glass']),
+            models.Index(
+                fields=['platform_role', 'is_platform_active'],
+                name='firm_plat_role_active_idx',
+            ),
+            models.Index(
+                fields=['can_activate_break_glass'],
+                name='firm_plat_bg_perm_idx',
+            ),
         ]
 
     def __str__(self):

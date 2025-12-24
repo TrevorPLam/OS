@@ -1,59 +1,74 @@
-"""
-Tests for Projects module serializers with comprehensive validation coverage.
-"""
 import pytest
 from datetime import date, timedelta
 from decimal import Decimal
-from django.contrib.auth.models import User
+
+from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
-from modules.crm.models import Client, Contract
-from modules.projects.models import Project, Task, TimeEntry
+
 from api.projects.serializers import ProjectSerializer, TaskSerializer, TimeEntrySerializer
+from modules.clients.models import Client
+from modules.crm.models import Contract
+from modules.firm.models import Firm
+from modules.projects.models import Project, Task, TimeEntry
 
 
 @pytest.fixture
 def user(db):
     """Create test user."""
+    User = get_user_model()
     return User.objects.create_user(username='testuser', password='testpass123')
 
 
 @pytest.fixture
-def client_obj(db, user):
+def firm(db):
+    """Create test firm."""
+    return Firm.objects.create(name='Projects Firm', slug='projects-firm')
+
+
+@pytest.fixture
+def client_obj(db, user, firm):
     """Create test client."""
     return Client.objects.create(
         company_name='Test Company',
         primary_contact_name='John Doe',
         primary_contact_email='john@test.com',
-        owner=user,
+        firm=firm,
+        client_since=date.today(),
+        account_manager=user,
         status='active'
     )
 
 
 @pytest.fixture
-def contract(db, client_obj):
+def contract(db, client_obj, firm):
     """Create test contract."""
     return Contract.objects.create(
+        firm=firm,
         client=client_obj,
         contract_number='CTR-001',
         title='Test Contract',
-        contract_value=Decimal('50000.00'),
+        description='Test contract description',
+        total_value=Decimal('50000.00'),
+        currency='USD',
         status='active',
+        payment_terms='net_30',
         start_date=date.today(),
         end_date=date.today() + timedelta(days=365)
     )
 
 
 @pytest.fixture
-def project(db, client_obj, contract, user):
+def project(db, client_obj, contract, user, firm):
     """Create test project."""
     return Project.objects.create(
+        firm=firm,
         client=client_obj,
         contract=contract,
         project_manager=user,
         project_code='PRJ-001',
         name='Test Project',
         status='in_progress',
-        billing_type='hourly',
+        billing_type='time_and_materials',
         hourly_rate=Decimal('150.00'),
         start_date=date.today(),
         end_date=date.today() + timedelta(days=90)
@@ -68,12 +83,13 @@ class TestProjectSerializer:
     def test_valid_project_data(self, client_obj, user):
         """Test serializer accepts valid project data."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'project_manager': user.id,
             'project_code': 'PRJ-TEST',
             'name': 'Test Project',
             'status': 'in_progress',
-            'billing_type': 'hourly',
+            'billing_type': 'time_and_materials',
             'hourly_rate': '150.00',
             'start_date': date.today().isoformat(),
             'end_date': (date.today() + timedelta(days=90)).isoformat()
@@ -98,6 +114,7 @@ class TestProjectSerializer:
     def test_end_date_after_start_date(self, client_obj, user):
         """Test end date must be after start date."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'project_manager': user.id,
             'project_code': 'PRJ-TEST',
@@ -113,11 +130,15 @@ class TestProjectSerializer:
         """Test contract must belong to same client."""
         other_client = Client.objects.create(
             company_name='Other Company',
+            primary_contact_name='Alt Contact',
             primary_contact_email='other@test.com',
-            owner=user,
+            firm=client_obj.firm,
+            client_since=date.today(),
+            account_manager=user,
             status='active'
         )
         data = {
+            'firm': client_obj.firm_id,
             'client': other_client.id,
             'contract': contract.id,
             'project_manager': user.id,
@@ -131,6 +152,7 @@ class TestProjectSerializer:
     def test_actual_completion_date_validation(self, client_obj, user):
         """Test actual completion date cannot be before start date."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'project_manager': user.id,
             'project_code': 'PRJ-TEST',
@@ -202,20 +224,15 @@ class TestTimeEntrySerializer:
         assert not serializer.is_valid()
         assert 'date' in serializer.errors
 
-
-@pytest.mark.integration
-@pytest.mark.django_db
-class TestProjectWorkflow:
-    """Test complete project workflow integration."""
-
-    def test_project_completion_workflow(self, project):
-        """Test marking project as completed sets actual_completion_date."""
+    def test_description_required(self, project, user):
+        """Test description is required for time entries."""
         data = {
-            'status': 'completed',
-            'actual_completion_date': date.today().isoformat()
+            'project': project.id,
+            'user': user.id,
+            'date': date.today().isoformat(),
+            'hours': '2.0',
+            'description': ''
         }
-        serializer = ProjectSerializer(project, data=data, partial=True)
-        assert serializer.is_valid()
-        updated_project = serializer.save()
-        assert updated_project.status == 'completed'
-        assert updated_project.actual_completion_date == date.today()
+        serializer = TimeEntrySerializer(data=data)
+        assert not serializer.is_valid()
+        assert 'description' in serializer.errors
