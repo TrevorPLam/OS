@@ -1,6 +1,6 @@
 # ConsultantPro - Unified Prioritized TODO List
 
-**Last Updated:** December 23, 2025
+**Last Updated:** December 24, 2025
 
 ---
 
@@ -20,17 +20,17 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ### Tasks
 
-- [x] **0.1** Introduce Firm / Workspace tenancy (IN PROGRESS)
-  - [x] Create Firm (Workspace) model
-  - [x] Establish Firm ↔ User relationship (FirmMembership)
-  - [x] Establish Firm ↔ Client relationship
-  - [ ] Add Firm ↔ CRM relationships (Lead, Prospect, Campaign, Proposal, Contract)
-  - [ ] Add Firm ↔ Projects relationships (Project, Task, TimeEntry)
-  - [ ] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry)
-  - [ ] Add Firm ↔ Documents relationships (Folder, Document)
-  - [ ] Add Firm ↔ Assets relationships (Asset)
-  - [ ] Create and apply database migrations
-  - [ ] Add firm propagation through request lifecycle
+- [x] **0.1** Introduce Firm / Workspace tenancy ✅ COMPLETE
+  - [x] Create Firm (Workspace) model ✅
+  - [x] Establish Firm ↔ User relationship (FirmMembership) ✅
+  - [x] Establish Firm ↔ Client relationship ✅
+  - [x] Add Firm ↔ CRM relationships (Lead, Prospect, Campaign, Proposal, Contract) ✅
+  - [x] Add Firm ↔ Projects relationships (Project, Task, TimeEntry) ✅
+  - [x] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry) ✅
+  - [x] Add Firm ↔ Documents relationships (Folder, Document, Version) ✅
+  - [x] Add Firm ↔ Assets relationships (Asset, MaintenanceLog) ✅
+  - [ ] Create and apply database migrations (IN PROGRESS)
+  - [ ] Verify data integrity constraints work correctly
 
 - [ ] **0.2** Implement Firm context resolution (subdomain/session/token)
   - [ ] Firm context resolver (subdomain + session + token)
@@ -319,7 +319,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 | Tier | Status | Completion % |
 |------|--------|-------------|
-| Tier 0 | 🔴 Not Started | 0% |
+| Tier 0 | 🟡 In Progress | 17% (1/6 tasks complete) |
 | Tier 1 | 🔴 Not Started | 0% |
 | Tier 2 | 🔴 Not Started | 0% |
 | Tier 3 | 🔴 Not Started | 0% |
