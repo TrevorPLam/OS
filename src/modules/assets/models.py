@@ -3,6 +3,8 @@ Assets Models: Asset, MaintenanceLog.
 
 Implements asset tracking for consulting firms.
 Tracks company-owned equipment, software licenses, and resources.
+
+TIER 0: All assets belong to exactly one Firm for tenant isolation.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -16,6 +18,8 @@ class Asset(models.Model):
 
     Represents company-owned equipment, software, or resources.
     Supports depreciation tracking and assignment to users.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
     STATUS_CHOICES = [
         ('active', 'Active'),
@@ -33,11 +37,18 @@ class Asset(models.Model):
         ('other', 'Other'),
     ]
 
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='assets',
+        help_text="Firm (workspace) this asset belongs to"
+    )
+
     # Asset Details
     asset_tag = models.CharField(
         max_length=50,
-        unique=True,
-        help_text="Unique identifier (e.g., barcode, serial number)"
+        help_text="Unique identifier per firm (e.g., barcode, serial number)"
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -105,10 +116,13 @@ class Asset(models.Model):
         db_table = 'assets_assets'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['asset_tag']),
-            models.Index(fields=['category', 'status']),
-            models.Index(fields=['assigned_to']),
+            models.Index(fields=['firm', 'asset_tag']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'category', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'assigned_to']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
         ]
+        # TIER 0: Asset tags must be unique within a firm (not globally)
+        unique_together = [['firm', 'asset_tag']]
 
     def __str__(self):
         return f"{self.asset_tag} - {self.name}"
@@ -120,6 +134,9 @@ class MaintenanceLog(models.Model):
 
     Tracks maintenance, repairs, and servicing of assets.
     Helps with cost tracking and maintenance scheduling.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    Firm is inherited through Asset, but included directly for efficient queries.
     """
     MAINTENANCE_TYPE_CHOICES = [
         ('repair', 'Repair'),
@@ -135,6 +152,14 @@ class MaintenanceLog(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
+
+    # TIER 0: Firm tenancy (REQUIRED for efficient queries)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='maintenance_logs',
+        help_text="Firm (workspace) this maintenance log belongs to"
+    )
 
     # Relationships
     asset = models.ForeignKey(
@@ -194,8 +219,9 @@ class MaintenanceLog(models.Model):
         db_table = 'assets_maintenance_logs'
         ordering = ['-scheduled_date', '-created_at']
         indexes = [
-            models.Index(fields=['asset', 'status']),
-            models.Index(fields=['scheduled_date']),
+            models.Index(fields=['firm', 'asset', 'status']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'scheduled_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
         ]
 
     def __str__(self):
