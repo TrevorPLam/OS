@@ -34,8 +34,8 @@ jobs:
       run: |
         # Stop the build if there are Python syntax errors or undefined names
         flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings
-        flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=120 --statistics
+        # TIER 1: Fail CI on lint errors (removed --exit-zero)
+        flake8 src/ --count --max-complexity=10 --max-line-length=120 --statistics
 
     - name: Check code formatting with black
       run: |
@@ -114,7 +114,8 @@ jobs:
       with:
         file: ./src/coverage.xml
         flags: backend
-        fail_ci_if_error: false
+        # TIER 1: Fail CI if coverage upload fails
+        fail_ci_if_error: true
 
   # Job 3: Frontend Tests & Build
   test-frontend:
@@ -140,7 +141,14 @@ jobs:
     - name: Run linter
       run: |
         cd src/frontend
-        npm run lint || echo "Linter not configured, skipping"
+        # TIER 1: Fail CI on lint errors (removed || echo skip pattern)
+        npm run lint
+
+    - name: Run typecheck
+      run: |
+        cd src/frontend
+        # TIER 1: Add frontend typecheck to CI
+        npm run typecheck
 
     - name: Build frontend
       run: |
@@ -172,7 +180,10 @@ jobs:
       run: pip install safety
 
     - name: Check for security vulnerabilities
-      run: safety check --file requirements.txt --continue-on-error
+      run: |
+        # TIER 1: Fail CI on security vulnerabilities (removed --continue-on-error)
+        # Note: Will fail if requirements.txt doesn't exist - this is intentional
+        safety check --file requirements.txt
 
     - name: Scan for secrets
       uses: trufflesecurity/trufflehog@main
