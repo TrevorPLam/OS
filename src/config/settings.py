@@ -60,6 +60,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # TIER 0: Firm context resolution (must come after AuthenticationMiddleware)
+    'modules.firm.middleware.FirmContextMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
