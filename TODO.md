@@ -156,10 +156,10 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Define portal endpoint allowlist ✅ (8 portal ViewSets, middleware enforcement)
   - [x] Portal users never hit firm admin endpoints ✅ (middleware + ViewSet permissions)
 
-- [ ] **2.6** Cross-client access within Organizations
-  - [ ] Enforce org-based access checks
-  - [ ] Ensure shared-org views are clearly scoped
-  - [ ] Prevent default cross-client visibility
+- [x] **2.6** Cross-client access within Organizations ✅ COMPLETE
+  - [x] Enforce org-based access checks ✅ (HasOrganizationAccess, RequiresSameOrganization)
+  - [x] Ensure shared-org views are clearly scoped ✅ (permission classes + queryset filtering)
+  - [x] Prevent default cross-client visibility ✅ (organization FK is nullable, visibility toggle)
 
 ### Completion Criteria
 
@@ -326,7 +326,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 |------|--------|-------------|
 | Tier 0 | 🟢 Substantially Complete | 83% (5/6 tasks complete, 1 partial with blockers) |
 | Tier 1 | 🟡 In Progress | 50% (2/4 tasks complete, 2 blocked by environment) |
-| Tier 2 | 🟡 In Progress | 83% (5/6 tasks complete) |
+| Tier 2 | 🟢 **COMPLETE** ✅ | **100% (6/6 tasks complete)** |
 | Tier 3 | 🔴 Not Started | 0% |
 | Tier 4 | 🔴 Not Started | 0% |
 | Tier 5 | 🔴 Not Started | 0% |
@@ -529,3 +529,18 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
     - Queryset scoping layer: Data isolation (TIER 0)
   - Tier 2 now 83% complete (5/6 tasks complete)
   - Security impact: Portal containment enforced with defense-in-depth (PRODUCTION-READY)
+- 2025-12-24 [SESSION 4] — Claude: **COMPLETED Task 2.6 (Cross-client access within Organizations):**
+  - Created Organization model with firm FK and enable_cross_client_visibility flag
+  - Added Client.organization FK (nullable, optional for cross-client collaboration)
+  - Created database migration: 0004_organization_client_organization.py
+  - Implemented organization-scoped permission classes:
+    - HasOrganizationAccess: Allow cross-client access within same organization
+    - RequiresSameOrganization: Stricter org matching with fallback to client-only
+  - Created OrganizationViewSet with firm-only access (DenyPortalAccess)
+  - Updated ClientSerializer to include organization field
+  - Registered /api/clients/organizations/ endpoint
+  - Created comprehensive documentation: docs/tier2/ORGANIZATION_CROSS_CLIENT_ACCESS.md
+  - Default behavior: NO cross-client visibility (safe by default, opt-in collaboration)
+  - Organizations are optional grouping, NOT a security boundary (Firm remains top-level tenant)
+  - **Tier 2 now 100% complete (6/6 tasks complete) - TIER 2 COMPLETE!** 🎉
+  - Security impact: Opt-in cross-client collaboration with default-deny (PRODUCTION-READY)

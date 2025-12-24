@@ -1,8 +1,11 @@
 """
 Serializers for Clients module.
+
+TIER 2.6: Added Organization serializer for cross-client collaboration.
 """
 from rest_framework import serializers
 from modules.clients.models import (
+    Organization,
     Client,
     ClientPortalUser,
     ClientNote,
@@ -11,6 +14,43 @@ from modules.clients.models import (
     ClientChatThread,
     ClientMessage,
 )
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for Organization model.
+
+    TIER 2.6: Organizations enable cross-client collaboration within a firm.
+    """
+
+    client_count = serializers.SerializerMethodField()
+    created_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Organization
+        fields = [
+            'id',
+            'firm',
+            'name',
+            'description',
+            'enable_cross_client_visibility',
+            'client_count',
+            'created_at',
+            'updated_at',
+            'created_by',
+            'created_by_name',
+        ]
+        read_only_fields = ['firm', 'created_at', 'updated_at', 'created_by']
+
+    def get_client_count(self, obj):
+        """Return number of clients in this organization."""
+        return obj.clients.count()
+
+    def get_created_by_name(self, obj):
+        """Return name of user who created this organization."""
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.username
+        return None
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -23,6 +63,7 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = [
             'id',
+            'organization',  # TIER 2.6: Optional organization grouping
             'source_prospect',
             'source_proposal',
             'company_name',

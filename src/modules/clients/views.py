@@ -5,6 +5,7 @@ TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 Client portal views filter by portal user's client (which is firm-scoped).
 TIER 2: Portal ViewSets use IsPortalUserOrFirmUser for portal containment.
 TIER 2.5: Firm admin ViewSets use DenyPortalAccess to block portal users.
+TIER 2.6: Organizations enable cross-client collaboration within firms.
 """
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
@@ -13,6 +14,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.clients.permissions import IsPortalUserOrFirmUser, DenyPortalAccess
 from modules.clients.models import (
+    Organization,
     Client,
     ClientPortalUser,
     ClientNote,
@@ -22,6 +24,7 @@ from modules.clients.models import (
     ClientMessage,
 )
 from modules.clients.serializers import (
+    OrganizationSerializer,
     ClientSerializer,
     ClientPortalUserSerializer,
     ClientNoteSerializer,
@@ -35,6 +38,37 @@ from modules.clients.serializers import (
     ClientEngagementDetailSerializer,
 )
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+
+
+class OrganizationViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Organization management.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2.6: Organizations enable cross-client collaboration within a firm.
+    TIER 2.5: Portal users explicitly denied (firm admin only).
+    """
+    model = Organization
+    serializer_class = OrganizationSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Firm users only
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['enable_cross_client_visibility']
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'created_at']
+    ordering = ['name']
+
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('firm', 'created_by')
+
+    def perform_create(self, serializer):
+        """Set firm and created_by when creating organization."""
+        firm = get_request_firm(self.request)
+        serializer.save(
+            firm=firm,
+            created_by=self.request.user
+        )
 
 
 class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
