@@ -10,6 +10,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from modules.firm.utils import FirmScopedManager
 
 
 class Client(models.Model):
@@ -126,6 +127,10 @@ class Client(models.Model):
         blank=True,
         help_text="Internal notes (not visible to client)"
     )
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'clients_client'

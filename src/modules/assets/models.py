@@ -10,6 +10,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+from modules.firm.utils import FirmScopedManager
 
 
 class Asset(models.Model):
@@ -111,6 +112,10 @@ class Asset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'assets_assets'
@@ -214,6 +219,10 @@ class MaintenanceLog(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'assets_maintenance_logs'

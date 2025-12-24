@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.crm.models import Contract
+from modules.firm.utils import FirmScopedManager
 
 
 class Project(models.Model):
@@ -108,6 +109,10 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(blank=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'projects_projects'

@@ -9,6 +9,7 @@ TIER 0: All documents belong to exactly one Firm for tenant isolation.
 from django.db import models
 from django.contrib.auth.models import User
 from modules.projects.models import Project
+from modules.firm.utils import FirmScopedManager
 
 
 class Folder(models.Model):
@@ -79,6 +80,10 @@ class Folder(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'documents_folders'
@@ -185,6 +190,10 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
     class Meta:
         db_table = 'documents_documents'
         ordering = ['-created_at']
@@ -252,6 +261,10 @@ class Version(models.Model):
         related_name='uploaded_versions'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'documents_versions'

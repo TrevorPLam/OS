@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.projects.models import Project
+from modules.firm.utils import FirmScopedManager
 
 
 class Invoice(models.Model):
@@ -130,6 +131,10 @@ class Invoice(models.Model):
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'finance_invoices'
@@ -274,6 +279,10 @@ class Bill(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
     class Meta:
         db_table = 'finance_bills'
         ordering = ['-bill_date', '-created_at']
@@ -392,6 +401,10 @@ class LedgerEntry(models.Model):
         related_name='ledger_entries'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
         db_table = 'finance_ledger_entries'
