@@ -7,6 +7,7 @@ Implements basic accounting for management consulting:
 - LedgerEntry: Double-entry bookkeeping for P&L
 
 TIER 0: All financial records MUST belong to exactly one Firm for tenant isolation.
+TIER 0.5: Line items, notes, descriptions protected from platform operators.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -25,6 +26,7 @@ class Invoice(models.Model):
 
     TIER 0: Belongs to a Firm through Client relationship.
     Direct firm FK included for efficient queries.
+    TIER 0.5: line_items and notes fields protected from platform operators.
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -34,6 +36,10 @@ class Invoice(models.Model):
         ('overdue', 'Overdue'),
         ('cancelled', 'Cancelled'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    # Line items contain descriptions that may reveal customer content
+    CONTENT_FIELDS = ['line_items', 'notes']
 
     # TIER 0: Firm tenancy (REQUIRED for efficient queries)
     firm = models.ForeignKey(
@@ -172,6 +178,7 @@ class Bill(models.Model):
     Used for expense tracking and cash flow management.
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
+    TIER 0.5: description and line_items fields protected from platform operators.
     """
     STATUS_CHOICES = [
         ('received', 'Received'),
@@ -181,6 +188,9 @@ class Bill(models.Model):
         ('overdue', 'Overdue'),
         ('disputed', 'Disputed'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description', 'line_items']
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
@@ -318,11 +328,15 @@ class LedgerEntry(models.Model):
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
     Firm is inherited through Invoice/Bill references, but included directly for efficiency.
+    TIER 0.5: description field protected from platform operators.
     """
     ENTRY_TYPE_CHOICES = [
         ('debit', 'Debit'),
         ('credit', 'Credit'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description']
 
     ACCOUNT_CHOICES = [
         # Assets

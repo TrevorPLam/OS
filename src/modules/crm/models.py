@@ -7,6 +7,7 @@ Post-sale Client management moved to modules.clients.
 Workflow: Lead → Prospect → Proposal → (Accepted) → Client (in modules.clients)
 
 TIER 0: All CRM entities MUST belong to exactly one Firm for tenant isolation.
+TIER 0.5: Content fields (notes, descriptions) protected from platform operators.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -23,6 +24,7 @@ class Lead(models.Model):
     When qualified, converts to Prospect for sales pipeline.
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
+    TIER 0.5: notes field protected from platform operators.
     """
     STATUS_CHOICES = [
         ('new', 'New Lead'),
@@ -41,6 +43,9 @@ class Lead(models.Model):
         ('partnership', 'Partnership'),
         ('other', 'Other'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['notes']
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
@@ -132,6 +137,7 @@ class Prospect(models.Model):
     Can have multiple proposals. Converts to Client when won.
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
+    TIER 0.5: notes field protected from platform operators.
     """
     STAGE_CHOICES = [
         ('discovery', 'Discovery'),
@@ -141,6 +147,9 @@ class Prospect(models.Model):
         ('won', 'Won - Converting to Client'),
         ('lost', 'Lost'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['notes']
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
@@ -257,6 +266,7 @@ class Campaign(models.Model):
     - Client annual reviews
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
+    TIER 0.5: description field protected from platform operators.
     """
     TYPE_CHOICES = [
         ('email', 'Email Campaign'),
@@ -277,6 +287,9 @@ class Campaign(models.Model):
         ('paused', 'Paused'),
         ('cancelled', 'Cancelled'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description']
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
@@ -400,6 +413,7 @@ class Proposal(models.Model):
     When accepted, becomes an Engagement Letter (Contract).
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
+    TIER 0.5: description field protected from platform operators.
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -415,6 +429,9 @@ class Proposal(models.Model):
         ('update_client', 'Update Client - Expansion/Upsell'),
         ('renewal_client', 'Renewal Client - Contract Renewal'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description']
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
@@ -547,6 +564,7 @@ class Contract(models.Model):
     Created from an accepted Proposal. Links CRM (pre-sale) to Clients (post-sale).
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
+    TIER 0.5: description and notes fields protected from platform operators.
     """
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -564,6 +582,9 @@ class Contract(models.Model):
         ('due_on_receipt', 'Due on Receipt'),
         ('milestone', 'Milestone-based'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description', 'notes']
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(

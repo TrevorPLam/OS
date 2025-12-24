@@ -21,11 +21,18 @@ class Folder(models.Model):
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
     Firm is inherited through Client, but included directly for efficient queries.
+    
+    TIER 0.5: Privacy Enforcement
+    - CONTENT_FIELDS: Protected from platform operators (requires break-glass)
+    - Metadata fields (name, timestamps, counts) are accessible
     """
     VISIBILITY_CHOICES = [
         ('internal', 'Internal Only'),
         ('client', 'Visible to Client'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description']
 
     # TIER 0: Firm tenancy (REQUIRED for efficient queries)
     firm = models.ForeignKey(
@@ -110,11 +117,20 @@ class Document(models.Model):
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
     Firm is inherited through Folder/Client, but included directly for efficient queries.
+    
+    TIER 0.5: Privacy Enforcement
+    - CONTENT_FIELDS: Protected from platform operators (requires break-glass)
+    - The actual file content (S3) is always protected
+    - Metadata like file_type, file_size, timestamps are accessible
     """
     VISIBILITY_CHOICES = [
         ('internal', 'Internal Only'),
         ('client', 'Visible to Client'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    # Note: s3_key and s3_bucket are protected to prevent direct file access
+    CONTENT_FIELDS = ['description', 's3_key', 's3_bucket']
 
     # TIER 0: Firm tenancy (REQUIRED for efficient queries)
     firm = models.ForeignKey(
@@ -219,7 +235,14 @@ class Version(models.Model):
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
     Firm is inherited through Document, but included directly for efficient queries.
+    
+    TIER 0.5: Privacy Enforcement
+    - CONTENT_FIELDS: Protected from platform operators (requires break-glass)
+    - S3 keys are protected to prevent direct file access
     """
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['change_summary', 's3_key', 's3_bucket']
     # TIER 0: Firm tenancy (REQUIRED for efficient queries)
     firm = models.ForeignKey(
         'firm.Firm',

@@ -497,3 +497,84 @@ class BreakGlassSession(models.Model):
         self.mark_expired()
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class UserProfile(models.Model):
+    """
+    Extended user profile for platform-level roles and preferences.
+    
+    TIER 0.5: Platform Privacy Enforcement
+    Separates platform operators from firm users and enforces metadata-only access.
+    
+    Platform Roles:
+    - None (default): Regular firm user, no platform access
+    - Platform Operator: Metadata-only access for operations/support
+    - Break-Glass Operator: Rare, audited content access (requires active BreakGlassSession)
+    """
+    
+    PLATFORM_ROLE_NONE = None
+    PLATFORM_ROLE_OPERATOR = 'operator'
+    PLATFORM_ROLE_BREAK_GLASS = 'break_glass'
+    
+    PLATFORM_ROLE_CHOICES = [
+        (PLATFORM_ROLE_NONE, 'None (Firm User)'),
+        (PLATFORM_ROLE_OPERATOR, 'Platform Operator'),
+        (PLATFORM_ROLE_BREAK_GLASS, 'Break-Glass Operator'),
+    ]
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='platform_profile',
+        primary_key=True
+    )
+    
+    # Platform Role
+    platform_role = models.CharField(
+        max_length=20,
+        choices=PLATFORM_ROLE_CHOICES,
+        null=True,
+        blank=True,
+        default=None,
+        help_text=(
+            "Platform-level role. None = regular firm user. "
+            "Operator = metadata-only platform access. "
+            "Break-Glass = can activate break-glass sessions for content access."
+        )
+    )
+    
+    # Preferences
+    timezone = models.CharField(
+        max_length=50,
+        default='UTC',
+        help_text="User's preferred timezone"
+    )
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'firm_user_profile'
+        indexes = [
+            models.Index(fields=['platform_role']),
+        ]
+    
+    def __str__(self):
+        role_display = dict(self.PLATFORM_ROLE_CHOICES).get(self.platform_role, 'Firm User')
+        return f"{self.user.username} - {role_display}"
+    
+    @property
+    def is_platform_operator(self):
+        """Check if user is a platform operator (metadata-only)."""
+        return self.platform_role == self.PLATFORM_ROLE_OPERATOR
+    
+    @property
+    def is_break_glass_operator(self):
+        """Check if user is a break-glass operator (can activate break-glass)."""
+        return self.platform_role == self.PLATFORM_ROLE_BREAK_GLASS
+    
+    @property
+    def is_platform_staff(self):
+        """Check if user has any platform role."""
+        return self.platform_role in [self.PLATFORM_ROLE_OPERATOR, self.PLATFORM_ROLE_BREAK_GLASS]

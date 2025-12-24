@@ -6,6 +6,7 @@ All relationships are enforced at the database level with foreign keys.
 
 TIER 0: Projects belong to a Firm (through Client).
 Tasks and TimeEntry inherit firm context through Project.
+TIER 0.5: description and notes fields protected from platform operators.
 """
 from django.db import models
 from django.contrib.auth.models import User
@@ -24,6 +25,7 @@ class Project(models.Model):
 
     TIER 0: Belongs to a Firm through Client relationship.
     Note: Firm is accessed via project.client.firm for tenant isolation.
+    TIER 0.5: description and notes fields protected from platform operators.
     """
     STATUS_CHOICES = [
         ('planning', 'Planning'),
@@ -39,6 +41,9 @@ class Project(models.Model):
         ('retainer', 'Retainer'),
         ('non_billable', 'Non-Billable'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description', 'notes']
 
     # TIER 0: Firm tenancy (REQUIRED for efficient queries)
     firm = models.ForeignKey(
@@ -139,6 +144,7 @@ class Task(models.Model):
     Supports basic Kanban workflow (To Do -> In Progress -> Done).
 
     TIER 0: Belongs to a Firm through Project (task.project.firm).
+    TIER 0.5: description field protected from platform operators.
     """
     STATUS_CHOICES = [
         ('todo', 'To Do'),
@@ -154,6 +160,9 @@ class Task(models.Model):
         ('high', 'High'),
         ('urgent', 'Urgent'),
     ]
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description']
 
     # Relationships
     project = models.ForeignKey(
@@ -218,7 +227,12 @@ class TimeEntry(models.Model):
     Critical for Time & Materials billing and productivity analysis.
 
     TIER 0: Belongs to a Firm through Project (time_entry.project.firm).
+    TIER 0.5: description field protected from platform operators.
     """
+    
+    # TIER 0.5: Content fields protected from platform operators
+    CONTENT_FIELDS = ['description']
+    
     # Relationships
     project = models.ForeignKey(
         Project,
