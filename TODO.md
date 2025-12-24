@@ -29,8 +29,8 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry) ✅
   - [x] Add Firm ↔ Documents relationships (Folder, Document, Version) ✅
   - [x] Add Firm ↔ Assets relationships (Asset, MaintenanceLog) ✅
-  - [ ] Create and apply database migrations (IN PROGRESS)
-  - [ ] Verify data integrity constraints work correctly
+  - [x] Create database migrations ✅
+  - [ ] Verify data integrity constraints work correctly (requires DB setup)
 
 - [ ] **0.2** Implement Firm context resolution (subdomain/session/token)
   - [ ] Firm context resolver (subdomain + session + token)
