@@ -1,10 +1,34 @@
 # ConsultantPro - Multi-Firm SaaS Platform
 
-**Privacy-First Architecture with Tiered Governance**
+**Privacy-first architecture with tiered governance for multi-tenant consulting firms.**
 
 ---
 
-## 🚨 ARCHITECTURAL GOVERNANCE
+## Overview
+
+ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The platform emphasizes strict tenant isolation, privacy controls, and a tiered delivery model that prevents skipping foundational safety work.
+
+**Core goals:**
+- Firm-level tenant isolation and privacy by default
+- Audited break-glass access with strict oversight
+- Clear governance and delivery tiers
+- Transparent, honest CI and schema management
+
+---
+
+## Documentation Map
+
+Start here for a cohesive view of the documentation set:
+
+- **Project docs index:** [`docs/README.md`](docs/README.md)
+- **Authoritative rules (must-follow):** [`docs/claude/NOTES_TO_CLAUDE.md`](docs/claude/NOTES_TO_CLAUDE.md)
+- **Tier backlog:** [`TODO.md`](TODO.md)
+- **API usage guide:** [`API_USAGE.md`](API_USAGE.md)
+- **Deployment guide:** [`DEPLOYMENT.md`](DEPLOYMENT.md)
+
+---
+
+## 🚨 Architectural Governance
 
 This project follows a **strict tiered implementation model** to ensure security, privacy, and multi-tenant safety.
 
@@ -29,27 +53,59 @@ This project follows a **strict tiered implementation model** to ensure security
 
 ---
 
-## 📋 Documentation
+## 🚀 Quickstart (Local Development)
 
-### Governance Documents
+### Prerequisites
 
-- **[NOTES_TO_CLAUDE.md](docs/claude/NOTES_TO_CLAUDE.md)** - Authoritative platform rules (THIS IS LAW)
-- **[TODO.md](TODO.md)** - Tiered task list (Tier 0-5)
-- **[to_claude](docs/claude/to_claude)** - Original architectural assessment
+- Python 3.11+
+- PostgreSQL 15+
 
-### Tier Execution Prompts
+### Setup
 
-- **[Tier 0: Foundational Safety](docs/claude/prompts/tier0.md)**
-- **[Tier 1: Schema & CI Truth](docs/claude/prompts/tier1.md)**
-- **[Tier 2: Authorization](docs/claude/prompts/tier2.md)**
-- **[Tier 3: Data Integrity](docs/claude/prompts/tier3.md)**
-- **[Tier 4: Billing](docs/claude/prompts/tier4.md)**
-- **[Tier 5: Scale & Exit](docs/claude/prompts/tier5.md)**
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-### Tier Details
+### Configure Environment
 
-- **[TIER0_FOUNDATIONAL_SAFETY.md](docs/claude/tiers/TIER0_FOUNDATIONAL_SAFETY.md)**
-- **[TIER2_AUTHORIZATION_OWNERSHIP.md](docs/claude/tiers/TIER2_AUTHORIZATION_OWNERSHIP.md)**
+Set the required environment variables (see `DEPLOYMENT.md` for production-ready values):
+
+```bash
+export DJANGO_SECRET_KEY="dev-secret-key"
+export DJANGO_DEBUG=True
+export DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+export POSTGRES_DB=consultantpro
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD=postgres
+export POSTGRES_HOST=localhost
+export POSTGRES_PORT=5432
+export CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+### Run the App
+
+```bash
+cd src
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
+```
+
+### API Docs
+
+- Swagger UI: http://localhost:8000/api/docs/
+- ReDoc: http://localhost:8000/api/redoc/
+
+---
+
+## 🐳 Quickstart (Docker)
+
+```bash
+docker compose up --build
+```
+
+The Django server will be available at http://localhost:8000.
 
 ---
 
@@ -80,16 +136,23 @@ This project follows a **strict tiered implementation model** to ensure security
 
 ---
 
-## 🚀 Getting Started
+## ✅ Testing
 
-**First, read the documentation:**
+```bash
+pytest
+```
 
-1. Read `docs/claude/NOTES_TO_CLAUDE.md` for authoritative rules
-2. Review `TODO.md` to understand the tiered task structure
-3. Confirm which tier you're working on
-4. Follow the execution prompt for your tier
+---
 
-**Development must proceed in tier order. No exceptions.**
+## 🤝 Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for workflow, code quality expectations, and documentation practices.
+
+---
+
+## 🔐 Security
+
+If you discover a security issue, follow [`SECURITY.md`](SECURITY.md) for disclosure guidance.
 
 ---
 
