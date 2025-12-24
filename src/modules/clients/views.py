@@ -3,12 +3,15 @@ API Views for Clients module.
 
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 Client portal views filter by portal user's client (which is firm-scoped).
+TIER 2: Portal ViewSets use IsPortalUserOrFirmUser for portal containment.
+TIER 2.5: Firm admin ViewSets use DenyPortalAccess to block portal users.
 """
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from modules.clients.permissions import IsPortalUserOrFirmUser, DenyPortalAccess
 from modules.clients.models import (
     Client,
     ClientPortalUser,
@@ -41,10 +44,11 @@ class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     Provides CRUD operations for clients that have been converted from prospects.
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2.5: Portal users explicitly denied (firm admin only).
     """
     model = Client
     serializer_class = ClientSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'account_manager', 'portal_enabled']
     search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
@@ -98,9 +102,10 @@ class ClientPortalUserViewSet(viewsets.ModelViewSet):
     Manages client-side users with portal access.
 
     TIER 0: Firm-scoped through client__firm relationship.
+    TIER 2.5: Portal users explicitly denied (firm admin only).
     """
     serializer_class = ClientPortalUserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['client', 'role']
     search_fields = ['user__username', 'user__email', 'client__company_name']
@@ -122,9 +127,10 @@ class ClientNoteViewSet(viewsets.ModelViewSet):
     Notes are NOT visible to clients - for internal team use only.
 
     TIER 0: Firm-scoped through client__firm relationship.
+    TIER 2.5: Portal users explicitly denied (internal firm use only).
     """
     serializer_class = ClientNoteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['client', 'author', 'is_pinned']
     search_fields = ['note', 'client__company_name']
@@ -152,9 +158,10 @@ class ClientEngagementViewSet(viewsets.ModelViewSet):
     Tracks all contracts/engagements with version history.
 
     TIER 0: Firm-scoped through client__firm relationship.
+    TIER 2.5: Portal users explicitly denied (firm admin only).
     """
     serializer_class = ClientEngagementSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['client', 'status']
     ordering_fields = ['start_date', 'version', 'contracted_value']
@@ -189,9 +196,10 @@ class ClientProjectViewSet(viewsets.ReadOnlyModelViewSet):
     Clients can view their projects and tasks, but cannot modify them.
 
     TIER 0: Firm-scoped for firm users, client-scoped for portal users.
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientProjectSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['name', 'start_date', 'end_date']
@@ -254,9 +262,10 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
     Comments are visible to both firm team and client.
 
     TIER 0: Firm-scoped for firm users, client-scoped for portal users.
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientCommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['task', 'client', 'is_read_by_firm']
     ordering_fields = ['created_at']
@@ -359,9 +368,11 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     Shows invoices for the authenticated client portal user.
     Clients can view their invoices but cannot modify them.
     Includes payment link generation for Stripe.
+
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = None  # Will be imported below
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['invoice_number', 'issue_date', 'due_date', 'total_amount']
@@ -511,9 +522,10 @@ class ClientChatThreadViewSet(viewsets.ModelViewSet):
     Threads auto-rotate daily for organization.
 
     TIER 0: Firm-scoped for firm users, client-scoped for portal users.
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientChatThreadSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['client', 'is_active', 'date']
     ordering_fields = ['date', 'last_message_at']
@@ -618,9 +630,10 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
     Messages are organized by daily threads.
 
     TIER 0: Firm-scoped for firm users, client-scoped for portal users.
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientMessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['thread', 'is_from_client', 'message_type', 'is_read']
     ordering_fields = ['created_at']
@@ -707,9 +720,11 @@ class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
 
     Shows proposals sent to the client.
     Clients can view proposal details but cannot modify them.
+
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientProposalSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'proposal_type']
     ordering_fields = ['created_at', 'valid_until']
@@ -779,9 +794,11 @@ class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
 
     Shows active and historical contracts for the client.
     Includes contract document download links.
+
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientContractSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['start_date', 'end_date', 'created_at']
@@ -847,9 +864,11 @@ class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
 
     Shows engagement version history with renewal tracking.
     Displays the full engagement timeline for the client.
+
+    TIER 2: Portal-accessible endpoint (portal users + firm users allowed).
     """
     serializer_class = ClientEngagementDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsPortalUserOrFirmUser]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['version', 'start_date']

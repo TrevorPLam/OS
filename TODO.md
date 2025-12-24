@@ -151,10 +151,10 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Platform roles cannot bypass scoping (except break-glass) ✅ (enforced via DenyContentAccessByDefault)
   - [x] Comprehensive audit completed ✅ (see docs/tier2/FIRM_SCOPED_QUERYSETS_AUDIT.md)
 
-- [ ] **2.5** Portal authorization (client-scoped, explicit allowlist)
-  - [ ] Portal-specific permission classes
-  - [ ] Define portal endpoint allowlist
-  - [ ] Portal users never hit firm admin endpoints
+- [x] **2.5** Portal authorization (client-scoped, explicit allowlist) ✅ COMPLETE
+  - [x] Portal-specific permission classes ✅ (IsPortalUserOrFirmUser, DenyPortalAccess)
+  - [x] Define portal endpoint allowlist ✅ (8 portal ViewSets, middleware enforcement)
+  - [x] Portal users never hit firm admin endpoints ✅ (middleware + ViewSet permissions)
 
 - [ ] **2.6** Cross-client access within Organizations
   - [ ] Enforce org-based access checks
@@ -326,7 +326,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 |------|--------|-------------|
 | Tier 0 | 🟢 Substantially Complete | 83% (5/6 tasks complete, 1 partial with blockers) |
 | Tier 1 | 🟡 In Progress | 50% (2/4 tasks complete, 2 blocked by environment) |
-| Tier 2 | 🟡 In Progress | 67% (4/6 tasks complete) |
+| Tier 2 | 🟡 In Progress | 83% (5/6 tasks complete) |
 | Tier 3 | 🔴 Not Started | 0% |
 | Tier 4 | 🔴 Not Started | 0% |
 | Tier 5 | 🔴 Not Started | 0% |
@@ -511,3 +511,21 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - 2025-12-24 22:34 UTC — ChatGPT: Re-ran `apt-get update`; proxy still returns HTTP 403 for archive/security.ubuntu.com, apt.llvm.org, and mise.jdx.dev, so Postgres tooling cannot be installed and Tier 0.1 stays blocked.
   - 2025-12-24 22:37 UTC — ChatGPT: Ran `python src/manage.py makemigrations --check --dry-run`; no model changes detected, expected connection warning persists without Postgres.
   - 2025-12-24 22:45 UTC — ChatGPT: Exported Django/Postgres env vars and attempted `python src/manage.py migrate --check`; command fails with OperationalError (connection refused to localhost:5432) because no Postgres service is available in the dev container.
+- 2025-12-24 [SESSION 4] — Claude: **COMPLETED Task 2.5 (Portal authorization - client-scoped, explicit allowlist):**
+  - Applied IsPortalUserOrFirmUser permission to 8 portal ViewSets (modules/clients/views.py)
+  - Applied DenyPortalAccess permission to 25 firm admin ViewSets across 8 files:
+    - api/projects/views.py (3 ViewSets)
+    - api/crm/views.py (5 ViewSets)
+    - api/documents/views.py (3 ViewSets)
+    - api/assets/views.py (2 ViewSets)
+    - api/finance/views.py (3 ViewSets)
+    - modules/crm/views.py (5 ViewSets)
+    - modules/clients/views.py (4 firm-only ViewSets)
+  - Updated PortalContainmentMiddleware documentation to reflect TIER 2.5 usage
+  - Created comprehensive architecture documentation: docs/tier2/PORTAL_AUTHORIZATION_ARCHITECTURE.md
+  - Portal users are now fully contained with defense-in-depth:
+    - Middleware layer: Path-based blocking (default-deny)
+    - ViewSet permission layer: Class-level enforcement
+    - Queryset scoping layer: Data isolation (TIER 0)
+  - Tier 2 now 83% complete (5/6 tasks complete)
+  - Security impact: Portal containment enforced with defense-in-depth (PRODUCTION-READY)

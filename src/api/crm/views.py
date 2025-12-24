@@ -2,11 +2,13 @@
 DRF ViewSets for CRM module.
 
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
-TIER 2: All ViewSets have explicit permission classes. for automatic tenant isolation.
+TIER 2: All ViewSets have explicit permission classes.
+TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 """
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
+from modules.clients.permissions import DenyPortalAccess
 from modules.crm.models import Lead, Prospect, Campaign, Proposal, Contract
 from modules.firm.utils import FirmScopedMixin
 from .serializers import LeadSerializer, ProspectSerializer, CampaignSerializer, ProposalSerializer, ContractSerializer
@@ -21,7 +23,7 @@ class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Lead
     serializer_class = LeadSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'source', 'assigned_to', 'campaign']
     search_fields = ['company_name', 'contact_name', 'contact_email']
@@ -38,7 +40,7 @@ class ProspectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Prospect
     serializer_class = ProspectSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['pipeline_stage', 'assigned_to', 'close_date_estimate']
     search_fields = ['company_name', 'contact_name', 'contact_email']
@@ -55,7 +57,7 @@ class CampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Campaign
     serializer_class = CampaignSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'type']
     search_fields = ['name', 'description']
@@ -72,7 +74,7 @@ class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Proposal
     serializer_class = ProposalSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['prospect', 'client', 'status', 'proposal_type']
     search_fields = ['proposal_number', 'title']
@@ -94,7 +96,7 @@ class ContractViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Contract
     serializer_class = ContractSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'status', 'payment_terms']
     search_fields = ['contract_number', 'title']

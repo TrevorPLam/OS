@@ -1,12 +1,13 @@
 """
-Portal Containment Middleware (TIER 0: Task 0.4).
+Portal Containment Middleware (TIER 0: Task 0.4, TIER 2.5: Task 2.5).
 
 This middleware implements default-deny portal containment:
 - Portal users can ONLY access portal endpoints (allowlist)
 - Portal users receive 403 on all other endpoints
 - Firm users can access all endpoints
 
-TIER 0 REQUIREMENT: Portal containment must be enforced at middleware level.
+TIER 0: Portal containment enforcement (middleware-level defense).
+TIER 2.5: Portal authorization enforcement (works with ViewSet permissions).
 """
 from django.http import JsonResponse
 from django.utils.deprecation import MiddlewareMixin
@@ -15,12 +16,18 @@ from modules.clients.models import ClientPortalUser
 
 class PortalContainmentMiddleware(MiddlewareMixin):
     """
-    TIER 0: Portal Containment Middleware (Default-Deny).
+    Portal Containment Middleware (TIER 0 + TIER 2.5).
 
     Enforces that portal users can ONLY access portal-specific endpoints.
     All other endpoints return 403 Forbidden.
 
-    This is a defense-in-depth measure on top of permission classes.
+    TIER 0: Implements portal containment (default-deny).
+    TIER 2.5: Works in conjunction with ViewSet-level permissions:
+        - Portal ViewSets: IsPortalUserOrFirmUser (both types allowed)
+        - Firm Admin ViewSets: DenyPortalAccess (portal users blocked)
+
+    This provides defense-in-depth - middleware blocks requests before
+    they reach ViewSets, and ViewSets enforce permissions at class level.
     """
 
     # Portal-allowed URL prefixes (allowlist)

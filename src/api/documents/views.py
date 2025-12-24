@@ -2,10 +2,12 @@
 DRF ViewSets for Documents module with S3 upload functionality.
 
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
-TIER 2: All ViewSets have explicit permission classes. for automatic tenant isolation.
+TIER 2: All ViewSets have explicit permission classes.
+TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 """
 from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticated
+from modules.clients.permissions import DenyPortalAccess
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -24,7 +26,7 @@ class FolderViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Folder
     serializer_class = FolderSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'project', 'parent', 'visibility']
     search_fields = ['name']
@@ -45,7 +47,7 @@ class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Document
     serializer_class = DocumentSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'folder', 'project', 'visibility', 'file_type']
     search_fields = ['name']
@@ -169,7 +171,7 @@ class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Version
     serializer_class = VersionSerializer
-    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['document']
     search_fields = ['change_summary']
