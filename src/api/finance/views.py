@@ -2,8 +2,10 @@
 DRF ViewSets for Finance module.
 
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
+TIER 2: All ViewSets have explicit permission classes. for automatic tenant isolation.
 """
 from rest_framework import viewsets, filters
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.finance.models import Invoice, Bill, LedgerEntry
 from modules.firm.utils import FirmScopedMixin
@@ -18,6 +20,7 @@ class InvoiceViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Invoice
     serializer_class = InvoiceSerializer
+    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'project', 'status']
     search_fields = ['invoice_number']
@@ -38,6 +41,7 @@ class BillViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = Bill
     serializer_class = BillSerializer
+    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'expense_category', 'project']
     search_fields = ['reference_number', 'bill_number', 'vendor_name']
@@ -58,6 +62,7 @@ class LedgerEntryViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     model = LedgerEntry
     serializer_class = LedgerEntrySerializer
+    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['entry_type', 'account', 'transaction_group_id']
     search_fields = ['description', 'transaction_group_id']

@@ -2,8 +2,10 @@
 DRF ViewSets for Projects module.
 
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
+TIER 2: All ViewSets have explicit permission classes.
 """
 from rest_framework import viewsets, filters
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.projects.models import Project, Task, TimeEntry
 from modules.firm.utils import FirmScopedMixin, get_request_firm
@@ -15,9 +17,11 @@ class ProjectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     ViewSet for Project model.
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2: Requires authentication.
     """
     model = Project
     serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'status', 'billing_type', 'project_manager']
     search_fields = ['project_code', 'name']
@@ -35,9 +39,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     ViewSet for Task model.
 
     TIER 0: Scoped to request.firm via project relationship.
+    TIER 2: Requires authentication.
     Note: Task doesn't have direct firm FK, so we filter via project__firm.
     """
     serializer_class = TaskSerializer
+    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['project', 'status', 'priority', 'assigned_to']
     search_fields = ['title', 'description']
@@ -59,9 +65,11 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     ViewSet for TimeEntry model.
 
     TIER 0: Scoped to request.firm via project relationship.
+    TIER 2: Requires authentication.
     Note: TimeEntry doesn't have direct firm FK, so we filter via project__firm.
     """
     serializer_class = TimeEntrySerializer
+    permission_classes = [IsAuthenticated]  # TIER 2: Explicit permissions
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['project', 'user', 'task', 'is_billable', 'invoiced', 'date']
     search_fields = ['description']
