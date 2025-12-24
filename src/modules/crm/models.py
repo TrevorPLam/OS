@@ -8,8 +8,8 @@ Workflow: Lead → Prospect → Proposal → (Accepted) → Client (in modules.c
 
 TIER 0: All CRM entities MUST belong to exactly one Firm for tenant isolation.
 """
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.firm.utils import FirmScopedManager
@@ -89,7 +89,7 @@ class Lead(models.Model):
 
     # Assignment
     assigned_to = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='assigned_leads',
@@ -209,7 +209,7 @@ class Prospect(models.Model):
 
     # Assignment
     assigned_to = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='assigned_prospects',
@@ -361,7 +361,7 @@ class Campaign(models.Model):
 
     # Ownership
     owner = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='owned_campaigns'
@@ -450,7 +450,7 @@ class Proposal(models.Model):
         help_text="For update_client or renewal_client proposals"
     )
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_proposals'
@@ -589,7 +589,7 @@ class Contract(models.Model):
         help_text="The proposal that led to this contract (if applicable)"
     )
     signed_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='signed_contracts',

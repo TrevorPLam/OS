@@ -6,8 +6,8 @@ Supports hierarchical folders and client portal access.
 
 TIER 0: All documents belong to exactly one Firm for tenant isolation.
 """
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 from modules.projects.models import Project
 from modules.firm.utils import FirmScopedManager
 
@@ -73,7 +73,7 @@ class Folder(models.Model):
 
     # Audit Fields
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_folders'
@@ -182,7 +182,7 @@ class Document(models.Model):
 
     # Audit Fields
     uploaded_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='uploaded_documents'
@@ -255,7 +255,7 @@ class Version(models.Model):
 
     # Audit Fields
     uploaded_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='uploaded_versions'

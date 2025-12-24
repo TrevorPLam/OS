@@ -11,7 +11,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.text import slugify
 
@@ -122,7 +121,7 @@ class Firm(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_firms',
@@ -194,7 +193,7 @@ class FirmMembership(models.Model):
         related_name='memberships'
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='firm_memberships'
     )
@@ -234,7 +233,7 @@ class FirmMembership(models.Model):
 
     # Audit
     invited_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='invited_firm_members',

@@ -7,8 +7,8 @@ All relationships are enforced at the database level with foreign keys.
 TIER 0: Projects belong to a Firm (through Client).
 Tasks and TimeEntry inherit firm context through Project.
 """
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.crm.models import Contract
@@ -64,7 +64,7 @@ class Project(models.Model):
         help_text="The contract governing this project (if applicable)"
     )
     project_manager = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='managed_projects',
@@ -162,7 +162,7 @@ class Task(models.Model):
         related_name='tasks'
     )
     assigned_to = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -234,7 +234,7 @@ class TimeEntry(models.Model):
         help_text="Optional: link to specific task"
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='time_entries'
     )

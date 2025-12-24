@@ -6,8 +6,8 @@ Tracks company-owned equipment, software licenses, and resources.
 
 TIER 0: All assets belong to exactly one Firm for tenant isolation.
 """
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.firm.utils import FirmScopedManager
@@ -58,7 +58,7 @@ class Asset(models.Model):
 
     # Ownership & Assignment
     assigned_to = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -212,7 +212,7 @@ class MaintenanceLog(models.Model):
 
     # Audit Fields
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_maintenance_logs'

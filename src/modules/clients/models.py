@@ -6,8 +6,8 @@ Clients are created when a Proposal is accepted in the CRM module.
 
 TIER 0: All clients MUST belong to exactly one Firm for tenant isolation.
 """
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.firm.utils import FirmScopedManager
@@ -83,14 +83,14 @@ class Client(models.Model):
 
     # Assigned Team
     account_manager = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='managed_clients',
         help_text="Primary account manager for this client"
     )
     assigned_team = models.ManyToManyField(
-        User,
+        settings.AUTH_USER_MODEL,
         related_name='assigned_clients',
         blank=True,
         help_text="Team members assigned to this client"
@@ -166,7 +166,7 @@ class ClientPortalUser(models.Model):
         related_name='portal_users'
     )
     user = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='client_portal_access'
     )
@@ -184,7 +184,7 @@ class ClientPortalUser(models.Model):
 
     # Audit
     invited_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='invited_portal_users',
@@ -215,7 +215,7 @@ class ClientNote(models.Model):
         related_name='internal_notes'
     )
     author = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='authored_client_notes'
@@ -342,7 +342,7 @@ class ClientComment(models.Model):
         help_text="Task being commented on"
     )
     author = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='client_task_comments',
         help_text="Portal user who wrote this comment"
@@ -363,7 +363,7 @@ class ClientComment(models.Model):
         help_text="Whether firm team has read this client comment"
     )
     read_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -430,7 +430,7 @@ class ClientChatThread(models.Model):
         help_text="Timestamp of last message"
     )
     last_message_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -476,7 +476,7 @@ class ClientMessage(models.Model):
         help_text="Thread this message belongs to"
     )
     sender = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='sent_client_messages',
         help_text="User who sent this message"
@@ -523,7 +523,7 @@ class ClientMessage(models.Model):
         help_text="When message was read"
     )
     read_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
