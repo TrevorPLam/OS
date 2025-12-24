@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "spec/contracts/PM_BILLING_BILLABLE_EVENT.schema.json",
+  "title": "PMBillableEvent",
+  "type": "object",
+  "description": "PM to Billing BillableEvent contract. Each event is an approved trigger for a single invoice line.",
+  "additionalProperties": false,
+  "required": [
+    "billable_event_id",
+    "client_id",
+    "event_type",
+    "event_payload",
+    "approved_by",
+    "approved_at"
+  ],
+  "properties": {
+    "billable_event_id": {
+      "type": "string",
+      "description": "Immutable identifier for the billable event."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Client identifier associated with the event."
+    },
+    "engagement_id": {
+      "type": ["string", "null"],
+      "description": "Engagement identifier when applicable."
+    },
+    "project_id": {
+      "type": ["string", "null"],
+      "description": "Project identifier when that is the anchor."
+    },
+    "work_item_ref": {
+      "type": ["string", "null"],
+      "description": "Reference to a PM task/work item."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["time", "milestone", "usage"],
+      "description": "Billable event type."
+    },
+    "event_payload": {
+      "type": "object",
+      "description": "Typed payload. Must include a 'type' field matching event_type and a 'data' object.",
+      "required": ["type", "data"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["time", "milestone", "usage"]
+        },
+        "data": {
+          "type": "object",
+          "description": "Event-specific payload data (shape defined by PM)."
+        }
+      }
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Actor identifier who approved the event for billing."
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Approval timestamp."
+    },
+    "overrides": {
+      "type": "object",
+      "description": "Override metadata when a standard rule is bypassed.",
+      "additionalProperties": false,
+      "required": ["allowed", "justification", "approver"],
+      "properties": {
+        "allowed": {
+          "type": "boolean",
+          "description": "True when override is explicitly permitted."
+        },
+        "justification": {
+          "type": "string",
+          "description": "Reason for the override."
+        },
+        "approver": {
+          "type": "string",
+          "description": "Actor identifier who approved the override."
+        }
+      }
+    }
+  }
+}
