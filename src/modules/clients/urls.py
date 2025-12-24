@@ -1,9 +1,12 @@
 """
 URL routes for Clients module API.
+
+TIER 2.6: Added Organization ViewSet for cross-client collaboration.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from modules.clients.views import (
+    OrganizationViewSet,
     ClientViewSet,
     ClientPortalUserViewSet,
     ClientNoteViewSet,
@@ -19,6 +22,7 @@ from modules.clients.views import (
 )
 
 router = DefaultRouter()
+router.register(r'organizations', OrganizationViewSet, basename='organization')  # TIER 2.6
 router.register(r'clients', ClientViewSet, basename='client')
 router.register(r'portal-users', ClientPortalUserViewSet, basename='portaluser')
 router.register(r'notes', ClientNoteViewSet, basename='clientnote')

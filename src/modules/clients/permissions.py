@@ -1,5 +1,5 @@
 """
-Client Portal Permission Classes (TIER 0: Task 0.4).
+Client Portal Permission Classes (TIER 0: Task 0.4, TIER 2.6: Task 2.6).
 
 These permission classes implement portal containment (default-deny):
 - Portal users can ONLY access portal-specific endpoints
@@ -7,9 +7,10 @@ These permission classes implement portal containment (default-deny):
 - Firm users can access all endpoints
 
 TIER 0 REQUIREMENT: Portal users must be fully contained.
+TIER 2.6 REQUIREMENT: Cross-client access allowed ONLY within same organization.
 """
 from rest_framework.permissions import BasePermission
-from modules.clients.models import ClientPortalUser
+from modules.clients.models import ClientPortalUser, Organization
 
 
 class IsPortalUser(BasePermission):
@@ -155,3 +156,167 @@ def is_portal_allowed_viewset(view):
     """
     view_class_name = view.__class__.__name__
     return view_class_name in PORTAL_ALLOWED_VIEWSETS
+
+
+# ============================================================================
+# TIER 2.6: Organization-Based Cross-Client Access Permissions
+# ============================================================================
+
+
+class HasOrganizationAccess(BasePermission):
+    """
+    Permission class: User has access to organization-scoped data.
+
+    TIER 2.6: Allow cross-client access within same organization.
+
+    Rules:
+    - Firm users: Always allowed (can see all organization data)
+    - Portal users: Only allowed if their client belongs to the organization
+                    AND organization.enable_cross_client_visibility is True
+
+    This permission should be used on organization-shared endpoints
+    where portal users from different clients within the same org
+    can see each other's data.
+
+    Usage:
+        class OrganizationSharedViewSet(viewsets.ModelViewSet):
+            permission_classes = [HasOrganizationAccess]
+            # ViewSet must implement get_organization() method
+    """
+
+    message = "You do not have access to this organization's data."
+
+    def has_permission(self, request, view):
+        """Check if user has access to organization data."""
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Firm users always have access to organization data
+        try:
+            ClientPortalUser.objects.get(user=request.user)
+            # User is a portal user - needs organization check
+            # This will be handled at object level in has_object_permission
+            return True
+        except ClientPortalUser.DoesNotExist:
+            # User is a firm user - full access
+            return True
+
+    def has_object_permission(self, request, view, obj):
+        """Check if user can access this specific organization object."""
+        # Get the organization from the object
+        organization = self._get_organization_from_object(obj)
+        if not organization:
+            # No organization - deny access
+            return False
+
+        # Check if organization allows cross-client visibility
+        if not organization.enable_cross_client_visibility:
+            # Organization has disabled cross-client access
+            return False
+
+        # Firm users can access all organization data
+        try:
+            portal_user = ClientPortalUser.objects.get(user=request.user)
+            # Portal user - check if their client is in this organization
+            if portal_user.client.organization_id != organization.id:
+                return False
+            return True
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - full access
+            return True
+
+    def _get_organization_from_object(self, obj):
+        """Extract organization from object."""
+        # If object is an Organization
+        if isinstance(obj, Organization):
+            return obj
+
+        # If object has organization FK
+        if hasattr(obj, 'organization'):
+            return obj.organization
+
+        # If object is a Client with organization
+        if hasattr(obj, 'client') and hasattr(obj.client, 'organization'):
+            return obj.client.organization
+
+        return None
+
+
+class RequiresSameOrganization(BasePermission):
+    """
+    Permission class: Objects must belong to same organization as user's client.
+
+    TIER 2.6: Prevent cross-organization data access.
+
+    Rules:
+    - Firm users: Always allowed (can see all data in their firm)
+    - Portal users: Can only see data from clients in their organization
+                    (if organization exists and cross-client visibility is enabled)
+
+    This is more restrictive than HasOrganizationAccess - it REQUIRES
+    the object to have an organization that matches the portal user's client.
+
+    Usage:
+        class ClientCommentViewSet(viewsets.ModelViewSet):
+            permission_classes = [RequiresSameOrganization]
+    """
+
+    message = "You can only access data from your own organization."
+
+    def has_object_permission(self, request, view, obj):
+        """Check if object belongs to user's organization."""
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        # Firm users can access all objects in their firm
+        try:
+            portal_user = ClientPortalUser.objects.get(user=request.user)
+
+            # Get portal user's organization
+            if not portal_user.client.organization:
+                # Portal user has no organization - can only see own client data
+                # Check if object belongs to their client
+                if hasattr(obj, 'client'):
+                    return obj.client_id == portal_user.client_id
+                return False
+
+            # Get object's organization
+            obj_organization = self._get_organization_from_object(obj)
+            if not obj_organization:
+                # Object has no organization - deny cross-client access
+                if hasattr(obj, 'client'):
+                    return obj.client_id == portal_user.client_id
+                return False
+
+            # Check if organizations match and cross-client visibility is enabled
+            if obj_organization.id != portal_user.client.organization_id:
+                return False
+
+            if not obj_organization.enable_cross_client_visibility:
+                # Cross-client visibility disabled - can only see own client
+                if hasattr(obj, 'client'):
+                    return obj.client_id == portal_user.client_id
+                return False
+
+            # Same organization + visibility enabled = allow
+            return True
+
+        except ClientPortalUser.DoesNotExist:
+            # Firm user - full access
+            return True
+
+    def _get_organization_from_object(self, obj):
+        """Extract organization from object."""
+        # If object is an Organization
+        if isinstance(obj, Organization):
+            return obj
+
+        # If object has organization FK
+        if hasattr(obj, 'organization'):
+            return obj.organization
+
+        # If object is related to a Client with organization
+        if hasattr(obj, 'client') and hasattr(obj.client, 'organization'):
+            return obj.client.organization
+
+        return None
