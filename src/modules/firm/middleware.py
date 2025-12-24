@@ -97,6 +97,9 @@ class FirmContextMiddleware(MiddlewareMixin):
         # Attach firm context to request
         request.firm = firm
         request.firm_context_source = source
+        
+        # TIER 0.6: Check for active break-glass session and add impersonation indicator
+        self._check_break_glass_session(request)
 
         logger.debug(
             f"Firm context resolved: {firm.slug} "
@@ -104,6 +107,49 @@ class FirmContextMiddleware(MiddlewareMixin):
         )
 
         return None
+    
+    def _check_break_glass_session(self, request: HttpRequest):
+        """
+        Check if user has an active break-glass session (TIER 0.6).
+        
+        Adds break-glass context to request for impersonation awareness.
+        """
+        from modules.firm.models import BreakGlassSession, UserProfile
+        
+        # Default: no break-glass session
+        request.break_glass_session = None
+        request.is_impersonating = False
+        
+        if not request.user or not request.user.is_authenticated:
+            return
+        
+        # Check if user is a break-glass operator
+        if not hasattr(request.user, 'platform_profile'):
+            return
+        
+        profile = request.user.platform_profile
+        if not profile or not profile.is_break_glass_operator:
+            return
+        
+        # Check for active break-glass session for this firm
+        if not request.firm:
+            return
+        
+        # Find active session
+        active_sessions = BreakGlassSession.objects.active().for_firm(request.firm).filter(
+            operator=request.user
+        )
+        
+        if active_sessions.exists():
+            session = active_sessions.first()
+            request.break_glass_session = session
+            request.is_impersonating = True
+            
+            logger.info(
+                f"Break-glass session active: {session.id} for {request.firm.slug} "
+                f"by {request.user.username}"
+            )
+
 
     def _is_public_path(self, path: str) -> bool:
         """Check if path is a public endpoint."""

@@ -578,3 +578,211 @@ class UserProfile(models.Model):
     def is_platform_staff(self):
         """Check if user has any platform role."""
         return self.platform_role in [self.PLATFORM_ROLE_OPERATOR, self.PLATFORM_ROLE_BREAK_GLASS]
+
+
+class AuditEvent(models.Model):
+    """
+    Immutable audit event log (TIER 0.6 - Break-Glass Audit).
+    
+    Records all sensitive actions for compliance and security review.
+    Events are immutable once created - no updates or deletions allowed.
+    
+    Categories:
+    - AUTH: Authentication and authorization events
+    - PERMISSIONS: Permission changes and grants
+    - BREAK_GLASS: Break-glass activation, expiry, revocation, actions
+    - BILLING_METADATA: Billing-related metadata access
+    - PURGE: Content purges and deletions
+    - CONFIG: Configuration changes affecting access or billing
+    """
+    
+    # Event Categories
+    CATEGORY_AUTH = 'AUTH'
+    CATEGORY_PERMISSIONS = 'PERMISSIONS'
+    CATEGORY_BREAK_GLASS = 'BREAK_GLASS'
+    CATEGORY_BILLING_METADATA = 'BILLING_METADATA'
+    CATEGORY_PURGE = 'PURGE'
+    CATEGORY_CONFIG = 'CONFIG'
+    
+    CATEGORY_CHOICES = [
+        (CATEGORY_AUTH, 'Authentication & Authorization'),
+        (CATEGORY_PERMISSIONS, 'Permission Changes'),
+        (CATEGORY_BREAK_GLASS, 'Break-Glass Access'),
+        (CATEGORY_BILLING_METADATA, 'Billing Metadata Access'),
+        (CATEGORY_PURGE, 'Content Purge'),
+        (CATEGORY_CONFIG, 'Configuration Change'),
+    ]
+    
+    # Break-Glass Action Types
+    ACTION_BG_ACTIVATED = 'break_glass_activated'
+    ACTION_BG_EXPIRED = 'break_glass_expired'
+    ACTION_BG_REVOKED = 'break_glass_revoked'
+    ACTION_BG_CONTENT_ACCESS = 'break_glass_content_access'
+    ACTION_BG_REVIEWED = 'break_glass_reviewed'
+    
+    # TIER 0.6: Firm tenancy (nullable for platform-wide events)
+    firm = models.ForeignKey(
+        Firm,
+        on_delete=models.CASCADE,
+        related_name='audit_events',
+        null=True,
+        blank=True,
+        help_text="Firm context (null for platform-wide events)"
+    )
+    
+    # Event Details
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        db_index=True,
+        help_text="Event category for filtering and review"
+    )
+    action = models.CharField(
+        max_length=100,
+        db_index=True,
+        help_text="Specific action taken (e.g., 'break_glass_activated')"
+    )
+    
+    # Actor
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='audit_events',
+        help_text="User who performed the action"
+    )
+    actor_username = models.CharField(
+        max_length=150,
+        help_text="Actor username (denormalized for immutability)"
+    )
+    actor_email = models.EmailField(
+        blank=True,
+        help_text="Actor email (denormalized for immutability)"
+    )
+    
+    # Target
+    target_model = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Target model (e.g., 'Document', 'BreakGlassSession')"
+    )
+    target_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Target object ID"
+    )
+    target_description = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Human-readable target description"
+    )
+    
+    # Context
+    reason = models.TextField(
+        blank=True,
+        help_text="Reason for action (required for break-glass)"
+    )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Additional context (IP, user agent, etc.) - never contains content"
+    )
+    
+    # Timestamp
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text="When the event occurred"
+    )
+    
+    class Meta:
+        db_table = 'firm_audit_event'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['firm', 'category', '-timestamp']),
+            models.Index(fields=['actor', '-timestamp']),
+            models.Index(fields=['category', 'action', '-timestamp']),
+        ]
+        # Permissions to prevent modifications
+        permissions = [
+            ('view_audit_events', 'Can view audit events'),
+        ]
+    
+    def __str__(self):
+        firm_str = f"{self.firm.name}" if self.firm else "Platform"
+        return f"[{firm_str}] {self.category}: {self.action} by {self.actor_username}"
+    
+    def save(self, *args, **kwargs):
+        """
+        Override save to ensure immutability.
+        
+        Only allow creation, not updates.
+        """
+        if self.pk is not None:
+            raise ValueError("Audit events are immutable and cannot be updated.")
+        
+        # Denormalize actor info for immutability
+        if self.actor and not self.actor_username:
+            self.actor_username = self.actor.username
+            self.actor_email = self.actor.email or ''
+        
+        super().save(*args, **kwargs)
+    
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of audit events."""
+        raise ValueError("Audit events are immutable and cannot be deleted.")
+    
+    @classmethod
+    def log_break_glass_activation(cls, session: BreakGlassSession):
+        """Log break-glass activation event."""
+        return cls.objects.create(
+            firm=session.firm,
+            category=cls.CATEGORY_BREAK_GLASS,
+            action=cls.ACTION_BG_ACTIVATED,
+            actor=session.operator,
+            target_model='BreakGlassSession',
+            target_id=str(session.id),
+            target_description=f"Break-glass for {session.firm.name}",
+            reason=session.reason,
+            metadata={
+                'expires_at': session.expires_at.isoformat(),
+                'impersonated_user': session.impersonated_user.username if session.impersonated_user else None,
+            }
+        )
+    
+    @classmethod
+    def log_break_glass_content_access(cls, session: BreakGlassSession, 
+                                       target_model: str, target_id: str,
+                                       description: str):
+        """Log content access during break-glass session."""
+        return cls.objects.create(
+            firm=session.firm,
+            category=cls.CATEGORY_BREAK_GLASS,
+            action=cls.ACTION_BG_CONTENT_ACCESS,
+            actor=session.operator,
+            target_model=target_model,
+            target_id=target_id,
+            target_description=description,
+            reason=f"Break-glass session #{session.id}",
+            metadata={
+                'break_glass_session_id': session.id,
+            }
+        )
+    
+    @classmethod
+    def log_break_glass_revocation(cls, session: BreakGlassSession, revoked_by):
+        """Log break-glass revocation event."""
+        return cls.objects.create(
+            firm=session.firm,
+            category=cls.CATEGORY_BREAK_GLASS,
+            action=cls.ACTION_BG_REVOKED,
+            actor=revoked_by,
+            target_model='BreakGlassSession',
+            target_id=str(session.id),
+            target_description=f"Break-glass #{session.id} revoked",
+            reason=session.revoked_reason,
+            metadata={
+                'original_operator': session.operator.username,
+            }
+        )
+

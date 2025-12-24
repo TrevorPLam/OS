@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Firm, FirmMembership, BreakGlassSession, UserProfile
+from .models import Firm, FirmMembership, BreakGlassSession, UserProfile, AuditEvent
 
 
 @admin.register(Firm)
@@ -114,4 +114,48 @@ class UserProfileAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """Only superusers can manually create profiles."""
         return request.user.is_superuser
+
+
+@admin.register(AuditEvent)
+class AuditEventAdmin(admin.ModelAdmin):
+    """
+    Admin interface for AuditEvent (read-only).
+    
+    TIER 0.6: Audit events are immutable.
+    No adding, editing, or deleting allowed - only viewing.
+    """
+    list_display = ('timestamp', 'firm', 'category', 'action', 'actor_username', 'target_description')
+    list_filter = ('category', 'action', 'timestamp')
+    search_fields = ('actor_username', 'actor_email', 'target_description', 'reason')
+    readonly_fields = (
+        'firm', 'category', 'action', 'actor', 'actor_username', 'actor_email',
+        'target_model', 'target_id', 'target_description', 'reason', 'metadata', 'timestamp'
+    )
+    fieldsets = (
+        ('Event', {
+            'fields': ('timestamp', 'category', 'action')
+        }),
+        ('Actor', {
+            'fields': ('actor', 'actor_username', 'actor_email')
+        }),
+        ('Target', {
+            'fields': ('target_model', 'target_id', 'target_description')
+        }),
+        ('Context', {
+            'fields': ('firm', 'reason', 'metadata')
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        """Audit events cannot be manually created."""
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        """Audit events are immutable."""
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        """Audit events cannot be deleted."""
+        return False
+
 
