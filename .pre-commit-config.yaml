@@ -1,0 +1,50 @@
+# Pre-commit hooks for TIER 0 enforcement
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Ruff - Modern Python linter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+  # Black - Code formatter
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+
+  # TIER 0: Custom firm scoping linter
+  - repo: local
+    hooks:
+      - id: lint-firm-scoping
+        name: TIER 0 Firm Scoping Linter
+        entry: python scripts/lint_firm_scoping.py
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+  # Django checks
+  - repo: local
+    hooks:
+      - id: django-check
+        name: Django System Checks
+        entry: python src/manage.py check
+        language: system
+        types: [python]
+        pass_filenames: false
+        always_run: true
+
+  # Trailing whitespace and file endings
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']

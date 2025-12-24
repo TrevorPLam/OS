@@ -223,6 +223,7 @@ class ClientProjectViewSet(viewsets.ReadOnlyModelViewSet):
                 return Project.objects.none()
 
             # Return projects for this client
+            # TIER 0: verified - portal_user.client belongs to request firm (checked above)
             return Project.objects.filter(client=portal_user.client).prefetch_related('tasks_set')
 
         except ClientPortalUser.DoesNotExist:
@@ -467,6 +468,7 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         from modules.finance.models import Invoice
         from django.db.models import Sum, Count
 
+        # TIER 0: verified - client belongs to portal_user who belongs to request firm
         invoices = Invoice.objects.filter(client=client)
 
         # Get summary statistics

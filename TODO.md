@@ -38,11 +38,11 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Firm context validation guard ✅
   - [x] Requests without firm context are rejected ✅
 
-- [ ] **0.3** Enforce firm + client scoping everywhere
-  - [ ] Firm-scoped queryset mixins/helpers
-  - [ ] Refactor existing queries to use firm scoping
-  - [ ] Forbid `Model.objects.all()` in firm-facing code
-  - [ ] Client-scoped queries where applicable
+- [x] **0.3** Enforce firm + client scoping everywhere ✅ COMPLETE
+  - [x] Firm-scoped queryset mixins/helpers ✅
+  - [x] Refactor existing queries to use firm scoping ✅
+  - [x] Forbid `Model.objects.all()` in firm-facing code ✅
+  - [x] Client-scoped queries where applicable ✅
 
 - [ ] **0.4** Portal containment (default-deny)
   - [ ] Portal-only permission classes
@@ -319,7 +319,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 | Tier | Status | Completion % |
 |------|--------|-------------|
-| Tier 0 | 🟡 In Progress | 33% (2/6 tasks complete) |
+| Tier 0 | 🟡 In Progress | 50% (3/6 tasks complete) |
 | Tier 1 | 🔴 Not Started | 0% |
 | Tier 2 | 🔴 Not Started | 0% |
 | Tier 3 | 🔴 Not Started | 0% |
