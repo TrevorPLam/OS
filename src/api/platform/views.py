@@ -56,7 +56,15 @@ class BreakGlassViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = BreakGlassActivationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        firm = Firm.objects.get(id=serializer.validated_data['firm_id'])
+        # Get firm with exception handling for race conditions
+        try:
+            firm = Firm.objects.get(id=serializer.validated_data['firm_id'])
+        except Firm.DoesNotExist:
+            return Response(
+                {'error': 'Firm not found or was deleted'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
         duration_hours = serializer.validated_data.get('duration_hours', 4)
         impersonated_user_id = serializer.validated_data.get('impersonated_user_id')
         

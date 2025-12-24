@@ -12,6 +12,7 @@ Verifies that:
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 from datetime import timedelta
 
 from modules.firm.models import Firm, UserProfile, BreakGlassSession, AuditEvent
@@ -156,7 +157,7 @@ class AuditEventImmutabilityTestCase(TestCase):
         )
         
         # Try to update
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             event.reason = 'Modified reason'
             event.save()
     
@@ -172,7 +173,7 @@ class AuditEventImmutabilityTestCase(TestCase):
         )
         
         # Try to delete
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             event.delete()
     
     def test_audit_event_denormalizes_actor_info(self):

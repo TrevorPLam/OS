@@ -15,6 +15,7 @@ Content Models (protected):
 """
 from rest_framework import permissions
 from django.core.exceptions import PermissionDenied
+from django.utils import timezone
 from typing import Optional
 
 
@@ -177,6 +178,3 @@ class MetadataOnlyMixin:
         
         return False
 
-
-# Import timezone for break-glass session checks
-from django.utils import timezone

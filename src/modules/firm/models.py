@@ -719,7 +719,7 @@ class AuditEvent(models.Model):
         Only allow creation, not updates.
         """
         if self.pk is not None:
-            raise ValueError("Audit events are immutable and cannot be updated.")
+            raise ValidationError("Audit events are immutable and cannot be updated.")
         
         # Denormalize actor info for immutability
         if self.actor and not self.actor_username:
@@ -730,7 +730,7 @@ class AuditEvent(models.Model):
     
     def delete(self, *args, **kwargs):
         """Prevent deletion of audit events."""
-        raise ValueError("Audit events are immutable and cannot be deleted.")
+        raise ValidationError("Audit events are immutable and cannot be deleted.")
     
     @classmethod
     def log_break_glass_activation(cls, session: BreakGlassSession):
