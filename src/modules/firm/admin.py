@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Firm, FirmMembership, BreakGlassSession
+from .models import Firm, FirmMembership, BreakGlassSession, UserProfile
 
 
 @admin.register(Firm)
@@ -69,3 +69,49 @@ class BreakGlassSessionAdmin(admin.ModelAdmin):
             'fields': ('reviewed_at', 'reviewed_by')
         }),
     )
+
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    """
+    Admin interface for UserProfile.
+    
+    TIER 0.5: Platform role assignment is sensitive.
+    Only superusers should be able to assign platform roles.
+    """
+    list_display = ('user', 'platform_role', 'timezone', 'created_at')
+    list_filter = ('platform_role', 'created_at')
+    search_fields = ('user__username', 'user__email')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        ('User', {
+            'fields': ('user',)
+        }),
+        ('Platform Role (Sensitive)', {
+            'fields': ('platform_role',),
+            'description': (
+                'Platform roles grant special access. '
+                'Operator = metadata-only access. '
+                'Break-Glass = can activate break-glass sessions for content access.'
+            )
+        }),
+        ('Preferences', {
+            'fields': ('timezone',)
+        }),
+        ('Audit', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+    
+    def has_change_permission(self, request, obj=None):
+        """Only superusers can change platform roles."""
+        return request.user.is_superuser
+    
+    def has_delete_permission(self, request, obj=None):
+        """Only superusers can delete profiles."""
+        return request.user.is_superuser
+    
+    def has_add_permission(self, request):
+        """Only superusers can manually create profiles."""
+        return request.user.is_superuser
+
