@@ -8,12 +8,16 @@ Tests cover:
 - Business logic validation (date ranges, cross-entity relationships)
 """
 import pytest
-from rest_framework.exceptions import ValidationError
-from django.contrib.auth.models import User
-from modules.crm.models import Client, Proposal, Contract
-from api.crm.serializers import ClientSerializer, ProposalSerializer, ContractSerializer
-from django.utils import timezone
 from datetime import timedelta
+
+from django.contrib.auth import get_user_model
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
+from api.crm.serializers import ClientSerializer, ProposalSerializer, ContractSerializer
+from modules.clients.models import Client
+from modules.crm.models import Contract, Proposal
+from modules.firm.models import Firm
 
 
 @pytest.mark.unit
@@ -101,20 +105,20 @@ class TestClientSerializer:
 class TestProposalSerializer:
     """Test suite for ProposalSerializer validation."""
 
-    def test_positive_estimated_value(self):
-        """Test that estimated value must be positive."""
+    def test_positive_total_value(self):
+        """Test that total value must be positive."""
         serializer = ProposalSerializer()
 
         # Valid positive value
-        result = serializer.validate_estimated_value(1000.00)
+        result = serializer.validate_total_value(1000.00)
         assert result == 1000.00
 
         # Invalid zero or negative
         with pytest.raises(ValidationError):
-            serializer.validate_estimated_value(0)
+            serializer.validate_total_value(0)
 
         with pytest.raises(ValidationError):
-            serializer.validate_estimated_value(-100)
+            serializer.validate_total_value(-100)
 
     def test_future_valid_until_date(self):
         """Test that valid_until must be in the future."""
@@ -141,12 +145,12 @@ class TestContractSerializer:
         serializer = ContractSerializer()
 
         # Valid positive value
-        result = serializer.validate_contract_value(50000.00)
+        result = serializer.validate_total_value(50000.00)
         assert result == 50000.00
 
         # Invalid zero or negative
         with pytest.raises(ValidationError):
-            serializer.validate_contract_value(0)
+            serializer.validate_total_value(0)
 
     def test_end_date_after_start_date(self):
         """Test that end_date must be after start_date."""
@@ -205,6 +209,7 @@ class TestProposalContractWorkflow:
     @pytest.fixture
     def user(self):
         """Create a test user."""
+        User = get_user_model()
         return User.objects.create_user(
             username='testuser',
             email='test@example.com',
@@ -212,21 +217,39 @@ class TestProposalContractWorkflow:
         )
 
     @pytest.fixture
-    def client(self, user):
+    def firm(self):
+        """Create a test firm."""
+        return Firm.objects.create(
+            name='Test Firm',
+            slug='test-firm'
+        )
+
+    @pytest.fixture
+    def client(self, user, firm):
         """Create a test client."""
         return Client.objects.create(
             company_name='Test Company',
             primary_contact_email='contact@test.com',
-            owner=user
+            primary_contact_name='Primary Contact',
+            client_since=timezone.now().date(),
+            firm=firm,
+            account_manager=user
         )
 
-    def test_contract_proposal_client_matching(self, client, user):
+    def test_contract_proposal_client_matching(self, client, user, firm):
         """Test that contract proposal must belong to same client."""
         # Create proposal for client
         proposal = Proposal.objects.create(
+            firm=firm,
+            proposal_type='update_client',
             client=client,
             proposal_number='PROP-2025-001',
             title='Test Proposal',
+            description='Test description',
+            total_value=1000,
+            currency='USD',
+            status='draft',
+            valid_until=timezone.now().date() + timedelta(days=30),
             created_by=user
         )
 
@@ -234,7 +257,10 @@ class TestProposalContractWorkflow:
         different_client = Client.objects.create(
             company_name='Different Company',
             primary_contact_email='different@test.com',
-            owner=user
+            primary_contact_name='Other Contact',
+            client_since=timezone.now().date(),
+            firm=firm,
+            account_manager=user
         )
 
         serializer = ContractSerializer()

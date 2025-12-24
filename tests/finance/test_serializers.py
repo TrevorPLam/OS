@@ -1,45 +1,55 @@
-"""
-Tests for Finance module serializers with comprehensive validation coverage.
-"""
 import pytest
 from datetime import date, timedelta
 from decimal import Decimal
-from django.contrib.auth.models import User
+
+from django.contrib.auth import get_user_model
 from rest_framework.exceptions import ValidationError
-from modules.crm.models import Client
+
+from api.finance.serializers import BillSerializer, InvoiceSerializer
+from modules.clients.models import Client
+from modules.finance.models import Bill, Invoice
+from modules.firm.models import Firm
 from modules.projects.models import Project
-from modules.finance.models import Invoice, Bill
-from api.finance.serializers import InvoiceSerializer, BillSerializer
 
 
 @pytest.fixture
 def user(db):
     """Create test user."""
+    User = get_user_model()
     return User.objects.create_user(username='testuser', password='testpass123')
 
 
 @pytest.fixture
-def client_obj(db, user):
+def firm(db):
+    """Create test firm."""
+    return Firm.objects.create(name='Finance Firm', slug='finance-firm')
+
+
+@pytest.fixture
+def client_obj(db, user, firm):
     """Create test client."""
     return Client.objects.create(
         company_name='Test Company',
         primary_contact_name='John Doe',
         primary_contact_email='john@test.com',
-        owner=user,
+        firm=firm,
+        client_since=date.today(),
+        account_manager=user,
         status='active'
     )
 
 
 @pytest.fixture
-def project(db, client_obj, user):
+def project(db, client_obj, user, firm):
     """Create test project."""
     return Project.objects.create(
+        firm=firm,
         client=client_obj,
         project_manager=user,
         project_code='PRJ-001',
         name='Test Project',
         status='in_progress',
-        billing_type='hourly',
+        billing_type='time_and_materials',
         start_date=date.today(),
         end_date=date.today() + timedelta(days=90)
     )
@@ -53,6 +63,7 @@ class TestInvoiceSerializer:
     def test_valid_invoice_data(self, client_obj, user):
         """Test serializer accepts valid invoice data."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'created_by': user.id,
             'invoice_number': 'INV-001',
@@ -86,6 +97,7 @@ class TestInvoiceSerializer:
     def test_due_date_validation(self, client_obj, user):
         """Test due date must be after issue date."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'created_by': user.id,
             'invoice_number': 'INV-001',
@@ -108,6 +120,7 @@ class TestInvoiceSerializer:
     def test_amount_paid_exceeds_total(self, client_obj, user):
         """Test amount paid cannot exceed total amount."""
         invoice = Invoice.objects.create(
+            firm=client_obj.firm,
             client=client_obj,
             created_by=user,
             invoice_number='INV-001',
@@ -124,6 +137,7 @@ class TestInvoiceSerializer:
     def test_line_items_validation(self, client_obj, user):
         """Test line items must be a list."""
         data = {
+            'firm': client_obj.firm_id,
             'client': client_obj.id,
             'created_by': user.id,
             'invoice_number': 'INV-001',
@@ -142,9 +156,10 @@ class TestInvoiceSerializer:
 class TestBillSerializer:
     """Test BillSerializer validation logic."""
 
-    def test_valid_bill_data(self):
+    def test_valid_bill_data(self, firm):
         """Test serializer accepts valid bill data."""
         data = {
+            'firm': firm.id,
             'vendor_name': 'Test Vendor',
             'bill_number': 'BILL-001',
             'reference_number': 'REF-001',
@@ -166,9 +181,10 @@ class TestBillSerializer:
             serializer.validate_total_amount(Decimal('-100.00'))
         assert 'greater than 0' in str(exc_info.value)
 
-    def test_due_date_after_bill_date(self):
+    def test_due_date_after_bill_date(self, firm):
         """Test due date must be after bill date."""
         data = {
+            'firm': firm.id,
             'vendor_name': 'Test Vendor',
             'bill_number': 'BILL-001',
             'reference_number': 'REF-002',
@@ -191,6 +207,7 @@ class TestInvoiceWorkflow:
     def test_invoice_payment_workflow(self, client_obj, user):
         """Test invoice payment tracking."""
         invoice = Invoice.objects.create(
+            firm=client_obj.firm,
             client=client_obj,
             created_by=user,
             invoice_number='INV-WORKFLOW',
