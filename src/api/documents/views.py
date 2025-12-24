@@ -2,19 +2,23 @@
 DRF ViewSets for Documents module with S3 upload functionality.
 """
 from rest_framework import viewsets, filters, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
-from modules.documents.models import Folder, Document, Version
+from modules.documents.models import Folder, Document, DocumentContent, Version, VersionContent
 from modules.documents.services import S3Service
+from modules.firm.viewsets import FirmScopedViewSetMixin
+from config.permissions import PlatformContentPermission
 from .serializers import FolderSerializer, DocumentSerializer, VersionSerializer
 
 
-class FolderViewSet(viewsets.ModelViewSet):
+class FolderViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Folder model."""
     queryset = Folder.objects.select_related('client', 'project', 'parent', 'created_by')
     serializer_class = FolderSerializer
+    permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'project', 'parent', 'visibility']
     search_fields = ['name', 'client__company_name']
@@ -22,12 +26,19 @@ class FolderViewSet(viewsets.ModelViewSet):
     ordering = ['name']
 
 
-class DocumentViewSet(viewsets.ModelViewSet):
+class DocumentViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Document model with S3 upload functionality.
     """
-    queryset = Document.objects.select_related('folder', 'client', 'project', 'uploaded_by')
+    queryset = Document.objects.select_related(
+        'folder',
+        'client',
+        'project',
+        'uploaded_by',
+        'content',
+    )
     serializer_class = DocumentSerializer
+    permission_classes = [IsAuthenticated, PlatformContentPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'folder', 'project', 'visibility', 'file_type']
     search_fields = ['name', 'client__company_name']
@@ -58,6 +69,19 @@ class DocumentViewSet(viewsets.ModelViewSet):
             visibility = request.data.get('visibility', 'internal')
             project_id = request.data.get('project')
 
+            folder = Folder.objects.filter(id=folder_id, firm=request.firm).first()
+            if not folder:
+                return Response(
+                    {'error': 'Folder not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            if client_id and str(folder.client_id) != str(client_id):
+                return Response(
+                    {'error': 'Client does not match folder'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            client_id = folder.client_id
+
             # Upload to S3
             s3_service = S3Service()
             folder_path = f"client-{client_id}/documents"
@@ -65,15 +89,14 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
             # Create document record
             document_data = {
-                'folder': folder_id,
+                'folder': folder.id,
+                'firm': request.firm.id,
                 'client': client_id,
                 'name': name,
                 'description': description,
                 'visibility': visibility,
                 'file_type': file_obj.content_type,
                 'file_size_bytes': file_obj.size,
-                's3_key': upload_result['s3_key'],
-                's3_bucket': upload_result['s3_bucket'],
                 'current_version': 1,
                 'uploaded_by': request.user.id,
             }
@@ -84,17 +107,26 @@ class DocumentViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=document_data)
             serializer.is_valid(raise_exception=True)
             document = serializer.save()
+            DocumentContent.objects.create(
+                document=document,
+                s3_key=upload_result['s3_key'],
+                s3_bucket=upload_result['s3_bucket'],
+            )
 
             # Create initial version
-            Version.objects.create(
+            version = Version.objects.create(
                 document=document,
+                firm=request.firm,
                 version_number=1,
                 file_type=file_obj.content_type,
                 file_size_bytes=file_obj.size,
-                s3_key=upload_result['s3_key'],
-                s3_bucket=upload_result['s3_bucket'],
                 uploaded_by=request.user,
                 change_summary='Initial upload'
+            )
+            VersionContent.objects.create(
+                version=version,
+                s3_key=upload_result['s3_key'],
+                s3_bucket=upload_result['s3_bucket'],
             )
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -115,7 +147,16 @@ class DocumentViewSet(viewsets.ModelViewSet):
         try:
             document = self.get_object()
             s3_service = S3Service()
-            presigned_url = s3_service.generate_presigned_url(document.s3_key, expiration=3600)
+            try:
+                content = document.content
+            except DocumentContent.DoesNotExist:
+                content = None
+            if not content:
+                return Response(
+                    {'error': 'Document content not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            presigned_url = s3_service.generate_presigned_url(content.s3_key, expiration=3600)
 
             return Response({
                 'download_url': presigned_url,
@@ -129,10 +170,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
             )
 
 
-class VersionViewSet(viewsets.ModelViewSet):
+class VersionViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Version model."""
-    queryset = Version.objects.select_related('document', 'uploaded_by')
+    queryset = Version.objects.select_related('document', 'uploaded_by', 'content')
     serializer_class = VersionSerializer
+    permission_classes = [IsAuthenticated, PlatformContentPermission]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['document']
     search_fields = ['document__name', 'change_summary']
@@ -149,7 +191,16 @@ class VersionViewSet(viewsets.ModelViewSet):
         try:
             version = self.get_object()
             s3_service = S3Service()
-            presigned_url = s3_service.generate_presigned_url(version.s3_key, expiration=3600)
+            try:
+                content = version.content
+            except VersionContent.DoesNotExist:
+                content = None
+            if not content:
+                return Response(
+                    {'error': 'Document version content not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            presigned_url = s3_service.generate_presigned_url(content.s3_key, expiration=3600)
 
             return Response({
                 'download_url': presigned_url,

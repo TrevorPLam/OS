@@ -10,6 +10,9 @@ from modules.clients.models import (
     ClientComment,
     ClientChatThread,
     ClientMessage,
+    ClientMessageContent,
+    ClientNoteContent,
+    ClientCommentContent,
 )
 
 
@@ -106,18 +109,24 @@ class ClientPortalUserAdmin(admin.ModelAdmin):
 class ClientNoteAdmin(admin.ModelAdmin):
     list_display = ('client', 'author', 'is_pinned', 'created_at')
     list_filter = ('is_pinned', 'created_at')
-    search_fields = ('client__company_name', 'note', 'author__username')
+    search_fields = ('client__company_name', 'content__body', 'author__username')
     readonly_fields = ('created_at', 'updated_at')
 
     fieldsets = (
         (None, {
-            'fields': ('client', 'author', 'note', 'is_pinned'),
+            'fields': ('client', 'author', 'is_pinned'),
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',),
         }),
     )
+
+
+@admin.register(ClientNoteContent)
+class ClientNoteContentAdmin(admin.ModelAdmin):
+    list_display = ('note',)
+    search_fields = ('note__client__company_name', 'body')
 
 
 @admin.register(ClientEngagement)
@@ -171,17 +180,17 @@ class ClientCommentAdmin(admin.ModelAdmin):
     )
     list_filter = ('is_read_by_firm', 'created_at', 'client')
     search_fields = (
-        'comment',
         'task__title',
         'client__company_name',
         'author__username',
         'author__email',
+        'content__body',
     )
     readonly_fields = ('created_at', 'updated_at', 'read_at')
 
     fieldsets = (
         ('Comment Details', {
-            'fields': ('client', 'task', 'author', 'comment'),
+            'fields': ('client', 'task', 'author'),
         }),
         ('Attachments', {
             'fields': ('has_attachment',),
@@ -194,6 +203,12 @@ class ClientCommentAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
+
+
+@admin.register(ClientCommentContent)
+class ClientCommentContentAdmin(admin.ModelAdmin):
+    list_display = ('comment',)
+    search_fields = ('comment__task__title', 'comment__client__company_name', 'body')
 
 
 @admin.register(ClientChatThread)
@@ -241,7 +256,6 @@ class ClientMessageAdmin(admin.ModelAdmin):
     )
     list_filter = ('message_type', 'is_from_client', 'is_read', 'created_at')
     search_fields = (
-        'content',
         'sender__username',
         'sender__email',
         'thread__client__company_name',
@@ -250,11 +264,7 @@ class ClientMessageAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Message Details', {
-            'fields': ('thread', 'sender', 'is_from_client', 'message_type', 'content'),
-        }),
-        ('Attachment', {
-            'fields': ('attachment_url', 'attachment_filename', 'attachment_size_bytes'),
-            'classes': ('collapse',),
+            'fields': ('thread', 'sender', 'is_from_client', 'message_type'),
         }),
         ('Read Status', {
             'fields': ('is_read', 'read_by', 'read_at'),
@@ -264,3 +274,13 @@ class ClientMessageAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
+
+
+@admin.register(ClientMessageContent)
+class ClientMessageContentAdmin(admin.ModelAdmin):
+    list_display = (
+        'message',
+        'attachment_filename',
+        'attachment_size_bytes',
+    )
+    search_fields = ('message__sender__username', 'message__thread__client__company_name', 'content')

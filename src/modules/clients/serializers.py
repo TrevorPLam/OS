@@ -10,6 +10,9 @@ from modules.clients.models import (
     ClientComment,
     ClientChatThread,
     ClientMessage,
+    ClientMessageContent,
+    ClientNoteContent,
+    ClientCommentContent,
 )
 
 
@@ -114,6 +117,7 @@ class ClientNoteSerializer(serializers.ModelSerializer):
 
     author_name = serializers.SerializerMethodField()
     client_name = serializers.CharField(source='client.company_name', read_only=True)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = ClientNote
@@ -138,8 +142,46 @@ class ClientNoteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Set author from request user."""
+        note_body = validated_data.pop('note', '') or ''
         validated_data['author'] = self.context['request'].user
-        return super().create(validated_data)
+        note = super().create(validated_data)
+        ClientNoteContent.objects.create(note=note, body=note_body)
+        return note
+
+    def update(self, instance, validated_data):
+        note_body = validated_data.pop('note', None)
+        instance = super().update(instance, validated_data)
+        if note_body is not None:
+            content_record, _created = ClientNoteContent.objects.get_or_create(
+                note=instance,
+                defaults={'body': note_body or ''},
+            )
+            if not _created:
+                content_record.body = note_body or ''
+                content_record.save()
+        return instance
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and getattr(request, 'platform_role', None) == 'operator':
+            data.pop('note', None)
+            return data
+
+        try:
+            content = instance.content
+        except ClientNoteContent.DoesNotExist:
+            content = None
+
+        data['note'] = content.body if content else ''
+        return data
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        if request and getattr(request, 'platform_role', None) == 'operator':
+            fields.pop('note', None)
+        return fields
 
 
 class ClientEngagementSerializer(serializers.ModelSerializer):
@@ -181,6 +223,7 @@ class ClientCommentSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source='client.company_name', read_only=True)
     task_title = serializers.CharField(source='task.title', read_only=True)
     task_project = serializers.SerializerMethodField()
+    comment = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = ClientComment
@@ -231,6 +274,7 @@ class ClientCommentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Set author and client from request context."""
         request = self.context.get('request')
+        comment_body = validated_data.pop('comment', '') or ''
         validated_data['author'] = request.user
 
         # Get client from portal user
@@ -241,7 +285,44 @@ class ClientCommentSerializer(serializers.ModelSerializer):
         except ClientPortalUser.DoesNotExist:
             raise serializers.ValidationError("User is not a client portal user")
 
-        return super().create(validated_data)
+        comment = super().create(validated_data)
+        ClientCommentContent.objects.create(comment=comment, body=comment_body)
+        return comment
+
+    def update(self, instance, validated_data):
+        comment_body = validated_data.pop('comment', None)
+        instance = super().update(instance, validated_data)
+        if comment_body is not None:
+            content_record, _created = ClientCommentContent.objects.get_or_create(
+                comment=instance,
+                defaults={'body': comment_body or ''},
+            )
+            if not _created:
+                content_record.body = comment_body or ''
+                content_record.save()
+        return instance
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and getattr(request, 'platform_role', None) == 'operator':
+            data.pop('comment', None)
+            return data
+
+        try:
+            content = instance.content
+        except ClientCommentContent.DoesNotExist:
+            content = None
+
+        data['comment'] = content.body if content else ''
+        return data
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        if request and getattr(request, 'platform_role', None) == 'operator':
+            fields.pop('comment', None)
+        return fields
 
 
 class ClientTaskSerializer(serializers.ModelSerializer):
@@ -292,11 +373,11 @@ class ClientTaskSerializer(serializers.ModelSerializer):
     def get_comments(self, obj):
         """Get client comments for this task."""
         from modules.clients.models import ClientComment
-        comments = ClientComment.objects.filter(task=obj).order_by('-created_at')[:10]
+        comments = ClientComment.objects.filter(task=obj).select_related('content').order_by('-created_at')[:10]
         return [{
             'id': comment.id,
             'author_name': comment.author.get_full_name() or comment.author.username,
-            'comment': comment.comment,
+            'comment': comment.content.body if hasattr(comment, 'content') else '',
             'created_at': comment.created_at,
         } for comment in comments]
 
@@ -465,6 +546,10 @@ class ClientMessageSerializer(serializers.ModelSerializer):
 
     sender_name = serializers.SerializerMethodField()
     sender_email = serializers.EmailField(source='sender.email', read_only=True)
+    content = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    attachment_url = serializers.URLField(required=False, allow_blank=True, allow_null=True)
+    attachment_filename = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    attachment_size_bytes = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = ClientMessage
@@ -506,6 +591,12 @@ class ClientMessageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         """Set sender and is_from_client from request context."""
         request = self.context.get('request')
+        content_data = {
+            'content': validated_data.pop('content', '') or '',
+            'attachment_url': validated_data.pop('attachment_url', '') or '',
+            'attachment_filename': validated_data.pop('attachment_filename', '') or '',
+            'attachment_size_bytes': validated_data.pop('attachment_size_bytes', None),
+        }
         validated_data['sender'] = request.user
 
         # Check if sender is a client portal user
@@ -516,7 +607,70 @@ class ClientMessageSerializer(serializers.ModelSerializer):
         except ClientPortalUser.DoesNotExist:
             validated_data['is_from_client'] = False
 
-        return super().create(validated_data)
+        message = super().create(validated_data)
+        ClientMessageContent.objects.create(message=message, **content_data)
+        return message
+
+    def update(self, instance, validated_data):
+        content_data = {
+            'content': validated_data.pop('content', None),
+            'attachment_url': validated_data.pop('attachment_url', None),
+            'attachment_filename': validated_data.pop('attachment_filename', None),
+            'attachment_size_bytes': validated_data.pop('attachment_size_bytes', None),
+        }
+        instance = super().update(instance, validated_data)
+        if any(value is not None for value in content_data.values()):
+            content_record, _created = ClientMessageContent.objects.get_or_create(
+                message=instance,
+                defaults={
+                    'content': content_data['content'] or '',
+                    'attachment_url': content_data['attachment_url'] or '',
+                    'attachment_filename': content_data['attachment_filename'] or '',
+                    'attachment_size_bytes': content_data['attachment_size_bytes'],
+                },
+            )
+            if not _created:
+                if content_data['content'] is not None:
+                    content_record.content = content_data['content']
+                if content_data['attachment_url'] is not None:
+                    content_record.attachment_url = content_data['attachment_url'] or ''
+                if content_data['attachment_filename'] is not None:
+                    content_record.attachment_filename = content_data['attachment_filename'] or ''
+                if content_data['attachment_size_bytes'] is not None:
+                    content_record.attachment_size_bytes = content_data['attachment_size_bytes']
+                content_record.save()
+        return instance
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and getattr(request, 'platform_role', None) == 'operator':
+            data.pop('content', None)
+            data.pop('attachment_url', None)
+            data.pop('attachment_filename', None)
+            data.pop('attachment_size_bytes', None)
+            return data
+
+        try:
+            content = instance.content
+        except ClientMessageContent.DoesNotExist:
+            content = None
+
+        data['content'] = content.content if content else ''
+        data['attachment_url'] = content.attachment_url if content else ''
+        data['attachment_filename'] = content.attachment_filename if content else ''
+        data['attachment_size_bytes'] = content.attachment_size_bytes if content else None
+        return data
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get('request')
+        if request and getattr(request, 'platform_role', None) == 'operator':
+            fields.pop('content', None)
+            fields.pop('attachment_url', None)
+            fields.pop('attachment_filename', None)
+            fields.pop('attachment_size_bytes', None)
+        return fields
 
 
 class ClientChatThreadSerializer(serializers.ModelSerializer):

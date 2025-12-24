@@ -34,9 +34,14 @@ class Asset(models.Model):
     ]
 
     # Asset Details
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='assets',
+        help_text="Firm (workspace) this asset belongs to"
+    )
     asset_tag = models.CharField(
         max_length=50,
-        unique=True,
         help_text="Unique identifier (e.g., barcode, serial number)"
     )
     name = models.CharField(max_length=255)
@@ -105,10 +110,11 @@ class Asset(models.Model):
         db_table = 'assets_assets'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['asset_tag']),
-            models.Index(fields=['category', 'status']),
-            models.Index(fields=['assigned_to']),
+            models.Index(fields=['firm', 'asset_tag']),
+            models.Index(fields=['firm', 'category', 'status']),
+            models.Index(fields=['firm', 'assigned_to']),
         ]
+        unique_together = [['firm', 'asset_tag']]
 
     def __str__(self):
         return f"{self.asset_tag} - {self.name}"
@@ -137,6 +143,12 @@ class MaintenanceLog(models.Model):
     ]
 
     # Relationships
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='maintenance_logs',
+        help_text="Firm (workspace) this maintenance log belongs to"
+    )
     asset = models.ForeignKey(
         Asset,
         on_delete=models.CASCADE,
@@ -194,8 +206,8 @@ class MaintenanceLog(models.Model):
         db_table = 'assets_maintenance_logs'
         ordering = ['-scheduled_date', '-created_at']
         indexes = [
-            models.Index(fields=['asset', 'status']),
-            models.Index(fields=['scheduled_date']),
+            models.Index(fields=['firm', 'asset', 'status']),
+            models.Index(fields=['firm', 'scheduled_date']),
         ]
 
     def __str__(self):

@@ -3,6 +3,8 @@ Custom permission classes for fine-grained access control.
 """
 from rest_framework import permissions
 
+from config.platform import resolve_platform_role
+
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     """
@@ -129,3 +131,31 @@ class IsPaymentAuthorized(permissions.BasePermission):
             )
 
         return False
+
+
+class PlatformContentPermission(permissions.BasePermission):
+    """
+    Prevent platform operators from accessing content actions by default.
+
+    Superusers are treated as break-glass access.
+    """
+
+    message = "Platform operators cannot access content actions."
+    content_actions = {"upload", "download"}
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        platform_role = resolve_platform_role(request.user)
+        if not platform_role:
+            return True
+
+        if platform_role == "break_glass":
+            return True
+
+        action = getattr(view, "action", None)
+        if action in self.content_actions:
+            return False
+
+        return True

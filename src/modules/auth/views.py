@@ -30,7 +30,7 @@ class RegisterView(generics.CreateAPIView):
         "password2": "SecurePass123!"
     }
     """
-    queryset = User.objects.all()
+    queryset = User.objects.filter()
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
 

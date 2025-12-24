@@ -4,10 +4,11 @@ DRF ViewSets for Assets module.
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.assets.models import Asset, MaintenanceLog
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from .serializers import AssetSerializer, MaintenanceLogSerializer
 
 
-class AssetViewSet(viewsets.ModelViewSet):
+class AssetViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Asset model."""
     queryset = Asset.objects.select_related('assigned_to')
     serializer_class = AssetSerializer
@@ -18,7 +19,7 @@ class AssetViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
 
-class MaintenanceLogViewSet(viewsets.ModelViewSet):
+class MaintenanceLogViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for MaintenanceLog model."""
     queryset = MaintenanceLog.objects.select_related('asset', 'created_by')
     serializer_class = MaintenanceLogSerializer

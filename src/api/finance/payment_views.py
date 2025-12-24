@@ -6,15 +6,20 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from modules.finance.models import Invoice
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from modules.finance.services import StripeService
 from .serializers import InvoiceSerializer
 
 
-class PaymentViewSet(viewsets.ViewSet):
+class PaymentViewSet(FirmScopedViewSetMixin, viewsets.ViewSet):
     """
     ViewSet for payment processing with Stripe.
     """
     permission_classes = [IsAuthenticated]
+    firm_lookup = "firm"
+
+    def _get_invoice(self, invoice_id):
+        return Invoice.objects.filter(firm=self.get_firm(), id=invoice_id).first()
 
     @action(detail=False, methods=['post'])
     def create_payment_intent(self, request):
@@ -38,9 +43,8 @@ class PaymentViewSet(viewsets.ViewSet):
                 )
 
             # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
+            invoice = self._get_invoice(invoice_id)
+            if not invoice:
                 return Response(
                     {'error': 'Invoice not found'},
                     status=status.HTTP_404_NOT_FOUND
@@ -101,9 +105,8 @@ class PaymentViewSet(viewsets.ViewSet):
             amount_paid = request.data.get('amount_paid')
 
             # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
+            invoice = self._get_invoice(invoice_id)
+            if not invoice:
                 return Response(
                     {'error': 'Invoice not found'},
                     status=status.HTTP_404_NOT_FOUND
@@ -155,9 +158,8 @@ class PaymentViewSet(viewsets.ViewSet):
             invoice_id = request.data.get('invoice_id')
 
             # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
+            invoice = self._get_invoice(invoice_id)
+            if not invoice:
                 return Response(
                     {'error': 'Invoice not found'},
                     status=status.HTTP_404_NOT_FOUND

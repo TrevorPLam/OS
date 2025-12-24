@@ -49,7 +49,7 @@ export interface ClientNote {
   client: number
   created_by: number
   created_by_name?: string
-  note: string
+  note?: string
   is_internal: boolean
   created_at: string
   updated_at: string

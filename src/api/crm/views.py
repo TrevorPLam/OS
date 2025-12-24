@@ -4,16 +4,17 @@ DRF ViewSets for CRM module.
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.crm.models import Client, Proposal, Contract
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from .serializers import ClientSerializer, ProposalSerializer, ContractSerializer
 
 
-class ClientViewSet(viewsets.ModelViewSet):
+class ClientViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client model.
 
     Supports CRUD operations and filtering by status, industry, owner.
     """
-    queryset = Client.objects.all()
+    queryset = Client.objects.filter()
     serializer_class = ClientSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'industry', 'owner']
@@ -22,7 +23,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
 
-class ProposalViewSet(viewsets.ModelViewSet):
+class ProposalViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Proposal model.
 
@@ -37,7 +38,7 @@ class ProposalViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
 
-class ContractViewSet(viewsets.ModelViewSet):
+class ContractViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Contract model.
 

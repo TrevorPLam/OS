@@ -4,10 +4,11 @@ DRF ViewSets for Projects module.
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.projects.models import Project, Task, TimeEntry
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from .serializers import ProjectSerializer, TaskSerializer, TimeEntrySerializer
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class ProjectViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Project model."""
     queryset = Project.objects.select_related('client', 'contract', 'project_manager')
     serializer_class = ProjectSerializer
@@ -18,7 +19,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
 
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Task model."""
     queryset = Task.objects.select_related('project', 'assigned_to')
     serializer_class = TaskSerializer
@@ -29,7 +30,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     ordering = ['position', '-created_at']
 
 
-class TimeEntryViewSet(viewsets.ModelViewSet):
+class TimeEntryViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for TimeEntry model."""
     queryset = TimeEntry.objects.select_related('project', 'task', 'user', 'invoice')
     serializer_class = TimeEntrySerializer

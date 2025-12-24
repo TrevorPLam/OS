@@ -22,6 +22,12 @@ class Folder(models.Model):
     ]
 
     # Relationships - UPDATED to reference clients.Client
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='folders',
+        help_text="Firm (workspace) this folder belongs to"
+    )
     client = models.ForeignKey(
         'clients.Client',
         on_delete=models.CASCADE,
@@ -71,14 +77,23 @@ class Folder(models.Model):
         db_table = 'documents_folders'
         ordering = ['name']
         indexes = [
-            models.Index(fields=['client', 'parent']),
+            models.Index(fields=['firm', 'client', 'parent']),
         ]
-        unique_together = [['client', 'parent', 'name']]
+        unique_together = [['firm', 'client', 'parent', 'name']]
 
     def __str__(self):
         if self.parent:
             return f"{self.parent} / {self.name}"
         return f"{self.client.company_name} / {self.name}"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with the client firm."""
+        if self.client_id:
+            if self.firm_id and self.firm_id != self.client.firm_id:
+                raise ValueError("Folder firm must match client firm.")
+            if not self.firm_id:
+                self.firm = self.client.firm
+        super().save(*args, **kwargs)
 
 
 class Document(models.Model):
@@ -98,6 +113,12 @@ class Document(models.Model):
         Folder,
         on_delete=models.CASCADE,
         related_name='documents'
+    )
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='documents',
+        help_text="Firm (workspace) this document belongs to"
     )
     client = models.ForeignKey(
         'clients.Client',
@@ -133,17 +154,6 @@ class Document(models.Model):
         help_text="File size in bytes"
     )
 
-    # S3 Storage
-    s3_key = models.CharField(
-        max_length=500,
-        unique=True,
-        help_text="S3 object key (path in bucket)"
-    )
-    s3_bucket = models.CharField(
-        max_length=255,
-        help_text="S3 bucket name"
-    )
-
     # Versioning
     current_version = models.IntegerField(
         default=1,
@@ -164,12 +174,50 @@ class Document(models.Model):
         db_table = 'documents_documents'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['client', 'folder']),
-            models.Index(fields=['s3_bucket', 's3_key']),
+            models.Index(fields=['firm', 'client', 'folder']),
         ]
 
     def __str__(self):
         return f"{self.folder} / {self.name}"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with the folder/client firm."""
+        if self.folder_id:
+            if self.firm_id and self.firm_id != self.folder.firm_id:
+                raise ValueError("Document firm must match folder firm.")
+            if not self.firm_id:
+                self.firm = self.folder.firm
+        if self.client_id and self.firm_id and self.firm_id != self.client.firm_id:
+            raise ValueError("Document firm must match client firm.")
+        super().save(*args, **kwargs)
+
+
+class DocumentContent(models.Model):
+    """
+    Content storage metadata for a document.
+
+    Separated to keep content pointers isolated from metadata access.
+    """
+    document = models.OneToOneField(
+        Document,
+        on_delete=models.CASCADE,
+        related_name='content'
+    )
+    s3_key = models.CharField(
+        max_length=500,
+        unique=True,
+        help_text="S3 object key (path in bucket)"
+    )
+    s3_bucket = models.CharField(
+        max_length=255,
+        help_text="S3 bucket name"
+    )
+
+    class Meta:
+        db_table = 'documents_document_content'
+
+    def __str__(self):
+        return f"{self.document} content"
 
 
 class Version(models.Model):
@@ -185,6 +233,12 @@ class Version(models.Model):
         on_delete=models.CASCADE,
         related_name='versions'
     )
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='document_versions',
+        help_text="Firm (workspace) this document version belongs to"
+    )
 
     # Version Details
     version_number = models.IntegerField()
@@ -196,14 +250,6 @@ class Version(models.Model):
     # File Metadata
     file_type = models.CharField(max_length=50)
     file_size_bytes = models.BigIntegerField()
-
-    # S3 Storage (each version has its own S3 object)
-    s3_key = models.CharField(
-        max_length=500,
-        unique=True,
-        help_text="S3 object key for this version"
-    )
-    s3_bucket = models.CharField(max_length=255)
 
     # Audit Fields
     uploaded_by = models.ForeignKey(
@@ -218,9 +264,41 @@ class Version(models.Model):
         db_table = 'documents_versions'
         ordering = ['-version_number']
         indexes = [
-            models.Index(fields=['document', 'version_number']),
+            models.Index(fields=['firm', 'document', 'version_number']),
         ]
-        unique_together = [['document', 'version_number']]
+        unique_together = [['firm', 'document', 'version_number']]
 
     def __str__(self):
         return f"{self.document.name} (v{self.version_number})"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with the document firm."""
+        if self.document_id:
+            if self.firm_id and self.firm_id != self.document.firm_id:
+                raise ValueError("Document version firm must match document firm.")
+            if not self.firm_id:
+                self.firm = self.document.firm
+        super().save(*args, **kwargs)
+
+
+class VersionContent(models.Model):
+    """
+    Content storage metadata for a document version.
+    """
+    version = models.OneToOneField(
+        Version,
+        on_delete=models.CASCADE,
+        related_name='content'
+    )
+    s3_key = models.CharField(
+        max_length=500,
+        unique=True,
+        help_text="S3 object key for this version"
+    )
+    s3_bucket = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'documents_version_content'
+
+    def __str__(self):
+        return f"{self.version} content"

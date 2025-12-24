@@ -58,8 +58,15 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'modules.firm.middleware.FirmContextMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+FIRM_CONTEXT_EXEMPT_PATHS = [
+    '/admin/',
+    '/api/auth/login/',
+    '/api/auth/register/',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -138,6 +145,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
+        'modules.clients.permissions.PortalAccessPermission',
         'rest_framework.permissions.IsAuthenticated',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',

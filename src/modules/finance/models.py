@@ -30,6 +30,12 @@ class Invoice(models.Model):
     ]
 
     # Relationships - UPDATED to reference clients.Client
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='invoices',
+        help_text="Firm (workspace) this invoice belongs to"
+    )
     client = models.ForeignKey(
         'clients.Client',
         on_delete=models.CASCADE,
@@ -52,7 +58,7 @@ class Invoice(models.Model):
     )
 
     # Invoice Details
-    invoice_number = models.CharField(max_length=50, unique=True)
+    invoice_number = models.CharField(max_length=50)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
 
     # Financial Amounts
@@ -122,10 +128,11 @@ class Invoice(models.Model):
         db_table = 'finance_invoices'
         ordering = ['-issue_date', '-created_at']
         indexes = [
-            models.Index(fields=['client', 'status']),
-            models.Index(fields=['invoice_number']),
-            models.Index(fields=['due_date']),
+            models.Index(fields=['firm', 'client', 'status']),
+            models.Index(fields=['firm', 'invoice_number']),
+            models.Index(fields=['firm', 'due_date']),
         ]
+        unique_together = [['firm', 'invoice_number']]
 
     @property
     def balance_due(self):
@@ -140,6 +147,15 @@ class Invoice(models.Model):
 
     def __str__(self):
         return f"{self.invoice_number} - {self.client.company_name} (${self.total_amount})"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with the client firm."""
+        if self.client_id:
+            if self.firm_id and self.firm_id != self.client.firm_id:
+                raise ValueError("Invoice firm must match client firm.")
+            if not self.firm_id:
+                self.firm = self.client.firm
+        super().save(*args, **kwargs)
 
 
 class Bill(models.Model):
@@ -159,6 +175,12 @@ class Bill(models.Model):
     ]
 
     # Vendor Information
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='bills',
+        help_text="Firm (workspace) this bill belongs to"
+    )
     vendor_name = models.CharField(max_length=255)
     vendor_email = models.EmailField(blank=True)
 
@@ -179,7 +201,6 @@ class Bill(models.Model):
     )
     reference_number = models.CharField(
         max_length=50,
-        unique=True,
         help_text="Our internal reference number"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='received')
@@ -252,10 +273,11 @@ class Bill(models.Model):
         db_table = 'finance_bills'
         ordering = ['-bill_date', '-created_at']
         indexes = [
-            models.Index(fields=['vendor_name', 'status']),
-            models.Index(fields=['reference_number']),
-            models.Index(fields=['due_date']),
+            models.Index(fields=['firm', 'vendor_name', 'status']),
+            models.Index(fields=['firm', 'reference_number']),
+            models.Index(fields=['firm', 'due_date']),
         ]
+        unique_together = [['firm', 'reference_number']]
 
     @property
     def balance_due(self):
@@ -264,6 +286,17 @@ class Bill(models.Model):
 
     def __str__(self):
         return f"{self.reference_number} - {self.vendor_name} (${self.total_amount})"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with the project firm when available."""
+        if self.project_id:
+            if self.firm_id and self.firm_id != self.project.firm_id:
+                raise ValueError("Bill firm must match project firm.")
+            if not self.firm_id:
+                self.firm = self.project.firm
+        if not self.firm_id:
+            raise ValueError("Bill firm must be set.")
+        super().save(*args, **kwargs)
 
 
 class LedgerEntry(models.Model):
@@ -309,6 +342,12 @@ class LedgerEntry(models.Model):
     ]
 
     # Core Double-Entry Fields
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='ledger_entries',
+        help_text="Firm (workspace) this ledger entry belongs to"
+    )
     entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES)
     account = models.CharField(max_length=50, choices=ACCOUNT_CHOICES)
     amount = models.DecimalField(
@@ -356,10 +395,26 @@ class LedgerEntry(models.Model):
         db_table = 'finance_ledger_entries'
         ordering = ['-transaction_date', '-created_at']
         indexes = [
-            models.Index(fields=['account', 'transaction_date']),
-            models.Index(fields=['transaction_group_id']),
+            models.Index(fields=['firm', 'account', 'transaction_date']),
+            models.Index(fields=['firm', 'transaction_group_id']),
         ]
         verbose_name_plural = 'Ledger Entries'
 
     def __str__(self):
         return f"{self.entry_type.upper()}: {self.account} - ${self.amount} ({self.transaction_date})"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with invoice or bill."""
+        if self.invoice_id:
+            if self.firm_id and self.firm_id != self.invoice.firm_id:
+                raise ValueError("Ledger entry firm must match invoice firm.")
+            if not self.firm_id:
+                self.firm = self.invoice.firm
+        elif self.bill_id:
+            if self.firm_id and self.firm_id != self.bill.firm_id:
+                raise ValueError("Ledger entry firm must match bill firm.")
+            if not self.firm_id:
+                self.firm = self.bill.firm
+        if not self.firm_id:
+            raise ValueError("Ledger entry firm must be set.")
+        super().save(*args, **kwargs)

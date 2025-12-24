@@ -18,20 +18,23 @@ from modules.clients.views import (
     ClientEngagementHistoryViewSet,
 )
 
-router = DefaultRouter()
-router.register(r'clients', ClientViewSet, basename='client')
-router.register(r'portal-users', ClientPortalUserViewSet, basename='portaluser')
-router.register(r'notes', ClientNoteViewSet, basename='clientnote')
-router.register(r'engagements', ClientEngagementViewSet, basename='engagement')
-router.register(r'projects', ClientProjectViewSet, basename='client-project')
-router.register(r'comments', ClientCommentViewSet, basename='client-comment')
-router.register(r'invoices', ClientInvoiceViewSet, basename='client-invoice')
-router.register(r'chat-threads', ClientChatThreadViewSet, basename='client-chat-thread')
-router.register(r'messages', ClientMessageViewSet, basename='client-message')
-router.register(r'proposals', ClientProposalViewSet, basename='client-proposal')
-router.register(r'contracts', ClientContractViewSet, basename='client-contract')
-router.register(r'engagement-history', ClientEngagementHistoryViewSet, basename='client-engagement-history')
+management_router = DefaultRouter()
+management_router.register(r'clients', ClientViewSet, basename='client')
+management_router.register(r'portal-users', ClientPortalUserViewSet, basename='portaluser')
+management_router.register(r'notes', ClientNoteViewSet, basename='clientnote')
+management_router.register(r'engagements', ClientEngagementViewSet, basename='engagement')
+
+portal_router = DefaultRouter()
+portal_router.register(r'projects', ClientProjectViewSet, basename='client-project')
+portal_router.register(r'comments', ClientCommentViewSet, basename='client-comment')
+portal_router.register(r'invoices', ClientInvoiceViewSet, basename='client-invoice')
+portal_router.register(r'chat-threads', ClientChatThreadViewSet, basename='client-chat-thread')
+portal_router.register(r'messages', ClientMessageViewSet, basename='client-message')
+portal_router.register(r'proposals', ClientProposalViewSet, basename='client-proposal')
+portal_router.register(r'contracts', ClientContractViewSet, basename='client-contract')
+portal_router.register(r'engagement-history', ClientEngagementHistoryViewSet, basename='client-engagement-history')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('', include(management_router.urls)),
+    path('portal/', include(portal_router.urls)),
 ]

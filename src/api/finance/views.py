@@ -4,10 +4,11 @@ DRF ViewSets for Finance module.
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.finance.models import Invoice, Bill, LedgerEntry
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from .serializers import InvoiceSerializer, BillSerializer, LedgerEntrySerializer
 
 
-class InvoiceViewSet(viewsets.ModelViewSet):
+class InvoiceViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Invoice model."""
     queryset = Invoice.objects.select_related('client', 'project', 'created_by')
     serializer_class = InvoiceSerializer
@@ -18,7 +19,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     ordering = ['-issue_date', '-created_at']
 
 
-class BillViewSet(viewsets.ModelViewSet):
+class BillViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for Bill model."""
     queryset = Bill.objects.select_related('project', 'approved_by')
     serializer_class = BillSerializer
@@ -29,7 +30,7 @@ class BillViewSet(viewsets.ModelViewSet):
     ordering = ['-bill_date', '-created_at']
 
 
-class LedgerEntryViewSet(viewsets.ModelViewSet):
+class LedgerEntryViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """ViewSet for LedgerEntry model."""
     queryset = LedgerEntry.objects.select_related('invoice', 'bill', 'created_by')
     serializer_class = LedgerEntrySerializer

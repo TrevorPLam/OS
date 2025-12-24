@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from modules.crm.models import Lead, Prospect, Campaign, Proposal, Contract
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from modules.crm.serializers import (
     LeadSerializer,
     ProspectSerializer,
@@ -17,13 +18,13 @@ from modules.crm.serializers import (
 )
 
 
-class LeadViewSet(viewsets.ModelViewSet):
+class LeadViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Lead management (Pre-Sale).
 
     Leads are marketing-captured prospects before qualification.
     """
-    queryset = Lead.objects.all()
+    queryset = Lead.objects.filter()
     serializer_class = LeadSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -45,6 +46,7 @@ class LeadViewSet(viewsets.ModelViewSet):
 
         # Create Prospect from Lead data
         prospect = Prospect.objects.create(
+            firm=lead.firm,
             lead=lead,
             company_name=lead.company_name,
             industry=lead.industry,
@@ -71,13 +73,13 @@ class LeadViewSet(viewsets.ModelViewSet):
         })
 
 
-class ProspectViewSet(viewsets.ModelViewSet):
+class ProspectViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Prospect management (Sales Pipeline).
 
     Prospects are qualified sales opportunities.
     """
-    queryset = Prospect.objects.all()
+    queryset = Prospect.objects.filter()
     serializer_class = ProspectSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -92,25 +94,25 @@ class ProspectViewSet(viewsets.ModelViewSet):
         from django.db.models import Count, Sum
         from decimal import Decimal
 
-        pipeline_summary = self.queryset.values('pipeline_stage').annotate(
+        pipeline_summary = self.get_queryset().values('pipeline_stage').annotate(
             count=Count('id'),
             total_value=Sum('estimated_value')
         ).order_by('pipeline_stage')
 
         return Response({
             'pipeline': list(pipeline_summary),
-            'total_prospects': self.queryset.count(),
-            'total_pipeline_value': self.queryset.aggregate(Sum('estimated_value'))['estimated_value__sum'] or Decimal('0.00')
+            'total_prospects': self.get_queryset().count(),
+            'total_pipeline_value': self.get_queryset().aggregate(Sum('estimated_value'))['estimated_value__sum'] or Decimal('0.00')
         })
 
 
-class CampaignViewSet(viewsets.ModelViewSet):
+class CampaignViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Campaign management.
 
     Marketing campaigns for lead generation.
     """
-    queryset = Campaign.objects.all()
+    queryset = Campaign.objects.filter()
     serializer_class = CampaignSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -134,13 +136,13 @@ class CampaignViewSet(viewsets.ModelViewSet):
         })
 
 
-class ProposalViewSet(viewsets.ModelViewSet):
+class ProposalViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Proposal management.
 
     Pre-sale proposals sent to prospects.
     """
-    queryset = Proposal.objects.all()
+    queryset = Proposal.objects.filter()
     serializer_class = ProposalSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -191,13 +193,13 @@ class ProposalViewSet(viewsets.ModelViewSet):
         })
 
 
-class ContractViewSet(viewsets.ModelViewSet):
+class ContractViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Contract management.
 
     Signed agreements with clients.
     """
-    queryset = Contract.objects.all()
+    queryset = Contract.objects.filter()
     serializer_class = ContractSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

@@ -51,7 +51,7 @@ export interface ClientTask {
 export interface ClientCommentPreview {
   id: number;
   author_name: string;
-  comment: string;
+  comment?: string;
   created_at: string;
 }
 
@@ -69,7 +69,7 @@ export interface ClientComment {
   author: number;
   author_name: string;
   author_email: string;
-  comment: string;
+  comment?: string;
   has_attachment: boolean;
   is_read_by_firm: boolean;
   read_by: number | null;
@@ -80,7 +80,7 @@ export interface ClientComment {
 
 export interface CreateCommentData {
   task: number;
-  comment: string;
+  comment?: string;
   has_attachment?: boolean;
 }
 
@@ -143,10 +143,10 @@ export interface ClientMessage {
   sender_email: string;
   is_from_client: boolean;
   message_type: 'text' | 'file' | 'system';
-  content: string;
-  attachment_url: string;
-  attachment_filename: string;
-  attachment_size_bytes: number | null;
+  content?: string;
+  attachment_url?: string;
+  attachment_filename?: string;
+  attachment_size_bytes?: number | null;
   is_read: boolean;
   read_at: string | null;
   read_by: number | null;
@@ -173,7 +173,7 @@ export interface ClientChatThread {
 
 export interface CreateMessageData {
   thread: number;
-  content: string;
+  content?: string;
   message_type?: 'text' | 'file' | 'system';
   attachment_url?: string;
   attachment_filename?: string;

@@ -10,8 +10,8 @@ export interface Document {
   visibility: 'internal' | 'client_visible'
   file_type: string
   file_size_bytes: number
-  s3_key: string
-  s3_bucket: string
+  s3_key?: string
+  s3_bucket?: string
   current_version: number
   uploaded_by: number
   created_at: string

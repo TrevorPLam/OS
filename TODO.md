@@ -24,36 +24,40 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Create Firm (Workspace) model
   - [x] Establish Firm ↔ User relationship (FirmMembership)
   - [x] Establish Firm ↔ Client relationship
-  - [ ] Add Firm ↔ CRM relationships (Lead, Prospect, Campaign, Proposal, Contract)
-  - [ ] Add Firm ↔ Projects relationships (Project, Task, TimeEntry)
-  - [ ] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry)
-  - [ ] Add Firm ↔ Documents relationships (Folder, Document)
-  - [ ] Add Firm ↔ Assets relationships (Asset)
+  - [x] Add Firm ↔ CRM relationships (Lead, Prospect, Campaign, Proposal, Contract)
+  - [x] Add Firm ↔ Projects relationships (Project, Task, TimeEntry)
+  - [x] Add Firm ↔ Finance relationships (Invoice, Bill, LedgerEntry)
+  - [x] Add Firm ↔ Documents relationships (Folder, Document)
+  - [x] Add Firm ↔ Assets relationships (Asset)
   - [ ] Create and apply database migrations
-  - [ ] Add firm propagation through request lifecycle
+  - [x] Add firm propagation through request lifecycle
 
-- [ ] **0.2** Implement Firm context resolution (subdomain/session/token)
-  - [ ] Firm context resolver (subdomain + session + token)
-  - [ ] Firm context attached to request object
-  - [ ] Firm context validation guard
-  - [ ] Requests without firm context are rejected
+- [x] **0.2** Implement Firm context resolution (subdomain/session/token)
+  - [x] Firm context resolver (subdomain + session + token)
+  - [x] Firm context attached to request object
+  - [x] Firm context validation guard
+  - [x] Requests without firm context are rejected
 
-- [ ] **0.3** Enforce firm + client scoping everywhere
-  - [ ] Firm-scoped queryset mixins/helpers
-  - [ ] Refactor existing queries to use firm scoping
-  - [ ] Forbid `Model.objects.all()` in firm-facing code
-  - [ ] Client-scoped queries where applicable
+- [x] **0.3** Enforce firm + client scoping everywhere
+  - [x] Firm-scoped queryset mixins/helpers
+  - [x] Refactor existing queries to use firm scoping
+  - [x] Forbid `Model.objects.all()` in firm-facing code
+  - [x] Client-scoped queries where applicable
 
-- [ ] **0.4** Portal containment (default-deny)
-  - [ ] Portal-only permission classes
-  - [ ] Separate routing or namespace for portal
-  - [ ] Explicit allowlist of portal endpoints
-  - [ ] Portal users receive 403 on non-portal endpoints
+- [x] **0.4** Portal containment (default-deny)
+  - [x] Portal-only permission classes
+  - [x] Separate routing or namespace for portal
+  - [x] Explicit allowlist of portal endpoints
+  - [x] Portal users receive 403 on non-portal endpoints
 
 - [ ] **0.5** Platform privacy enforcement (metadata-only)
-  - [ ] Platform role separation (Operator vs Break-Glass)
-  - [ ] Explicit deny rules for content models
+  - [x] Platform role separation (Operator vs Break-Glass)
+  - [x] Explicit deny rules for content models
   - [ ] Metadata/content separation in models and APIs
+    - [x] Split document + version content pointers into content tables
+    - [x] Split client message content into content table
+    - [x] Split client note/comment content into content tables
+    - [ ] Separate remaining content-bearing models
   - [ ] Content encryption (E2EE)
 
 - [ ] **0.6** Break-glass access with impersonation safeguards

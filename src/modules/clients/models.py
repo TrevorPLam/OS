@@ -215,7 +215,6 @@ class ClientNote(models.Model):
         null=True,
         related_name='authored_client_notes'
     )
-    note = models.TextField()
     is_pinned = models.BooleanField(
         default=False,
         help_text="Pinned notes appear at top"
@@ -232,6 +231,24 @@ class ClientNote(models.Model):
 
     def __str__(self):
         return f"Note by {self.author} for {self.client.company_name}"
+
+
+class ClientNoteContent(models.Model):
+    """
+    Content storage for internal client notes.
+    """
+    note = models.OneToOneField(
+        ClientNote,
+        on_delete=models.CASCADE,
+        related_name='content'
+    )
+    body = models.TextField()
+
+    class Meta:
+        db_table = 'clients_note_content'
+
+    def __str__(self):
+        return f"Content for note {self.note_id}"
 
 
 class ClientEngagement(models.Model):
@@ -343,9 +360,6 @@ class ClientComment(models.Model):
         help_text="Portal user who wrote this comment"
     )
 
-    # Comment Content
-    comment = models.TextField()
-
     # Attachments (optional)
     has_attachment = models.BooleanField(
         default=False,
@@ -386,6 +400,24 @@ class ClientComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author.get_full_name()} on task {self.task.title}"
+
+
+class ClientCommentContent(models.Model):
+    """
+    Content storage for client comments.
+    """
+    comment = models.OneToOneField(
+        ClientComment,
+        on_delete=models.CASCADE,
+        related_name='content'
+    )
+    body = models.TextField()
+
+    class Meta:
+        db_table = 'clients_comment_content'
+
+    def __str__(self):
+        return f"Content for comment {self.comment_id}"
 
 
 class ClientChatThread(models.Model):
@@ -487,25 +519,6 @@ class ClientMessage(models.Model):
         choices=MESSAGE_TYPE_CHOICES,
         default='text'
     )
-    content = models.TextField(
-        help_text="Message text content"
-    )
-
-    # File Attachment (optional)
-    attachment_url = models.URLField(
-        blank=True,
-        help_text="S3 URL for file attachment (if message_type=file)"
-    )
-    attachment_filename = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Original filename of attachment"
-    )
-    attachment_size_bytes = models.BigIntegerField(
-        null=True,
-        blank=True,
-        help_text="File size in bytes"
-    )
 
     # Read Status
     is_read = models.BooleanField(
@@ -554,3 +567,37 @@ class ClientMessage(models.Model):
             self.thread.last_message_at = self.created_at
             self.thread.last_message_by = self.sender
             self.thread.save()
+
+
+class ClientMessageContent(models.Model):
+    """
+    Content storage for client messages.
+    """
+    message = models.OneToOneField(
+        ClientMessage,
+        on_delete=models.CASCADE,
+        related_name='content'
+    )
+    content = models.TextField(
+        help_text="Message text content"
+    )
+    attachment_url = models.URLField(
+        blank=True,
+        help_text="S3 URL for file attachment (if message_type=file)"
+    )
+    attachment_filename = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Original filename of attachment"
+    )
+    attachment_size_bytes = models.BigIntegerField(
+        null=True,
+        blank=True,
+        help_text="File size in bytes"
+    )
+
+    class Meta:
+        db_table = 'clients_message_content'
+
+    def __str__(self):
+        return f"Content for message {self.message_id}"

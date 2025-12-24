@@ -5,7 +5,9 @@ from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.core.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
+from modules.firm.viewsets import FirmScopedViewSetMixin
 from modules.clients.models import (
     Client,
     ClientPortalUser,
@@ -30,13 +32,13 @@ from modules.clients.serializers import (
 )
 
 
-class ClientViewSet(viewsets.ModelViewSet):
+class ClientViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client management (Post-sale).
 
     Provides CRUD operations for clients that have been converted from prospects.
     """
-    queryset = Client.objects.all()
+    queryset = Client.objects.filter()
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -85,59 +87,71 @@ class ClientViewSet(viewsets.ModelViewSet):
         return Response({'status': 'portal disabled', 'client': ClientSerializer(client).data})
 
 
-class ClientPortalUserViewSet(viewsets.ModelViewSet):
+class ClientPortalUserViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Portal User management.
 
     Manages client-side users with portal access.
     """
-    queryset = ClientPortalUser.objects.all()
+    queryset = ClientPortalUser.objects.filter()
     serializer_class = ClientPortalUserSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['client', 'role']
     search_fields = ['user__username', 'user__email', 'client__company_name']
+    firm_lookup = "client__firm"
 
     def perform_create(self, serializer):
         """Set invited_by to current user."""
+        client = serializer.validated_data.get('client')
+        if client and client.firm_id != self.request.firm_id:
+            raise ValidationError("Client does not belong to the active firm.")
         serializer.save(invited_by=self.request.user)
 
 
-class ClientNoteViewSet(viewsets.ModelViewSet):
+class ClientNoteViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Notes (internal only).
 
     Notes are NOT visible to clients - for internal team use only.
     """
-    queryset = ClientNote.objects.all()
+    queryset = ClientNote.objects.select_related('content', 'author', 'client').filter()
     serializer_class = ClientNoteSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['client', 'author', 'is_pinned']
-    search_fields = ['note', 'client__company_name']
+    search_fields = ['content__body', 'client__company_name']
+    firm_lookup = "client__firm"
 
     def get_queryset(self):
         """Optionally filter by client_id query param."""
-        queryset = super().get_queryset()
+        queryset = self.filter_by_firm(super().get_queryset())
         client_id = self.request.query_params.get('client_id')
         if client_id:
             queryset = queryset.filter(client_id=client_id)
         return queryset
 
+    def perform_create(self, serializer):
+        client = serializer.validated_data.get('client')
+        if client and client.firm_id != self.request.firm_id:
+            raise ValidationError("Client does not belong to the active firm.")
+        serializer.save()
 
-class ClientEngagementViewSet(viewsets.ModelViewSet):
+
+class ClientEngagementViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Engagements.
 
     Tracks all contracts/engagements with version history.
     """
-    queryset = ClientEngagement.objects.all()
+    queryset = ClientEngagement.objects.filter()
     serializer_class = ClientEngagementSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['client', 'status']
     ordering_fields = ['start_date', 'version', 'contracted_value']
     ordering = ['-start_date']
+    firm_lookup = "client__firm"
 
     @action(detail=False, methods=['get'])
     def by_client(self, request):
@@ -146,12 +160,18 @@ class ClientEngagementViewSet(viewsets.ModelViewSet):
         if not client_id:
             return Response({'error': 'client_id query parameter required'}, status=400)
 
-        engagements = self.queryset.filter(client_id=client_id)
+        engagements = self.get_queryset().filter(client_id=client_id)
         serializer = self.get_serializer(engagements, many=True)
         return Response(serializer.data)
 
+    def perform_create(self, serializer):
+        client = serializer.validated_data.get('client')
+        if client and client.firm_id != self.request.firm_id:
+            raise ValidationError("Client does not belong to the active firm.")
+        serializer.save()
 
-class ClientProjectViewSet(viewsets.ReadOnlyModelViewSet):
+
+class ClientProjectViewSet(FirmScopedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Projects (read-only).
 
@@ -160,6 +180,7 @@ class ClientProjectViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = ClientProjectSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['name', 'start_date', 'end_date']
@@ -178,18 +199,23 @@ class ClientProjectViewSet(viewsets.ReadOnlyModelViewSet):
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Project.objects.none()
 
             # Check if user has permission to view projects
             if not portal_user.can_view_projects:
                 return Project.objects.none()
 
             # Return projects for this client
-            return Project.objects.filter(client=portal_user.client).prefetch_related('tasks_set')
+            return Project.objects.filter(
+                firm=self.request.firm,
+                client=portal_user.client
+            ).prefetch_related('tasks_set')
 
         except ClientPortalUser.DoesNotExist:
             # Not a client portal user - check if firm user
             # Firm users can view all projects (handled by permissions)
-            return Project.objects.all()
+            return Project.objects.filter(firm=self.request.firm)
 
     @action(detail=True, methods=['get'])
     def tasks(self, request, pk=None):
@@ -202,25 +228,30 @@ class ClientProjectViewSet(viewsets.ReadOnlyModelViewSet):
         from modules.projects.models import Task
         from modules.clients.serializers import ClientTaskSerializer
 
-        tasks = Task.objects.filter(project=project).order_by('position', '-created_at')
+        tasks = Task.objects.filter(
+            firm=self.request.firm,
+            project=project
+        ).order_by('position', '-created_at')
         serializer = ClientTaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
 
-class ClientCommentViewSet(viewsets.ModelViewSet):
+class ClientCommentViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Comments on Tasks.
 
     Allows client portal users to comment on tasks in their projects.
     Comments are visible to both firm team and client.
     """
-    queryset = ClientComment.objects.all()
+    queryset = ClientComment.objects.select_related('content', 'task', 'author', 'client').filter()
     serializer_class = ClientCommentSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['task', 'client', 'is_read_by_firm']
     ordering_fields = ['created_at']
     ordering = ['-created_at']
+    firm_lookup = "client__firm"
 
     def get_queryset(self):
         """
@@ -230,11 +261,13 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
         - Firm users: see all comments
         """
         user = self.request.user
-        queryset = super().get_queryset()
+        queryset = self.filter_by_firm(super().get_queryset()).select_related('content')
 
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return queryset.none()
             # Filter to only this client's comments
             queryset = queryset.filter(client=portal_user.client)
         except ClientPortalUser.DoesNotExist:
@@ -254,6 +287,9 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
 
         The serializer handles setting author and client from request context.
         """
+        client = serializer.validated_data.get('client')
+        if client and client.firm_id != self.request.firm_id:
+            raise ValidationError("Client does not belong to the active firm.")
         serializer.save()
 
     @action(detail=True, methods=['post'])
@@ -301,12 +337,12 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
             )
         except ClientPortalUser.DoesNotExist:
             # Firm user - get unread comments
-            unread_comments = self.queryset.filter(is_read_by_firm=False)
+            unread_comments = self.get_queryset().filter(is_read_by_firm=False)
             serializer = self.get_serializer(unread_comments, many=True)
             return Response(serializer.data)
 
 
-class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
+class ClientInvoiceViewSet(FirmScopedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Invoices (read-only).
 
@@ -316,6 +352,7 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = None  # Will be imported below
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['invoice_number', 'issue_date', 'due_date', 'total_amount']
@@ -339,6 +376,8 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Invoice.objects.none()
 
             # Check if user has permission to view billing
             if not portal_user.can_view_billing:
@@ -346,13 +385,14 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
 
             # Return invoices for this client
             return Invoice.objects.filter(
+                firm=self.request.firm,
                 client=portal_user.client
             ).select_related('client', 'project').order_by('-issue_date')
 
         except ClientPortalUser.DoesNotExist:
             # Not a client portal user - check if firm user
             # Firm users can view all invoices (handled by permissions)
-            return Invoice.objects.all().select_related('client', 'project')
+            return Invoice.objects.filter(firm=self.request.firm).select_related('client', 'project')
 
     @action(detail=True, methods=['post'])
     def generate_payment_link(self, request, pk=None):
@@ -406,6 +446,11 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         # Get client
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Response(
+                    {'error': 'Client does not belong to the active firm.'},
+                    status=403
+                )
             client = portal_user.client
         except ClientPortalUser.DoesNotExist:
             return Response(
@@ -416,7 +461,7 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         from modules.finance.models import Invoice
         from django.db.models import Sum, Count
 
-        invoices = Invoice.objects.filter(client=client)
+        invoices = Invoice.objects.filter(firm=self.request.firm, client=client)
 
         # Get summary statistics
         summary = {
@@ -450,7 +495,7 @@ class ClientInvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(summary)
 
 
-class ClientChatThreadViewSet(viewsets.ModelViewSet):
+class ClientChatThreadViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Chat Threads.
 
@@ -459,10 +504,12 @@ class ClientChatThreadViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ClientChatThreadSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['client', 'is_active', 'date']
     ordering_fields = ['date', 'last_message_at']
     ordering = ['-date']
+    firm_lookup = "client__firm"
 
     def get_queryset(self):
         """
@@ -472,11 +519,13 @@ class ClientChatThreadViewSet(viewsets.ModelViewSet):
         - Firm users: see all threads
         """
         user = self.request.user
-        queryset = ClientChatThread.objects.all().prefetch_related('messages')
+        queryset = self.filter_by_firm(ClientChatThread.objects.filter()).prefetch_related('messages')
 
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return ClientChatThread.objects.none()
 
             # Check if user has permission to message team
             if not portal_user.can_message_team:
@@ -490,6 +539,12 @@ class ClientChatThreadViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def perform_create(self, serializer):
+        client = serializer.validated_data.get('client')
+        if client and client.firm_id != self.request.firm_id:
+            raise ValidationError("Client does not belong to the active firm.")
+        serializer.save()
+
     @action(detail=False, methods=['get'])
     def active(self, request):
         """
@@ -502,6 +557,11 @@ class ClientChatThreadViewSet(viewsets.ModelViewSet):
         # Get client
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Response(
+                    {'error': 'Client does not belong to the active firm.'},
+                    status=403
+                )
             client = portal_user.client
         except ClientPortalUser.DoesNotExist:
             return Response(
@@ -550,7 +610,7 @@ class ClientChatThreadViewSet(viewsets.ModelViewSet):
             })
 
 
-class ClientMessageViewSet(viewsets.ModelViewSet):
+class ClientMessageViewSet(FirmScopedViewSetMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Messages.
 
@@ -559,10 +619,13 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ClientMessageSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['thread', 'is_from_client', 'message_type', 'is_read']
     ordering_fields = ['created_at']
     ordering = ['created_at']
+    firm_lookup = "thread__client__firm"
+    client_lookup = "thread__client_id"
 
     def get_queryset(self):
         """
@@ -572,11 +635,15 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
         - Firm users: see all messages
         """
         user = self.request.user
-        queryset = ClientMessage.objects.all().select_related('thread', 'sender')
+        queryset = self.filter_by_firm(
+            ClientMessage.objects.filter()
+        ).select_related('thread', 'sender', 'content')
 
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return ClientMessage.objects.none()
 
             # Check if user has permission to message team
             if not portal_user.can_message_team:
@@ -589,6 +656,12 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
             pass
 
         return queryset
+
+    def perform_create(self, serializer):
+        thread = serializer.validated_data.get('thread')
+        if thread and thread.client.firm_id != self.request.firm_id:
+            raise ValidationError("Thread does not belong to the active firm.")
+        serializer.save()
 
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):
@@ -634,7 +707,7 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
+class ClientProposalViewSet(FirmScopedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Proposals (read-only).
 
@@ -643,6 +716,7 @@ class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = ClientProposalSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'proposal_type']
     ordering_fields = ['created_at', 'valid_until']
@@ -661,9 +735,12 @@ class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Proposal.objects.none()
 
             # Return proposals for this client (update/renewal proposals)
             queryset = Proposal.objects.filter(
+                firm=self.request.firm,
                 client=portal_user.client
             ).select_related('client', 'prospect')
 
@@ -671,7 +748,7 @@ class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
 
         except ClientPortalUser.DoesNotExist:
             # Firm user - can view all proposals
-            return Proposal.objects.all().select_related('client', 'prospect')
+            return Proposal.objects.filter(firm=self.request.firm).select_related('client', 'prospect')
 
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
@@ -699,7 +776,7 @@ class ClientProposalViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
 
-class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
+class ClientContractViewSet(FirmScopedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Contracts (read-only).
 
@@ -708,6 +785,7 @@ class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = ClientContractSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['start_date', 'end_date', 'created_at']
@@ -726,9 +804,12 @@ class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Contract.objects.none()
 
             # Return contracts for this client
             queryset = Contract.objects.filter(
+                firm=self.request.firm,
                 client=portal_user.client
             ).select_related('client', 'proposal', 'signed_by')
 
@@ -736,7 +817,7 @@ class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
 
         except ClientPortalUser.DoesNotExist:
             # Firm user - can view all contracts
-            return Contract.objects.all().select_related('client', 'proposal', 'signed_by')
+            return Contract.objects.filter(firm=self.request.firm).select_related('client', 'proposal', 'signed_by')
 
     @action(detail=True, methods=['get'])
     def download(self, request, pk=None):
@@ -760,7 +841,7 @@ class ClientContractViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
 
-class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
+class ClientEngagementHistoryViewSet(FirmScopedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Engagement History (read-only).
 
@@ -769,10 +850,12 @@ class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = ClientEngagementDetailSerializer
     permission_classes = [IsAuthenticated]
+    allow_portal = True
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['version', 'start_date']
     ordering = ['-version']
+    firm_lookup = "client__firm"
 
     def get_queryset(self):
         """
@@ -785,17 +868,22 @@ class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         # Check if user is a client portal user
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return ClientEngagement.objects.none()
 
             # Return engagements for this client
             queryset = ClientEngagement.objects.filter(
-                client=portal_user.client
+                client=portal_user.client,
+                firm=self.request.firm
             ).select_related('client', 'contract', 'parent_engagement').prefetch_related('renewals')
 
             return queryset
 
         except ClientPortalUser.DoesNotExist:
             # Firm user - can view all engagements
-            return ClientEngagement.objects.all().select_related('client', 'contract', 'parent_engagement').prefetch_related('renewals')
+            return ClientEngagement.objects.filter(firm=self.request.firm).select_related(
+                'client', 'contract', 'parent_engagement'
+            ).prefetch_related('renewals')
 
     @action(detail=False, methods=['get'])
     def timeline(self, request):
@@ -809,6 +897,11 @@ class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         # Get client
         try:
             portal_user = ClientPortalUser.objects.get(user=user)
+            if portal_user.client.firm_id != self.request.firm_id:
+                return Response(
+                    {'error': 'Client does not belong to the active firm.'},
+                    status=403
+                )
             client = portal_user.client
         except ClientPortalUser.DoesNotExist:
             return Response(
@@ -817,7 +910,8 @@ class ClientEngagementHistoryViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         engagements = ClientEngagement.objects.filter(
-            client=client
+            client=client,
+            firm=self.request.firm
         ).select_related('contract').order_by('version')
 
         serializer = self.get_serializer(engagements, many=True)

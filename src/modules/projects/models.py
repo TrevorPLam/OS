@@ -151,6 +151,12 @@ class Task(models.Model):
     ]
 
     # Relationships
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='tasks',
+        help_text="Firm (workspace) this task belongs to"
+    )
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
@@ -197,12 +203,21 @@ class Task(models.Model):
         db_table = 'projects_tasks'
         ordering = ['position', '-created_at']
         indexes = [
-            models.Index(fields=['project', 'status']),
-            models.Index(fields=['assigned_to']),
+            models.Index(fields=['firm', 'project', 'status']),
+            models.Index(fields=['firm', 'assigned_to']),
         ]
 
     def __str__(self):
         return f"[{self.project.project_code}] {self.title}"
+
+    def save(self, *args, **kwargs):
+        """Ensure firm is aligned with the project firm."""
+        if self.project_id:
+            if self.firm_id and self.firm_id != self.project.firm_id:
+                raise ValueError("Task firm must match project firm.")
+            if not self.firm_id:
+                self.firm = self.project.firm
+        super().save(*args, **kwargs)
 
 
 class TimeEntry(models.Model):
@@ -215,6 +230,12 @@ class TimeEntry(models.Model):
     TIER 0: Belongs to a Firm through Project (time_entry.project.firm).
     """
     # Relationships
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='time_entries',
+        help_text="Firm (workspace) this time entry belongs to"
+    )
     project = models.ForeignKey(
         Project,
         on_delete=models.CASCADE,
@@ -283,13 +304,18 @@ class TimeEntry(models.Model):
         db_table = 'projects_time_entries'
         ordering = ['-date', '-created_at']
         indexes = [
-            models.Index(fields=['project', 'user', 'date']),
-            models.Index(fields=['invoiced']),
+            models.Index(fields=['firm', 'project', 'user', 'date']),
+            models.Index(fields=['firm', 'invoiced']),
         ]
         verbose_name_plural = 'Time Entries'
 
     def save(self, *args, **kwargs):
-        """Calculate billed_amount before saving."""
+        """Ensure firm is aligned with the project firm, then calculate billed_amount."""
+        if self.project_id:
+            if self.firm_id and self.firm_id != self.project.firm_id:
+                raise ValueError("Time entry firm must match project firm.")
+            if not self.firm_id:
+                self.firm = self.project.firm
         self.billed_amount = self.hours * self.hourly_rate
         super().save(*args, **kwargs)
 
