@@ -32,11 +32,11 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Create database migrations ✅
   - [ ] Verify data integrity constraints work correctly (requires DB setup)
 
-- [ ] **0.2** Implement Firm context resolution (subdomain/session/token)
-  - [ ] Firm context resolver (subdomain + session + token)
-  - [ ] Firm context attached to request object
-  - [ ] Firm context validation guard
-  - [ ] Requests without firm context are rejected
+- [x] **0.2** Implement Firm context resolution (subdomain/session/token) ✅ COMPLETE
+  - [x] Firm context resolver (subdomain + session + token) ✅
+  - [x] Firm context attached to request object ✅
+  - [x] Firm context validation guard ✅
+  - [x] Requests without firm context are rejected ✅
 
 - [ ] **0.3** Enforce firm + client scoping everywhere
   - [ ] Firm-scoped queryset mixins/helpers
@@ -319,7 +319,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 | Tier | Status | Completion % |
 |------|--------|-------------|
-| Tier 0 | 🟡 In Progress | 17% (1/6 tasks complete) |
+| Tier 0 | 🟡 In Progress | 33% (2/6 tasks complete) |
 | Tier 1 | 🔴 Not Started | 0% |
 | Tier 2 | 🔴 Not Started | 0% |
 | Tier 3 | 🔴 Not Started | 0% |
