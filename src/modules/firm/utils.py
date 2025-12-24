@@ -10,6 +10,8 @@ from typing import Optional
 from django.db import models
 from django.http import HttpRequest
 
+from modules.firm.models import BreakGlassSession
+
 
 class FirmScopingError(Exception):
     """Raised when firm scoping is violated."""
@@ -172,3 +174,38 @@ def get_firm_or_403(request: HttpRequest):
         )
 
     return request.firm
+
+
+def get_active_break_glass_session(firm):
+    """
+    Return the active break-glass session for a firm, if any.
+
+    Meta-commentary:
+    - This does not enforce access; it only provides a lookup for guards.
+    - Follow-up: wire this into permission checks and platform endpoints.
+    """
+    if firm is None:
+        raise FirmScopingError("Cannot resolve break-glass session without firm context.")
+    return BreakGlassSession.objects.for_firm(firm).active().first()
+
+
+def has_active_break_glass_session(firm) -> bool:
+    """
+    Return True when a firm has an active break-glass session.
+
+    Meta-commentary:
+    - Intended for enforcement gates once break-glass permissions are wired.
+    """
+    return get_active_break_glass_session(firm) is not None
+
+
+def expire_overdue_break_glass_sessions(firm) -> int:
+    """
+    Expire overdue break-glass sessions for a firm.
+
+    Meta-commentary:
+    - Intended for scheduled jobs once tenant-safe background processing exists.
+    """
+    if firm is None:
+        raise FirmScopingError("Cannot expire break-glass sessions without firm context.")
+    return BreakGlassSession.objects.for_firm(firm).expire_overdue()
