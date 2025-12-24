@@ -126,11 +126,11 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ### Tasks
 
-- [ ] **2.1** Standardize permissions across all ViewSets
-  - [ ] Inventory all ViewSets and endpoints
-  - [ ] Attach explicit permission classes everywhere
-  - [ ] Remove inline or duplicated permission checks
-  - [ ] Centralize authorization logic
+- [x] **2.1** Standardize permissions across all ViewSets ✅ SUBSTANTIALLY COMPLETE
+  - [x] Inventory all ViewSets and endpoints ✅ (33 ViewSets catalogued, see docs/tier2/VIEWSET_PERMISSION_AUDIT.md)
+  - [x] Attach explicit permission classes everywhere ✅ (All 33 ViewSets now have IsAuthenticated)
+  - [ ] Remove inline or duplicated permission checks ⚠️ PENDING (audit needed)
+  - [ ] Centralize authorization logic ⚠️ PENDING (future: custom permission classes)
 
 - [x] **2.2** Replace direct User imports with AUTH_USER_MODEL ✅ COMPLETE
   - [x] Search and replace direct User imports ✅ (9 files updated)
@@ -323,7 +323,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 |------|--------|-------------|
 | Tier 0 | 🟢 Substantially Complete | 83% (5/6 tasks complete, 1 partial with blockers) |
 | Tier 1 | 🟡 In Progress | 50% (2/4 tasks complete, 2 blocked by environment) |
-| Tier 2 | 🟡 In Progress | 17% (1/6 tasks complete) |
+| Tier 2 | 🟡 In Progress | 33% (2/6 tasks substantially complete) |
 | Tier 3 | 🔴 Not Started | 0% |
 | Tier 4 | 🔴 Not Started | 0% |
 | Tier 5 | 🔴 Not Started | 0% |
@@ -452,5 +452,13 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
     - Updated 7 model files to use settings.AUTH_USER_MODEL for ForeignKeys
     - Updated auth module (serializers + views) to use get_user_model()
     - 9 files total modified, all User imports properly abstracted
-  - Tier 2 now 17% complete (1/6 tasks)
+  - **SUBSTANTIALLY COMPLETED Task 2.1 (ViewSet permission standardization):**
+    - Inventoried all 33 ViewSets across codebase
+    - **CRITICAL SECURITY ISSUE FOUND:** 16 out of 33 ViewSets (48%) had NO permission classes
+    - All api/ module ViewSets were completely unprotected
+    - Added explicit IsAuthenticated to all 16 unprotected ViewSets
+    - 100% of ViewSets now have explicit permission enforcement
+    - Created comprehensive audit documentation: docs/tier2/VIEWSET_PERMISSION_AUDIT.md
+    - Security impact: HIGH RISK → LOW RISK
+  - Tier 2 now 33% complete (2/6 tasks substantially complete)
   - Environment setup complete: CI can now run all checks
