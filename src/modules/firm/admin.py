@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Firm, FirmMembership, BreakGlassSession
+from .models import Firm, FirmMembership, BreakGlassSession, PlatformUserProfile
 
 
 @admin.register(Firm)
@@ -67,5 +67,25 @@ class BreakGlassSessionAdmin(admin.ModelAdmin):
         }),
         ('Review', {
             'fields': ('reviewed_at', 'reviewed_by')
+        }),
+    )
+
+
+@admin.register(PlatformUserProfile)
+class PlatformUserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'platform_role', 'is_platform_active', 'can_activate_break_glass', 'granted_at', 'revoked_at')
+    list_filter = ('platform_role', 'is_platform_active', 'can_activate_break_glass', 'granted_at')
+    search_fields = ('user__username', 'user__email', 'notes')
+    readonly_fields = ('granted_at', 'revoked_at')
+    fieldsets = (
+        ('User & Role', {
+            'fields': ('user', 'platform_role', 'is_platform_active')
+        }),
+        ('Permissions', {
+            'fields': ('can_activate_break_glass',),
+            'description': 'Explicit permission to activate break-glass sessions (required for break-glass operators)'
+        }),
+        ('Audit', {
+            'fields': ('granted_by', 'granted_at', 'revoked_by', 'revoked_at', 'notes')
         }),
     )

@@ -497,3 +497,135 @@ class BreakGlassSession(models.Model):
         self.mark_expired()
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class PlatformUserProfile(models.Model):
+    """
+    Platform operator profile for users with platform-level access.
+
+    TIER 0 REQUIREMENT: Platform staff roles must be separated:
+    - Platform Operator: metadata-only access (default, safe operations)
+    - Break-Glass Operator: can activate break-glass for content access (rare, audited)
+
+    Meta-commentary:
+    - This model extends Django User with platform-specific role information.
+    - Platform operators should NEVER have default access to customer content.
+    - Break-glass capability is explicitly granted, not default for all platform staff.
+    - All platform actions should be auditable (future: link to audit system).
+    """
+
+    ROLE_PLATFORM_OPERATOR = 'platform_operator'
+    ROLE_BREAK_GLASS_OPERATOR = 'break_glass_operator'
+    ROLE_CHOICES = [
+        (ROLE_PLATFORM_OPERATOR, 'Platform Operator (Metadata Only)'),
+        (ROLE_BREAK_GLASS_OPERATOR, 'Break-Glass Operator (Rare, Audited Access)'),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='platform_profile',
+        help_text="Link to Django User"
+    )
+    platform_role = models.CharField(
+        max_length=50,
+        choices=ROLE_CHOICES,
+        default=ROLE_PLATFORM_OPERATOR,
+        help_text="Platform access level: operator (metadata) or break-glass (rare content access)"
+    )
+    is_platform_active = models.BooleanField(
+        default=True,
+        help_text="Whether platform access is currently active"
+    )
+    can_activate_break_glass = models.BooleanField(
+        default=False,
+        help_text="Explicit flag: can this user activate break-glass sessions? (separate from role)"
+    )
+
+    # Audit
+    granted_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When platform access was granted"
+    )
+    granted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='granted_platform_profiles',
+        help_text="Who granted this platform access"
+    )
+    revoked_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When platform access was revoked (if applicable)"
+    )
+    revoked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='revoked_platform_profiles',
+        help_text="Who revoked this platform access"
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Internal notes about this platform user (e.g., reason for access)"
+    )
+
+    class Meta:
+        db_table = 'firm_platform_user_profile'
+        ordering = ['-granted_at']
+        indexes = [
+            models.Index(fields=['platform_role', 'is_platform_active']),
+            models.Index(fields=['can_activate_break_glass']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_platform_role_display()}"
+
+    @property
+    def is_break_glass_operator(self):
+        """Check if user is a break-glass operator with active access."""
+        return (
+            self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR
+            and self.is_platform_active
+            and self.can_activate_break_glass
+        )
+
+    @property
+    def is_platform_operator(self):
+        """Check if user is a platform operator (metadata-only access)."""
+        return self.platform_role == self.ROLE_PLATFORM_OPERATOR and self.is_platform_active
+
+    def revoke_access(self, revoker, reason=""):
+        """Revoke platform access for this user."""
+        self.is_platform_active = False
+        self.can_activate_break_glass = False
+        self.revoked_at = timezone.now()
+        self.revoked_by = revoker
+        if reason:
+            self.notes = f"{self.notes}\n[REVOKED] {reason}".strip()
+
+    def clean(self):
+        """Validate platform profile invariants."""
+        # Break-glass operators must have explicit break-glass activation permission
+        if self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR and not self.can_activate_break_glass:
+            raise ValidationError({
+                'can_activate_break_glass': 'Break-glass operators must have can_activate_break_glass enabled.'
+            })
+
+        # Revocation invariants
+        if not self.is_platform_active and not self.revoked_at:
+            raise ValidationError({
+                'revoked_at': 'Inactive platform profiles must have revoked_at timestamp.'
+            })
+        if self.revoked_at and not self.revoked_by:
+            raise ValidationError({
+                'revoked_by': 'Revoked platform profiles must include who revoked access.'
+            })
+
+    def save(self, *args, **kwargs):
+        """Run validation before saving."""
+        self.full_clean()
+        super().save(*args, **kwargs)
