@@ -44,6 +44,7 @@ def _handle_new_client(proposal):
     """
     # 1. Create Client from Prospect
     client = Client.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         source_prospect=proposal.prospect,
         source_proposal=proposal,
         company_name=proposal.prospect.company_name,
@@ -70,6 +71,7 @@ def _handle_new_client(proposal):
 
     # 2. Create Contract (Engagement Letter)
     contract = Contract.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         proposal=proposal,
         contract_number=f"ENG-{proposal.proposal_number}",
@@ -88,6 +90,7 @@ def _handle_new_client(proposal):
 
     # 3. Create ClientEngagement record (version 1)
     ClientEngagement.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         contract=contract,
         status='current',
@@ -103,6 +106,7 @@ def _handle_new_client(proposal):
     # 4. Create initial Project (if configured)
     if proposal.auto_create_project:
         Project.objects.create(
+            firm=proposal.firm,  # TIER 2: Explicit tenant context
             client=client,
             contract=contract,
             project_manager=proposal.created_by,
@@ -119,6 +123,7 @@ def _handle_new_client(proposal):
 
     # 5. Setup Document Folders
     root_folder = Folder.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         parent=None,
         name="Root",
@@ -128,6 +133,7 @@ def _handle_new_client(proposal):
     )
 
     Folder.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         parent=root_folder,
         name="Shared Documents",
@@ -137,6 +143,7 @@ def _handle_new_client(proposal):
     )
 
     Folder.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         parent=root_folder,
         name="Client Uploads",
@@ -146,6 +153,7 @@ def _handle_new_client(proposal):
     )
 
     Folder.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         parent=root_folder,
         name="Internal Only",
@@ -200,6 +208,7 @@ def _handle_client_engagement(proposal):
 
     # 1. Create Contract (Engagement Letter)
     contract = Contract.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         proposal=proposal,
         contract_number=f"ENG-{proposal.proposal_number}",
@@ -218,6 +227,7 @@ def _handle_client_engagement(proposal):
 
     # 2. Create ClientEngagement record
     ClientEngagement.objects.create(
+        firm=proposal.firm,  # TIER 2: Explicit tenant context
         client=client,
         contract=contract,
         status='current',
@@ -233,6 +243,7 @@ def _handle_client_engagement(proposal):
     # 3. Create Project (if configured)
     if proposal.auto_create_project:
         Project.objects.create(
+            firm=proposal.firm,  # TIER 2: Explicit tenant context
             client=client,
             contract=contract,
             project_manager=proposal.created_by,

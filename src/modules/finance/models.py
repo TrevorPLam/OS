@@ -8,8 +8,8 @@ Implements basic accounting for management consulting:
 
 TIER 0: All financial records MUST belong to exactly one Firm for tenant isolation.
 """
+from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from modules.projects.models import Project
@@ -59,7 +59,7 @@ class Invoice(models.Model):
         help_text="Optional: link to specific project"
     )
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_invoices'
@@ -267,7 +267,7 @@ class Bill(models.Model):
 
     # Approval
     approved_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -395,7 +395,7 @@ class LedgerEntry(models.Model):
 
     # Audit Fields
     created_by = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         related_name='ledger_entries'
