@@ -132,10 +132,10 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [ ] Remove inline or duplicated permission checks
   - [ ] Centralize authorization logic
 
-- [ ] **2.2** Replace direct User imports with AUTH_USER_MODEL
-  - [ ] Search and replace direct User imports
-  - [ ] Update type hints and serializers
-  - [ ] Update signals and admin references
+- [x] **2.2** Replace direct User imports with AUTH_USER_MODEL ✅ COMPLETE
+  - [x] Search and replace direct User imports ✅ (9 files updated)
+  - [x] Update type hints and serializers ✅ (auth module uses get_user_model())
+  - [x] Update signals and admin references ✅ (all models use settings.AUTH_USER_MODEL)
 
 - [ ] **2.3** Add firm + client context to all background/async jobs
   - [ ] Define standard job payload schema (firm_id, client_id)
@@ -323,7 +323,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 |------|--------|-------------|
 | Tier 0 | 🟢 Substantially Complete | 83% (5/6 tasks complete, 1 partial with blockers) |
 | Tier 1 | 🟡 In Progress | 50% (2/4 tasks complete, 2 blocked by environment) |
-| Tier 2 | 🔴 Not Started | 0% |
+| Tier 2 | 🟡 In Progress | 17% (1/6 tasks complete) |
 | Tier 3 | 🔴 Not Started | 0% |
 | Tier 4 | 🔴 Not Started | 0% |
 | Tier 5 | 🔴 Not Started | 0% |
@@ -444,3 +444,13 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
     - Changed coverage upload to `fail_ci_if_error: true`
   - Documented Tier 1 findings and blockers in docs/tier1/TIER1_PROGRESS_SUMMARY.md
   - Tier 1 now 50% complete (2/4 tasks, 2 blocked by missing Python environment)
+
+- 2025-12-24 [SESSION 3] — Claude: Completed Tier 1 environment setup and started Tier 2:
+  - Added frontend typecheck script to package.json
+  - Added missing CI dependencies to requirements.txt (flake8, black, isort, coverage, safety)
+  - **COMPLETED Task 2.2 (User model abstraction):** Replaced all direct User imports:
+    - Updated 7 model files to use settings.AUTH_USER_MODEL for ForeignKeys
+    - Updated auth module (serializers + views) to use get_user_model()
+    - 9 files total modified, all User imports properly abstracted
+  - Tier 2 now 17% complete (1/6 tasks)
+  - Environment setup complete: CI can now run all checks
