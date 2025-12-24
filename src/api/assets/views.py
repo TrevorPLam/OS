@@ -1,15 +1,22 @@
 """
 DRF ViewSets for Assets module.
+
+TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 """
 from rest_framework import viewsets, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.assets.models import Asset, MaintenanceLog
+from modules.firm.utils import FirmScopedMixin
 from .serializers import AssetSerializer, MaintenanceLogSerializer
 
 
-class AssetViewSet(viewsets.ModelViewSet):
-    """ViewSet for Asset model."""
-    queryset = Asset.objects.select_related('assigned_to')
+class AssetViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Asset model.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    model = Asset
     serializer_class = AssetSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'status', 'assigned_to']
@@ -17,13 +24,27 @@ class AssetViewSet(viewsets.ModelViewSet):
     ordering_fields = ['asset_tag', 'name', 'purchase_date']
     ordering = ['-created_at']
 
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('assigned_to')
 
-class MaintenanceLogViewSet(viewsets.ModelViewSet):
-    """ViewSet for MaintenanceLog model."""
-    queryset = MaintenanceLog.objects.select_related('asset', 'created_by')
+
+class MaintenanceLogViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for MaintenanceLog model.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    model = MaintenanceLog
     serializer_class = MaintenanceLogSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['asset', 'maintenance_type', 'status']
-    search_fields = ['asset__asset_tag', 'asset__name', 'description']
+    search_fields = ['description']
     ordering_fields = ['scheduled_date', 'created_at']
     ordering = ['-scheduled_date', '-created_at']
+
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('asset', 'created_by')

@@ -1,5 +1,7 @@
 """
 DRF ViewSets for Documents module with S3 upload functionality.
+
+TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 """
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
@@ -8,32 +10,49 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django_filters.rest_framework import DjangoFilterBackend
 from modules.documents.models import Folder, Document, Version
 from modules.documents.services import S3Service
+from modules.firm.utils import FirmScopedMixin, get_request_firm
 from .serializers import FolderSerializer, DocumentSerializer, VersionSerializer
 
 
-class FolderViewSet(viewsets.ModelViewSet):
-    """ViewSet for Folder model."""
-    queryset = Folder.objects.select_related('client', 'project', 'parent', 'created_by')
+class FolderViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Folder model.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    model = Folder
     serializer_class = FolderSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'project', 'parent', 'visibility']
-    search_fields = ['name', 'client__company_name']
+    search_fields = ['name']
     ordering_fields = ['name', 'created_at']
     ordering = ['name']
 
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('client', 'project', 'parent', 'created_by')
 
-class DocumentViewSet(viewsets.ModelViewSet):
+
+class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Document model with S3 upload functionality.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
-    queryset = Document.objects.select_related('folder', 'client', 'project', 'uploaded_by')
+    model = Document
     serializer_class = DocumentSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'folder', 'project', 'visibility', 'file_type']
-    search_fields = ['name', 'client__company_name']
+    search_fields = ['name']
     ordering_fields = ['name', 'created_at']
     ordering = ['-created_at']
     parser_classes = [MultiPartParser, FormParser]
+
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('folder', 'client', 'project', 'uploaded_by')
 
     @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
     def upload(self, request):
@@ -41,6 +60,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
         Upload a new document to S3.
 
         POST /api/documents/documents/upload/
+
+        TIER 0: Automatically includes firm context from request.
         """
         try:
             file_obj = request.FILES.get('file')
@@ -50,6 +71,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
+            # TIER 0: Get firm from request context
+            firm = get_request_firm(request)
+
             # Get form data
             folder_id = request.data.get('folder')
             client_id = request.data.get('client')
@@ -58,13 +82,14 @@ class DocumentViewSet(viewsets.ModelViewSet):
             visibility = request.data.get('visibility', 'internal')
             project_id = request.data.get('project')
 
-            # Upload to S3
+            # Upload to S3 (scoped by firm)
             s3_service = S3Service()
-            folder_path = f"client-{client_id}/documents"
+            folder_path = f"firm-{firm.id}/client-{client_id}/documents"
             upload_result = s3_service.upload_file(file_obj, folder=folder_path)
 
             # Create document record
             document_data = {
+                'firm': firm.id,  # TIER 0: Add firm context
                 'folder': folder_id,
                 'client': client_id,
                 'name': name,
@@ -87,6 +112,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
             # Create initial version
             Version.objects.create(
+                firm=firm,  # TIER 0: Add firm context
                 document=document,
                 version_number=1,
                 file_type=file_obj.content_type,
@@ -111,6 +137,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
         Generate a presigned URL for document download.
 
         GET /api/documents/documents/{id}/download/
+
+        TIER 0: get_object() automatically verifies firm access.
         """
         try:
             document = self.get_object()
@@ -129,15 +157,24 @@ class DocumentViewSet(viewsets.ModelViewSet):
             )
 
 
-class VersionViewSet(viewsets.ModelViewSet):
-    """ViewSet for Version model."""
-    queryset = Version.objects.select_related('document', 'uploaded_by')
+class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Version model.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    model = Version
     serializer_class = VersionSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['document']
-    search_fields = ['document__name', 'change_summary']
+    search_fields = ['change_summary']
     ordering_fields = ['version_number', 'created_at']
     ordering = ['-version_number']
+
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('document', 'uploaded_by')
 
     @action(detail=True, methods=['get'])
     def download(self, request, pk=None):
@@ -145,6 +182,8 @@ class VersionViewSet(viewsets.ModelViewSet):
         Generate a presigned URL for version download.
 
         GET /api/documents/versions/{id}/download/
+
+        TIER 0: get_object() automatically verifies firm access.
         """
         try:
             version = self.get_object()
