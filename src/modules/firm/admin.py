@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Firm, FirmMembership
+from .models import Firm, FirmMembership, BreakGlassSession
 
 
 @admin.register(Firm)
@@ -45,5 +45,27 @@ class FirmMembershipAdmin(admin.ModelAdmin):
         }),
         ('Audit', {
             'fields': ('invited_by', 'invited_at', 'last_active_at')
+        }),
+    )
+
+
+@admin.register(BreakGlassSession)
+class BreakGlassSessionAdmin(admin.ModelAdmin):
+    list_display = ('firm', 'operator', 'status', 'activated_at', 'expires_at', 'reviewed_at')
+    list_filter = ('status', 'activated_at', 'expires_at', 'reviewed_at')
+    search_fields = ('firm__name', 'operator__username', 'operator__email', 'reason')
+    readonly_fields = ('activated_at',)
+    fieldsets = (
+        ('Scope', {
+            'fields': ('firm', 'operator', 'impersonated_user')
+        }),
+        ('Activation', {
+            'fields': ('reason', 'status', 'activated_at', 'expires_at')
+        }),
+        ('Revocation', {
+            'fields': ('revoked_at', 'revoked_reason')
+        }),
+        ('Review', {
+            'fields': ('reviewed_at', 'reviewed_by')
         }),
     )

@@ -187,6 +187,21 @@ This module satisfies TIER 0 requirements:
 - ⏳ 0.5: Platform privacy enforcement (pending)
 - ⏳ 0.6: Break-glass access (pending)
 
+## Activity Log
+
+- 2025-12-24 04:26 UTC — ChatGPT: Added break-glass session scaffolding (model + admin + migration). Enforcement hooks and audit-event linkage remain pending.
+- 2025-12-24 04:30 UTC — ChatGPT: Added break-glass validation and lifecycle helpers (expiry checks, revoke helper, auto-expire on save). Enforcement wiring still pending.
+- 2025-12-24 04:34 UTC — ChatGPT: Refined break-glass validation to allow expired sessions and require revocation reasons; reordered save validation for auto-expiry.
+- 2025-12-24 04:36 UTC — ChatGPT: Enforced revoked-session invariants (revoked_at + revoked_reason required when status=revoked).
+- 2025-12-24 04:50 UTC — ChatGPT: Enforced review invariants (reviewed_at requires reviewed_by and vice versa).
+- 2025-12-24 04:57 UTC — ChatGPT: Added activation-relative validation (expiry/revocation/review timestamps must not predate activation).
+- 2025-12-24 05:18 UTC — ChatGPT: Added review gating for active sessions and a helper to mark sessions reviewed.
+- 2025-12-24 05:41 UTC — ChatGPT: Added BreakGlassSession queryset helpers for active/overdue filtering and expiry updates.
+- 2025-12-24 05:43 UTC — ChatGPT: Added break-glass lookup/expiry helpers in firm utilities (no enforcement wiring yet).
+- 2025-12-24 05:46 UTC — ChatGPT: Added firm-scoped queryset helper to centralize break-glass filtering in utilities.
+- 2025-12-24 05:58 UTC — ChatGPT: Added review-time guardrails to prevent active session reviews and require reviewers when marking break-glass sessions reviewed.
+- 2025-12-24 06:15 UTC — ChatGPT: Hardened break-glass firm scoping with a guard and centralized utilities on firm-scoped queryset helpers.
+
 ## Security Considerations
 
 1. **Subdomain Spoofing**: Middleware validates firm slugs against database
