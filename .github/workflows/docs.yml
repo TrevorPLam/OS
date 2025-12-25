@@ -1,0 +1,126 @@
+name: Docs
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  docs-validate:
+    name: Docs Validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Validate docs structure
+        run: python scripts/validate_docs_structure.py
+
+      - name: Check markdown links
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >-
+            --no-progress
+            --exclude-mail
+            --exclude '^http://localhost'
+            --exclude '^http://127\\.0\\.0\\.1'
+            --timeout 5
+            README.md docs/**/*.md
+
+  policy-validate:
+    name: Policy Validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Validate repository policy
+        run: python scripts/validate_repo_policy.py
+
+  openapi-no-drift:
+    name: OpenAPI No Drift
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Generate OpenAPI spec
+        env:
+          DJANGO_SECRET_KEY: local
+          POSTGRES_DB: local
+          POSTGRES_USER: local
+          POSTGRES_PASSWORD: local
+          POSTGRES_HOST: localhost
+          USE_SQLITE_FOR_TESTS: 'True'
+        run: |
+          python src/manage.py spectacular --file /tmp/openapi.yaml
+
+      - name: Check OpenAPI drift
+        run: |
+          diff -u /tmp/openapi.yaml docs/03-reference/api/openapi.yaml || (
+            echo "OpenAPI drift detected. Run 'make openapi' and commit the updated schema." && exit 1
+          )
+
+  tier-a-coverage:
+    name: Tier A Coverage (warning)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install PyYAML
+        run: python -m pip install pyyaml
+
+      - name: Check Tier A coverage
+        run: python scripts/check_openapi_tier_a.py
+
+  docs-publish:
+    name: Docs Publish
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.DOCS_PUBLISH == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build docs site
+        run: make -C docs build
