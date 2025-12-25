@@ -1,12 +1,11 @@
 import React from 'react'
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useImpersonation } from '../contexts/ImpersonationContext'
+import ImpersonationBanner from './ImpersonationBanner'
 import './Layout.css'
 
 const Layout: React.FC = () => {
   const { user, logout } = useAuth()
-  const impersonation = useImpersonation()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -16,17 +15,7 @@ const Layout: React.FC = () => {
 
   return (
     <div className="app">
-      {impersonation.active && (
-        <div className="impersonation-banner" role="status">
-          <div>
-            <strong>Impersonation mode active:</strong> Acting as {impersonation.impersonatedUser || 'client user'}
-          </div>
-          <div className="impersonation-meta">
-            <span>Expires at: {impersonation.expiresAt}</span>
-            <span>Reason: {impersonation.reason}</span>
-          </div>
-        </div>
-      )}
+      <ImpersonationBanner />
       <header className="app-header">
         <div className="header-content">
           <div>

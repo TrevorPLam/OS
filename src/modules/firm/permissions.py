@@ -142,9 +142,7 @@ class DenyContentAccessByDefault(permissions.BasePermission):
         """
         Check if user has an active break-glass session.
 
-        Meta-commentary:
-        - This checks for active break-glass in the firm context
-        - Future: log all break-glass content access to audit system
+        Logs audit event when break-glass is used to access content.
         """
         # Platform user must have break-glass capability
         if not hasattr(request.user, 'platform_profile'):
@@ -166,9 +164,34 @@ class DenyContentAccessByDefault(permissions.BasePermission):
         ).first()
 
         if active_session and active_session.is_active:
+            # Log audit event for break-glass content access
+            self._log_break_glass_content_access(request, active_session)
             return True
 
         return False
+
+    def _log_break_glass_content_access(self, request, session):
+        """Log audit event when break-glass accesses content."""
+        try:
+            from modules.firm.audit import audit
+
+            audit.log_break_glass_event(
+                firm=request.firm,
+                action='break_glass_content_access',
+                actor=request.user,
+                reason=session.reason,
+                target_model='ContentModel',
+                target_id='',
+                metadata={
+                    'path': request.path,
+                    'method': request.method,
+                    'session_id': session.id,
+                    'impersonated_user_id': session.impersonated_user_id,
+                },
+            )
+        except Exception:
+            # Don't block access if audit logging fails
+            pass
 
 
 class MetadataOnlyAccess(permissions.BasePermission):
@@ -269,7 +292,7 @@ class RequireBreakGlassForContent(permissions.BasePermission):
         return hasattr(user, 'platform_profile') and user.platform_profile.is_platform_active
 
     def _has_active_break_glass(self, request):
-        """Check for active break-glass session."""
+        """Check for active break-glass session and log content access."""
         if not hasattr(request.user, 'platform_profile'):
             return False
 
@@ -286,4 +309,32 @@ class RequireBreakGlassForContent(permissions.BasePermission):
             status=BreakGlassSession.STATUS_ACTIVE
         ).first()
 
-        return active_session and active_session.is_active
+        if active_session and active_session.is_active:
+            # Log audit event for break-glass content access
+            self._log_break_glass_content_access(request, active_session)
+            return True
+
+        return False
+
+    def _log_break_glass_content_access(self, request, session):
+        """Log audit event when break-glass accesses content."""
+        try:
+            from modules.firm.audit import audit
+
+            audit.log_break_glass_event(
+                firm=request.firm,
+                action='break_glass_content_access',
+                actor=request.user,
+                reason=session.reason,
+                target_model='ContentModel',
+                target_id='',
+                metadata={
+                    'path': request.path,
+                    'method': request.method,
+                    'session_id': session.id,
+                    'impersonated_user_id': session.impersonated_user_id,
+                },
+            )
+        except Exception:
+            # Don't block access if audit logging fails
+            pass

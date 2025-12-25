@@ -1,0 +1,184 @@
+/**
+ * Impersonation Mode Banner Styles
+ *
+ * TIER 0.6: Break-glass mode visual indicator
+ *
+ * Design goals:
+ * - High visibility (cannot be missed)
+ * - Non-intrusive but prominent
+ * - Clear warning indicators
+ * - Professional appearance
+ */
+
+.impersonation-banner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  padding: 12px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-bottom: 3px solid #d63031;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.impersonation-banner.expiring-soon {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  border-bottom-color: #e65100;
+  animation: pulse-urgent 1s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(255, 107, 107, 0.5);
+  }
+}
+
+@keyframes pulse-urgent {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(255, 152, 0, 0.6);
+  }
+}
+
+.impersonation-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.impersonation-banner-icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.impersonation-banner-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.impersonation-banner-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.impersonation-banner-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  opacity: 0.95;
+}
+
+.impersonation-info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.impersonation-info-item.warning {
+  font-weight: 600;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.impersonation-info-item strong {
+  font-weight: 600;
+}
+
+.impersonation-banner-actions {
+  flex-shrink: 0;
+}
+
+.end-session-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.end-session-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.end-session-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.end-session-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.impersonation-banner-notice {
+  text-align: center;
+  font-size: 11px;
+  margin-top: 8px;
+  opacity: 0.85;
+  font-style: italic;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 8px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .impersonation-banner-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .impersonation-banner-info {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .impersonation-banner-actions {
+    width: 100%;
+  }
+
+  .end-session-button {
+    width: 100%;
+  }
+}
+
+/* Print styles - hide banner when printing */
+@media print {
+  .impersonation-banner {
+    display: none;
+  }
+}
