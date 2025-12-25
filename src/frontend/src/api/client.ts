@@ -1,5 +1,21 @@
 import axios from 'axios'
 
+const broadcastImpersonationStatus = (headers: Record<string, any>) => {
+  const rawHeader = headers['x-break-glass-impersonation']
+
+  if (rawHeader) {
+    try {
+      const parsed = typeof rawHeader === 'string' ? JSON.parse(rawHeader) : rawHeader
+      window.dispatchEvent(new CustomEvent('impersonation-status', { detail: { active: true, ...parsed } }))
+      return
+    } catch (error) {
+      console.warn('Failed to parse impersonation header', error)
+    }
+  }
+
+  window.dispatchEvent(new CustomEvent('impersonation-status', { detail: { active: false } }))
+}
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 const apiClient = axios.create({
@@ -25,9 +41,16 @@ apiClient.interceptors.request.use(
 
 // Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    broadcastImpersonationStatus(response.headers || {})
+    return response
+  },
   async (error) => {
     const originalRequest = error.config
+
+    if (error.response?.headers) {
+      broadcastImpersonationStatus(error.response.headers)
+    }
 
     // If error is 401 and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {

@@ -65,6 +65,8 @@ MIDDLEWARE = [
     'modules.firm.middleware.FirmContextMiddleware',
     # TIER 0: Portal containment (must come after FirmContextMiddleware)
     'modules.clients.middleware.PortalContainmentMiddleware',
+    # TIER 0.6: Break-glass awareness for impersonation banners + auditing
+    'modules.firm.middleware.BreakGlassImpersonationMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

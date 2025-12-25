@@ -158,3 +158,20 @@
   opacity: 0.8;
   font-size: 0.9rem;
 }
+
+.impersonation-banner {
+  background: linear-gradient(120deg, #8b1e3f, #d7263d);
+  color: #fff;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.impersonation-meta {
+  display: flex;
+  gap: 20px;
+  font-weight: 500;
+}

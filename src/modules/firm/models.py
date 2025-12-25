@@ -379,7 +379,12 @@ class BreakGlassSession(models.Model):
             - Intended to be called from a tenant-aware background job once
               async jobs are firm-scoped (Tier 2.3).
             """
-            return self.overdue().update(status=self.model.STATUS_EXPIRED)
+            expired_count = 0
+            for session in self.overdue():
+                session.status = self.model.STATUS_EXPIRED
+                session.save()
+                expired_count += 1
+            return expired_count
 
         def for_firm(self, firm):
             """
@@ -493,9 +498,67 @@ class BreakGlassSession(models.Model):
 
     def save(self, *args, **kwargs):
         """Run validation and update status before saving."""
+        is_new = self.pk is None
+        previous_status = None
+
+        if not is_new:
+            try:
+                previous = BreakGlassSession.objects.get(pk=self.pk)
+                previous_status = previous.status
+            except BreakGlassSession.DoesNotExist:
+                previous_status = None
+
         self.mark_expired()
         self.full_clean()
         super().save(*args, **kwargs)
+
+        # Emit immutable audit events for break-glass lifecycle changes
+        try:
+            from modules.firm.audit import audit  # Local import to avoid circular dependency
+        except Exception:
+            # Avoid breaking save if audit wiring is unavailable during migrations
+            return
+
+        if is_new:
+            audit.log_break_glass_event(
+                firm=self.firm,
+                action='break_glass_activated',
+                actor=self.operator,
+                reason=self.reason,
+                target_model=self.__class__.__name__,
+                target_id=self.pk,
+                metadata={
+                    'impersonated_user_id': self.impersonated_user_id,
+                    'expires_at': self.expires_at.isoformat(),
+                },
+            )
+        elif previous_status and previous_status != self.status:
+            if previous_status == self.STATUS_ACTIVE and self.status == self.STATUS_EXPIRED:
+                audit.log_break_glass_event(
+                    firm=self.firm,
+                    action='break_glass_expired',
+                    actor=self.operator,
+                    reason=self.reason,
+                    target_model=self.__class__.__name__,
+                    target_id=self.pk,
+                    metadata={
+                        'expired_at': timezone.now().isoformat(),
+                        'impersonated_user_id': self.impersonated_user_id,
+                    },
+                )
+            elif previous_status == self.STATUS_ACTIVE and self.status == self.STATUS_REVOKED:
+                audit.log_break_glass_event(
+                    firm=self.firm,
+                    action='break_glass_revoked',
+                    actor=self.operator,
+                    reason=self.revoked_reason or self.reason,
+                    target_model=self.__class__.__name__,
+                    target_id=self.pk,
+                    metadata={
+                        'revoked_at': (self.revoked_at or timezone.now()).isoformat(),
+                        'impersonated_user_id': self.impersonated_user_id,
+                    },
+                )
 
 
 class PlatformUserProfile(models.Model):
