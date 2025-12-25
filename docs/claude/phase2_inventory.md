@@ -238,6 +238,31 @@ Project → Task → TimeEntry → Invoice
 | Feature Area | Backend | Frontend | Status | Notes |
 |--------------|---------|----------|--------|-------|
 | **CRM** | ✅ | ✅ | Complete | Lead, Prospect, Campaign, Proposal, Contract |
+
+---
+
+## Known Gaps & Missing Capabilities (Inventory)
+
+This inventory reflects gaps relative to enterprise PSA/CRM expectations and is derived from module/API/frontend scaffolding.
+
+### Platform Foundations
+- **Identity & governance:** SSO/OAuth (Google/Microsoft), SAML, SCIM provisioning, MFA, session/device policies; true RBAC/ABAC with roles/permission sets; environment-level policy and governance UI/API; audit review/query/export/retention workflows.
+- **Integration fabric:** Connector abstraction, sync jobs with retry/idempotency, integration logs/reconciliation; platform webhooks (beyond Stripe); bulk APIs, versioning strategy, rate limiting, API keys/service accounts, tenant credential vault; native connectors (email/calendar, QBO/Xero, e-sign, storage) + marketplace scaffolding.
+- **Automation engine:** Rule/event-driven triggers/conditions/actions, unified workflow runtime with observability and retries/DLQ, enforcement gates that prevent bypass.
+- **Reporting/analytics:** Server-side reporting layer, reporting data model (aggregations/materialized views), and reporting permissions/export/scheduling.
+
+### CRM & Qualification
+- **CRM depth:** Account/company + contact graph; activities timeline (emails/calls/meetings/tasks/notes); configurable pipeline stages/guardrails; sales/marketing automation; CRM add-ons (email/calendar sync, email-to-record, e-sign, CRM→onboarding handoff, portal timeline touchpoints).
+- **Qualification & pricing:** Intake capture system, enforceable qualification gates, pricing/quoting engine (fixed/T&M/value rules, approvals, templates, CPQ), and a pricing SSOT that links demand → delivery → resourcing → financials.
+
+### Delivery, Documents, Finance
+- **Project/work management:** Engagement/work package as PM-first object, templates/recurrence/SOPs, dependencies/milestones/handoffs, communication-in-context (email-to-task/decision logs), and advanced reporting (Gantt/roadmap/resource allocation/portfolio).
+- **Document management:** Co-authoring + check-in/check-out, workflow automation (review→approval→publish), external collaboration (secure links, granular perms, expiration, watermarking, access logs, upload requests), and DMS compliance/reporting (retention/legal holds/audit views).
+- **AP/AR exception workflows:** AP capture→validate→state machine + exception routing; approval hierarchies tied to ownership; AR contract-aware billing triggers (milestones/WIP/acceptance) and dispute handling; collections/dunning + cash application; reconciliation tooling + operational dashboards.
+
+### Practice Ops & End-to-End Wiring
+- **PSA/practice ops:** Resource planning/utilization, expense tracking/approvals, profitability reporting (margin/realization/WIP), retainers/WIP accounting, and accounting integrations (QBO/Xero/ERP).
+- **End-to-end workflow wiring:** Closed-won → engagement + onboarding project with governance gates; document lifecycle workflows with full action history; service delivery events driving invoicing; collections/dunning completeness; AP pipeline in parallel with delivery approvals.
 | **Client Management** | ✅ | ✅ | Complete | Client CRUD, portal users |
 | **Client Portal - Work** | ✅ | ✅ | Complete | Projects, tasks, comments |
 | **Client Portal - Documents** | ⚠️ | ⚠️ | Partial | Backend exists, frontend placeholder |

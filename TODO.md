@@ -12,6 +12,102 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ---
 
+## Platform & Product Gaps (Inventory)
+
+> Snapshot of missing capabilities based on current modules (`src/modules/*`), APIs (`src/api/*`), and frontend scaffolding (`src/frontend/*`). This is an inventory only and does not supersede tier ordering.
+
+### 1) Identity, access, governance
+
+**Missing**
+- SSO/OAuth (Google/Microsoft), SAML, SCIM provisioning, MFA, session/device policies
+- True RBAC/ABAC (object-level permissions, roles/permission sets, inheritance, module scopes)
+- Environment-level policy (dev/stage/prod enforcement), security policy configuration, governance UI/API
+- Audit review surfaces (query/filter/export/retention), immutable evidence workflows
+
+### 2) Integration fabric
+
+**Missing**
+- Integration framework (connector abstraction, sync jobs, retry/idempotency, integration logs, reconciliation)
+- Webhooks as a platform (subscriptions, dispatch, event catalog) beyond Stripe
+- Bulk APIs, versioning strategy, rate limiting, API keys/service accounts, tenant-scoped credential vault
+- Native connectors (email/calendar, accounting/QBO/Xero, e-sign, storage) + marketplace scaffolding
+
+### 3) Automation engine
+
+**Missing**
+- Rule/event-driven automation surface (triggers, conditions, actions, routing/approvals)
+- Unified event bus/workflow runtime with observability (run logs, retries, DLQ semantics)
+- Enforcement gates to prevent bypass (downstream objects blocked until upstream states satisfied)
+
+### 4) Reporting/analytics
+
+**Missing**
+- Server-side reporting layer (ops dashboards, pipeline conversion/progress, workload/portfolio rollups)
+- Reporting data model (materialized views/aggregations), permissions for reporting/export/schedules
+
+### 5) CRM (professional-services)
+
+**Missing**
+- Account/company + contact graph with relationship edges
+- Activities timeline (emails/calls/meetings/tasks/notes) tied to accounts/contacts/deals
+- Configurable pipeline stages + governance (required fields, close criteria, guardrails)
+- Sales/marketing automation (sequences, scoring rules, nurture journeys)
+- CRM add-ons: email/calendar sync, email-to-record, e-sign integration, CRM→onboarding handoff, portal touchpoints
+
+### 6) Client qualification + fee calculator (QC/FC)
+
+**Missing**
+- Intake capture (public forms, required fields, document requests, source tracking, scheduling)
+- Qualification gates (bad-fit rules, routing/approvals, non-bypassable intake)
+- Pricing/quoting engine (fixed/T&M/value rules, approvals, templates, CPQ)
+- SSOT pricing truth object linking demand → delivery → resourcing → financials
+
+### 7) Project / work management depth
+
+**Missing**
+- Engagement/work package as PM-first object (between Client and Project)
+- Templates/recurrence, SOP/checklist execution
+- Dependencies, milestones, handoff semantics
+- Communication-in-context (email-to-task, decision log, workflow truth tied to tasks/projects)
+- Reporting views (Gantt, roadmap, workload/resource allocation, portfolio)
+
+### 8) Document management (DMS)
+
+**Missing**
+- Co-authoring + check-in/check-out with integrity-safe switching
+- Workflow automation (review → approval → publish with routing/history)
+- External collaboration (secure links, granular perms, expiration, watermarking, access logs, upload requests)
+- Compliance posture (retention schedules, legal holds, DMS audit reporting)
+
+### 9) AP/AR exception workflows
+
+**Missing**
+- AP capture→validate/dedupe→state machine (received→approved→scheduled→cleared) + exception workflows
+- Approval routing hierarchies tied to project/engagement ownership
+- AR contract-aware billing triggers (milestones/WIP/acceptance) + dispute handling beyond chargebacks
+- Collections/dunning + cash application (matching, partial/over/under, audit trail)
+- Reconciliation tooling + operational dashboards for stuck integrations
+
+### 10) PSA / practice ops
+
+**Missing**
+- Resource planning/utilization (capacity, staffing models, utilization targets, workload balancing)
+- Expense tracking + approvals
+- Profitability reporting by client/engagement/project (margin, realization, WIP)
+- Retainers, WIP accounting behaviors, T&M reconciliation
+- Accounting integrations (QBO/Xero/ERP)
+
+### 11) End-to-end workflow wiring
+
+**Missing**
+- Closed-won → engagement + onboarding project (templated) with governance gates
+- Document lifecycle workflow with full action history
+- Service delivery events triggering invoicing (milestones/WIP/acceptance)
+- Collections/dunning + cash application workflow completeness
+- Parallel AP pipeline with approvals tied to delivery ownership
+
+---
+
 ## TIER 0 — FOUNDATIONAL SAFETY
 
 > **Rule:** Tier 0 must be complete before any feature, billing, or UX work proceeds.
