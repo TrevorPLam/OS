@@ -13,10 +13,11 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 
 ## Key Documentation
 
+- **[Getting Started Tutorial](01-tutorials/getting-started.md)** - Complete setup guide for new developers
 - **[Tier System Reference](03-reference/tier-system.md)** - Architecture governance model
+- **[API Reference](03-reference/api-usage.md)** - Complete API documentation
+- **[Production Deployment](02-how-to/production-deployment.md)** - Deploy to production
 - **[System Invariants](../spec/SYSTEM_INVARIANTS.md)** - Core system rules
-- **[API Usage Guide](../API_USAGE.md)** - Complete API reference
-- **[Deployment Guide](../DEPLOYMENT.md)** - Production deployment
 - **[Contributing Guide](../CONTRIBUTING.md)** - Development workflow
 
 ## Tier-Specific Documentation

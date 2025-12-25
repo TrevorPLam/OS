@@ -18,11 +18,11 @@ ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The
 
 ## Documentation
 
-- **Getting Started:** See [Quickstart](#-quickstart-local-development) below
+- **Getting Started:** [`docs/01-tutorials/getting-started.md`](docs/01-tutorials/getting-started.md) - Complete setup tutorial
 - **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
 - **Tier System:** [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md) - Architecture governance and priorities
-- **API Usage:** [`API_USAGE.md`](API_USAGE.md) - Complete API reference
-- **Deployment:** [`DEPLOYMENT.md`](DEPLOYMENT.md) - Production deployment guide
+- **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md) - Complete API documentation
+- **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md) - Production deployment
 - **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow
 - **Security:** [`SECURITY.md`](SECURITY.md) - Security policy and reporting
 
@@ -46,12 +46,14 @@ For detailed tier information, see [`docs/03-reference/tier-system.md`](docs/03-
 
 ## 🚀 Quickstart (Local Development)
 
+**For complete setup instructions, see [Getting Started Tutorial](docs/01-tutorials/getting-started.md)**
+
 ### Prerequisites
 
 - Python 3.11+
 - PostgreSQL 15+
 
-### Setup
+### Quick Setup
 
 ```bash
 python -m venv .venv
@@ -61,7 +63,7 @@ pip install -r requirements.txt
 
 ### Configure Environment
 
-Set the required environment variables (see `DEPLOYMENT.md` for production-ready values):
+Set the required environment variables (see [Production Deployment Guide](docs/02-how-to/production-deployment.md) for production-ready values):
 
 ```bash
 export DJANGO_SECRET_KEY="dev-secret-key"
