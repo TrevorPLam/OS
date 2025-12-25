@@ -19,6 +19,7 @@ ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The
 ## Documentation
 
 - **Getting Started:** [`docs/01-tutorials/getting-started.md`](docs/01-tutorials/getting-started.md) - Complete setup tutorial
+- **Architecture:** [`docs/04-explanation/architecture-overview.md`](docs/04-explanation/architecture-overview.md) - System design and concepts
 - **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
 - **Tier System:** [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md) - Architecture governance and priorities
 - **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md) - Complete API documentation

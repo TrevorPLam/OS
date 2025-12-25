@@ -154,9 +154,10 @@ This will:
 Now that you have ConsultantPro running:
 
 1. **Explore the API** - Visit http://localhost:8000/api/docs/ for interactive API documentation
-2. **Read the API Guide** - See [API Usage Guide](../../API_USAGE.md) for endpoint details
-3. **Understand the Architecture** - See [Tier System Reference](../03-reference/tier-system.md)
-4. **Start Contributing** - See [Contributing Guide](../../CONTRIBUTING.md)
+2. **Read the API Guide** - See [API Usage Guide](../03-reference/api-usage.md) for endpoint details
+3. **Understand the Architecture** - See [Architecture Overview](../04-explanation/architecture-overview.md) for system design
+4. **Learn the Tier System** - See [Tier System Reference](../03-reference/tier-system.md) for governance model
+5. **Start Contributing** - See [Contributing Guide](../../CONTRIBUTING.md) for development workflow
 
 ## Troubleshooting
 

@@ -14,6 +14,7 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 ## Key Documentation
 
 - **[Getting Started Tutorial](01-tutorials/getting-started.md)** - Complete setup guide for new developers
+- **[Architecture Overview](04-explanation/architecture-overview.md)** - System design and key concepts
 - **[Tier System Reference](03-reference/tier-system.md)** - Architecture governance model
 - **[API Reference](03-reference/api-usage.md)** - Complete API documentation
 - **[Production Deployment](02-how-to/production-deployment.md)** - Deploy to production
