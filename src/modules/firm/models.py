@@ -8,11 +8,14 @@ CRITICAL: This is Tier 0 - Foundational Safety.
 Every firm-side object MUST belong to exactly one Firm.
 """
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.text import slugify
+import json
 
 
 class Firm(models.Model):
@@ -634,3 +637,491 @@ class PlatformUserProfile(models.Model):
         """Run validation before saving."""
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class AuditEvent(models.Model):
+    """
+    Immutable audit event log for platform operations.
+
+    TIER 3 REQUIREMENT: Audit event taxonomy + retention policy
+
+    This model implements structured, tenant-scoped audit logging for:
+    - Authentication and authorization events
+    - Break-glass content access
+    - Billing metadata operations
+    - Data purges and deletions
+    - Configuration changes
+    - Permission changes
+
+    CRITICAL INVARIANTS:
+    - All audit events are immutable (no updates, no deletes via application code)
+    - All audit events are tenant-scoped (firm_id required)
+    - All audit events are content-free (metadata only, no customer content)
+    - Actor and timestamp are always captured
+    - Retention policies are defined per category
+
+    Meta-commentary:
+    - This is the foundational audit system for TIER 3 compliance
+    - Break-glass actions, purges, and billing changes MUST emit audit events
+    - Events survive content purges (tombstone pattern)
+    - Review ownership and cadence are defined per category
+    """
+
+    # Event Categories (TIER 3 requirement)
+    CATEGORY_AUTH = 'AUTH'
+    CATEGORY_PERMISSIONS = 'PERMISSIONS'
+    CATEGORY_BREAK_GLASS = 'BREAK_GLASS'
+    CATEGORY_BILLING_METADATA = 'BILLING_METADATA'
+    CATEGORY_PURGE = 'PURGE'
+    CATEGORY_CONFIG = 'CONFIG'
+    CATEGORY_DATA_ACCESS = 'DATA_ACCESS'
+    CATEGORY_ROLE_CHANGE = 'ROLE_CHANGE'
+    CATEGORY_EXPORT = 'EXPORT'
+    CATEGORY_SIGNING = 'SIGNING'
+
+    CATEGORY_CHOICES = [
+        (CATEGORY_AUTH, 'Authentication & Authorization'),
+        (CATEGORY_PERMISSIONS, 'Permission Changes'),
+        (CATEGORY_BREAK_GLASS, 'Break-Glass Content Access'),
+        (CATEGORY_BILLING_METADATA, 'Billing Metadata Operations'),
+        (CATEGORY_PURGE, 'Data Purge/Deletion'),
+        (CATEGORY_CONFIG, 'Configuration Changes'),
+        (CATEGORY_DATA_ACCESS, 'Data Access Events'),
+        (CATEGORY_ROLE_CHANGE, 'Role & Membership Changes'),
+        (CATEGORY_EXPORT, 'Data Export Operations'),
+        (CATEGORY_SIGNING, 'Document Signing Events'),
+    ]
+
+    # Retention Policy (in days)
+    RETENTION_POLICY = {
+        CATEGORY_AUTH: 90,                    # 90 days - authentication events
+        CATEGORY_PERMISSIONS: 365,            # 1 year - permission changes
+        CATEGORY_BREAK_GLASS: 2555,           # 7 years - legal/compliance requirement
+        CATEGORY_BILLING_METADATA: 2555,      # 7 years - financial records
+        CATEGORY_PURGE: None,                 # Forever - never delete purge records
+        CATEGORY_CONFIG: 365,                 # 1 year - config changes
+        CATEGORY_DATA_ACCESS: 90,             # 90 days - general data access
+        CATEGORY_ROLE_CHANGE: 365,            # 1 year - role changes
+        CATEGORY_EXPORT: 365,                 # 1 year - export operations
+        CATEGORY_SIGNING: None,               # Forever - signing evidence survives content purge
+    }
+
+    # Severity Levels
+    SEVERITY_INFO = 'info'
+    SEVERITY_WARNING = 'warning'
+    SEVERITY_CRITICAL = 'critical'
+
+    SEVERITY_CHOICES = [
+        (SEVERITY_INFO, 'Informational'),
+        (SEVERITY_WARNING, 'Warning'),
+        (SEVERITY_CRITICAL, 'Critical'),
+    ]
+
+    # Core Tenant Context (required)
+    firm = models.ForeignKey(
+        Firm,
+        on_delete=models.PROTECT,  # PROTECT: never delete audit events via cascade
+        related_name='audit_events',
+        help_text="Tenant context: which firm this event belongs to"
+    )
+
+    # Event Classification
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        db_index=True,
+        help_text="Event category for filtering and retention policy"
+    )
+    action = models.CharField(
+        max_length=100,
+        db_index=True,
+        help_text="Action performed (e.g., 'user.login', 'break_glass.activate', 'document.purge')"
+    )
+    severity = models.CharField(
+        max_length=20,
+        choices=SEVERITY_CHOICES,
+        default=SEVERITY_INFO,
+        help_text="Event severity level"
+    )
+
+    # Actor Context (who performed the action)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_events_as_actor',
+        help_text="User who performed the action (null for system events)"
+    )
+    actor_ip = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of actor (if available)"
+    )
+    actor_user_agent = models.TextField(
+        blank=True,
+        help_text="User agent string (if available)"
+    )
+
+    # Target Context (what was acted upon)
+    # Using GenericForeignKey for flexible target references
+    target_content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text="Type of object this event targets"
+    )
+    target_object_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="ID of target object"
+    )
+    target_object = GenericForeignKey('target_content_type', 'target_object_id')
+    target_description = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="Human-readable description of target (survives target deletion)"
+    )
+
+    # Additional Context
+    client = models.ForeignKey(
+        'clients.Client',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_events',
+        help_text="Client context (if action is client-scoped)"
+    )
+
+    # Event Metadata (content-free, structured data only)
+    reason = models.TextField(
+        blank=True,
+        help_text="Reason string for actions requiring justification (break-glass, purge, etc.)"
+    )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Structured metadata (MUST be content-free, operational data only)"
+    )
+
+    # Timestamps (immutable)
+    timestamp = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text="When this event occurred (immutable)"
+    )
+
+    # Retention Management
+    retention_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="When this event can be deleted per retention policy (null = keep forever)"
+    )
+
+    class AuditEventQuerySet(models.QuerySet):
+        """Query helpers for audit event filtering and retention management."""
+
+        def for_firm(self, firm):
+            """Return audit events scoped to a single firm."""
+            if firm is None:
+                raise ValueError("Firm context is required to scope audit events.")
+            return self.filter(firm=firm)
+
+        def for_category(self, category):
+            """Filter by event category."""
+            return self.filter(category=category)
+
+        def for_actor(self, user):
+            """Filter by actor (user who performed the action)."""
+            return self.filter(actor=user)
+
+        def break_glass_events(self):
+            """Return all break-glass audit events."""
+            return self.filter(category=self.model.CATEGORY_BREAK_GLASS)
+
+        def purge_events(self):
+            """Return all purge/deletion audit events."""
+            return self.filter(category=self.model.CATEGORY_PURGE)
+
+        def billing_events(self):
+            """Return all billing metadata audit events."""
+            return self.filter(category=self.model.CATEGORY_BILLING_METADATA)
+
+        def critical_events(self):
+            """Return all critical severity events."""
+            return self.filter(severity=self.model.SEVERITY_CRITICAL)
+
+        def eligible_for_deletion(self):
+            """
+            Return events eligible for deletion per retention policy.
+
+            Meta-commentary:
+            - Events with retention_until in the past can be deleted
+            - Events with retention_until=null are kept forever
+            - This should be called from a tenant-aware background job
+            """
+            return self.filter(
+                retention_until__isnull=False,
+                retention_until__lte=timezone.now()
+            )
+
+        def since(self, start_date):
+            """Return events since a given date."""
+            return self.filter(timestamp__gte=start_date)
+
+        def between(self, start_date, end_date):
+            """Return events between two dates."""
+            return self.filter(timestamp__gte=start_date, timestamp__lte=end_date)
+
+    objects = AuditEventQuerySet.as_manager()
+
+    class Meta:
+        db_table = 'firm_audit_event'
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['firm', 'category', '-timestamp'], name='firm_audit_firm_cat_ts_idx'),
+            models.Index(fields=['firm', 'actor', '-timestamp'], name='firm_audit_firm_actor_ts_idx'),
+            models.Index(fields=['category', '-timestamp'], name='firm_audit_cat_ts_idx'),
+            models.Index(fields=['action', '-timestamp'], name='firm_audit_action_ts_idx'),
+            models.Index(fields=['severity', '-timestamp'], name='firm_audit_severity_ts_idx'),
+            models.Index(fields=['retention_until'], name='firm_audit_retention_idx'),
+        ]
+        # Prevent updates and deletes via Django ORM (immutable records)
+        permissions = [
+            ('view_audit_event', 'Can view audit events'),
+            ('export_audit_event', 'Can export audit events'),
+            # NOTE: No 'change' or 'delete' permissions - audit events are immutable
+        ]
+
+    def __str__(self):
+        actor_str = self.actor.username if self.actor else "SYSTEM"
+        return f"[{self.category}] {self.action} by {actor_str} at {self.timestamp}"
+
+    @property
+    def is_expired(self):
+        """Check if this event is past its retention period."""
+        if self.retention_until is None:
+            return False  # Keep forever
+        return timezone.now() >= self.retention_until
+
+    def calculate_retention_until(self):
+        """
+        Calculate retention_until based on category retention policy.
+
+        Returns None for categories with indefinite retention.
+        """
+        retention_days = self.RETENTION_POLICY.get(self.category)
+        if retention_days is None:
+            return None  # Keep forever
+        return self.timestamp + timezone.timedelta(days=retention_days)
+
+    def clean(self):
+        """Validate audit event invariants."""
+        # Ensure metadata is content-free (basic validation)
+        if self.metadata:
+            # Prevent accidental inclusion of sensitive keys
+            forbidden_keys = ['password', 'token', 'secret', 'content', 'body', 'message_text']
+            for key in forbidden_keys:
+                if key in self.metadata:
+                    raise ValidationError({
+                        'metadata': f'Audit metadata must be content-free. Remove key: {key}'
+                    })
+
+        # Require reason for certain critical categories
+        critical_categories = [
+            self.CATEGORY_BREAK_GLASS,
+            self.CATEGORY_PURGE,
+        ]
+        if self.category in critical_categories and not self.reason:
+            raise ValidationError({
+                'reason': f'Reason is required for {self.category} events'
+            })
+
+    def save(self, *args, **kwargs):
+        """
+        Save audit event (create-only, immutable).
+
+        Meta-commentary:
+        - Audit events are immutable: only allow creation, not updates
+        - Calculate retention_until on creation if not already set
+        - Run validation before saving
+        """
+        # Prevent updates (immutable records)
+        if self.pk is not None:
+            raise ValidationError('Audit events are immutable and cannot be updated.')
+
+        # Calculate retention if not set
+        if self.retention_until is None:
+            self.retention_until = self.calculate_retention_until()
+
+        # Run validation
+        self.full_clean()
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """
+        Prevent deletion via Django ORM.
+
+        Meta-commentary:
+        - Audit events should only be deleted via explicit retention cleanup jobs
+        - This prevents accidental deletion via cascade or application logic
+        """
+        raise ValidationError('Audit events cannot be deleted via application code. Use retention cleanup jobs.')
+
+
+# Audit Event Helper Functions
+
+def create_audit_event(
+    firm,
+    category,
+    action,
+    actor=None,
+    actor_ip=None,
+    actor_user_agent=None,
+    target_object=None,
+    target_description='',
+    client=None,
+    reason='',
+    metadata=None,
+    severity=AuditEvent.SEVERITY_INFO,
+):
+    """
+    Create an immutable audit event.
+
+    This is the primary interface for writing audit events throughout the application.
+
+    Args:
+        firm: Firm instance (required for tenant scoping)
+        category: Event category (use AuditEvent.CATEGORY_* constants)
+        action: Action string (e.g., 'user.login', 'break_glass.activate')
+        actor: User who performed the action (null for system events)
+        actor_ip: IP address of actor
+        actor_user_agent: User agent string
+        target_object: Django model instance that was acted upon
+        target_description: Human-readable description (survives target deletion)
+        client: Client instance (if action is client-scoped)
+        reason: Reason string (required for break-glass, purge, etc.)
+        metadata: Content-free structured data (dict)
+        severity: Event severity (info/warning/critical)
+
+    Returns:
+        AuditEvent instance
+
+    Raises:
+        ValueError: If firm is None or category is invalid
+        ValidationError: If event validation fails
+
+    Example:
+        >>> create_audit_event(
+        ...     firm=request.firm,
+        ...     category=AuditEvent.CATEGORY_BREAK_GLASS,
+        ...     action='break_glass.activate',
+        ...     actor=request.user,
+        ...     actor_ip=get_client_ip(request),
+        ...     reason='Customer support case #12345',
+        ...     severity=AuditEvent.SEVERITY_CRITICAL,
+        ...     metadata={'session_id': session.id, 'duration_minutes': 60}
+        ... )
+    """
+    if firm is None:
+        raise ValueError("Firm context is required to create audit events.")
+
+    if category not in dict(AuditEvent.CATEGORY_CHOICES):
+        raise ValueError(f"Invalid audit category: {category}")
+
+    event = AuditEvent(
+        firm=firm,
+        category=category,
+        action=action,
+        actor=actor,
+        actor_ip=actor_ip,
+        actor_user_agent=actor_user_agent,
+        target_description=target_description,
+        client=client,
+        reason=reason,
+        metadata=metadata or {},
+        severity=severity,
+    )
+
+    # Set target object if provided
+    if target_object:
+        event.target_object = target_object
+
+    event.save()
+    return event
+
+
+def get_audit_review_cadence(category):
+    """
+    Return recommended review cadence for a given audit event category.
+
+    TIER 3 REQUIREMENT: Define review ownership and cadence
+
+    Returns:
+        dict with 'owner' and 'cadence' keys
+
+    Example:
+        >>> get_audit_review_cadence(AuditEvent.CATEGORY_BREAK_GLASS)
+        {'owner': 'Platform Security Team', 'cadence': 'Weekly'}
+    """
+    review_policy = {
+        AuditEvent.CATEGORY_AUTH: {
+            'owner': 'Platform Operations',
+            'cadence': 'Monthly',
+            'description': 'Review authentication failures and anomalies'
+        },
+        AuditEvent.CATEGORY_PERMISSIONS: {
+            'owner': 'Platform Security Team',
+            'cadence': 'Monthly',
+            'description': 'Review permission changes and role escalations'
+        },
+        AuditEvent.CATEGORY_BREAK_GLASS: {
+            'owner': 'Platform Security Team',
+            'cadence': 'Weekly',
+            'description': 'Review all break-glass activations and content access'
+        },
+        AuditEvent.CATEGORY_BILLING_METADATA: {
+            'owner': 'Finance Team',
+            'cadence': 'Monthly',
+            'description': 'Review billing metadata operations for compliance'
+        },
+        AuditEvent.CATEGORY_PURGE: {
+            'owner': 'Platform Security + Legal',
+            'cadence': 'Weekly',
+            'description': 'Review all data purge operations and reasons'
+        },
+        AuditEvent.CATEGORY_CONFIG: {
+            'owner': 'Platform Operations',
+            'cadence': 'Monthly',
+            'description': 'Review configuration changes affecting security or billing'
+        },
+        AuditEvent.CATEGORY_DATA_ACCESS: {
+            'owner': 'Platform Operations',
+            'cadence': 'Quarterly',
+            'description': 'Review data access patterns for anomalies'
+        },
+        AuditEvent.CATEGORY_ROLE_CHANGE: {
+            'owner': 'Platform Security Team',
+            'cadence': 'Monthly',
+            'description': 'Review role and membership changes'
+        },
+        AuditEvent.CATEGORY_EXPORT: {
+            'owner': 'Platform Operations',
+            'cadence': 'Quarterly',
+            'description': 'Review data export operations'
+        },
+        AuditEvent.CATEGORY_SIGNING: {
+            'owner': 'Legal + Compliance',
+            'cadence': 'As Needed',
+            'description': 'Document signing evidence (review during disputes)'
+        },
+    }
+
+    return review_policy.get(category, {
+        'owner': 'Platform Operations',
+        'cadence': 'As Needed',
+        'description': 'Review as required'
+    })

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Firm, FirmMembership, BreakGlassSession, PlatformUserProfile
+from .models import Firm, FirmMembership, BreakGlassSession, PlatformUserProfile, AuditEvent
 
 
 @admin.register(Firm)
@@ -89,3 +89,65 @@ class PlatformUserProfileAdmin(admin.ModelAdmin):
             'fields': ('granted_by', 'granted_at', 'revoked_by', 'revoked_at', 'notes')
         }),
     )
+
+
+@admin.register(AuditEvent)
+class AuditEventAdmin(admin.ModelAdmin):
+    """
+    Admin interface for AuditEvent (read-only, immutable).
+
+    TIER 3 REQUIREMENT: Audit events are immutable and cannot be modified or deleted
+    via the Django admin interface. This enforces audit integrity.
+    """
+    list_display = ('timestamp', 'firm', 'category', 'action', 'actor', 'severity', 'retention_until')
+    list_filter = ('category', 'severity', 'timestamp', 'retention_until')
+    search_fields = ('action', 'actor__username', 'actor__email', 'firm__name', 'reason', 'target_description')
+    readonly_fields = (
+        'firm', 'category', 'action', 'severity',
+        'actor', 'actor_ip', 'actor_user_agent',
+        'target_content_type', 'target_object_id', 'target_description',
+        'client', 'reason', 'metadata',
+        'timestamp', 'retention_until'
+    )
+    date_hierarchy = 'timestamp'
+
+    fieldsets = (
+        ('Event Classification', {
+            'fields': ('category', 'action', 'severity', 'timestamp')
+        }),
+        ('Tenant Context', {
+            'fields': ('firm', 'client')
+        }),
+        ('Actor (Who)', {
+            'fields': ('actor', 'actor_ip', 'actor_user_agent')
+        }),
+        ('Target (What)', {
+            'fields': ('target_content_type', 'target_object_id', 'target_description')
+        }),
+        ('Details', {
+            'fields': ('reason', 'metadata')
+        }),
+        ('Retention', {
+            'fields': ('retention_until',),
+            'description': 'When this event can be deleted per retention policy (null = keep forever)'
+        }),
+    )
+
+    def has_add_permission(self, request):
+        """Prevent manual creation via admin (use create_audit_event helper)."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Prevent editing (immutable records)."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevent deletion via admin (use retention cleanup jobs)."""
+        return False
+
+    def get_actions(self, request):
+        """Remove bulk delete action."""
+        actions = super().get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
