@@ -1058,70 +1058,107 @@ def get_audit_review_cadence(category):
     """
     Return recommended review cadence for a given audit event category.
 
-    TIER 3 REQUIREMENT: Define review ownership and cadence
+    TIER 3 REQUIREMENT: Define review ownership, cadence, and escalation path
 
     Returns:
-        dict with 'owner' and 'cadence' keys
+        dict with 'owner', 'cadence', and 'escalation_path' keys
 
     Example:
         >>> get_audit_review_cadence(AuditEvent.CATEGORY_BREAK_GLASS)
-        {'owner': 'Platform Security Team', 'cadence': 'Weekly'}
+        {'owner': 'Platform Security Team', 'cadence': 'Weekly', 'escalation_path': [...]}
     """
+    default_escalation = [
+        'Review Owner',
+        'Security Lead',
+        'CTO/VP Engineering',
+        'Legal/Compliance (if required)',
+    ]
     review_policy = {
         AuditEvent.CATEGORY_AUTH: {
             'owner': 'Platform Operations',
             'cadence': 'Monthly',
-            'description': 'Review authentication failures and anomalies'
+            'description': 'Review authentication failures and anomalies',
+            'escalation_path': default_escalation,
         },
         AuditEvent.CATEGORY_PERMISSIONS: {
             'owner': 'Platform Security Team',
             'cadence': 'Monthly',
-            'description': 'Review permission changes and role escalations'
+            'description': 'Review permission changes and role escalations',
+            'escalation_path': default_escalation,
         },
         AuditEvent.CATEGORY_BREAK_GLASS: {
             'owner': 'Platform Security Team',
             'cadence': 'Weekly',
-            'description': 'Review all break-glass activations and content access'
+            'description': 'Review all break-glass activations and content access',
+            'escalation_path': [
+                'Platform Security Team',
+                'Security Lead',
+                'CTO/VP Engineering',
+                'Legal/Compliance (if required)',
+            ],
         },
         AuditEvent.CATEGORY_BILLING_METADATA: {
             'owner': 'Finance Team',
             'cadence': 'Monthly',
-            'description': 'Review billing metadata operations for compliance'
+            'description': 'Review billing metadata operations for compliance',
+            'escalation_path': [
+                'Finance Team Lead',
+                'Security Lead',
+                'CTO/VP Engineering',
+                'Legal/Compliance (if required)',
+            ],
         },
         AuditEvent.CATEGORY_PURGE: {
             'owner': 'Platform Security + Legal',
             'cadence': 'Weekly',
-            'description': 'Review all data purge operations and reasons'
+            'description': 'Review all data purge operations and reasons',
+            'escalation_path': [
+                'Platform Security + Legal',
+                'Security Lead',
+                'CTO/VP Engineering',
+                'Legal/Compliance (if required)',
+            ],
         },
         AuditEvent.CATEGORY_CONFIG: {
             'owner': 'Platform Operations',
             'cadence': 'Monthly',
-            'description': 'Review configuration changes affecting security or billing'
+            'description': 'Review configuration changes affecting security or billing',
+            'escalation_path': default_escalation,
         },
         AuditEvent.CATEGORY_DATA_ACCESS: {
             'owner': 'Platform Operations',
             'cadence': 'Quarterly',
-            'description': 'Review data access patterns for anomalies'
+            'description': 'Review data access patterns for anomalies',
+            'escalation_path': default_escalation,
         },
         AuditEvent.CATEGORY_ROLE_CHANGE: {
             'owner': 'Platform Security Team',
             'cadence': 'Monthly',
-            'description': 'Review role and membership changes'
+            'description': 'Review role and membership changes',
+            'escalation_path': default_escalation,
         },
         AuditEvent.CATEGORY_EXPORT: {
             'owner': 'Platform Operations',
             'cadence': 'Quarterly',
-            'description': 'Review data export operations'
+            'description': 'Review data export operations',
+            'escalation_path': default_escalation,
         },
         AuditEvent.CATEGORY_SIGNING: {
             'owner': 'Legal + Compliance',
             'cadence': 'As Needed',
-            'description': 'Document signing evidence (review during disputes)'
+            'description': 'Document signing evidence (review during disputes)',
+            'escalation_path': [
+                'Legal + Compliance',
+                'Security Lead',
+                'CTO/VP Engineering',
+                'Legal/Compliance (if required)',
+            ],
         },
     }
 
     return review_policy.get(category, {
         'owner': 'Platform Operations',
         'cadence': 'As Needed',
-        'description': 'Review as required'
+        'description': 'Review as required',
+        'escalation_path': default_escalation,
     })

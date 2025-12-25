@@ -15,6 +15,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from modules.documents.models import Folder, Document, Version
 from modules.documents.services import S3Service
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+from modules.firm.permissions import IsFirmOwner
+from modules.firm.models import AuditEvent, create_audit_event
 from .serializers import FolderSerializer, DocumentSerializer, VersionSerializer
 
 
@@ -148,6 +150,11 @@ class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         """
         try:
             document = self.get_object()
+            if document.is_purged:
+                return Response(
+                    {'error': 'Document content has been purged.'},
+                    status=status.HTTP_410_GONE
+                )
             s3_service = S3Service()
             presigned_url = s3_service.generate_presigned_url(document.s3_key, expiration=3600)
 
@@ -161,6 +168,62 @@ class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsFirmOwner])
+    def purge(self, request, pk=None):
+        """
+        Purge document content while preserving metadata.
+
+        Requires firm owner approval, confirmation, and reason.
+        """
+        document = self.get_object()
+        reason = (request.data.get('reason') or '').strip()
+        confirm = request.data.get('confirm')
+        is_confirmed = str(confirm).lower() in {'true', '1', 'yes'}
+
+        if not is_confirmed:
+            return Response(
+                {'error': 'Confirmation required to purge content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not reason:
+            return Response(
+                {'error': 'Reason is required to purge content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if document.is_purged:
+            return Response(
+                {'status': 'already_purged', 'document': DocumentSerializer(document).data},
+                status=status.HTTP_200_OK
+            )
+
+        document.purge(reason=reason, actor=request.user)
+
+        create_audit_event(
+            firm=request.firm,
+            category=AuditEvent.CATEGORY_PURGE,
+            action='document.purge',
+            actor=request.user,
+            actor_ip=request.META.get('REMOTE_ADDR'),
+            actor_user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            target_object=document,
+            target_description=f"Document {document.id}",
+            client=document.client,
+            reason=reason,
+            severity=AuditEvent.SEVERITY_CRITICAL,
+            metadata={
+                'document_id': document.id,
+                'folder_id': document.folder_id,
+                'version_count': document.versions.count(),
+            }
+        )
+
+        return Response(
+            {'status': 'purged', 'document': DocumentSerializer(document).data},
+            status=status.HTTP_200_OK
+        )
 
 
 class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
@@ -194,6 +257,11 @@ class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         """
         try:
             version = self.get_object()
+            if version.is_purged:
+                return Response(
+                    {'error': 'Document version content has been purged.'},
+                    status=status.HTTP_410_GONE
+                )
             s3_service = S3Service()
             presigned_url = s3_service.generate_presigned_url(version.s3_key, expiration=3600)
 

@@ -7,7 +7,7 @@ TIER 2: Portal ViewSets use IsPortalUserOrFirmUser for portal containment.
 TIER 2.5: Firm admin ViewSets use DenyPortalAccess to block portal users.
 TIER 2.6: Organizations enable cross-client collaboration within firms.
 """
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -38,6 +38,8 @@ from modules.clients.serializers import (
     ClientEngagementDetailSerializer,
 )
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+from modules.firm.permissions import IsFirmOwner
+from modules.firm.models import AuditEvent, create_audit_event
 
 
 class OrganizationViewSet(FirmScopedMixin, viewsets.ModelViewSet):
@@ -373,6 +375,61 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
                 'status': 'marked as read',
                 'comment': ClientCommentSerializer(comment).data
             })
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsFirmOwner])
+    def purge(self, request, pk=None):
+        """
+        Purge a client comment's content (metadata preserved).
+
+        Requires firm owner approval, confirmation, and reason.
+        """
+        comment = self.get_object()
+        reason = (request.data.get('reason') or '').strip()
+        confirm = request.data.get('confirm')
+        is_confirmed = str(confirm).lower() in {'true', '1', 'yes'}
+
+        if not is_confirmed:
+            return Response(
+                {'error': 'Confirmation required to purge content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not reason:
+            return Response(
+                {'error': 'Reason is required to purge content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if comment.is_purged:
+            return Response(
+                {'status': 'already_purged', 'comment': ClientCommentSerializer(comment).data},
+                status=status.HTTP_200_OK
+            )
+
+        comment.purge(reason=reason, actor=request.user)
+
+        create_audit_event(
+            firm=request.firm,
+            category=AuditEvent.CATEGORY_PURGE,
+            action='client_comment.purge',
+            actor=request.user,
+            actor_ip=request.META.get('REMOTE_ADDR'),
+            actor_user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            target_object=comment,
+            target_description=f"ClientComment {comment.id}",
+            client=comment.client,
+            reason=reason,
+            severity=AuditEvent.SEVERITY_CRITICAL,
+            metadata={
+                'comment_id': comment.id,
+                'task_id': comment.task_id,
+            }
+        )
+
+        return Response(
+            {'status': 'purged', 'comment': ClientCommentSerializer(comment).data},
+            status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=['get'])
     def unread(self, request):
@@ -723,6 +780,61 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
             'status': 'marked as read',
             'message': ClientMessageSerializer(message).data
         })
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsFirmOwner])
+    def purge(self, request, pk=None):
+        """
+        Purge a client message's content (metadata preserved).
+
+        Requires firm owner approval, confirmation, and reason.
+        """
+        message = self.get_object()
+        reason = (request.data.get('reason') or '').strip()
+        confirm = request.data.get('confirm')
+        is_confirmed = str(confirm).lower() in {'true', '1', 'yes'}
+
+        if not is_confirmed:
+            return Response(
+                {'error': 'Confirmation required to purge content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not reason:
+            return Response(
+                {'error': 'Reason is required to purge content.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if message.is_purged:
+            return Response(
+                {'status': 'already_purged', 'message': ClientMessageSerializer(message).data},
+                status=status.HTTP_200_OK
+            )
+
+        message.purge(reason=reason, actor=request.user)
+
+        create_audit_event(
+            firm=request.firm,
+            category=AuditEvent.CATEGORY_PURGE,
+            action='client_message.purge',
+            actor=request.user,
+            actor_ip=request.META.get('REMOTE_ADDR'),
+            actor_user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            target_object=message,
+            target_description=f"ClientMessage {message.id}",
+            client=message.thread.client,
+            reason=reason,
+            severity=AuditEvent.SEVERITY_CRITICAL,
+            metadata={
+                'message_id': message.id,
+                'thread_id': message.thread_id,
+            }
+        )
+
+        return Response(
+            {'status': 'purged', 'message': ClientMessageSerializer(message).data},
+            status=status.HTTP_200_OK
+        )
 
     @action(detail=False, methods=['get'])
     def unread(self, request):

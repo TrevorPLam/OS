@@ -18,6 +18,17 @@ This document defines the comprehensive audit event taxonomy and retention polic
 
 ---
 
+## Escalation Path for Anomalies
+
+When reviewers detect anomalous or unauthorized activity, escalation follows a consistent path:
+
+1. **Review Owner** documents findings and opens an incident ticket.
+2. **Security Lead** evaluates impact and containment within 24 hours.
+3. **CTO/VP Engineering** is engaged for critical severity or customer-impacting incidents.
+4. **Legal/Compliance** is engaged when regulatory exposure, customer disputes, or data deletion requests are involved.
+
+---
+
 ## Audit Event Categories
 
 The platform defines **10 event categories**, each with specific retention policies and review cadences:

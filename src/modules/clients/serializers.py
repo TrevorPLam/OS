@@ -240,6 +240,10 @@ class ClientCommentSerializer(serializers.ModelSerializer):
             'is_read_by_firm',
             'read_by',
             'read_at',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
             'created_at',
             'updated_at',
         ]
@@ -249,6 +253,10 @@ class ClientCommentSerializer(serializers.ModelSerializer):
             'is_read_by_firm',
             'read_by',
             'read_at',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
             'created_at',
             'updated_at',
         ]
@@ -524,6 +532,10 @@ class ClientMessageSerializer(serializers.ModelSerializer):
             'is_read',
             'read_at',
             'read_by',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
             'created_at',
             'updated_at',
         ]
@@ -534,6 +546,10 @@ class ClientMessageSerializer(serializers.ModelSerializer):
             'is_read',
             'read_at',
             'read_by',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
             'created_at',
             'updated_at',
         ]

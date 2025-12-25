@@ -16,7 +16,8 @@ Meta-commentary:
 """
 from rest_framework import permissions
 from django.core.exceptions import PermissionDenied
-from modules.firm.models import BreakGlassSession
+from modules.firm.models import BreakGlassSession, FirmMembership
+from modules.firm.utils import get_request_firm
 
 
 class IsPlatformOperator(permissions.BasePermission):
@@ -197,6 +198,32 @@ class MetadataOnlyAccess(permissions.BasePermission):
         class Meta:
             fields = '__all__'
             # Platform operators will only see METADATA_ALLOWED_FIELDS
+
+
+class IsFirmOwner(permissions.BasePermission):
+    """
+    Permission class: User must be the firm owner (Master Admin).
+
+    Used for purge operations that require explicit owner approval.
+    """
+
+    message = "Only firm owners can perform purge operations."
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        try:
+            firm = get_request_firm(request)
+        except Exception:
+            return False
+
+        return FirmMembership.objects.filter(
+            firm=firm,
+            user=request.user,
+            role='owner',
+            is_active=True,
+        ).exists()
 
     Meta-commentary:
     - This should be combined with custom serializers that filter fields

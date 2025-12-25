@@ -7,7 +7,8 @@ Supports hierarchical folders and client portal access.
 TIER 0: All documents belong to exactly one Firm for tenant isolation.
 """
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
+from django.utils import timezone
 from modules.projects.models import Project
 from modules.firm.utils import FirmScopedManager
 
@@ -167,10 +168,14 @@ class Document(models.Model):
     # S3 Storage
     s3_key = models.CharField(
         max_length=500,
+        blank=True,
+        null=True,
         help_text="S3 object key (path in bucket, unique per firm)"
     )
     s3_bucket = models.CharField(
         max_length=255,
+        blank=True,
+        null=True,
         help_text="S3 bucket name"
     )
 
@@ -189,6 +194,27 @@ class Document(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_purged = models.BooleanField(
+        default=False,
+        help_text="Whether this document content has been purged"
+    )
+    purged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the document was purged"
+    )
+    purged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purged_documents',
+        help_text="User who purged the document"
+    )
+    purge_reason = models.TextField(
+        blank=True,
+        help_text="Reason for purge (required for legal/compliance)"
+    )
 
     # TIER 0: Managers
     objects = models.Manager()  # Default manager
@@ -208,6 +234,46 @@ class Document(models.Model):
 
     def __str__(self):
         return f"{self.folder} / {self.name}"
+
+    def purge(self, reason, actor, s3_service=None):
+        """
+        Purge document content while preserving metadata.
+
+        Removes S3 objects, clears content pointers, and tombstones versions.
+        """
+        if self.is_purged:
+            return False
+
+        from modules.documents.services import S3Service
+        if s3_service is None:
+            s3_service = S3Service()
+
+        with transaction.atomic():
+            if self.s3_key:
+                s3_service.delete_file(self.s3_key)
+
+            self.description = ""
+            self.s3_key = None
+            self.s3_bucket = None
+            self.is_purged = True
+            self.purged_at = timezone.now()
+            self.purged_by = actor
+            self.purge_reason = reason
+            self.save(update_fields=[
+                'description',
+                's3_key',
+                's3_bucket',
+                'is_purged',
+                'purged_at',
+                'purged_by',
+                'purge_reason',
+                'updated_at',
+            ])
+
+            for version in self.versions.select_for_update().all():
+                version.purge(reason, actor, s3_service=s3_service)
+
+        return True
 
 
 class Version(models.Model):
@@ -249,9 +315,15 @@ class Version(models.Model):
     # S3 Storage (each version has its own S3 object)
     s3_key = models.CharField(
         max_length=500,
+        blank=True,
+        null=True,
         help_text="S3 object key for this version (unique per firm)"
     )
-    s3_bucket = models.CharField(max_length=255)
+    s3_bucket = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
 
     # Audit Fields
     uploaded_by = models.ForeignKey(
@@ -261,6 +333,27 @@ class Version(models.Model):
         related_name='uploaded_versions'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    is_purged = models.BooleanField(
+        default=False,
+        help_text="Whether this version content has been purged"
+    )
+    purged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the version was purged"
+    )
+    purged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purged_document_versions',
+        help_text="User who purged the version"
+    )
+    purge_reason = models.TextField(
+        blank=True,
+        help_text="Reason for purge (required for legal/compliance)"
+    )
 
     # TIER 0: Managers
     objects = models.Manager()  # Default manager
@@ -281,3 +374,35 @@ class Version(models.Model):
 
     def __str__(self):
         return f"{self.document.name} (v{self.version_number})"
+
+    def purge(self, reason, actor, s3_service=None):
+        """
+        Purge version content while preserving metadata.
+        """
+        if self.is_purged:
+            return False
+
+        from modules.documents.services import S3Service
+        if s3_service is None:
+            s3_service = S3Service()
+
+        if self.s3_key:
+            s3_service.delete_file(self.s3_key)
+
+        self.change_summary = ""
+        self.s3_key = None
+        self.s3_bucket = None
+        self.is_purged = True
+        self.purged_at = timezone.now()
+        self.purged_by = actor
+        self.purge_reason = reason
+        self.save(update_fields=[
+            'change_summary',
+            's3_key',
+            's3_bucket',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+        ])
+        return True

@@ -10,6 +10,7 @@ TIER 2.6: Organizations allow optional cross-client collaboration within a firm.
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from decimal import Decimal
 from modules.firm.utils import FirmScopedManager
 
@@ -460,6 +461,27 @@ class ClientComment(models.Model):
     # Audit
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_purged = models.BooleanField(
+        default=False,
+        help_text="Whether this comment content has been purged"
+    )
+    purged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the comment was purged"
+    )
+    purged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purged_client_comments',
+        help_text="User who purged the comment"
+    )
+    purge_reason = models.TextField(
+        blank=True,
+        help_text="Reason for purge (required for legal/compliance)"
+    )
 
     class Meta:
         db_table = 'clients_comment'
@@ -472,6 +494,32 @@ class ClientComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author.get_full_name()} on task {self.task.title}"
+
+    def purge(self, reason, actor):
+        """
+        Purge comment content while preserving metadata.
+
+        Removes comment text and marks the comment as purged.
+        """
+        if self.is_purged:
+            return False
+
+        self.comment = "[PURGED]"
+        self.has_attachment = False
+        self.is_purged = True
+        self.purged_at = timezone.now()
+        self.purged_by = actor
+        self.purge_reason = reason
+        self.save(update_fields=[
+            'comment',
+            'has_attachment',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+            'updated_at',
+        ])
+        return True
 
 
 class ClientChatThread(models.Model):
@@ -615,6 +663,27 @@ class ClientMessage(models.Model):
     # Audit
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_purged = models.BooleanField(
+        default=False,
+        help_text="Whether this message content has been purged"
+    )
+    purged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the message was purged"
+    )
+    purged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purged_client_messages',
+        help_text="User who purged the message"
+    )
+    purge_reason = models.TextField(
+        blank=True,
+        help_text="Reason for purge (required for legal/compliance)"
+    )
 
     class Meta:
         db_table = 'clients_message'
@@ -640,3 +709,33 @@ class ClientMessage(models.Model):
             self.thread.last_message_at = self.created_at
             self.thread.last_message_by = self.sender
             self.thread.save()
+
+    def purge(self, reason, actor):
+        """
+        Purge message content while preserving metadata.
+
+        Removes message text and attachments, leaving a tombstone.
+        """
+        if self.is_purged:
+            return False
+
+        self.content = "[PURGED]"
+        self.attachment_url = ""
+        self.attachment_filename = ""
+        self.attachment_size_bytes = None
+        self.is_purged = True
+        self.purged_at = timezone.now()
+        self.purged_by = actor
+        self.purge_reason = reason
+        self.save(update_fields=[
+            'content',
+            'attachment_url',
+            'attachment_filename',
+            'attachment_size_bytes',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+            'updated_at',
+        ])
+        return True

@@ -177,11 +177,11 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 
 ### Tasks
 
-- [ ] **3.1** Implement purge semantics (tombstones, metadata retention)
-  - [ ] Define tombstone model strategy (messages, comments, documents)
-  - [ ] Implement purge flows for Master Admin
-  - [ ] Confirmation + reason required for purge
-  - [ ] Purge removes content but preserves metadata
+- [x] **3.1** Implement purge semantics (tombstones, metadata retention) ✅ COMPLETE
+  - [x] Define tombstone model strategy (messages, comments, documents) ✅
+  - [x] Implement purge flows for Master Admin ✅
+  - [x] Confirmation + reason required for purge ✅
+  - [x] Purge removes content but preserves metadata ✅
 
 - [x] **3.2** Define audit event taxonomy + retention policy ✅ COMPLETE
   - [x] Define event categories (AUTH, PERMISSIONS, BREAK_GLASS, BILLING_METADATA, PURGE, CONFIG) ✅
@@ -189,10 +189,10 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Implement structured audit writes ✅
   - [x] Audit records are tenant-scoped ✅
 
-- [ ] **3.3** Define audit review ownership and cadence
-  - [ ] Define review owner(s) (platform ops/security)
-  - [ ] Define review cadence (break-glass: weekly, role changes: monthly)
-  - [ ] Define escalation path for anomalies
+- [x] **3.3** Define audit review ownership and cadence ✅ COMPLETE
+  - [x] Define review owner(s) (platform ops/security) ✅
+  - [x] Define review cadence (break-glass: weekly, role changes: monthly) ✅
+  - [x] Define escalation path for anomalies ✅
 
 - [ ] **3.4** Implement privacy-first support workflows
   - [ ] Metadata-only diagnostics

@@ -21,7 +21,14 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = '__all__'
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = [
+            'created_at',
+            'updated_at',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+        ]
 
 
 class VersionSerializer(serializers.ModelSerializer):
@@ -30,4 +37,10 @@ class VersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Version
         fields = '__all__'
-        read_only_fields = ['created_at']
+        read_only_fields = [
+            'created_at',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+        ]
