@@ -90,6 +90,11 @@ class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     ordering_fields = ['company_name', 'client_since', 'total_lifetime_value']
     ordering = ['-client_since']
 
+    def get_queryset(self):
+        """Override to add select_related for performance (TIER 5.2)."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related('organization', 'account_manager')
+
     @action(detail=True, methods=['get'])
     def overview(self, request, pk=None):
         """
@@ -203,9 +208,11 @@ class ClientEngagementViewSet(viewsets.ModelViewSet):
     ordering = ['-start_date']
 
     def get_queryset(self):
-        """Filter engagements to firm via client relationship."""
+        """Filter engagements to firm via client relationship (TIER 5.2 optimized)."""
         firm = get_request_firm(self.request)
-        return ClientEngagement.objects.filter(client__firm=firm)
+        return ClientEngagement.objects.filter(client__firm=firm).select_related(
+            'client', 'contract', 'parent_engagement'
+        )
 
     @action(detail=False, methods=['get'])
     def by_client(self, request):
