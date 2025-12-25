@@ -4,7 +4,7 @@ Thanks for your interest in improving ConsultantPro. This guide outlines expecta
 
 ## Ground Rules
 
-- **Follow tier governance:** No tier skipping. The rules in `docs/claude/NOTES_TO_CLAUDE.md` are authoritative.
+- **Follow tier governance:** No tier skipping. See [Tier System Reference](docs/03-reference/tier-system.md) for authoritative rules.
 - **Preserve tenant isolation:** Security and privacy are the highest priority.
 - **Keep docs accurate:** Update documentation in the same change set as code changes.
 
@@ -24,6 +24,7 @@ pytest
 ## Documentation Updates
 
 - Use `docs/README.md` as the documentation map.
+- Follow the [Diátaxis framework](https://diataxis.fr/) for documentation structure.
 - Link to a single source of truth instead of duplicating instructions.
 - Ensure security-sensitive data is never committed to the repo.
 
@@ -32,3 +33,4 @@ pytest
 - Clearly describe **what** changed and **why**.
 - Call out any migrations, configuration updates, or operational impacts.
 - Confirm that relevant documentation was updated.
+

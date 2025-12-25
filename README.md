@@ -16,15 +16,16 @@ ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The
 
 ---
 
-## Documentation Map
+## Documentation
 
-Start here for a cohesive view of the documentation set:
-
-- **Project docs index:** [`docs/README.md`](docs/README.md)
-- **Authoritative rules (must-follow):** [`docs/claude/NOTES_TO_CLAUDE.md`](docs/claude/NOTES_TO_CLAUDE.md)
-- **Tier backlog:** [`TODO.md`](TODO.md)
-- **API usage guide:** [`API_USAGE.md`](API_USAGE.md)
-- **Deployment guide:** [`DEPLOYMENT.md`](DEPLOYMENT.md)
+- **Getting Started:** [`docs/01-tutorials/getting-started.md`](docs/01-tutorials/getting-started.md) - Complete setup tutorial
+- **Architecture:** [`docs/04-explanation/architecture-overview.md`](docs/04-explanation/architecture-overview.md) - System design and concepts
+- **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
+- **Tier System:** [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md) - Architecture governance and priorities
+- **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md) - Complete API documentation
+- **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md) - Production deployment
+- **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow
+- **Security:** [`SECURITY.md`](SECURITY.md) - Security policy and reporting
 
 ---
 
@@ -32,35 +33,28 @@ Start here for a cohesive view of the documentation set:
 
 This project follows a **strict tiered implementation model** to ensure security, privacy, and multi-tenant safety.
 
-### Tier Structure
+**Critical Rules:**
+1. **No tier may be skipped** - Each tier builds on the previous
+2. **No tier may be partially completed and left** - Complete all tasks in a tier
+3. **All changes must preserve tenant isolation and privacy guarantees** - Security is non-negotiable
+4. **CI must never lie** - Test failures must fail the build
 
-| Tier | Focus | Status |
-|------|-------|--------|
-| **Tier 0** | Foundational Safety (tenancy, privacy, break-glass) | 🔴 Not Started |
-| **Tier 1** | Schema Truth & CI Truth (migrations, honest CI) | 🔴 Not Started |
-| **Tier 2** | Authorization & Ownership (permissions, scoping) | 🔴 Not Started |
-| **Tier 3** | Data Integrity & Privacy (purge, audit, signing) | 🔴 Not Started |
-| **Tier 4** | Billing & Monetization (engagement-centric) | 🔴 Not Started |
-| **Tier 5** | Durability, Scale & Exit (performance, offboarding) | 🔴 Not Started |
+**Current Progress (as of Dec 2025):** Tiers 0-3 Complete (100%), Tier 4 In Progress (63%), Tier 5 Not Started
 
-### Critical Rules
-
-1. **No tier may be skipped**
-2. **No tier may be partially completed and left**
-3. **If code conflicts with `docs/claude/NOTES_TO_CLAUDE.md`, code must change**
-4. **All changes must preserve tenant isolation and privacy guarantees**
-5. **CI must never lie**
+For detailed tier information and current status, see [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md).
 
 ---
 
 ## 🚀 Quickstart (Local Development)
+
+**For complete setup instructions, see [Getting Started Tutorial](docs/01-tutorials/getting-started.md)**
 
 ### Prerequisites
 
 - Python 3.11+
 - PostgreSQL 15+
 
-### Setup
+### Quick Setup
 
 ```bash
 python -m venv .venv
@@ -70,7 +64,7 @@ pip install -r requirements.txt
 
 ### Configure Environment
 
-Set the required environment variables (see `DEPLOYMENT.md` for production-ready values):
+Set the required environment variables (see [Production Deployment Guide](docs/02-how-to/production-deployment.md) for production-ready values):
 
 ```bash
 export DJANGO_SECRET_KEY="dev-secret-key"
