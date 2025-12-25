@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { ImpersonationProvider } from './contexts/ImpersonationContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/Layout'
@@ -26,51 +27,53 @@ function App() {
     <ErrorBoundary>
       <Router>
         <AuthProvider>
-          <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <ImpersonationProvider>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-          {/* Protected routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<Dashboard />} />
+              {/* Protected routes */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<Dashboard />} />
 
-            {/* CRM Routes */}
-            <Route path="/crm/leads" element={<Leads />} />
-            <Route path="/crm/prospects" element={<Prospects />} />
-            <Route path="/crm/campaigns" element={<Campaigns />} />
-            <Route path="/proposals" element={<Proposals />} />
+                {/* CRM Routes */}
+                <Route path="/crm/leads" element={<Leads />} />
+                <Route path="/crm/prospects" element={<Prospects />} />
+                <Route path="/crm/campaigns" element={<Campaigns />} />
+                <Route path="/proposals" element={<Proposals />} />
 
-            {/* Client Management Routes */}
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/contracts" element={<Contracts />} />
-            <Route path="/client-portal" element={<ClientPortal />} />
+                {/* Client Management Routes */}
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/contracts" element={<Contracts />} />
+                <Route path="/client-portal" element={<ClientPortal />} />
 
-            {/* Delivery Routes */}
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:projectId/kanban" element={<ProjectKanban />} />
-            <Route path="/time-tracking" element={<TimeTracking />} />
-            <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />
+                {/* Delivery Routes */}
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:projectId/kanban" element={<ProjectKanban />} />
+                <Route path="/time-tracking" element={<TimeTracking />} />
+                <Route path="/invoices" element={<div>Invoices Module (Coming Soon)</div>} />
 
-            {/* Resources Routes */}
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/assets" element={<AssetManagement />} />
-            <Route path="/knowledge" element={<KnowledgeCenter />} />
-            <Route path="/communications" element={<Communications />} />
-          </Route>
+                {/* Resources Routes */}
+                <Route path="/documents" element={<Documents />} />
+                <Route path="/assets" element={<AssetManagement />} />
+                <Route path="/knowledge" element={<KnowledgeCenter />} />
+                <Route path="/communications" element={<Communications />} />
+              </Route>
 
-          {/* Catch all - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AuthProvider>
-    </Router>
-  </ErrorBoundary>
+              {/* Catch all - redirect to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </ImpersonationProvider>
+        </AuthProvider>
+      </Router>
+    </ErrorBoundary>
   )
 }
 

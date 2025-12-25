@@ -22,7 +22,10 @@ from django.utils.deprecation import MiddlewareMixin
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
 
-from modules.firm.models import Firm, FirmMembership
+import json
+
+from modules.firm.models import Firm, FirmMembership, BreakGlassSession
+from modules.firm.utils import get_active_break_glass_session
 
 
 logger = logging.getLogger(__name__)
@@ -141,6 +144,89 @@ class FirmContextMiddleware(MiddlewareMixin):
             return (firm, 'session')
 
         return (None, 'none')
+
+
+class BreakGlassImpersonationMiddleware:
+    """Expose break-glass impersonation context to downstream layers.
+
+    - Attaches the active break-glass session to the request when present
+    - Surfaces impersonation metadata via response headers for UI banners
+    - Emits immutable audit events for impersonated requests
+    """
+
+    HEADER_NAME = 'X-Break-Glass-Impersonation'
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest):
+        request.break_glass_session = self._resolve_break_glass_session(request)
+        response = self.get_response(request)
+
+        if request.break_glass_session and request.break_glass_session.impersonated_user:
+            payload = self._serialize_session(request.break_glass_session)
+            response[self.HEADER_NAME] = json.dumps(payload)
+            response['X-Impersonation-Mode'] = 'true'
+            self._log_impersonated_request(request, response)
+
+        return response
+
+    def _resolve_break_glass_session(self, request: HttpRequest):
+        """Lookup the active break-glass session for the current operator."""
+        if not getattr(request, 'user', None) or not request.user.is_authenticated:
+            return None
+
+        if not hasattr(request.user, 'platform_profile'):
+            return None
+
+        if not getattr(request, 'firm', None):
+            return None
+
+        session = get_active_break_glass_session(request.firm)
+        if session and session.operator_id == request.user.id:
+            return session
+
+        return None
+
+    def _serialize_session(self, session: BreakGlassSession) -> dict:
+        """Serialize impersonation context for UI banners."""
+        impersonated = session.impersonated_user
+        return {
+            'session_id': session.id,
+            'impersonated_user': (
+                impersonated.get_full_name()
+                or impersonated.email
+                or impersonated.username
+                if impersonated
+                else ''
+            ),
+            'reason': session.reason,
+            'expires_at': session.expires_at.isoformat(),
+        }
+
+    def _log_impersonated_request(self, request: HttpRequest, response):
+        """Record an immutable audit event for impersonated requests."""
+        try:
+            from modules.firm.audit import audit
+        except Exception:
+            return
+
+        session = request.break_glass_session
+        audit.log_break_glass_event(
+            firm=session.firm,
+            action='break_glass_impersonated_request',
+            actor=session.operator,
+            reason=session.reason,
+            target_model=session.__class__.__name__,
+            target_id=session.id,
+            metadata={
+                'path': request.path,
+                'method': request.method,
+                'status_code': response.status_code,
+                'impersonated_user_id': session.impersonated_user_id,
+                'request_id': request.META.get('HTTP_X_REQUEST_ID', ''),
+            },
+        )
 
     def _resolve_from_subdomain(self, request: HttpRequest) -> Optional[Firm]:
         """
