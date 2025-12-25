@@ -5,7 +5,7 @@ Security and privacy are foundational to ConsultantPro. Please handle potential 
 ## Reporting a Vulnerability
 
 - **Preferred:** Use your hosting platform's private security reporting workflow (e.g., GitHub Security Advisories).
-- **If private reporting is unavailable:** Contact the project maintainers directly and avoid public disclosure until a fix is available.
+- **If private reporting is unavailable:** Contact the project maintainers directly at security@consultantpro.com and avoid public disclosure until a fix is available.
 
 ## What to Include
 
