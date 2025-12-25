@@ -1,19 +1,32 @@
 # Documentation Map
 
-Use this guide to find the right doc shape quickly. We follow Diátaxis to keep docs focused and truthful.
+Use this guide to find the right documentation quickly. We follow the [Diátaxis framework](https://diataxis.fr/) to keep docs focused and useful.
 
 | You are trying to... | Go to |
 | --- | --- |
-| I’m new / learn the system | `docs/01-tutorials/` |
+| I'm new / learn the system | `docs/01-tutorials/` |
 | I need to do X | `docs/02-how-to/` |
 | I need exact values / contracts | `docs/03-reference/` |
 | I need to understand architecture/security | `docs/04-explanation/` |
 | Why did we choose this? | `docs/05-decisions/` (ADRs) |
-| I’m a customer / firm admin | `docs/06-user-guides/` |
+| I'm a customer / firm admin | `docs/06-user-guides/` |
 
-## Legacy docs
+## Key Documentation
 
-The following legacy buckets remain in place and will be migrated incrementally:
+- **[Tier System Reference](03-reference/tier-system.md)** - Architecture governance model
+- **[System Invariants](../spec/SYSTEM_INVARIANTS.md)** - Core system rules
+- **[API Usage Guide](../API_USAGE.md)** - Complete API reference
+- **[Deployment Guide](../DEPLOYMENT.md)** - Production deployment
+- **[Contributing Guide](../CONTRIBUTING.md)** - Development workflow
 
-- `docs/tier*/`
-- `docs/claude/`
+## Tier-Specific Documentation
+
+Documentation for each tier is organized in directories:
+- `docs/tier0/` - Foundational Safety
+- `docs/tier1/` - Schema Truth & CI Truth
+- `docs/tier2/` - Authorization & Ownership
+- `docs/tier3/` - Data Integrity & Privacy
+- `docs/tier4/` - Billing & Monetization
+- `docs/tier5/` - Durability, Scale & Exit
+
+For a consolidated view, see [Tier System Reference](03-reference/tier-system.md).

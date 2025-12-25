@@ -16,15 +16,15 @@ ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The
 
 ---
 
-## Documentation Map
+## Documentation
 
-Start here for a cohesive view of the documentation set:
-
-- **Project docs index:** [`docs/README.md`](docs/README.md)
-- **Authoritative rules (must-follow):** [`docs/claude/NOTES_TO_CLAUDE.md`](docs/claude/NOTES_TO_CLAUDE.md)
-- **Tier backlog:** [`TODO.md`](TODO.md)
-- **API usage guide:** [`API_USAGE.md`](API_USAGE.md)
-- **Deployment guide:** [`DEPLOYMENT.md`](DEPLOYMENT.md)
+- **Getting Started:** See [Quickstart](#-quickstart-local-development) below
+- **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
+- **Tier System:** [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md) - Architecture governance and priorities
+- **API Usage:** [`API_USAGE.md`](API_USAGE.md) - Complete API reference
+- **Deployment:** [`DEPLOYMENT.md`](DEPLOYMENT.md) - Production deployment guide
+- **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow
+- **Security:** [`SECURITY.md`](SECURITY.md) - Security policy and reporting
 
 ---
 
@@ -32,24 +32,15 @@ Start here for a cohesive view of the documentation set:
 
 This project follows a **strict tiered implementation model** to ensure security, privacy, and multi-tenant safety.
 
-### Tier Structure
+**Critical Rules:**
+1. **No tier may be skipped** - Each tier builds on the previous
+2. **No tier may be partially completed and left** - Complete all tasks in a tier
+3. **All changes must preserve tenant isolation and privacy guarantees** - Security is non-negotiable
+4. **CI must never lie** - Test failures must fail the build
 
-| Tier | Focus | Status |
-|------|-------|--------|
-| **Tier 0** | Foundational Safety (tenancy, privacy, break-glass) | 🔴 Not Started |
-| **Tier 1** | Schema Truth & CI Truth (migrations, honest CI) | 🔴 Not Started |
-| **Tier 2** | Authorization & Ownership (permissions, scoping) | 🔴 Not Started |
-| **Tier 3** | Data Integrity & Privacy (purge, audit, signing) | 🔴 Not Started |
-| **Tier 4** | Billing & Monetization (engagement-centric) | 🔴 Not Started |
-| **Tier 5** | Durability, Scale & Exit (performance, offboarding) | 🔴 Not Started |
+**Current Progress:** Tiers 0-3 Complete (100%), Tier 4 In Progress (63%), Tier 5 Not Started
 
-### Critical Rules
-
-1. **No tier may be skipped**
-2. **No tier may be partially completed and left**
-3. **If code conflicts with `docs/claude/NOTES_TO_CLAUDE.md`, code must change**
-4. **All changes must preserve tenant isolation and privacy guarantees**
-5. **CI must never lie**
+For detailed tier information, see [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md).
 
 ---
 
