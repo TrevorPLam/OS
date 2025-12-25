@@ -149,7 +149,11 @@ class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         try:
             document = self.get_object()
             s3_service = S3Service()
-            presigned_url = s3_service.generate_presigned_url(document.s3_key, expiration=3600)
+            presigned_url = s3_service.generate_presigned_url(
+                document.decrypted_s3_key(),
+                bucket=document.decrypted_s3_bucket(),
+                expiration=3600,
+            )
 
             return Response({
                 'download_url': presigned_url,
@@ -195,7 +199,11 @@ class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         try:
             version = self.get_object()
             s3_service = S3Service()
-            presigned_url = s3_service.generate_presigned_url(version.s3_key, expiration=3600)
+            presigned_url = s3_service.generate_presigned_url(
+                version.decrypted_s3_key(),
+                bucket=version.decrypted_s3_bucket(),
+                expiration=3600,
+            )
 
             return Response({
                 'download_url': presigned_url,

@@ -102,6 +102,12 @@ DATABASES = {
     }
 }
 
+if os.environ.get('USE_SQLITE_FOR_TESTS') == 'True':
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -197,6 +203,10 @@ AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID', '')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME', '')
 AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
+
+# E2EE / KMS Configuration
+DEFAULT_FIRM_KMS_KEY_ID = os.environ.get('DEFAULT_FIRM_KMS_KEY_ID', 'local-default-key')
+KMS_BACKEND = os.environ.get('KMS_BACKEND', 'local')
 
 # Stripe Configuration (for Finance module)
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')

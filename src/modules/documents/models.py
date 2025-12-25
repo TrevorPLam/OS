@@ -10,6 +10,7 @@ from django.conf import settings
 from django.db import models
 from modules.projects.models import Project
 from modules.firm.utils import FirmScopedManager
+from modules.core.encryption import field_encryption_service
 
 
 class Folder(models.Model):
@@ -165,13 +166,18 @@ class Document(models.Model):
     )
 
     # S3 Storage
-    s3_key = models.CharField(
-        max_length=500,
-        help_text="S3 object key (path in bucket, unique per firm)"
+    s3_key = models.TextField(
+        help_text="Encrypted S3 object key (path in bucket, unique per firm)",
     )
-    s3_bucket = models.CharField(
-        max_length=255,
-        help_text="S3 bucket name"
+    s3_bucket = models.TextField(
+        help_text="Encrypted S3 bucket name"
+    )
+    s3_fingerprint = models.CharField(
+        max_length=128,
+        editable=False,
+        db_index=True,
+        default='',
+        help_text="Deterministic fingerprint for uniqueness checks",
     )
 
     # Versioning
@@ -200,14 +206,37 @@ class Document(models.Model):
         indexes = [
             models.Index(fields=['firm', 'client', 'folder']),  # TIER 0: Firm scoping
             models.Index(fields=['firm', 'visibility']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 's3_bucket', 's3_key']),  # TIER 0: Firm scoping
             models.Index(fields=['firm', '-created_at']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 's3_fingerprint']),  # TIER 0: Firm scoping
         ]
         # TIER 0: S3 keys must be unique within a firm (not globally)
-        unique_together = [['firm', 's3_bucket', 's3_key']]
+        unique_together = [['firm', 's3_fingerprint']]
 
     def __str__(self):
         return f"{self.folder} / {self.name}"
+
+    def save(self, *args, **kwargs):
+        self._encrypt_content_fields()
+        super().save(*args, **kwargs)
+
+    def decrypted_s3_key(self):
+        return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)
+
+    def decrypted_s3_bucket(self):
+        return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_bucket)
+
+    def _encrypt_content_fields(self):
+        if not self.firm_id:
+            return
+
+        decrypted_bucket = field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_bucket)
+        decrypted_key = field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)
+
+        self.s3_bucket = field_encryption_service.encrypt_for_firm(self.firm_id, decrypted_bucket)
+        self.s3_key = field_encryption_service.encrypt_for_firm(self.firm_id, decrypted_key)
+
+        fingerprint_source = f"{decrypted_bucket}:{decrypted_key}" if decrypted_bucket or decrypted_key else None
+        self.s3_fingerprint = field_encryption_service.fingerprint_for_firm(self.firm_id, fingerprint_source) or ''
 
 
 class Version(models.Model):
@@ -247,11 +276,17 @@ class Version(models.Model):
     file_size_bytes = models.BigIntegerField()
 
     # S3 Storage (each version has its own S3 object)
-    s3_key = models.CharField(
-        max_length=500,
-        help_text="S3 object key for this version (unique per firm)"
+    s3_key = models.TextField(
+        help_text="Encrypted S3 object key for this version (unique per firm)",
     )
-    s3_bucket = models.CharField(max_length=255)
+    s3_bucket = models.TextField()
+    s3_fingerprint = models.CharField(
+        max_length=128,
+        editable=False,
+        db_index=True,
+        default='',
+        help_text="Deterministic fingerprint for version content",
+    )
 
     # Audit Fields
     uploaded_by = models.ForeignKey(
@@ -271,13 +306,36 @@ class Version(models.Model):
         ordering = ['-version_number']
         indexes = [
             models.Index(fields=['firm', 'document', 'version_number']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 's3_bucket', 's3_key']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 's3_fingerprint']),  # TIER 0: Firm scoping
         ]
         # TIER 0: Version numbers unique within firm+document, S3 keys unique within firm
         unique_together = [
             ['firm', 'document', 'version_number'],
-            ['firm', 's3_bucket', 's3_key']
+            ['firm', 's3_fingerprint']
         ]
 
     def __str__(self):
         return f"{self.document.name} (v{self.version_number})"
+
+    def save(self, *args, **kwargs):
+        self._encrypt_content_fields()
+        super().save(*args, **kwargs)
+
+    def decrypted_s3_key(self):
+        return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)
+
+    def decrypted_s3_bucket(self):
+        return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_bucket)
+
+    def _encrypt_content_fields(self):
+        if not self.firm_id:
+            return
+
+        decrypted_bucket = field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_bucket)
+        decrypted_key = field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)
+
+        self.s3_bucket = field_encryption_service.encrypt_for_firm(self.firm_id, decrypted_bucket)
+        self.s3_key = field_encryption_service.encrypt_for_firm(self.firm_id, decrypted_key)
+
+        fingerprint_source = f"{decrypted_bucket}:{decrypted_key}" if decrypted_bucket or decrypted_key else None
+        self.s3_fingerprint = field_encryption_service.fingerprint_for_firm(self.firm_id, fingerprint_source) or ''
