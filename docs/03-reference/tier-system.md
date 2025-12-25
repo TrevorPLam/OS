@@ -8,6 +8,8 @@ ConsultantPro follows a **strict tiered implementation model** where each tier r
 
 ## Tier Structure
 
+> **Note:** Status percentages are as of December 2025. See [TODO.md](../../TODO.md) for current work status.
+
 | Tier | Focus Area | Status |
 |------|-----------|--------|
 | **Tier 0** | Foundational Safety | Complete (83%) |

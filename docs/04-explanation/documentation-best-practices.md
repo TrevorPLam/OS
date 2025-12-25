@@ -121,20 +121,20 @@ See [here](/docs/03-reference/api-usage.md) for more info.
 
 ### Code Examples
 
-```markdown
+````markdown
 <!-- Good: Language-specific code fence with context -->
 Create a virtual environment:
 
-\```bash
+```bash
 python -m venv .venv
 source .venv/bin/activate
-\```
+```
 
 <!-- Bad: No language or context -->
-\```
-python -m venv .venv
-\```
 ```
+python -m venv .venv
+```
+````
 
 ### Cross-References
 

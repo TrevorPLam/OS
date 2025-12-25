@@ -13,8 +13,8 @@ Before you begin, ensure you have:
 ## Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-org/consultantpro.git
-cd consultantpro
+git clone https://github.com/TrevorPLam/OS.git
+cd OS
 ```
 
 ## Step 2: Set Up Python Environment

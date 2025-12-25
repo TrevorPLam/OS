@@ -9,7 +9,7 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 | I need exact values / contracts | `docs/03-reference/` |
 | I need to understand architecture/security | `docs/04-explanation/` |
 | Why did we choose this? | `docs/05-decisions/` (ADRs) |
-| I'm a customer / firm admin | `docs/06-user-guides/` |
+| I'm a customer / firm admin | `docs/06-user-guides/` (coming soon) |
 
 ## Key Documentation
 

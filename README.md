@@ -39,9 +39,9 @@ This project follows a **strict tiered implementation model** to ensure security
 3. **All changes must preserve tenant isolation and privacy guarantees** - Security is non-negotiable
 4. **CI must never lie** - Test failures must fail the build
 
-**Current Progress:** Tiers 0-3 Complete (100%), Tier 4 In Progress (63%), Tier 5 Not Started
+**Current Progress (as of Dec 2025):** Tiers 0-3 Complete (100%), Tier 4 In Progress (63%), Tier 5 Not Started
 
-For detailed tier information, see [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md).
+For detailed tier information and current status, see [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md).
 
 ---
 
