@@ -235,6 +235,79 @@ class Invoice(models.Model):
         from django.utils import timezone
         return self.status in ['sent', 'partial'] and self.due_date < timezone.now().date()
 
+    def get_package_revenue(self):
+        """
+        Calculate total package fee revenue on this invoice (TIER 4: Task 4.4).
+
+        Returns:
+            Decimal: Total amount from package fee line items
+        """
+        total = Decimal('0.00')
+        for item in self.line_items:
+            if item.get('type') == 'package_fee':
+                total += Decimal(str(item.get('amount', 0)))
+        return total
+
+    def get_hourly_revenue(self):
+        """
+        Calculate total hourly billing revenue on this invoice (TIER 4: Task 4.4).
+
+        Returns:
+            Decimal: Total amount from hourly line items
+        """
+        total = Decimal('0.00')
+        for item in self.line_items:
+            if item.get('type') == 'hourly':
+                total += Decimal(str(item.get('amount', 0)))
+        return total
+
+    def get_billing_breakdown(self):
+        """
+        Get mixed billing breakdown for this invoice (TIER 4: Task 4.4).
+
+        Separates package fees from hourly billing for clear reporting.
+
+        Returns:
+            dict: {
+                'package_revenue': Decimal,
+                'hourly_revenue': Decimal,
+                'other_revenue': Decimal,
+                'total_revenue': Decimal,
+                'package_items': list,
+                'hourly_items': list,
+                'other_items': list
+            }
+        """
+        package_items = []
+        hourly_items = []
+        other_items = []
+
+        for item in self.line_items:
+            item_type = item.get('type', 'other')
+            if item_type == 'package_fee':
+                package_items.append(item)
+            elif item_type == 'hourly':
+                hourly_items.append(item)
+            else:
+                other_items.append(item)
+
+        package_revenue = sum(Decimal(str(item.get('amount', 0))) for item in package_items)
+        hourly_revenue = sum(Decimal(str(item.get('amount', 0))) for item in hourly_items)
+        other_revenue = sum(Decimal(str(item.get('amount', 0))) for item in other_items)
+
+        return {
+            'package_revenue': package_revenue,
+            'hourly_revenue': hourly_revenue,
+            'other_revenue': other_revenue,
+            'total_revenue': package_revenue + hourly_revenue + other_revenue,
+            'package_items': package_items,
+            'hourly_items': hourly_items,
+            'other_items': other_items,
+            'package_count': len(package_items),
+            'hourly_count': len(hourly_items),
+            'other_count': len(other_items),
+        }
+
     def __str__(self):
         return f"{self.invoice_number} - {self.client.company_name} (${self.total_amount})"
 

@@ -517,6 +517,96 @@ class ClientEngagement(models.Model):
 
         super().save(*args, **kwargs)
 
+    def renew(self, new_package_fee=None, new_hourly_rate=None, new_pricing_mode=None,
+              renewal_start_date=None, renewal_end_date=None):
+        """
+        Create renewal engagement (TIER 4: Task 4.8).
+
+        Renewals create new engagements without mutating old ones.
+        Old engagement invoices remain untouched.
+        New billing terms apply only going forward.
+
+        Args:
+            new_package_fee: New package fee (if changing, otherwise inherits)
+            new_hourly_rate: New hourly rate (if changing, otherwise inherits)
+            new_pricing_mode: New pricing mode (if changing, otherwise inherits)
+            renewal_start_date: Start date for renewal (defaults to day after current end_date)
+            renewal_end_date: End date for renewal (defaults to 1 year from start)
+
+        Returns:
+            New ClientEngagement instance (renewal)
+
+        Raises:
+            ValidationError: If engagement cannot be renewed (e.g., already renewed)
+        """
+        from django.core.exceptions import ValidationError
+        from datetime import timedelta
+
+        # Prevent duplicate renewals
+        if self.status == 'renewed':
+            raise ValidationError(
+                f"Engagement v{self.version} has already been renewed. "
+                f"Cannot renew the same engagement twice."
+            )
+
+        # Mark current engagement as completed
+        self.status = 'completed'
+        self.save(update_fields=['status'])
+
+        # Determine renewal dates
+        if renewal_start_date is None:
+            renewal_start_date = self.end_date + timedelta(days=1)
+        if renewal_end_date is None:
+            renewal_end_date = renewal_start_date + timedelta(days=365)  # 1 year renewal
+
+        # Determine pricing terms (inherit or override)
+        renewal_pricing_mode = new_pricing_mode or self.pricing_mode
+        renewal_package_fee = new_package_fee or self.package_fee
+        renewal_hourly_rate = new_hourly_rate or self.hourly_rate_default
+
+        # Create renewal engagement
+        renewal = ClientEngagement.objects.create(
+            firm=self.firm,
+            client=self.client,
+            contract=self.contract,  # Same contract or could accept new_contract param
+            parent_engagement=self,
+            version=self.version + 1,
+            pricing_mode=renewal_pricing_mode,
+            package_fee=renewal_package_fee,
+            package_fee_schedule=self.package_fee_schedule,  # Inherit schedule
+            allow_hourly_billing=self.allow_hourly_billing,
+            hourly_rate_default=renewal_hourly_rate,
+            start_date=renewal_start_date,
+            end_date=renewal_end_date,
+            contracted_value=self.contracted_value,  # Could be recalculated
+            status='current'
+        )
+
+        # Update old engagement status to 'renewed'
+        self.status = 'renewed'
+        self.save(update_fields=['status'])
+
+        # Create audit event
+        from modules.firm.audit import audit
+        audit.log_billing_event(
+            firm=self.firm,
+            action='engagement_renewed',
+            actor=None,  # System event, or pass in user if available
+            metadata={
+                'old_engagement_id': self.id,
+                'old_engagement_version': self.version,
+                'new_engagement_id': renewal.id,
+                'new_engagement_version': renewal.version,
+                'old_package_fee': float(self.package_fee or 0),
+                'new_package_fee': float(renewal.package_fee or 0),
+                'old_hourly_rate': float(self.hourly_rate_default or 0),
+                'new_hourly_rate': float(renewal.hourly_rate_default or 0),
+                'pricing_mode': renewal.pricing_mode,
+            }
+        )
+
+        return renewal
+
     def __str__(self):
         return f"{self.client.company_name} - Engagement v{self.version}"
 

@@ -240,10 +240,10 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [x] Staff/Admin approval required before billing ✅ (validation enforced in TimeEntry.save())
   - [x] Client approval optional (future-ready) ✅ (documented for future)
 
-- [ ] **4.4** Mixed billing (package + hourly together) ⚠️ PARTIAL (models ready)
+- [x] **4.4** Mixed billing (package + hourly together) ✅ COMPLETE
   - [x] Engagement can specify mixed billing ✅ (pricing_mode='mixed' supported)
   - [x] Package and hourly line items are distinct ✅ (line item structure documented)
-  - [ ] Reporting clearly separates the two ⚠️ PENDING (future: reporting implementation)
+  - [x] Reporting clearly separates the two ✅ (get_billing_breakdown(), get_package_revenue(), get_hourly_revenue() methods)
 
 - [x] **4.5** Implement credit ledger ✅ COMPLETE
   - [x] Credits tracked in ledger (not ad-hoc fields) ✅ (CreditLedgerEntry model implemented)
@@ -260,10 +260,10 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
   - [ ] Disputes and chargebacks tracked explicitly
   - [ ] Platform retains dispute metadata only
 
-- [ ] **4.8** Renewal billing behavior (continuity without mutation)
-  - [ ] Renewals create new engagements
-  - [ ] Old engagement invoices remain untouched
-  - [ ] New billing terms apply only going forward
+- [x] **4.8** Renewal billing behavior (continuity without mutation) ✅ COMPLETE
+  - [x] Renewals create new engagements ✅ (ClientEngagement.renew() method)
+  - [x] Old engagement invoices remain untouched ✅ (no mutation, parent_engagement linkage)
+  - [x] New billing terms apply only going forward ✅ (version increment, new pricing terms)
 
 ### Completion Criteria
 
@@ -328,7 +328,7 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
 | Tier 1 | 🟢 **COMPLETE** ✅ | **100% (4/4 tasks complete)** |
 | Tier 2 | 🟢 **COMPLETE** ✅ | **100% (6/6 tasks complete)** |
 | Tier 3 | 🟢 **COMPLETE** ✅ | **100% (5/5 tasks complete)** |
-| Tier 4 | 🟡 In Progress | 50% (3/8 complete, 3/8 partial, 2/8 documented) |
+| Tier 4 | 🟡 In Progress | 63% (5/8 complete, 1/8 partial, 2/8 documented) |
 | Tier 5 | 🔴 Not Started | 0% |
 
 ---
@@ -630,3 +630,23 @@ This TODO list is organized by **Tiers (0-5)**, representing architectural prior
     - Documentation: docs/tier3/DOCUMENT_SIGNING_LIFECYCLE.md
   - **Tier 3 now 100% complete (5/5 tasks complete) - TIER 3 COMPLETE!** 🎉
   - All completion criteria met: tombstones implemented, audit system operational, review processes defined
+- 2025-12-25 [SESSION 6] — Claude: **ADVANCED Tier 4 (Billing & Monetization) - Phase 2 Quick Wins:**
+  - **COMPLETED Task 4.4 (Mixed Billing Reporting):**
+    - Added get_package_revenue() method to Invoice model (sum package fee line items)
+    - Added get_hourly_revenue() method to Invoice model (sum hourly line items)
+    - Added get_billing_breakdown() method to Invoice model (complete breakdown with counts)
+    - Reporting clearly separates package vs hourly billing for analytics
+    - File: src/modules/finance/models.py
+  - **COMPLETED Task 4.8 (Renewal Billing Behavior):**
+    - Added renew() method to ClientEngagement model
+    - Renewals create new engagement without mutating old one (version increment)
+    - Old engagement invoices remain untouched (immutability preserved)
+    - Supports pricing term overrides (package_fee, hourly_rate, pricing_mode)
+    - Prevents duplicate renewals (validation on status='renewed')
+    - Logs audit events with full metadata
+    - Status progression: current → completed → renewed
+    - File: src/modules/clients/models.py
+  - No migrations needed (methods only, no schema changes)
+  - Django system check passes
+  - **Tier 4 now 63% complete (5/8 complete, 1/8 partial, 2/8 documented)**
+  - Remaining Tier 4 Phase 2: Package auto-invoicing (Task 4.2), Autopay workflow (Task 4.6), Payment failure handling (Task 4.7)
