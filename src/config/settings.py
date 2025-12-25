@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
 
     # USP Business Modules (Organized by Domain)
+    'modules.core',         # TIER 3: Shared infrastructure (purge, audit utilities)
     'modules.firm',         # TIER 0: Multi-tenant foundation (Workspace/Firm)
     'modules.auth',
     'modules.crm',          # Pre-sale: Leads, Prospects, Proposals

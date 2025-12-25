@@ -634,3 +634,7 @@ class PlatformUserProfile(models.Model):
         """Run validation before saving."""
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+# Import audit models to register them with Django
+from modules.firm.audit import AuditEvent  # noqa: E402, F401
