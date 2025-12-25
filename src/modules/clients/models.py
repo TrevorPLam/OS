@@ -191,6 +191,30 @@ class Client(models.Model):
         help_text="Total revenue from this client across all engagements"
     )
 
+    # TIER 4: Autopay Settings
+    autopay_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable automatic payment of invoices"
+    )
+    autopay_payment_method_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Stripe payment method ID for autopay"
+    )
+    autopay_activated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When autopay was enabled"
+    )
+    autopay_activated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='autopay_activations',
+        help_text="Who enabled autopay"
+    )
+
     # Activity Tracking
     active_projects_count = models.IntegerField(
         default=0,
@@ -325,12 +349,31 @@ class ClientEngagement(models.Model):
     Tracks all engagements/contracts with a client.
 
     Provides version control and renewal tracking for client contracts.
+
+    TIER 4: Defines pricing mode (package, hourly, mixed) for billing.
     """
     STATUS_CHOICES = [
         ('current', 'Current Engagement'),
         ('completed', 'Completed'),
         ('renewed', 'Renewed'),
     ]
+
+    # TIER 4: Pricing Mode Choices
+    PRICING_MODE_CHOICES = [
+        ('package', 'Package/Fixed Fee'),
+        ('hourly', 'Hourly/Time & Materials'),
+        ('mixed', 'Mixed (Package + Hourly)'),
+    ]
+
+    # TIER 4: Firm tenancy (for efficient queries, auto-populated from client)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='client_engagements',
+        help_text="Firm this engagement belongs to (auto-populated from client)"
+    )
 
     client = models.ForeignKey(
         Client,
@@ -347,6 +390,43 @@ class ClientEngagement(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='current'
+    )
+
+    # TIER 4: Pricing Mode
+    pricing_mode = models.CharField(
+        max_length=20,
+        choices=PRICING_MODE_CHOICES,
+        default='package',
+        help_text="Pricing model for this engagement"
+    )
+
+    # TIER 4: Package Fee (if pricing_mode = 'package' or 'mixed')
+    package_fee = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Fixed package fee (required for package/mixed mode)"
+    )
+    package_fee_schedule = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Payment schedule (e.g., 'Monthly', 'Quarterly', 'One-time')"
+    )
+
+    # TIER 4: Hourly Billing (if pricing_mode = 'hourly' or 'mixed')
+    allow_hourly_billing = models.BooleanField(
+        default=False,
+        help_text="Allow hourly billing for this engagement"
+    )
+    hourly_rate_default = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Default hourly rate (if hourly billing allowed)"
     )
 
     # Version Control
@@ -396,8 +476,46 @@ class ClientEngagement(models.Model):
         indexes = [
             models.Index(fields=['client', '-start_date']),
             models.Index(fields=['status']),
+            models.Index(fields=['firm', 'status']),  # TIER 4: Firm scoping
+            models.Index(fields=['firm', '-start_date']),  # TIER 4: Firm scoping
         ]
         unique_together = [['client', 'version']]
+
+    def save(self, *args, **kwargs):
+        """
+        Enforce TIER 4 pricing mode invariants and auto-populate firm.
+
+        Validation:
+        - If pricing_mode='package' or 'mixed': package_fee required
+        - If pricing_mode='hourly' or 'mixed': hourly_rate_default required
+        - If pricing_mode='mixed': both package_fee AND hourly_rate required
+
+        Auto-population:
+        - firm is auto-populated from client.firm if not set
+        """
+        from django.core.exceptions import ValidationError
+
+        # Auto-populate firm from client
+        if not self.firm_id and self.client_id:
+            self.firm = self.client.firm
+
+        # Validate package mode
+        if self.pricing_mode in ['package', 'mixed']:
+            if not self.package_fee:
+                raise ValidationError(
+                    f"Package fee is required for pricing mode '{self.pricing_mode}'"
+                )
+
+        # Validate hourly mode
+        if self.pricing_mode in ['hourly', 'mixed']:
+            if not self.hourly_rate_default:
+                raise ValidationError(
+                    f"Hourly rate is required for pricing mode '{self.pricing_mode}'"
+                )
+            # Auto-enable hourly billing for hourly/mixed modes
+            self.allow_hourly_billing = True
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.client.company_name} - Engagement v{self.version}"

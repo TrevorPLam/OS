@@ -50,6 +50,35 @@ class Invoice(models.Model):
         related_name='invoices',
         help_text="The post-sale client being invoiced"
     )
+
+    # TIER 4: Link to Engagement (default, can be overridden by Master Admin)
+    engagement = models.ForeignKey(
+        'clients.ClientEngagement',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoices',
+        help_text="Engagement this invoice belongs to (Master Admin can override)"
+    )
+
+    # TIER 4: Override tracking for engagement linkage
+    engagement_override = models.BooleanField(
+        default=False,
+        help_text="True if Master Admin overrode default engagement linkage"
+    )
+    engagement_override_reason = models.TextField(
+        blank=True,
+        help_text="Reason for engagement override (required if overridden)"
+    )
+    engagement_override_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='invoice_engagement_overrides',
+        help_text="Master Admin who overrode engagement"
+    )
+
     project = models.ForeignKey(
         Project,
         on_delete=models.SET_NULL,
@@ -148,6 +177,52 @@ class Invoice(models.Model):
         ]
         # TIER 0: Invoice numbers must be unique within a firm (not globally)
         unique_together = [['firm', 'invoice_number']]
+
+    def save(self, *args, **kwargs):
+        """
+        Enforce TIER 4 billing invariants before saving.
+
+        Invariants:
+        1. Invoice MUST have a client
+        2. Invoice SHOULD have an engagement (unless Master Admin override)
+        3. If engagement_override=True, must have reason and override_by
+        4. Auto-link to active engagement if none provided
+        """
+        from django.core.exceptions import ValidationError
+
+        # Invariant 1: Invoice must belong to a Client
+        if not self.client_id:
+            raise ValidationError("Invoice must belong to a Client")
+
+        # Invariant 3: Master Admin override validation
+        if self.engagement_override:
+            if not self.engagement_override_reason:
+                raise ValidationError(
+                    "Override reason required when engagement is overridden"
+                )
+            if not self.engagement_override_by_id:
+                raise ValidationError(
+                    "Override by (Master Admin) required when engagement is overridden"
+                )
+
+        # Invariant 2: Invoice should link to engagement (auto-link if not provided)
+        if not self.engagement_id and not self.engagement_override and self.client_id:
+            # Try to auto-link to active engagement
+            from modules.clients.models import ClientEngagement
+            active_engagement = ClientEngagement.objects.filter(
+                client_id=self.client_id,
+                status='current'
+            ).first()
+
+            if active_engagement:
+                self.engagement = active_engagement
+            else:
+                raise ValidationError(
+                    f"Client has no active engagement. Master Admin override required. "
+                    f"Set engagement_override=True, provide reason, and specify override_by."
+                )
+
+        super().save(*args, **kwargs)
 
     @property
     def balance_due(self):
@@ -419,3 +494,194 @@ class LedgerEntry(models.Model):
 
     def __str__(self):
         return f"{self.entry_type.upper()}: {self.account} - ${self.amount} ({self.transaction_date})"
+
+
+class CreditLedgerEntry(models.Model):
+    """
+    Credit ledger entry for client credits (TIER 4).
+
+    Tracks creation and application of credits in an immutable ledger.
+    Credits are ADDED via positive entries, APPLIED via negative entries.
+
+    TIER 4: All credit operations must go through this ledger.
+    """
+    ENTRY_TYPE_CHOICES = [
+        ('credit', 'Credit Added'),
+        ('debit', 'Credit Applied/Used'),
+    ]
+
+    SOURCE_CHOICES = [
+        ('overpayment', 'Overpayment'),
+        ('refund', 'Refund'),
+        ('goodwill', 'Goodwill Credit'),
+        ('promotional', 'Promotional Credit'),
+        ('correction', 'Billing Correction'),
+    ]
+
+    USE_CHOICES = [
+        ('invoice_payment', 'Applied to Invoice'),
+        ('partial_payment', 'Partial Payment'),
+        ('expired', 'Credit Expired'),
+        ('refunded', 'Refunded to Client'),
+    ]
+
+    # Tenant Context
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='credit_ledger',
+        help_text="Firm this credit belongs to"
+    )
+
+    client = models.ForeignKey(
+        'clients.Client',
+        on_delete=models.CASCADE,
+        related_name='credit_ledger',
+        help_text="Client this credit belongs to"
+    )
+
+    # Entry Details
+    entry_type = models.CharField(
+        max_length=10,
+        choices=ENTRY_TYPE_CHOICES,
+        help_text="Credit (added) or Debit (used)"
+    )
+
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Amount of credit (always positive)"
+    )
+
+    # For Credits (entry_type='credit')
+    source = models.CharField(
+        max_length=20,
+        choices=SOURCE_CHOICES,
+        blank=True,
+        help_text="How credit was created (for credit entries)"
+    )
+
+    source_invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='credit_sources',
+        help_text="Invoice that generated this credit (if applicable)"
+    )
+
+    # For Debits (entry_type='debit')
+    use = models.CharField(
+        max_length=20,
+        choices=USE_CHOICES,
+        blank=True,
+        help_text="How credit was used (for debit entries)"
+    )
+
+    applied_to_invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='credit_applications',
+        help_text="Invoice this credit was applied to (if applicable)"
+    )
+
+    # Metadata
+    description = models.TextField(
+        help_text="Description of credit creation or use"
+    )
+
+    reason = models.TextField(
+        blank=True,
+        help_text="Reason for credit (required for goodwill/correction credits)"
+    )
+
+    # Authorization
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_credits',
+        help_text="Who created this credit entry"
+    )
+
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_credits',
+        help_text="Who approved this credit (for goodwill/correction)"
+    )
+
+    # Expiration (if credits expire)
+    expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this credit expires (if applicable)"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Audit Event Link
+    audit_event_id = models.BigIntegerField(
+        null=True,
+        blank=True,
+        help_text="Link to audit event for this credit operation"
+    )
+
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+
+    class Meta:
+        db_table = 'finance_credit_ledger'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['firm', 'client', '-created_at']),
+            models.Index(fields=['client', 'entry_type', '-created_at']),
+            models.Index(fields=['source_invoice']),
+            models.Index(fields=['applied_to_invoice']),
+        ]
+        verbose_name_plural = 'Credit Ledger Entries'
+
+    def save(self, *args, **kwargs):
+        """Enforce credit ledger invariants."""
+        from django.core.exceptions import ValidationError
+
+        # Goodwill/correction credits require reason and approval
+        if self.entry_type == 'credit' and self.source in ['goodwill', 'correction']:
+            if not self.reason:
+                raise ValidationError(
+                    f"Reason required for {self.source} credits"
+                )
+            if not self.approved_by_id:
+                raise ValidationError(
+                    f"Approval required for {self.source} credits"
+                )
+
+        # Credits must have source, debits must have use
+        if self.entry_type == 'credit' and not self.source:
+            raise ValidationError("Source required for credit entries")
+        if self.entry_type == 'debit' and not self.use:
+            raise ValidationError("Use required for debit entries")
+
+        # Prevent modifications (immutable)
+        if self.pk:
+            raise ValidationError("Credit ledger entries are immutable")
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        """Prevent deletion of credit entries."""
+        from django.core.exceptions import ValidationError
+        raise ValidationError(
+            "Credit ledger entries cannot be deleted. "
+            "Create a reversing entry instead."
+        )
+
+    def __str__(self):
+        return f"{self.entry_type.upper()}: ${self.amount} - {self.client.company_name}"

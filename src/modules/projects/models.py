@@ -266,6 +266,25 @@ class TimeEntry(models.Model):
         help_text="Calculated: hours * hourly_rate"
     )
 
+    # TIER 4: Approval Gate (time entries NOT billable by default)
+    approved = models.BooleanField(
+        default=False,
+        help_text="Time entry approved for billing (default: False per Tier 4)"
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_time_entries',
+        help_text="Staff/Admin who approved this time entry for billing"
+    )
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When time entry was approved for billing"
+    )
+
     # Invoicing
     invoiced = models.BooleanField(
         default=False,
@@ -294,8 +313,34 @@ class TimeEntry(models.Model):
         verbose_name_plural = 'Time Entries'
 
     def save(self, *args, **kwargs):
-        """Calculate billed_amount before saving."""
+        """
+        Calculate billed_amount and enforce approval gates before saving.
+
+        TIER 4 Billing Invariants:
+        - Time entries cannot be invoiced unless approved
+        - Approval cannot be revoked if already invoiced
+        """
+        from django.core.exceptions import ValidationError
+
+        # Calculate billed amount
         self.billed_amount = self.hours * self.hourly_rate
+
+        # TIER 4: Enforce approval gate
+        if self.invoiced and not self.approved:
+            raise ValidationError(
+                "Time entry cannot be invoiced unless approved. "
+                "Approval required before billing."
+            )
+
+        # TIER 4: Prevent approval revocation after invoicing
+        if self.pk:  # Existing record
+            old_instance = TimeEntry.objects.filter(pk=self.pk).first()
+            if old_instance and old_instance.invoiced and old_instance.approved and not self.approved:
+                raise ValidationError(
+                    "Cannot revoke approval for time entry that has been invoiced. "
+                    "Approval is immutable after billing."
+                )
+
         super().save(*args, **kwargs)
 
     def __str__(self):
