@@ -483,12 +483,14 @@ class ClientEngagement(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Enforce TIER 4 pricing mode invariants and auto-populate firm.
+        Enforce TIER 4 pricing mode invariants, engagement immutability, and auto-populate firm.
 
         Validation:
         - If pricing_mode='package' or 'mixed': package_fee required
         - If pricing_mode='hourly' or 'mixed': hourly_rate_default required
         - If pricing_mode='mixed': both package_fee AND hourly_rate required
+        - IMMUTABILITY: Completed/renewed engagements cannot modify critical fields (TIER 3)
+        - IMMUTABILITY: Engagements with invoices cannot change pricing terms (TIER 3)
 
         Auto-population:
         - firm is auto-populated from client.firm if not set
@@ -498,6 +500,45 @@ class ClientEngagement(models.Model):
         # Auto-populate firm from client
         if not self.firm_id and self.client_id:
             self.firm = self.client.firm
+
+        # TIER 3: Engagement immutability validation (prevent historical modification)
+        if self.pk:  # Existing engagement
+            try:
+                old_instance = ClientEngagement.objects.get(pk=self.pk)
+
+                # Critical fields that cannot be modified once engagement is completed/renewed
+                IMMUTABLE_FIELDS_WHEN_CLOSED = [
+                    'pricing_mode', 'package_fee', 'hourly_rate_default',
+                    'contracted_value', 'start_date', 'end_date'
+                ]
+
+                # Prevent modification of completed/renewed engagements
+                if old_instance.status in ['completed', 'renewed']:
+                    # Allow only specific updates (update_fields pattern)
+                    update_fields = kwargs.get('update_fields', [])
+                    if not update_fields:
+                        # No update_fields specified, check if any critical field changed
+                        for field in IMMUTABLE_FIELDS_WHEN_CLOSED:
+                            if getattr(old_instance, field) != getattr(self, field):
+                                raise ValidationError(
+                                    f"Cannot modify '{field}' on {old_instance.status} engagement. "
+                                    f"Engagement v{old_instance.version} is immutable after completion."
+                                )
+
+                # Prevent pricing changes if engagement has invoices (signed engagement)
+                if old_instance.invoices.exists():
+                    pricing_fields = ['pricing_mode', 'package_fee', 'hourly_rate_default']
+                    for field in pricing_fields:
+                        if getattr(old_instance, field) != getattr(self, field):
+                            invoice_count = old_instance.invoices.count()
+                            raise ValidationError(
+                                f"Cannot modify '{field}': engagement has {invoice_count} invoice(s). "
+                                f"Pricing terms are immutable once invoicing has begun."
+                            )
+
+            except ClientEngagement.DoesNotExist:
+                # New record or concurrent delete, proceed
+                pass
 
         # Validate package mode
         if self.pricing_mode in ['package', 'mixed']:

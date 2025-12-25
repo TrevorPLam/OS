@@ -240,6 +240,7 @@ class Invoice(models.Model):
         2. Invoice SHOULD have an engagement (unless Master Admin override)
         3. If engagement_override=True, must have reason and override_by
         4. Auto-link to active engagement if none provided
+        5. All time entries must be approved before invoicing (TIER 4)
         """
         from django.core.exceptions import ValidationError
 
@@ -273,6 +274,17 @@ class Invoice(models.Model):
                 raise ValidationError(
                     f"Client has no active engagement. Master Admin override required. "
                     f"Set engagement_override=True, provide reason, and specify override_by."
+                )
+
+        # Invariant 5: Validate time entry approval (TIER 4 billing gate)
+        # Only check for existing invoices (pk is set)
+        if self.pk and self.status not in ['draft', 'cancelled']:
+            unapproved_entries = self.time_entries.filter(approved=False)
+            if unapproved_entries.exists():
+                count = unapproved_entries.count()
+                raise ValidationError(
+                    f"Cannot finalize invoice: {count} time entry/entries not approved. "
+                    f"All time entries must be approved before billing."
                 )
 
         super().save(*args, **kwargs)

@@ -24,6 +24,7 @@ urlpatterns = [
 
     # API Endpoints (REST Framework)
     path('api/auth/', include('modules.auth.urls')),
+    path('api/firm/', include('modules.firm.urls')),
 
     # TIER 0: Client Portal (portal users ONLY - default-deny)
     path('api/portal/', include('api.portal.urls')),
