@@ -37,7 +37,18 @@ from modules.clients.serializers import (
     ClientContractSerializer,
     ClientEngagementDetailSerializer,
 )
+from modules.firm.models import FirmMembership
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+
+
+def _is_master_admin(user, firm):
+    """Return True if the user is an active Firm Owner for the firm."""
+    return FirmMembership.objects.filter(
+        firm=firm,
+        user=user,
+        role='owner',
+        is_active=True,
+    ).exists()
 
 
 class OrganizationViewSet(FirmScopedMixin, viewsets.ModelViewSet):
@@ -373,6 +384,42 @@ class ClientCommentViewSet(viewsets.ModelViewSet):
                 'status': 'marked as read',
                 'comment': ClientCommentSerializer(comment).data
             })
+
+    @action(detail=True, methods=['post'])
+    def purge(self, request, pk=None):
+        """
+        Purge comment content while preserving metadata.
+
+        TIER 3: Master Admin only, requires reason.
+        """
+        try:
+            ClientPortalUser.objects.get(user=request.user)
+            return Response(
+                {'error': 'Only firm master admins can purge comments'},
+                status=403
+            )
+        except ClientPortalUser.DoesNotExist:
+            firm = get_request_firm(request)
+            if not _is_master_admin(request.user, firm):
+                return Response(
+                    {'error': 'Only firm master admins can purge comments'},
+                    status=403
+                )
+
+        reason = (request.data.get('reason') or '').strip()
+        if not reason:
+            return Response(
+                {'error': 'Purge reason is required'},
+                status=400
+            )
+
+        comment = self.get_object()
+        comment.purge_content(actor=request.user, reason=reason)
+
+        return Response({
+            'status': 'comment purged',
+            'comment': ClientCommentSerializer(comment).data
+        })
 
     @action(detail=False, methods=['get'])
     def unread(self, request):
@@ -721,6 +768,42 @@ class ClientMessageViewSet(viewsets.ModelViewSet):
 
         return Response({
             'status': 'marked as read',
+            'message': ClientMessageSerializer(message).data
+        })
+
+    @action(detail=True, methods=['post'])
+    def purge(self, request, pk=None):
+        """
+        Purge message content while preserving metadata.
+
+        TIER 3: Master Admin only, requires reason.
+        """
+        try:
+            ClientPortalUser.objects.get(user=request.user)
+            return Response(
+                {'error': 'Only firm master admins can purge messages'},
+                status=403
+            )
+        except ClientPortalUser.DoesNotExist:
+            firm = get_request_firm(request)
+            if not _is_master_admin(request.user, firm):
+                return Response(
+                    {'error': 'Only firm master admins can purge messages'},
+                    status=403
+                )
+
+        reason = (request.data.get('reason') or '').strip()
+        if not reason:
+            return Response(
+                {'error': 'Purge reason is required'},
+                status=400
+            )
+
+        message = self.get_object()
+        message.purge_content(actor=request.user, reason=reason)
+
+        return Response({
+            'status': 'message purged',
             'message': ClientMessageSerializer(message).data
         })
 

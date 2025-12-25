@@ -7,10 +7,12 @@ Clients are created when a Proposal is accepted in the CRM module.
 TIER 0: All clients MUST belong to exactly one Firm for tenant isolation.
 TIER 2.6: Organizations allow optional cross-client collaboration within a firm.
 """
-from django.conf import settings
-from django.db import models
-from django.core.validators import MinValueValidator
 from decimal import Decimal
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils import timezone
 from modules.firm.utils import FirmScopedManager
 
 
@@ -432,6 +434,29 @@ class ClientComment(models.Model):
     # Comment Content
     comment = models.TextField()
 
+    # Purge Metadata (TIER 3: tombstone semantics)
+    is_purged = models.BooleanField(
+        default=False,
+        help_text="Whether this comment content has been purged"
+    )
+    purged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this comment was purged"
+    )
+    purged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purged_client_comments',
+        help_text="User who purged this comment"
+    )
+    purge_reason = models.TextField(
+        blank=True,
+        help_text="Reason for purging this comment"
+    )
+
     # Attachments (optional)
     has_attachment = models.BooleanField(
         default=False,
@@ -472,6 +497,52 @@ class ClientComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author.get_full_name()} on task {self.task.title}"
+
+    def purge_content(self, actor, reason):
+        """
+        Purge comment content while preserving metadata.
+
+        TIER 3: Master Admin-only purge flow uses tombstone semantics.
+        """
+        if not reason:
+            raise ValidationError('Purge reason is required.')
+
+        if self.is_purged:
+            return
+
+        self.comment = ''
+        self.has_attachment = False
+        self.is_purged = True
+        self.purged_at = timezone.now()
+        self.purged_by = actor
+        self.purge_reason = reason
+        self.save(update_fields=[
+            'comment',
+            'has_attachment',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+            'updated_at',
+        ])
+
+        from modules.firm.models import AuditEvent, create_audit_event
+
+        create_audit_event(
+            firm=self.client.firm,
+            category=AuditEvent.CATEGORY_PURGE,
+            action='client_comment.purge',
+            actor=actor,
+            target_object=self,
+            target_description=f"ClientComment {self.id} for client {self.client_id}",
+            client=self.client,
+            reason=reason,
+            severity=AuditEvent.SEVERITY_CRITICAL,
+            metadata={
+                'model': 'ClientComment',
+                'task_id': self.task_id,
+            },
+        )
 
 
 class ClientChatThread(models.Model):
@@ -577,6 +648,29 @@ class ClientMessage(models.Model):
         help_text="Message text content"
     )
 
+    # Purge Metadata (TIER 3: tombstone semantics)
+    is_purged = models.BooleanField(
+        default=False,
+        help_text="Whether this message content has been purged"
+    )
+    purged_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this message was purged"
+    )
+    purged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='purged_client_messages',
+        help_text="User who purged this message"
+    )
+    purge_reason = models.TextField(
+        blank=True,
+        help_text="Reason for purging this message"
+    )
+
     # File Attachment (optional)
     attachment_url = models.URLField(
         blank=True,
@@ -640,3 +734,55 @@ class ClientMessage(models.Model):
             self.thread.last_message_at = self.created_at
             self.thread.last_message_by = self.sender
             self.thread.save()
+
+    def purge_content(self, actor, reason):
+        """
+        Purge message content while preserving metadata.
+
+        TIER 3: Master Admin-only purge flow uses tombstone semantics.
+        """
+        if not reason:
+            raise ValidationError('Purge reason is required.')
+
+        if self.is_purged:
+            return
+
+        self.content = ''
+        self.message_type = 'system'
+        self.attachment_url = ''
+        self.attachment_filename = ''
+        self.attachment_size_bytes = None
+        self.is_purged = True
+        self.purged_at = timezone.now()
+        self.purged_by = actor
+        self.purge_reason = reason
+        self.save(update_fields=[
+            'content',
+            'message_type',
+            'attachment_url',
+            'attachment_filename',
+            'attachment_size_bytes',
+            'is_purged',
+            'purged_at',
+            'purged_by',
+            'purge_reason',
+            'updated_at',
+        ])
+
+        from modules.firm.models import AuditEvent, create_audit_event
+
+        create_audit_event(
+            firm=self.thread.client.firm,
+            category=AuditEvent.CATEGORY_PURGE,
+            action='client_message.purge',
+            actor=actor,
+            target_object=self,
+            target_description=f"ClientMessage {self.id} for client {self.thread.client_id}",
+            client=self.thread.client,
+            reason=reason,
+            severity=AuditEvent.SEVERITY_CRITICAL,
+            metadata={
+                'model': 'ClientMessage',
+                'thread_id': self.thread_id,
+            },
+        )

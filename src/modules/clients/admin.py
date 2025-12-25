@@ -177,7 +177,15 @@ class ClientCommentAdmin(admin.ModelAdmin):
         'author__username',
         'author__email',
     )
-    readonly_fields = ('created_at', 'updated_at', 'read_at')
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'read_at',
+        'is_purged',
+        'purged_at',
+        'purged_by',
+        'purge_reason',
+    )
 
     fieldsets = (
         ('Comment Details', {
@@ -188,6 +196,10 @@ class ClientCommentAdmin(admin.ModelAdmin):
         }),
         ('Read Status', {
             'fields': ('is_read_by_firm', 'read_by', 'read_at'),
+        }),
+        ('Purge Metadata', {
+            'fields': ('is_purged', 'purged_at', 'purged_by', 'purge_reason'),
+            'classes': ('collapse',),
         }),
         ('Audit', {
             'fields': ('created_at', 'updated_at'),
@@ -246,7 +258,15 @@ class ClientMessageAdmin(admin.ModelAdmin):
         'sender__email',
         'thread__client__company_name',
     )
-    readonly_fields = ('created_at', 'updated_at', 'read_at')
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+        'read_at',
+        'is_purged',
+        'purged_at',
+        'purged_by',
+        'purge_reason',
+    )
 
     fieldsets = (
         ('Message Details', {
@@ -258,6 +278,10 @@ class ClientMessageAdmin(admin.ModelAdmin):
         }),
         ('Read Status', {
             'fields': ('is_read', 'read_by', 'read_at'),
+        }),
+        ('Purge Metadata', {
+            'fields': ('is_purged', 'purged_at', 'purged_by', 'purge_reason'),
+            'classes': ('collapse',),
         }),
         ('Audit', {
             'fields': ('created_at', 'updated_at'),
