@@ -488,6 +488,286 @@ class PaymentDispute(models.Model):
         return f"Dispute {self.stripe_dispute_id} - {self.invoice.invoice_number} (${self.amount})"
 
 
+class PaymentFailure(models.Model):
+    """
+    TIER 4.7: Payment Failure Tracking
+
+    Tracks failed payment attempts for invoices.
+
+    Stores metadata about payment failures (card declined, insufficient funds, etc.)
+    without exposing sensitive payment details. Links to Stripe payment intent
+    for full details.
+
+    Use cases:
+    - Automated retry logic
+    - Customer communication about failed payments
+    - Analytics on payment failure patterns
+    - Dunning workflows
+    """
+
+    FAILURE_CODE_CHOICES = [
+        ('card_declined', 'Card Declined'),
+        ('insufficient_funds', 'Insufficient Funds'),
+        ('expired_card', 'Expired Card'),
+        ('incorrect_cvc', 'Incorrect CVC'),
+        ('processing_error', 'Processing Error'),
+        ('authentication_required', 'Authentication Required'),
+        ('network_error', 'Network Error'),
+        ('other', 'Other'),
+    ]
+
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='payment_failures',
+        help_text="Firm this failure belongs to"
+    )
+    invoice = models.ForeignKey(
+        'Invoice',
+        on_delete=models.CASCADE,
+        related_name='payment_failures',
+        help_text="Invoice that failed to pay"
+    )
+    client = models.ForeignKey(
+        'clients.Client',
+        on_delete=models.CASCADE,
+        related_name='payment_failures',
+        help_text="Client whose payment failed"
+    )
+
+    # Payment Details
+    amount_attempted = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Amount that was attempted to charge"
+    )
+    currency = models.CharField(max_length=3, default='USD')
+
+    # Failure Details
+    failure_code = models.CharField(
+        max_length=50,
+        choices=FAILURE_CODE_CHOICES,
+        help_text="Reason code for failure"
+    )
+    failure_message = models.TextField(
+        help_text="Human-readable failure message (no sensitive data)"
+    )
+
+    # Stripe References (metadata only, no sensitive data)
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        help_text="Stripe PaymentIntent ID for reference"
+    )
+    stripe_error_code = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Stripe error code"
+    )
+
+    # Retry Logic
+    retry_count = models.IntegerField(
+        default=0,
+        help_text="Number of retry attempts made"
+    )
+    next_retry_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When to retry payment (if automated)"
+    )
+    max_retries_reached = models.BooleanField(
+        default=False,
+        help_text="Whether max retries have been attempted"
+    )
+
+    # Communication
+    customer_notified = models.BooleanField(
+        default=False,
+        help_text="Whether customer was notified of failure"
+    )
+    notified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When customer was notified"
+    )
+
+    # Resolution
+    resolved = models.BooleanField(
+        default=False,
+        help_text="Whether payment was eventually successful"
+    )
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When payment succeeded after failure"
+    )
+
+    # Audit
+    failed_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="When payment failed"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'finance_payment_failure'
+        ordering = ['-failed_at']
+        indexes = [
+            models.Index(fields=['firm', 'resolved', '-failed_at']),
+            models.Index(fields=['invoice', '-failed_at']),
+            models.Index(fields=['client', '-failed_at']),
+            models.Index(fields=['stripe_payment_intent_id']),
+            models.Index(fields=['next_retry_at']),
+        ]
+
+    def __str__(self):
+        return f"Payment Failure - {self.invoice.invoice_number} (${self.amount_attempted}) - {self.failure_code}"
+
+
+class Chargeback(models.Model):
+    """
+    TIER 4.7: Chargeback Tracking
+
+    Tracks chargebacks (customer-initiated payment reversals).
+
+    Chargebacks are distinct from disputes:
+    - Dispute: Customer contests charge before/during payment
+    - Chargeback: Customer reverses completed payment through their bank
+
+    Stores metadata only - full chargeback evidence lives in Stripe.
+    """
+
+    CHARGEBACK_STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('accepted', 'Accepted (Refunded)'),
+        ('contested', 'Contested'),
+        ('won', 'Won (Funds Retained)'),
+        ('lost', 'Lost (Funds Reversed)'),
+    ]
+
+    CHARGEBACK_REASON_CHOICES = [
+        ('fraudulent', 'Fraudulent'),
+        ('duplicate', 'Duplicate'),
+        ('product_not_received', 'Product/Service Not Received'),
+        ('product_unacceptable', 'Product/Service Unacceptable'),
+        ('subscription_canceled', 'Subscription Canceled'),
+        ('credit_not_processed', 'Credit Not Processed'),
+        ('general', 'General'),
+    ]
+
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='chargebacks',
+        help_text="Firm this chargeback belongs to"
+    )
+    invoice = models.ForeignKey(
+        'Invoice',
+        on_delete=models.CASCADE,
+        related_name='chargebacks',
+        help_text="Invoice that was charged back"
+    )
+    client = models.ForeignKey(
+        'clients.Client',
+        on_delete=models.CASCADE,
+        related_name='chargebacks',
+        help_text="Client who initiated chargeback"
+    )
+
+    # Chargeback Details
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Amount charged back"
+    )
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(
+        max_length=20,
+        choices=CHARGEBACK_STATUS_CHOICES,
+        default='pending'
+    )
+    reason = models.CharField(
+        max_length=50,
+        choices=CHARGEBACK_REASON_CHOICES,
+        help_text="Reason for chargeback"
+    )
+
+    # Stripe References
+    stripe_chargeback_id = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text="Stripe Chargeback/Dispute ID"
+    )
+    stripe_charge_id = models.CharField(
+        max_length=255,
+        help_text="Original Stripe Charge ID"
+    )
+
+    # Timeline
+    initiated_at = models.DateTimeField(
+        help_text="When customer initiated chargeback"
+    )
+    respond_by = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Deadline to respond with evidence"
+    )
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When chargeback was resolved"
+    )
+
+    # Evidence & Response
+    evidence_submitted = models.BooleanField(
+        default=False,
+        help_text="Whether evidence was submitted"
+    )
+    evidence_submitted_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+    resolution_notes = models.TextField(
+        blank=True,
+        help_text="Notes on chargeback resolution"
+    )
+
+    # Financial Impact
+    fee_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Chargeback fee charged by processor"
+    )
+    funds_reversed = models.BooleanField(
+        default=False,
+        help_text="Whether funds were reversed to customer"
+    )
+
+    # Internal Tracking
+    internal_notes = models.TextField(
+        blank=True,
+        help_text="Internal notes (platform use only)"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'finance_chargeback'
+        ordering = ['-initiated_at']
+        indexes = [
+            models.Index(fields=['firm', 'status', '-initiated_at']),
+            models.Index(fields=['invoice', '-initiated_at']),
+            models.Index(fields=['client', '-initiated_at']),
+            models.Index(fields=['stripe_chargeback_id']),
+        ]
+
+    def __str__(self):
+        return f"Chargeback {self.stripe_chargeback_id} - {self.invoice.invoice_number} (${self.amount})"
+
+
 class Bill(models.Model):
     """
     Bill entity (Accounts Payable).
