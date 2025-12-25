@@ -12,6 +12,7 @@ psycopg2-binary==2.9.9
 
 # Authentication & Security
 djangorestframework-simplejwt==5.3.1
+cryptography==43.0.1
 
 # API Documentation
 drf-spectacular==0.27.0

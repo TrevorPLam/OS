@@ -101,6 +101,13 @@ class Firm(models.Model):
         help_text="Maximum storage in gigabytes"
     )
 
+    # Security & Key Management
+    kms_key_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Firm-scoped KMS key or alias for content encryption"
+    )
+
     # Usage Tracking
     current_users_count = models.IntegerField(
         default=0,

@@ -62,7 +62,7 @@ class S3Service:
         except ClientError as e:
             raise Exception(f"Failed to upload file to S3: {str(e)}")
 
-    def download_file(self, s3_key: str) -> bytes:
+    def download_file(self, s3_key: str, bucket: Optional[str] = None) -> bytes:
         """
         Download a file from S3.
 
@@ -72,16 +72,17 @@ class S3Service:
         Returns:
             bytes: File content
         """
+        target_bucket = bucket or self.bucket_name
         try:
             response = self.s3_client.get_object(
-                Bucket=self.bucket_name,
+                Bucket=target_bucket,
                 Key=s3_key
             )
             return response['Body'].read()
         except ClientError as e:
             raise Exception(f"Failed to download file from S3: {str(e)}")
 
-    def delete_file(self, s3_key: str) -> bool:
+    def delete_file(self, s3_key: str, bucket: Optional[str] = None) -> bool:
         """
         Delete a file from S3.
 
@@ -91,16 +92,17 @@ class S3Service:
         Returns:
             bool: True if successful
         """
+        target_bucket = bucket or self.bucket_name
         try:
             self.s3_client.delete_object(
-                Bucket=self.bucket_name,
+                Bucket=target_bucket,
                 Key=s3_key
             )
             return True
         except ClientError as e:
             raise Exception(f"Failed to delete file from S3: {str(e)}")
 
-    def generate_presigned_url(self, s3_key: str, expiration: int = 3600) -> str:
+    def generate_presigned_url(self, s3_key: str, expiration: int = 3600, bucket: Optional[str] = None) -> str:
         """
         Generate a presigned URL for temporary file access.
 
@@ -111,11 +113,12 @@ class S3Service:
         Returns:
             str: Presigned URL
         """
+        target_bucket = bucket or self.bucket_name
         try:
             url = self.s3_client.generate_presigned_url(
                 'get_object',
                 Params={
-                    'Bucket': self.bucket_name,
+                    'Bucket': target_bucket,
                     'Key': s3_key
                 },
                 ExpiresIn=expiration
