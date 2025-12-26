@@ -125,7 +125,12 @@ def contract_status_workflow(sender, instance, **kwargs):
 @receiver(post_save, sender=Contract)
 def contract_activation_notification(sender, instance, created, **kwargs):
     """
-    Send notification when contract is activated.
+    Send notification when contract is activated and trigger project creation workflow.
+
+    Workflow on contract activation:
+    1. Creates initial project skeleton automatically
+    2. Enables client portal if not already enabled
+    3. Sends notifications to stakeholders
 
     Sends email notifications to:
     - Project managers
@@ -135,14 +140,91 @@ def contract_activation_notification(sender, instance, created, **kwargs):
     if not created and instance.status == 'active':
         logger.info(
             f"📋 Contract {instance.contract_number} activated! "
-            f"Value: {instance.contract_value} {instance.currency}, "
+            f"Value: {instance.total_value} {instance.currency}, "
             f"Duration: {instance.start_date} to {instance.end_date}"
         )
+
+        # MEDIUM FEATURE 2.1: Auto-create project skeleton from contract
+        _create_project_from_contract(instance)
+
+        # Initialize client portal if not already enabled
+        _enable_client_portal(instance)
+
         # Send email notification
         from modules.core.notifications import EmailNotification
         EmailNotification.send_contract_activated(instance)
 
-        # TODO: Future enhancements
-        # - Create initial project skeleton automatically
-        # - Set up billing schedule
-        # - Initialize client portal if not already enabled
+
+def _create_project_from_contract(contract):
+    """
+    Create initial project skeleton from an activated contract.
+
+    This implements Medium Feature 2.1: Contract → Project creation workflow.
+
+    Args:
+        contract: The activated Contract instance
+    """
+    from modules.projects.models import Project
+
+    # Check if a project already exists for this contract
+    existing_project = Project.objects.filter(contract=contract).first()
+    if existing_project:
+        logger.info(
+            f"Project {existing_project.project_code} already exists for "
+            f"contract {contract.contract_number}. Skipping creation."
+        )
+        return existing_project
+
+    # Generate project code based on contract number
+    project_code = f"PRJ-{contract.contract_number}"
+
+    # Determine billing type from contract payment terms
+    billing_type = 'fixed_price'  # Default
+    if contract.payment_terms == 'milestone':
+        billing_type = 'fixed_price'
+    elif hasattr(contract, 'billing_type'):
+        billing_type = contract.billing_type
+
+    # Create the project
+    project = Project.objects.create(
+        firm=contract.firm,
+        client=contract.client,
+        contract=contract,
+        project_code=project_code,
+        name=contract.title,
+        description=contract.description,
+        status='planning',
+        billing_type=billing_type,
+        budget=contract.total_value,
+        start_date=contract.start_date,
+        end_date=contract.end_date,
+        notes=f"Auto-created from contract {contract.contract_number}"
+    )
+
+    logger.info(
+        f"✅ Created project {project.project_code} from contract {contract.contract_number}"
+    )
+
+    return project
+
+
+def _enable_client_portal(contract):
+    """
+    Enable client portal access if not already enabled.
+
+    Args:
+        contract: The activated Contract instance
+    """
+    client = contract.client
+
+    if not client.portal_enabled:
+        client.portal_enabled = True
+        client.save(update_fields=['portal_enabled'])
+        logger.info(
+            f"✅ Enabled client portal for {client.company_name} "
+            f"(contract {contract.contract_number})"
+        )
+    else:
+        logger.info(
+            f"Client portal already enabled for {client.company_name}"
+        )

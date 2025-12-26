@@ -95,7 +95,7 @@ class Expense(models.Model):
         help_text="Amount to bill to client (amount + markup)"
     )
     
-    # Approval & Status
+    # Approval & Status (Medium Feature 2.4)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -114,11 +114,26 @@ class Expense(models.Model):
         blank=True,
         help_text="When expense was approved"
     )
+
+    # Rejection Tracking (Medium Feature 2.4)
+    rejected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='rejected_expenses',
+        help_text="User who rejected this expense"
+    )
+    rejected_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When expense was rejected"
+    )
     rejection_reason = models.TextField(
         blank=True,
         help_text="Reason for rejection (if rejected)"
     )
-    
+
     # Invoicing
     invoiced = models.BooleanField(
         default=False,
@@ -541,3 +556,282 @@ class TimeEntry(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.project.project_code} - {self.date} ({self.hours}h)"
+
+
+class ProjectTemplate(models.Model):
+    """
+    Project Template entity (Medium Feature 2.2).
+
+    Stores reusable project templates that can be cloned to create new projects.
+    Useful for standardizing SOPs, checklists, and recurring project types.
+
+    TIER 0: Belongs to a Firm (tenant boundary).
+    """
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='project_templates',
+        help_text="Firm (workspace) this template belongs to"
+    )
+
+    # Template Details
+    template_name = models.CharField(
+        max_length=255,
+        help_text="Name of the template (e.g., 'Standard Tax Return', 'Audit Engagement')"
+    )
+    template_code = models.CharField(
+        max_length=50,
+        help_text="Template code/identifier"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Template description and usage notes"
+    )
+    category = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Template category for organization (e.g., 'Tax', 'Audit', 'Consulting')"
+    )
+
+    # Default Project Settings
+    default_billing_type = models.CharField(
+        max_length=20,
+        choices=Project.BILLING_TYPE_CHOICES,
+        default='time_and_materials'
+    )
+    default_duration_days = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Default project duration in days"
+    )
+    default_hourly_rate = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Default hourly rate for projects created from this template"
+    )
+
+    # Template Milestones
+    template_milestones = models.JSONField(
+        default=list,
+        help_text="Default milestones: [{name, description, days_from_start}, ...]"
+    )
+
+    # Template Configuration
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Whether this template is available for use"
+    )
+
+    # Audit Fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_project_templates',
+        help_text="User who created this template"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = 'projects_templates'
+        ordering = ['category', 'template_name']
+        indexes = [
+            models.Index(fields=['firm', 'is_active']),
+            models.Index(fields=['firm', 'category']),
+        ]
+        unique_together = [['firm', 'template_code']]
+
+    def clone_to_project(self, client, project_code, name=None, start_date=None,
+                        project_manager=None, **kwargs):
+        """
+        Clone this template to create a new project.
+
+        Args:
+            client: The Client instance for the new project
+            project_code: Unique project code
+            name: Project name (defaults to template name)
+            start_date: Project start date (defaults to today)
+            project_manager: User to assign as project manager
+            **kwargs: Additional project fields to override
+
+        Returns:
+            Project: The newly created project
+        """
+        from datetime import date, timedelta
+
+        if start_date is None:
+            start_date = date.today()
+
+        # Calculate end date
+        if self.default_duration_days:
+            end_date = start_date + timedelta(days=self.default_duration_days)
+        else:
+            end_date = start_date + timedelta(days=90)  # Default 90 days
+
+        # Create the project
+        project = Project.objects.create(
+            firm=self.firm,
+            client=client,
+            project_code=project_code,
+            name=name or self.template_name,
+            description=self.description,
+            status='planning',
+            billing_type=self.default_billing_type,
+            hourly_rate=self.default_hourly_rate,
+            start_date=start_date,
+            end_date=end_date,
+            project_manager=project_manager,
+            **kwargs
+        )
+
+        # Clone milestones
+        if self.template_milestones:
+            milestones = []
+            for template_milestone in self.template_milestones:
+                milestone_due = start_date + timedelta(
+                    days=template_milestone.get('days_from_start', 0)
+                )
+                milestones.append({
+                    'name': template_milestone.get('name'),
+                    'description': template_milestone.get('description', ''),
+                    'due_date': milestone_due.isoformat(),
+                    'completed': False,
+                    'completed_at': None
+                })
+            project.milestones = milestones
+            project.save(update_fields=['milestones'])
+
+        # Clone template tasks
+        task_templates = self.task_templates.all().order_by('position')
+        task_mapping = {}  # Map template task ID to new task
+
+        for task_template in task_templates:
+            task = task_template.clone_to_task(project)
+            task_mapping[task_template.id] = task
+
+        # Set up task dependencies
+        for task_template in task_templates:
+            if task_template.depends_on_templates.exists():
+                new_task = task_mapping[task_template.id]
+                for dep_template in task_template.depends_on_templates.all():
+                    if dep_template.id in task_mapping:
+                        new_task.depends_on.add(task_mapping[dep_template.id])
+
+        return project
+
+    def __str__(self):
+        return f"{self.template_code} - {self.template_name}"
+
+
+class TaskTemplate(models.Model):
+    """
+    Task Template entity (Medium Feature 2.2).
+
+    Stores template tasks that are cloned when a project is created from a template.
+
+    TIER 0: Belongs to a Firm through ProjectTemplate.
+    """
+    # Relationships
+    project_template = models.ForeignKey(
+        ProjectTemplate,
+        on_delete=models.CASCADE,
+        related_name='task_templates',
+        help_text="The project template this task belongs to"
+    )
+
+    # Task Template Details
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    default_status = models.CharField(
+        max_length=20,
+        choices=Task.STATUS_CHOICES,
+        default='todo'
+    )
+    default_priority = models.CharField(
+        max_length=10,
+        choices=Task.PRIORITY_CHOICES,
+        default='medium'
+    )
+
+    # Positioning
+    position = models.IntegerField(
+        default=0,
+        help_text="Order in template (lower = higher priority)"
+    )
+
+    # Time Estimation
+    estimated_hours = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))]
+    )
+
+    # Dependencies (within template)
+    depends_on_templates = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        blank=True,
+        related_name='blocking_templates',
+        help_text="Template tasks that must be completed first"
+    )
+
+    # Scheduling
+    days_from_project_start = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Due date offset from project start (days)"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'projects_task_templates'
+        ordering = ['project_template', 'position']
+        indexes = [
+            models.Index(fields=['project_template', 'position']),
+        ]
+
+    def clone_to_task(self, project):
+        """
+        Clone this template to create a task in the given project.
+
+        Args:
+            project: The Project instance to create the task in
+
+        Returns:
+            Task: The newly created task
+        """
+        from datetime import timedelta
+
+        due_date = None
+        if self.days_from_project_start is not None:
+            due_date = project.start_date + timedelta(days=self.days_from_project_start)
+
+        task = Task.objects.create(
+            project=project,
+            title=self.title,
+            description=self.description,
+            status=self.default_status,
+            priority=self.default_priority,
+            position=self.position,
+            estimated_hours=self.estimated_hours,
+            due_date=due_date
+        )
+
+        return task
+
+    def __str__(self):
+        return f"[{self.project_template.template_code}] {self.title}"
