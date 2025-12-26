@@ -7,6 +7,8 @@ Supports hierarchical folders and client portal access.
 TIER 0: All documents belong to exactly one Firm for tenant isolation.
 """
 
+from typing import Any
+
 from django.conf import settings
 from django.db import models
 
@@ -96,7 +98,7 @@ class Folder(models.Model):
         # TIER 0: Folder names must be unique within firm+client+parent (not globally)
         unique_together = [["firm", "client", "parent", "name"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.parent:
             return f"{self.parent} / {self.name}"
         return f"{self.client.company_name} / {self.name}"
@@ -227,10 +229,10 @@ class Document(models.Model):
         # TIER 0: S3 keys must be unique within a firm (not globally)
         unique_together = [["firm", "s3_fingerprint"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.folder} / {self.name}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         # Set retention_start_date to created_at date if not provided
         if not self.retention_start_date and not self.pk:
             # For new documents, set to today
@@ -247,13 +249,13 @@ class Document(models.Model):
         self._encrypt_content_fields()
         super().save(*args, **kwargs)
 
-    def decrypted_s3_key(self):
+    def decrypted_s3_key(self) -> str:
         return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)
 
-    def decrypted_s3_bucket(self):
+    def decrypted_s3_bucket(self) -> str:
         return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_bucket)
 
-    def _encrypt_content_fields(self):
+    def _encrypt_content_fields(self) -> None:
         if not self.firm_id:
             return
 
@@ -330,20 +332,20 @@ class Version(models.Model):
         # TIER 0: Version numbers unique within firm+document, S3 keys unique within firm
         unique_together = [["firm", "document", "version_number"], ["firm", "s3_fingerprint"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.document.name} (v{self.version_number})"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self._encrypt_content_fields()
         super().save(*args, **kwargs)
 
-    def decrypted_s3_key(self):
+    def decrypted_s3_key(self) -> str:
         return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)
 
-    def decrypted_s3_bucket(self):
+    def decrypted_s3_bucket(self) -> str:
         return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_bucket)
 
-    def _encrypt_content_fields(self):
+    def _encrypt_content_fields(self) -> None:
         if not self.firm_id:
             return
 
