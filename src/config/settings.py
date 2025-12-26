@@ -61,6 +61,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # TIER 5.5: Operational observability (non-content telemetry)
+    'modules.core.middleware.TelemetryRequestMiddleware',
     # TIER 0: Firm context resolution (must come after AuthenticationMiddleware)
     'modules.firm.middleware.FirmContextMiddleware',
     # TIER 0: Portal containment (must come after FirmContextMiddleware)

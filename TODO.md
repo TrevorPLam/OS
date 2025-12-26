@@ -68,11 +68,11 @@
 
 ### Upcoming Tasks (Not Yet Started)
 
-- [ ] **5.1** Hero workflow integration tests
-- [ ] **5.2** Performance safeguards (tenant-safe at scale)
-- [ ] **5.3** Firm offboarding + data exit flows
-- [ ] **5.4** Configuration change safety
-- [ ] **5.5** Operational observability (without content)
+- [x] **5.1** Hero workflow integration tests
+- [x] **5.2** Performance safeguards (tenant-safe at scale)
+- [x] **5.3** Firm offboarding + data exit flows
+- [x] **5.4** Configuration change safety
+- [x] **5.5** Operational observability (without content)
 
 ---
 
