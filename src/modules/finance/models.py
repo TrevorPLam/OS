@@ -816,11 +816,14 @@ class Bill(models.Model):
     """
     STATUS_CHOICES = [
         ('received', 'Received'),
+        ('validated', 'Validated'),  # Medium Feature 2.5
         ('approved', 'Approved'),
+        ('scheduled', 'Scheduled for Payment'),  # Medium Feature 2.5
         ('paid', 'Paid'),
         ('partial', 'Partially Paid'),
         ('overdue', 'Overdue'),
         ('disputed', 'Disputed'),
+        ('rejected', 'Rejected'),  # Medium Feature 2.5
     ]
 
     # TIER 0: Firm tenancy (REQUIRED)
@@ -906,15 +909,65 @@ class Bill(models.Model):
         help_text="List of line items: [{description, quantity, rate, amount}, ...]"
     )
 
+    # Validation Workflow (Medium Feature 2.5)
+    validated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='validated_bills',
+        help_text="User who validated this bill (checked for accuracy)"
+    )
+    validated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When bill was validated"
+    )
+    validation_notes = models.TextField(
+        blank=True,
+        help_text="Notes from validation process"
+    )
+
     # Approval
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='approved_bills'
+        related_name='approved_bills',
+        help_text="User who approved this bill for payment"
     )
-    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When bill was approved for payment"
+    )
+
+    # Payment Scheduling (Medium Feature 2.5)
+    scheduled_payment_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when payment is scheduled"
+    )
+
+    # Rejection Tracking (Medium Feature 2.5)
+    rejected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='rejected_bills',
+        help_text="User who rejected this bill"
+    )
+    rejected_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When bill was rejected"
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        help_text="Reason for bill rejection"
+    )
 
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
