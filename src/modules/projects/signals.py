@@ -10,7 +10,7 @@ Implements business logic and automatic state transitions:
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Project, Task, TimeEntry
+from .models import Project, Task, TimeEntry, Expense
 import logging
 
 logger = logging.getLogger(__name__)
@@ -239,3 +239,215 @@ def _log_project_completion_metrics(project):
 
     except Exception as e:
         logger.error(f"Error calculating project completion metrics: {str(e)}")
+
+
+@receiver(pre_save, sender=Expense)
+def expense_approval_workflow(sender, instance, **kwargs):
+    """
+    Handle expense approval workflow and status transitions (Medium Feature 2.4).
+
+    Workflow:
+    - draft -> submitted: Log submission
+    - submitted -> approved: Set approved_at, approved_by
+    - submitted -> rejected: Set rejected_at, rejected_by
+    - approved -> invoiced: Lock expense from modifications
+
+    Business Rules:
+    - Cannot modify approved/invoiced expenses
+    - Cannot skip approval (must go through submitted -> approved)
+    - Approval requires approver and timestamp
+    """
+    from rest_framework.exceptions import ValidationError
+
+    if instance.pk:  # Only for updates
+        try:
+            old_instance = Expense.objects.get(pk=instance.pk)
+
+            # Prevent modification of invoiced expenses
+            if old_instance.status == 'invoiced':
+                if (old_instance.amount != instance.amount or
+                    old_instance.billable_amount != instance.billable_amount or
+                    old_instance.is_billable != instance.is_billable):
+                    logger.error(
+                        f"Attempted modification of invoiced expense {instance.id}"
+                    )
+                    raise ValidationError(
+                        "Cannot modify invoiced expenses. "
+                        "Contact finance to adjust the invoice."
+                    )
+
+            # Track status changes
+            if old_instance.status != instance.status:
+                logger.info(
+                    f"Expense {instance.id} status changed: "
+                    f"{old_instance.status} -> {instance.status}"
+                )
+
+                # Validate approval workflow
+                if instance.status == 'approved':
+                    # Set approval timestamp if not already set
+                    if not instance.approved_at:
+                        instance.approved_at = timezone.now()
+
+                    # Ensure approver is set (should be set by the API)
+                    if not instance.approved_by:
+                        logger.warning(
+                            f"Expense {instance.id} approved without approver set"
+                        )
+
+                    logger.info(
+                        f"✅ Expense {instance.id} approved: "
+                        f"${instance.amount} ({instance.category})"
+                    )
+
+                # Handle rejection
+                if instance.status == 'rejected':
+                    if not instance.rejected_at:
+                        instance.rejected_at = timezone.now()
+
+                    logger.info(
+                        f"❌ Expense {instance.id} rejected: "
+                        f"${instance.amount} ({instance.category})"
+                    )
+
+                # Clear approval fields if status changes away from approved
+                if old_instance.status == 'approved' and instance.status != 'approved':
+                    if instance.status != 'invoiced':  # Don't clear if moving to invoiced
+                        instance.approved_at = None
+                        instance.approved_by = None
+                        logger.info(f"Cleared approval for expense {instance.id}")
+
+                # Clear rejection fields if status changes away from rejected
+                if old_instance.status == 'rejected' and instance.status != 'rejected':
+                    instance.rejected_at = None
+                    instance.rejected_by = None
+                    logger.info(f"Cleared rejection for expense {instance.id}")
+
+        except Expense.DoesNotExist:
+            pass
+    else:
+        # New expense creation
+        if instance.status == 'approved' and not instance.approved_at:
+            instance.approved_at = timezone.now()
+
+
+@receiver(post_save, sender=Expense)
+def expense_submission_notification(sender, instance, created, **kwargs):
+    """
+    Send notifications when expenses are submitted or approved (Medium Feature 2.4).
+
+    Notifications:
+    - submitted: Notify project manager for approval
+    - approved: Notify submitter of approval
+    - rejected: Notify submitter of rejection with reason
+    """
+    from modules.core.notifications import EmailNotification
+
+    if not created:
+        # Get old instance to detect status changes
+        # Note: We use a try-except since the instance might have just been saved
+        try:
+            if instance.status == 'submitted':
+                logger.info(
+                    f"📋 Expense submitted for approval: "
+                    f"${instance.amount} by {instance.submitted_by.username} "
+                    f"on project {instance.project.project_code}"
+                )
+                # Send notification to project manager
+                if instance.project.project_manager:
+                    EmailNotification.send_expense_submitted(
+                        instance,
+                        approver=instance.project.project_manager
+                    )
+
+            elif instance.status == 'approved':
+                logger.info(
+                    f"✅ Expense approved: ${instance.amount} "
+                    f"for {instance.submitted_by.username}"
+                )
+                # Send notification to submitter
+                EmailNotification.send_expense_approved(instance)
+
+            elif instance.status == 'rejected':
+                logger.info(
+                    f"❌ Expense rejected: ${instance.amount} "
+                    f"for {instance.submitted_by.username}"
+                )
+                # Send notification to submitter
+                EmailNotification.send_expense_rejected(instance)
+
+        except Exception as e:
+            logger.error(f"Error sending expense notification: {str(e)}")
+
+
+def approve_expense(expense, approver):
+    """
+    Helper function to approve an expense (Medium Feature 2.4).
+
+    Args:
+        expense: Expense instance to approve
+        approver: User who is approving the expense
+
+    Returns:
+        Expense: The approved expense instance
+
+    Raises:
+        ValidationError: If expense cannot be approved
+    """
+    from rest_framework.exceptions import ValidationError
+
+    if expense.status not in ['submitted', 'draft']:
+        raise ValidationError(
+            f"Cannot approve expense with status '{expense.status}'. "
+            "Only 'submitted' or 'draft' expenses can be approved."
+        )
+
+    expense.status = 'approved'
+    expense.approved_by = approver
+    expense.approved_at = timezone.now()
+    expense.save()
+
+    logger.info(
+        f"Expense {expense.id} approved by {approver.username}: "
+        f"${expense.amount} ({expense.category})"
+    )
+
+    return expense
+
+
+def reject_expense(expense, rejector, reason=''):
+    """
+    Helper function to reject an expense (Medium Feature 2.4).
+
+    Args:
+        expense: Expense instance to reject
+        rejector: User who is rejecting the expense
+        reason: Reason for rejection
+
+    Returns:
+        Expense: The rejected expense instance
+
+    Raises:
+        ValidationError: If expense cannot be rejected
+    """
+    from rest_framework.exceptions import ValidationError
+
+    if expense.status not in ['submitted', 'draft']:
+        raise ValidationError(
+            f"Cannot reject expense with status '{expense.status}'. "
+            "Only 'submitted' or 'draft' expenses can be rejected."
+        )
+
+    expense.status = 'rejected'
+    expense.rejected_by = rejector
+    expense.rejected_at = timezone.now()
+    if reason:
+        expense.rejection_reason = reason
+    expense.save()
+
+    logger.info(
+        f"Expense {expense.id} rejected by {rejector.username}: "
+        f"${expense.amount} ({expense.category}). Reason: {reason}"
+    )
+
+    return expense

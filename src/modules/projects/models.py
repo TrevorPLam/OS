@@ -95,7 +95,7 @@ class Expense(models.Model):
         help_text="Amount to bill to client (amount + markup)"
     )
     
-    # Approval & Status
+    # Approval & Status (Medium Feature 2.4)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -114,11 +114,26 @@ class Expense(models.Model):
         blank=True,
         help_text="When expense was approved"
     )
+
+    # Rejection Tracking (Medium Feature 2.4)
+    rejected_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='rejected_expenses',
+        help_text="User who rejected this expense"
+    )
+    rejected_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When expense was rejected"
+    )
     rejection_reason = models.TextField(
         blank=True,
         help_text="Reason for rejection (if rejected)"
     )
-    
+
     # Invoicing
     invoiced = models.BooleanField(
         default=False,
