@@ -622,3 +622,266 @@ def process_milestone_completion(project, milestone_index: int):
             f"Failed to generate milestone invoice for {project.project_code}: {str(e)}"
         )
         return None
+
+
+def should_send_dunning_reminder(invoice, reference_date: Optional[date] = None) -> bool:
+    """
+    Determine if a dunning reminder should be sent for an overdue invoice (Medium Feature 2.6).
+
+    Args:
+        invoice: Invoice instance
+        reference_date: Date to check against (defaults to today)
+
+    Returns:
+        bool: True if dunning reminder should be sent
+    """
+    reference_date = reference_date or timezone.now().date()
+
+    # Don't send reminders for paid or cancelled invoices
+    if invoice.status in ['paid', 'cancelled', 'refunded']:
+        return False
+
+    # Don't send if dunning is paused
+    if invoice.dunning_paused:
+        return False
+
+    # Must be past due date
+    if invoice.due_date >= reference_date:
+        return False
+
+    # Check dunning level and timing
+    days_overdue = (reference_date - invoice.due_date).days
+
+    if invoice.dunning_level == 0:
+        # First reminder: 7 days after due date
+        return days_overdue >= 7
+    elif invoice.dunning_level == 1:
+        # Second reminder: 14 days after first (21 days total)
+        if not invoice.last_dunning_sent_at:
+            return False
+        days_since_last = (reference_date - invoice.last_dunning_sent_at.date()).days
+        return days_since_last >= 14
+    elif invoice.dunning_level == 2:
+        # Final reminder: 14 days after second (35 days total)
+        if not invoice.last_dunning_sent_at:
+            return False
+        days_since_last = (reference_date - invoice.last_dunning_sent_at.date()).days
+        return days_since_last >= 14
+    elif invoice.dunning_level == 3:
+        # Collections notice: 30 days after final (65 days total)
+        if not invoice.last_dunning_sent_at:
+            return False
+        days_since_last = (reference_date - invoice.last_dunning_sent_at.date()).days
+        return days_since_last >= 30
+    else:
+        # Already at maximum dunning level
+        return False
+
+
+def send_dunning_reminder(invoice) -> Invoice:
+    """
+    Send a dunning reminder for an overdue invoice (Medium Feature 2.6).
+
+    Dunning Levels:
+    - Level 0 → 1: Friendly reminder (7 days overdue)
+    - Level 1 → 2: Firm reminder (21 days overdue)
+    - Level 2 → 3: Final notice (35 days overdue)
+    - Level 3 → 4: Collections warning (65 days overdue)
+
+    Args:
+        invoice: Invoice instance
+
+    Returns:
+        Invoice: Updated invoice with new dunning level
+
+    Raises:
+        ValidationError: If invoice is not eligible for dunning
+    """
+    from django.core.exceptions import ValidationError
+
+    if invoice.status in ['paid', 'cancelled', 'refunded']:
+        raise ValidationError(
+            f"Cannot send dunning reminder for invoice with status '{invoice.status}'"
+        )
+
+    if invoice.dunning_paused:
+        raise ValidationError(
+            f"Dunning is paused for invoice {invoice.invoice_number}: {invoice.dunning_pause_reason}"
+        )
+
+    # Increment dunning level
+    invoice.dunning_level += 1
+    invoice.last_dunning_sent_at = timezone.now()
+
+    # Update invoice status if needed
+    if invoice.status not in ['overdue', 'disputed']:
+        invoice.status = 'overdue'
+
+    invoice.save()
+
+    # Send appropriate dunning email based on level
+    from modules.core.notifications import EmailNotification
+
+    if invoice.dunning_level == 1:
+        EmailNotification.send_dunning_reminder_1(invoice)
+        logger.info(
+            f"📧 Sent friendly dunning reminder for invoice {invoice.invoice_number} "
+            f"(${invoice.total_amount}, {(timezone.now().date() - invoice.due_date).days} days overdue)"
+        )
+    elif invoice.dunning_level == 2:
+        EmailNotification.send_dunning_reminder_2(invoice)
+        logger.info(
+            f"📧 Sent firm dunning reminder for invoice {invoice.invoice_number} "
+            f"(${invoice.total_amount}, {(timezone.now().date() - invoice.due_date).days} days overdue)"
+        )
+    elif invoice.dunning_level == 3:
+        EmailNotification.send_dunning_final_notice(invoice)
+        logger.warning(
+            f"⚠️  Sent final dunning notice for invoice {invoice.invoice_number} "
+            f"(${invoice.total_amount}, {(timezone.now().date() - invoice.due_date).days} days overdue)"
+        )
+    elif invoice.dunning_level >= 4:
+        EmailNotification.send_dunning_collections_warning(invoice)
+        logger.warning(
+            f"🚨 Sent collections warning for invoice {invoice.invoice_number} "
+            f"(${invoice.total_amount}, {(timezone.now().date() - invoice.due_date).days} days overdue)"
+        )
+
+    # Log dunning action
+    audit.log_billing_event(
+        firm=invoice.firm,
+        action='dunning_reminder_sent',
+        actor=None,
+        metadata={
+            'invoice_id': invoice.id,
+            'invoice_number': invoice.invoice_number,
+            'dunning_level': invoice.dunning_level,
+            'days_overdue': (timezone.now().date() - invoice.due_date).days,
+            'amount': float(invoice.total_amount),
+        },
+        severity='WARNING' if invoice.dunning_level >= 3 else 'INFO',
+    )
+
+    return invoice
+
+
+def pause_dunning(invoice, reason: str) -> Invoice:
+    """
+    Pause dunning reminders for an invoice (Medium Feature 2.6).
+
+    Use cases:
+    - Payment plan agreed upon
+    - Dispute in progress
+    - Client communication needed
+    - Temporary hardship arrangement
+
+    Args:
+        invoice: Invoice instance
+        reason: Reason for pausing dunning
+
+    Returns:
+        Invoice: Updated invoice with dunning paused
+    """
+    invoice.dunning_paused = True
+    invoice.dunning_pause_reason = reason
+    invoice.save()
+
+    logger.info(
+        f"⏸️  Dunning paused for invoice {invoice.invoice_number}: {reason}"
+    )
+
+    audit.log_billing_event(
+        firm=invoice.firm,
+        action='dunning_paused',
+        actor=None,
+        metadata={
+            'invoice_id': invoice.id,
+            'invoice_number': invoice.invoice_number,
+            'reason': reason,
+        },
+    )
+
+    return invoice
+
+
+def resume_dunning(invoice) -> Invoice:
+    """
+    Resume dunning reminders for an invoice (Medium Feature 2.6).
+
+    Args:
+        invoice: Invoice instance
+
+    Returns:
+        Invoice: Updated invoice with dunning resumed
+    """
+    invoice.dunning_paused = False
+    old_reason = invoice.dunning_pause_reason
+    invoice.dunning_pause_reason = ''
+    invoice.save()
+
+    logger.info(
+        f"▶️  Dunning resumed for invoice {invoice.invoice_number} (was paused: {old_reason})"
+    )
+
+    audit.log_billing_event(
+        firm=invoice.firm,
+        action='dunning_resumed',
+        actor=None,
+        metadata={
+            'invoice_id': invoice.id,
+            'invoice_number': invoice.invoice_number,
+            'previous_pause_reason': old_reason,
+        },
+    )
+
+    return invoice
+
+
+def process_dunning_for_overdue_invoices(reference_date: Optional[date] = None, firm=None):
+    """
+    Process dunning reminders for all overdue invoices (Medium Feature 2.6).
+
+    This function should be run daily via scheduled task/cron job.
+
+    Args:
+        reference_date: Date to check against (defaults to today)
+        firm: Optional firm to scope dunning processing (tenant isolation)
+
+    Returns:
+        list: List of invoices that had dunning reminders sent
+    """
+    reference_date = reference_date or timezone.now().date()
+
+    # Find potentially overdue invoices
+    overdue_invoices = Invoice.objects.filter(
+        due_date__lt=reference_date,
+        status__in=['sent', 'overdue', 'partial', 'failed']
+    ).exclude(
+        dunning_paused=True
+    ).select_related('client', 'firm')
+
+    if firm:
+        overdue_invoices = overdue_invoices.filter(firm=firm)
+
+    processed_invoices = []
+
+    for invoice in overdue_invoices:
+        if should_send_dunning_reminder(invoice, reference_date):
+            try:
+                send_dunning_reminder(invoice)
+                processed_invoices.append(invoice)
+            except Exception as e:
+                logger.error(
+                    f"Failed to send dunning reminder for invoice {invoice.invoice_number}: {str(e)}"
+                )
+
+    if processed_invoices:
+        logger.info(
+            f"📧 Processed {len(processed_invoices)} dunning reminders "
+            f"({len([i for i in processed_invoices if i.dunning_level == 1])} first, "
+            f"{len([i for i in processed_invoices if i.dunning_level == 2])} second, "
+            f"{len([i for i in processed_invoices if i.dunning_level == 3])} final, "
+            f"{len([i for i in processed_invoices if i.dunning_level >= 4])} collections)"
+        )
+
+    return processed_invoices

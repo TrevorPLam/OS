@@ -161,6 +161,25 @@ class Invoice(models.Model):
         help_text="Index of milestone in project.milestones that triggered this invoice"
     )
 
+    # Dunning Workflow (Medium Feature 2.6)
+    dunning_level = models.IntegerField(
+        default=0,
+        help_text="Current dunning level (0=no reminders, 1=first reminder, 2=second, 3=final, 4=collections)"
+    )
+    last_dunning_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When last dunning reminder was sent"
+    )
+    dunning_paused = models.BooleanField(
+        default=False,
+        help_text="Whether dunning reminders are paused for this invoice"
+    )
+    dunning_pause_reason = models.TextField(
+        blank=True,
+        help_text="Reason for pausing dunning (e.g., payment plan agreed, dispute)"
+    )
+
     # Payment Tracking
     paid_date = models.DateField(
         null=True,
