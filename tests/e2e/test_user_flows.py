@@ -114,8 +114,8 @@ class TestTopUserFlows:
                 {
                     "description": "Implementation services",
                     "quantity": 1,
-                    "rate": float(subtotal),
-                    "amount": float(subtotal),
+                    "rate": str(subtotal),
+                    "amount": str(subtotal),
                 }
             ],
         )
