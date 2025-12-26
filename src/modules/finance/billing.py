@@ -382,9 +382,7 @@ def handle_payment_failure(
 
     retry_at = schedule_payment_retry(invoice)
     failure.next_retry_at = retry_at
-    failure.customer_notified = True
-    failure.notified_at = now
-    failure.save(update_fields=['next_retry_at', 'customer_notified', 'notified_at'])
+    failure.save(update_fields=['next_retry_at'])
 
     _notify_client_portal(
         invoice,
