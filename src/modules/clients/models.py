@@ -423,6 +423,9 @@ class ClientEngagement(models.Model):
         ]
         unique_together = [["client", "version"]]
 
+    def __str__(self):
+        return f"{self.client.company_name} - Engagement v{self.version}"
+
     def save(self, *args, **kwargs):
         """
         Enforce TIER 4 pricing mode invariants, engagement immutability, and auto-populate firm.
@@ -596,9 +599,6 @@ class ClientEngagement(models.Model):
         )
 
         return renewal
-
-    def __str__(self):
-        return f"{self.client.company_name} - Engagement v{self.version}"
 
 
 class ClientComment(models.Model):

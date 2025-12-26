@@ -214,6 +214,9 @@ class Invoice(models.Model):
         # TIER 0: Invoice numbers must be unique within a firm (not globally)
         unique_together = [["firm", "invoice_number"], ["engagement", "period_start"]]
 
+    def __str__(self):
+        return f"{self.invoice_number} - {self.client.company_name} (${self.total_amount})"
+
     def save(self, *args, **kwargs):
         """
         Enforce TIER 4 billing invariants before saving.
@@ -350,9 +353,6 @@ class Invoice(models.Model):
             "hourly_count": len(hourly_items),
             "other_count": len(other_items),
         }
-
-    def __str__(self):
-        return f"{self.invoice_number} - {self.client.company_name} (${self.total_amount})"
 
 
 class PaymentDispute(models.Model):
@@ -728,13 +728,13 @@ class Bill(models.Model):
         # TIER 0: Reference numbers must be unique within a firm (not globally)
         unique_together = [["firm", "reference_number"]]
 
+    def __str__(self):
+        return f"{self.reference_number} - {self.vendor_name} (${self.total_amount})"
+
     @property
     def balance_due(self):
         """Calculate remaining balance."""
         return self.total_amount - self.amount_paid
-
-    def __str__(self):
-        return f"{self.reference_number} - {self.vendor_name} (${self.total_amount})"
 
 
 class LedgerEntry(models.Model):
@@ -959,6 +959,9 @@ class CreditLedgerEntry(models.Model):
         ]
         verbose_name_plural = "Credit Ledger Entries"
 
+    def __str__(self):
+        return f"{self.entry_type.upper()}: ${self.amount} - {self.client.company_name}"
+
     def save(self, *args, **kwargs):
         """Enforce credit ledger invariants."""
         from django.core.exceptions import ValidationError
@@ -987,6 +990,3 @@ class CreditLedgerEntry(models.Model):
         from django.core.exceptions import ValidationError
 
         raise ValidationError("Credit ledger entries cannot be deleted. " "Create a reversing entry instead.")
-
-    def __str__(self):
-        return f"{self.entry_type.upper()}: ${self.amount} - {self.client.company_name}"

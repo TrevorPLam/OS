@@ -144,13 +144,6 @@ class Activity(models.Model):
         ]
         verbose_name_plural = "Activities"
 
-    def clean(self):
-        """Validate that activity is linked to at least one entity."""
-        from django.core.exceptions import ValidationError
-
-        if not any([self.lead_id, self.prospect_id, self.client_id]):
-            raise ValidationError("Activity must be associated with at least one entity (Lead, Prospect, or Client)")
-
     def __str__(self):
         entity = "Unknown"
         if self.lead:
@@ -160,6 +153,13 @@ class Activity(models.Model):
         elif self.client:
             entity = f"Client: {self.client.company_name}"
         return f"{self.get_activity_type_display()} - {entity} - {self.activity_date.date()}"
+
+    def clean(self):
+        """Validate that activity is linked to at least one entity."""
+        from django.core.exceptions import ValidationError
+
+        if not any([self.lead_id, self.prospect_id, self.client_id]):
+            raise ValidationError("Activity must be associated with at least one entity (Lead, Prospect, or Client)")
 
 
 class Lead(models.Model):
@@ -254,6 +254,9 @@ class Lead(models.Model):
             models.Index(fields=["campaign"]),
         ]
 
+    def __str__(self):
+        return f"{self.company_name} - {self.get_status_display()}"
+
     def calculate_lead_score(self):
         """
         Calculate lead score based on various factors (0-100).
@@ -303,9 +306,6 @@ class Lead(models.Model):
         """Update and save the lead_score field."""
         self.lead_score = self.calculate_lead_score()
         self.save(update_fields=["lead_score"])
-
-    def __str__(self):
-        return f"{self.company_name} - {self.get_status_display()}"
 
 
 class Prospect(models.Model):
@@ -634,6 +634,13 @@ class Proposal(models.Model):
         # TIER 0: Proposal numbers must be unique within a firm (not globally)
         unique_together = [["firm", "proposal_number"]]
 
+    def __str__(self):
+        if self.proposal_type == "prospective_client" and self.prospect:
+            return f"{self.proposal_number} - {self.prospect.company_name} (New Business)"
+        elif self.client:
+            return f"{self.proposal_number} - {self.client.company_name} ({self.get_proposal_type_display()})"
+        return f"{self.proposal_number}"
+
     def clean(self):
         """Validate that proposal has either prospect OR client based on type."""
         from django.core.exceptions import ValidationError
@@ -648,13 +655,6 @@ class Proposal(models.Model):
                 raise ValidationError(f"{self.get_proposal_type_display()} proposals must have a client.")
             if self.prospect:
                 raise ValidationError(f"{self.get_proposal_type_display()} proposals cannot have a prospect.")
-
-    def __str__(self):
-        if self.proposal_type == "prospective_client" and self.prospect:
-            return f"{self.proposal_number} - {self.prospect.company_name} (New Business)"
-        elif self.client:
-            return f"{self.proposal_number} - {self.client.company_name} ({self.get_proposal_type_display()})"
-        return f"{self.proposal_number}"
 
 
 class Contract(models.Model):
