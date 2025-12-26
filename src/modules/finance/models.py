@@ -10,6 +10,7 @@ TIER 0: All financial records MUST belong to exactly one Firm for tenant isolati
 """
 
 from decimal import Decimal
+from typing import Any
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -214,10 +215,10 @@ class Invoice(models.Model):
         # TIER 0: Invoice numbers must be unique within a firm (not globally)
         unique_together = [["firm", "invoice_number"], ["engagement", "period_start"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.invoice_number} - {self.client.company_name} (${self.total_amount})"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """
         Enforce TIER 4 billing invariants before saving.
 
@@ -270,18 +271,18 @@ class Invoice(models.Model):
         super().save(*args, **kwargs)
 
     @property
-    def balance_due(self):
+    def balance_due(self) -> Decimal:
         """Calculate remaining balance."""
         return self.total_amount - self.amount_paid
 
     @property
-    def is_overdue(self):
+    def is_overdue(self) -> bool:
         """Check if invoice is overdue."""
         from django.utils import timezone
 
         return self.status in ["sent", "partial"] and self.due_date < timezone.now().date()
 
-    def get_package_revenue(self):
+    def get_package_revenue(self) -> Decimal:
         """
         Calculate total package fee revenue on this invoice (TIER 4: Task 4.4).
 
@@ -294,7 +295,7 @@ class Invoice(models.Model):
                 total += Decimal(str(item.get("amount", 0)))
         return total
 
-    def get_hourly_revenue(self):
+    def get_hourly_revenue(self) -> Decimal:
         """
         Calculate total hourly billing revenue on this invoice (TIER 4: Task 4.4).
 
@@ -307,7 +308,7 @@ class Invoice(models.Model):
                 total += Decimal(str(item.get("amount", 0)))
         return total
 
-    def get_billing_breakdown(self):
+    def get_billing_breakdown(self) -> dict[str, Any]:
         """
         Get mixed billing breakdown for this invoice (TIER 4: Task 4.4).
 
@@ -411,7 +412,7 @@ class PaymentDispute(models.Model):
             models.Index(fields=["stripe_dispute_id"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Dispute {self.stripe_dispute_id} - {self.invoice.invoice_number} (${self.amount})"
 
 
@@ -499,7 +500,7 @@ class PaymentFailure(models.Model):
             models.Index(fields=["next_retry_at"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Payment Failure - {self.invoice.invoice_number} (${self.amount_attempted}) - {self.failure_code}"
 
 
@@ -590,7 +591,7 @@ class Chargeback(models.Model):
             models.Index(fields=["stripe_chargeback_id"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Chargeback {self.stripe_chargeback_id} - {self.invoice.invoice_number} (${self.amount})"
 
 
@@ -728,11 +729,11 @@ class Bill(models.Model):
         # TIER 0: Reference numbers must be unique within a firm (not globally)
         unique_together = [["firm", "reference_number"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.reference_number} - {self.vendor_name} (${self.total_amount})"
 
     @property
-    def balance_due(self):
+    def balance_due(self) -> Decimal:
         """Calculate remaining balance."""
         return self.total_amount - self.amount_paid
 
@@ -826,7 +827,7 @@ class LedgerEntry(models.Model):
         ]
         verbose_name_plural = "Ledger Entries"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.entry_type.upper()}: {self.account} - ${self.amount} ({self.transaction_date})"
 
 
@@ -959,10 +960,10 @@ class CreditLedgerEntry(models.Model):
         ]
         verbose_name_plural = "Credit Ledger Entries"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.entry_type.upper()}: ${self.amount} - {self.client.company_name}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Enforce credit ledger invariants."""
         from django.core.exceptions import ValidationError
 
@@ -985,7 +986,7 @@ class CreditLedgerEntry(models.Model):
 
         super().save(*args, **kwargs)
 
-    def delete(self, *args, **kwargs):
+    def delete(self, *args: Any, **kwargs: Any) -> None:
         """Prevent deletion of credit entries."""
         from django.core.exceptions import ValidationError
 

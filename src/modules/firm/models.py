@@ -9,6 +9,7 @@ Every firm-side object MUST belong to exactly one Firm.
 """
 
 from decimal import Decimal
+from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.conf import settings
@@ -109,10 +110,10 @@ class Firm(models.Model):
             models.Index(fields=["subscription_tier"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Auto-generate slug from name if not provided."""
         if not self.slug:
             self.slug = slugify(self.name)
@@ -139,7 +140,7 @@ class Firm(models.Model):
         "canceled": {"canceled"},
     }
 
-    def clean(self):
+    def clean(self) -> None:
         """Validate firm configuration invariants."""
         errors = {}
 
@@ -168,33 +169,33 @@ class Firm(models.Model):
             raise ValidationError(errors)
 
     @property
-    def is_active(self):
+    def is_active(self) -> bool:
         """Check if firm is in active status."""
         return self.status == "active"
 
     @property
-    def is_over_user_limit(self):
+    def is_over_user_limit(self) -> bool:
         """Check if firm has exceeded user limit."""
         return self.current_users_count >= self.max_users
 
     @property
-    def is_over_client_limit(self):
+    def is_over_client_limit(self) -> bool:
         """Check if firm has exceeded client limit."""
         return self.current_clients_count >= self.max_clients
 
     @property
-    def is_over_storage_limit(self):
+    def is_over_storage_limit(self) -> bool:
         """Check if firm has exceeded storage limit."""
         return self.current_storage_gb >= self.max_storage_gb
 
-    def _serialize_config_value(self, value):
+    def _serialize_config_value(self, value: Any) -> Any:
         if isinstance(value, Decimal):
             return str(value)
         if isinstance(value, timezone.datetime):
             return value.isoformat()
         return value
 
-    def _build_config_changes(self, previous, updates):
+    def _build_config_changes(self, previous: dict[str, Any], updates: dict[str, Any]) -> dict[str, dict[str, Any]]:
         changes = {}
         for field, new_value in updates.items():
             old_value = previous.get(field)
@@ -204,7 +205,7 @@ class Firm(models.Model):
             }
         return changes
 
-    def _validate_config_update(self, previous_values, updates):
+    def _validate_config_update(self, previous_values: dict[str, Any], updates: dict[str, Any]) -> None:
         errors = {}
         current_status = previous_values.get("status", self.status)
         new_status = updates.get("status", current_status)
@@ -231,7 +232,9 @@ class Firm(models.Model):
         if errors:
             raise ValidationError(errors)
 
-    def apply_config_update(self, actor, updates, reason="", action="firm_settings_updated"):
+    def apply_config_update(
+        self, actor: Any, updates: dict[str, Any], reason: str = "", action: str = "firm_settings_updated"
+    ) -> dict[str, Any]:
         """
         Apply configuration updates with validation, auditing, and rollback snapshot.
 
@@ -281,7 +284,7 @@ class Firm(models.Model):
         self.refresh_from_db()
         return previous_values
 
-    def rollback_config_update(self, actor, previous_values, reason=""):
+    def rollback_config_update(self, actor: Any, previous_values: dict[str, Any], reason: str = "") -> dict[str, Any]:
         """Rollback a prior configuration update using a snapshot of previous values."""
         return self.apply_config_update(
             actor=actor,
@@ -341,10 +344,10 @@ class FirmMembership(models.Model):
             models.Index(fields=["role"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.get_full_name() or self.user.username} - {self.firm.name} ({self.role})"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Auto-set permissions based on role."""
         if self.role == "owner":
             # Owner has all permissions
@@ -475,10 +478,10 @@ class BreakGlassSession(models.Model):
             models.Index(fields=["expires_at"], name="firm_bg_expires_at_idx"),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Break-glass {self.id} for {self.firm.name} ({self.status})"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Run validation and update status before saving."""
         is_new = self.pk is None
         previous_status = None
@@ -542,7 +545,7 @@ class BreakGlassSession(models.Model):
                     },
                 )
 
-    def clean(self):
+    def clean(self) -> None:
         """
         Validate basic invariants for break-glass sessions.
 
@@ -558,7 +561,7 @@ class BreakGlassSession(models.Model):
             raise ValidationError({"reviewed_at": "Review cannot occur before activation."})
 
     @property
-    def is_active(self):
+    def is_active(self) -> bool:
         """
         Return True if break-glass is currently active and unexpired.
 
@@ -569,11 +572,11 @@ class BreakGlassSession(models.Model):
         return self.status == self.STATUS_ACTIVE and not self.is_expired
 
     @property
-    def is_expired(self):
+    def is_expired(self) -> bool:
         """Return True when the break-glass session is past its expiry."""
         return timezone.now() >= self.expires_at
 
-    def mark_expired(self):
+    def mark_expired(self) -> None:
         """
         Mark the session as expired if it has passed its expiry.
 
@@ -582,7 +585,7 @@ class BreakGlassSession(models.Model):
         if self.is_expired and self.status == self.STATUS_ACTIVE:
             self.status = self.STATUS_EXPIRED
 
-    def revoke(self, reason: str):
+    def revoke(self, reason: str) -> None:
         """
         Revoke break-glass access before expiry.
 
@@ -594,7 +597,7 @@ class BreakGlassSession(models.Model):
         self.revoked_at = timezone.now()
         self.revoked_reason = reason
 
-    def mark_reviewed(self, reviewer):
+    def mark_reviewed(self, reviewer: Any) -> None:
         """
         Mark the session as reviewed by platform ops.
 
@@ -658,7 +661,7 @@ class FirmOffboardingRecord(models.Model):
             models.Index(fields=["status", "-export_started_at"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Offboarding {self.firm.name} ({self.status})"
 
 
@@ -738,15 +741,15 @@ class PlatformUserProfile(models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.username} - {self.get_platform_role_display()}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Run validation before saving."""
         self.full_clean()
         super().save(*args, **kwargs)
 
-    def clean(self):
+    def clean(self) -> None:
         """Validate platform profile invariants."""
         # Break-glass operators must have explicit break-glass activation permission
         if self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR and not self.can_activate_break_glass:
@@ -761,7 +764,7 @@ class PlatformUserProfile(models.Model):
             raise ValidationError({"revoked_by": "Revoked platform profiles must include who revoked access."})
 
     @property
-    def is_break_glass_operator(self):
+    def is_break_glass_operator(self) -> bool:
         """Check if user is a break-glass operator with active access."""
         return (
             self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR
@@ -770,11 +773,11 @@ class PlatformUserProfile(models.Model):
         )
 
     @property
-    def is_platform_operator(self):
+    def is_platform_operator(self) -> bool:
         """Check if user is a platform operator (metadata-only access)."""
         return self.platform_role == self.ROLE_PLATFORM_OPERATOR and self.is_platform_active
 
-    def revoke_access(self, revoker, reason=""):
+    def revoke_access(self, revoker: Any, reason: str = "") -> None:
         """Revoke platform access for this user."""
         self.is_platform_active = False
         self.can_activate_break_glass = False
