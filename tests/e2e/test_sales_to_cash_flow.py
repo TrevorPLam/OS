@@ -15,7 +15,7 @@ from api.finance.views import InvoiceViewSet
 User = get_user_model()
 
 
-@pytest.mark.integration
+@pytest.mark.e2e
 @pytest.mark.django_db
 class TestSalesToCashFlowJourney:
     """Exercise the core lead → proposal → contract → project → billing path with tenant isolation."""
