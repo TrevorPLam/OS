@@ -101,8 +101,8 @@
 - [x] 2.2 Add project template system with cloning (Projects) ✅
 - [x] 2.3 Implement milestone-triggered invoice generation (Finance) ✅
 - [x] 2.4 Add basic approval workflow for expenses (Finance) ✅
-- [ ] 2.5 Add AP bill state machine (Received → Validated → Approved → Paid) (Finance)
-- [ ] 2.6 Implement dunning workflow for overdue invoices (Finance)
+- [x] 2.5 Add AP bill state machine (Received → Validated → Approved → Paid) (Finance) ✅
+- [x] 2.6 Implement dunning workflow for overdue invoices (Finance) ✅
 - [ ] 2.7 Add document approval workflow (Draft → Review → Approved → Published) (Documents)
 - [ ] 2.8 Add client acceptance gate before invoicing (Projects/Finance)
 - [ ] 2.9 Implement utilization tracking and reporting (Projects)
