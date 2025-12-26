@@ -15,10 +15,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from modules.documents.models import Folder, Document, Version
 from modules.documents.services import S3Service
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from .serializers import FolderSerializer, DocumentSerializer, VersionSerializer
 
 
-class FolderViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class FolderViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Folder model.
 
@@ -27,7 +29,7 @@ class FolderViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Folder
     serializer_class = FolderSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'project', 'parent', 'visibility']
     search_fields = ['name']
     ordering_fields = ['name', 'created_at']
@@ -39,7 +41,7 @@ class FolderViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return base_queryset.select_related('client', 'project', 'parent', 'created_by')
 
 
-class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class DocumentViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Document model with S3 upload functionality.
 
@@ -48,7 +50,7 @@ class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Document
     serializer_class = DocumentSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'folder', 'project', 'visibility', 'file_type']
     search_fields = ['name']
     ordering_fields = ['name', 'created_at']
@@ -167,7 +169,7 @@ class DocumentViewSet(FirmScopedMixin, viewsets.ModelViewSet):
             )
 
 
-class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class VersionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Version model.
 
@@ -176,7 +178,7 @@ class VersionViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Version
     serializer_class = VersionSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['document']
     search_fields = ['change_summary']
     ordering_fields = ['version_number', 'created_at']

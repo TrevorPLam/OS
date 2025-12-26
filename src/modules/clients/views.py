@@ -13,6 +13,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import IsPortalUserOrFirmUser, DenyPortalAccess
 from modules.clients.models import (
     Organization,
@@ -42,7 +44,7 @@ from modules.firm.utils import FirmScopedMixin, get_request_firm
 from permissions import PortalFirmAccessPermission, PortalAccessMixin
 
 
-class OrganizationViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class OrganizationViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Organization management.
 
@@ -53,7 +55,7 @@ class OrganizationViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Organization
     serializer_class = OrganizationSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Firm users only
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['enable_cross_client_visibility']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'created_at']
@@ -73,7 +75,7 @@ class OrganizationViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         )
 
 
-class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ClientViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client management (Post-sale).
 
@@ -85,7 +87,7 @@ class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Client
     serializer_class = ClientSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'account_manager', 'portal_enabled']
     search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
     ordering_fields = ['company_name', 'client_since', 'total_lifetime_value']
@@ -167,7 +169,7 @@ class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return Response({'status': 'autopay disabled', 'client': ClientSerializer(client).data})
 
 
-class ClientPortalUserViewSet(viewsets.ModelViewSet):
+class ClientPortalUserViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Portal User management.
 
@@ -178,7 +180,7 @@ class ClientPortalUserViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ClientPortalUserSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter]
     filterset_fields = ['client', 'role']
     search_fields = ['user__username', 'user__email', 'client__company_name']
 
@@ -192,7 +194,7 @@ class ClientPortalUserViewSet(viewsets.ModelViewSet):
         serializer.save(invited_by=self.request.user)
 
 
-class ClientNoteViewSet(viewsets.ModelViewSet):
+class ClientNoteViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Notes (internal only).
 
@@ -203,7 +205,7 @@ class ClientNoteViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ClientNoteSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter]
     filterset_fields = ['client', 'author', 'is_pinned']
     search_fields = ['note', 'client__company_name']
 
@@ -223,7 +225,7 @@ class ClientNoteViewSet(viewsets.ModelViewSet):
         return queryset
 
 
-class ClientEngagementViewSet(viewsets.ModelViewSet):
+class ClientEngagementViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Engagements.
 
@@ -257,12 +259,13 @@ class ClientEngagementViewSet(viewsets.ModelViewSet):
         if not client_id:
             return Response({'error': 'client_id query parameter required'}, status=400)
 
-        engagements = self.get_queryset().filter(client_id=client_id)
-        serializer = self.get_serializer(engagements, many=True)
-        return Response(serializer.data)
+        with self.with_query_timeout():
+            engagements = self.get_queryset().filter(client_id=client_id)
+            serializer = self.get_serializer(engagements, many=True)
+            return Response(serializer.data)
 
 
-class ClientProjectViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
+class ClientProjectViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Projects (read-only).
 
@@ -309,12 +312,13 @@ class ClientProjectViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
         from modules.projects.models import Task
         from modules.clients.serializers import ClientTaskSerializer
 
-        tasks = Task.objects.filter(project=project).order_by('position', '-created_at')
-        serializer = ClientTaskSerializer(tasks, many=True)
-        return Response(serializer.data)
+        with self.with_query_timeout():
+            tasks = Task.objects.filter(project=project).order_by('position', '-created_at')
+            serializer = ClientTaskSerializer(tasks, many=True)
+            return Response(serializer.data)
 
 
-class ClientCommentViewSet(PortalAccessMixin, viewsets.ModelViewSet):
+class ClientCommentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Comments on Tasks.
 
@@ -404,12 +408,13 @@ class ClientCommentViewSet(PortalAccessMixin, viewsets.ModelViewSet):
             )
         except ClientPortalUser.DoesNotExist:
             # Firm user - get unread comments
-            unread_comments = self.queryset.filter(is_read_by_firm=False)
-            serializer = self.get_serializer(unread_comments, many=True)
-            return Response(serializer.data)
+            with self.with_query_timeout():
+                unread_comments = self.get_queryset().filter(is_read_by_firm=False)
+                serializer = self.get_serializer(unread_comments, many=True)
+                return Response(serializer.data)
 
 
-class ClientInvoiceViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
+class ClientInvoiceViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Invoices (read-only).
 
@@ -510,42 +515,43 @@ class ClientInvoiceViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
         from modules.finance.models import Invoice
         from django.db.models import Sum, Count
 
-        # TIER 0: verified - client belongs to portal_user who belongs to request firm
-        invoices = Invoice.objects.filter(client=client)
+        with self.with_query_timeout():
+            # TIER 0: verified - client belongs to portal_user who belongs to request firm
+            invoices = Invoice.objects.filter(client=client)
 
-        # Get summary statistics
-        summary = {
-            'total_invoices': invoices.count(),
-            'total_billed': invoices.aggregate(total=Sum('total_amount'))['total'] or 0,
-            'total_paid': invoices.aggregate(total=Sum('amount_paid'))['total'] or 0,
-            'total_outstanding': sum(inv.balance_due for inv in invoices),
-            'by_status': {},
-        }
-
-        # Count by status
-        status_counts = invoices.values('status').annotate(
-            count=Count('id'),
-            total=Sum('total_amount')
-        )
-
-        for item in status_counts:
-            summary['by_status'][item['status']] = {
-                'count': item['count'],
-                'total': float(item['total']) if item['total'] else 0,
+            # Get summary statistics
+            summary = {
+                'total_invoices': invoices.count(),
+                'total_billed': invoices.aggregate(total=Sum('total_amount'))['total'] or 0,
+                'total_paid': invoices.aggregate(total=Sum('amount_paid'))['total'] or 0,
+                'total_outstanding': sum(inv.balance_due for inv in invoices),
+                'by_status': {},
             }
 
-        # Overdue invoices
-        overdue_invoices = invoices.filter(status__in=['sent', 'partial'])
-        from django.utils import timezone
-        today = timezone.now().date()
-        overdue_count = sum(1 for inv in overdue_invoices if inv.due_date < today)
+            # Count by status
+            status_counts = invoices.values('status').annotate(
+                count=Count('id'),
+                total=Sum('total_amount')
+            )
 
-        summary['overdue_count'] = overdue_count
+            for item in status_counts:
+                summary['by_status'][item['status']] = {
+                    'count': item['count'],
+                    'total': float(item['total']) if item['total'] else 0,
+                }
 
-        return Response(summary)
+            # Overdue invoices
+            overdue_invoices = invoices.filter(status__in=['sent', 'partial'])
+            from django.utils import timezone
+            today = timezone.now().date()
+            overdue_count = sum(1 for inv in overdue_invoices if inv.due_date < today)
+
+            summary['overdue_count'] = overdue_count
+
+            return Response(summary)
 
 
-class ClientChatThreadViewSet(PortalAccessMixin, viewsets.ModelViewSet):
+class ClientChatThreadViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Chat Threads.
 
@@ -632,7 +638,7 @@ class ClientChatThreadViewSet(PortalAccessMixin, viewsets.ModelViewSet):
         })
 
 
-class ClientMessageViewSet(PortalAccessMixin, viewsets.ModelViewSet):
+class ClientMessageViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ModelViewSet):
     """
     ViewSet for Client Messages.
 
@@ -696,19 +702,19 @@ class ClientMessageViewSet(PortalAccessMixin, viewsets.ModelViewSet):
         For clients: get unread messages from firm
         For firm: get unread messages from all clients
         """
-        user = request.user
-        queryset = self.get_queryset()
+        with self.with_query_timeout():
+            queryset = self.get_queryset()
 
-        if self.get_validated_portal_user(request, enforce_permission=False):
-            unread = queryset.filter(is_read=False, is_from_client=False)
-        else:
-            unread = queryset.filter(is_read=False, is_from_client=True)
+            if self.get_validated_portal_user(request, enforce_permission=False):
+                unread = queryset.filter(is_read=False, is_from_client=False)
+            else:
+                unread = queryset.filter(is_read=False, is_from_client=True)
 
-        serializer = self.get_serializer(unread, many=True)
-        return Response(serializer.data)
+            serializer = self.get_serializer(unread, many=True)
+            return Response(serializer.data)
 
 
-class ClientProposalViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
+class ClientProposalViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Proposals (read-only).
 
@@ -770,7 +776,7 @@ class ClientProposalViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
         })
 
 
-class ClientContractViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
+class ClientContractViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Contracts (read-only).
 
@@ -828,7 +834,7 @@ class ClientContractViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
         })
 
 
-class ClientEngagementHistoryViewSet(PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
+class ClientEngagementHistoryViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for Client Portal - Engagement History (read-only).
 
@@ -879,14 +885,15 @@ class ClientEngagementHistoryViewSet(PortalAccessMixin, viewsets.ReadOnlyModelVi
             )
         client = portal_user.client
 
-        engagements = ClientEngagement.objects.filter(
-            client=client
-        ).select_related('contract').order_by('version')
+        with self.with_query_timeout():
+            engagements = ClientEngagement.objects.filter(
+                client=client
+            ).select_related('contract').order_by('version')
 
-        serializer = self.get_serializer(engagements, many=True)
+            serializer = self.get_serializer(engagements, many=True)
 
-        return Response({
-            'client_name': client.company_name,
-            'total_versions': engagements.count(),
-            'timeline': serializer.data
-        })
+            return Response({
+                'client_name': client.company_name,
+                'total_versions': engagements.count(),
+                'timeline': serializer.data
+            })

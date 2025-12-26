@@ -11,10 +11,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from modules.clients.permissions import DenyPortalAccess
 from modules.assets.models import Asset, MaintenanceLog
 from modules.firm.utils import FirmScopedMixin
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from .serializers import AssetSerializer, MaintenanceLogSerializer
 
 
-class AssetViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class AssetViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Asset model.
 
@@ -23,7 +25,7 @@ class AssetViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Asset
     serializer_class = AssetSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'status', 'assigned_to']
     search_fields = ['asset_tag', 'name', 'serial_number', 'manufacturer']
     ordering_fields = ['asset_tag', 'name', 'purchase_date']
@@ -35,7 +37,7 @@ class AssetViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return base_queryset.select_related('assigned_to')
 
 
-class MaintenanceLogViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class MaintenanceLogViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for MaintenanceLog model.
 
@@ -44,7 +46,7 @@ class MaintenanceLogViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = MaintenanceLog
     serializer_class = MaintenanceLogSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['asset', 'maintenance_type', 'status']
     search_fields = ['description']
     ordering_fields = ['scheduled_date', 'created_at']

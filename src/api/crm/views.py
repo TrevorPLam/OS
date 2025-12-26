@@ -11,10 +11,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from modules.clients.permissions import DenyPortalAccess
 from modules.crm.models import Lead, Prospect, Campaign, Proposal, Contract
 from modules.firm.utils import FirmScopedMixin
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from .serializers import LeadSerializer, ProspectSerializer, CampaignSerializer, ProposalSerializer, ContractSerializer
 
 
-class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Lead model.
 
@@ -24,14 +26,14 @@ class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Lead
     serializer_class = LeadSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'source', 'assigned_to', 'campaign']
     search_fields = ['company_name', 'contact_name', 'contact_email']
     ordering_fields = ['company_name', 'created_at', 'status']
     ordering = ['-created_at']
 
 
-class ProspectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Prospect model.
 
@@ -41,14 +43,14 @@ class ProspectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Prospect
     serializer_class = ProspectSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['pipeline_stage', 'assigned_to', 'close_date_estimate']
     search_fields = ['company_name', 'contact_name', 'contact_email']
     ordering_fields = ['company_name', 'created_at', 'estimated_value']
     ordering = ['-created_at']
 
 
-class CampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class CampaignViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Campaign model.
 
@@ -58,14 +60,14 @@ class CampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Campaign
     serializer_class = CampaignSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'type']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'start_date', 'created_at']
     ordering = ['-start_date', '-created_at']
 
 
-class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ProposalViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Proposal model.
 
@@ -75,7 +77,7 @@ class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Proposal
     serializer_class = ProposalSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['prospect', 'client', 'status', 'proposal_type']
     search_fields = ['proposal_number', 'title']
     ordering_fields = ['proposal_number', 'created_at', 'valid_until']
@@ -87,7 +89,7 @@ class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return base_queryset.select_related('prospect', 'client', 'created_by')
 
 
-class ContractViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ContractViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Contract model.
 
@@ -97,7 +99,7 @@ class ContractViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Contract
     serializer_class = ContractSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'status', 'payment_terms']
     search_fields = ['contract_number', 'title']
     ordering_fields = ['contract_number', 'created_at', 'start_date']

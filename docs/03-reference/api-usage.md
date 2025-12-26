@@ -1522,8 +1522,8 @@ GET /api/crm/clients/?page=2&page_size=50
 }
 ```
 
-Default page size: 100
-Max page size: 1000
+Default page size: 50
+Max page size: 200
 
 ---
 
@@ -1537,7 +1537,11 @@ GET /api/projects/tasks/?status=in_progress&priority=high
 GET /api/finance/invoices/?status=overdue&client=1
 ```
 
+List/report queries enforce a 3s statement timeout on PostgreSQL.
+
 ### Search
+
+- Search terms are limited to 100 characters. Requests exceeding this limit return a 400 error.
 
 ```http
 GET /api/crm/clients/?search=acme
