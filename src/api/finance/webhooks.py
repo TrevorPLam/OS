@@ -3,8 +3,6 @@ Stripe Webhook Handler for payment events.
 
 Handles asynchronous payment confirmations and updates.
 """
-import stripe
-import json
 import logging
 from datetime import timedelta
 
@@ -17,6 +15,7 @@ from django.views.decorators.http import require_POST
 
 from modules.finance.billing import handle_payment_failure
 from modules.finance.models import Invoice
+from modules.core.telemetry import log_event, log_metric, track_duration
 
 logger = logging.getLogger(__name__)
 
@@ -46,37 +45,73 @@ def stripe_webhook(request):
         )
     except ValueError as e:
         # Invalid payload
-        logger.error(f"Stripe webhook invalid payload: {e}")
+        logger.error("Stripe webhook invalid payload")
+        log_event(
+            "stripe_webhook_invalid_payload",
+            provider="stripe",
+            error_class=e.__class__.__name__,
+        )
         return HttpResponse(status=400)
     except stripe.error.SignatureVerificationError as e:
         # Invalid signature
-        logger.error(f"Stripe webhook signature verification failed: {e}")
+        logger.error("Stripe webhook signature verification failed")
+        log_event(
+            "stripe_webhook_signature_failed",
+            provider="stripe",
+            error_class=e.__class__.__name__,
+        )
         return HttpResponse(status=400)
 
     # Handle the event
     event_type = event['type']
     event_data = event['data']['object']
 
-    logger.info(f"Received Stripe webhook: {event_type}")
+    logger.info("Received Stripe webhook")
+    log_event(
+        "stripe_webhook_received",
+        provider="stripe",
+        webhook_type=event_type,
+    )
 
     try:
-        if event_type == 'payment_intent.succeeded':
-            handle_payment_intent_succeeded(event_data)
-        elif event_type == 'payment_intent.payment_failed':
-            handle_payment_intent_failed(event_data)
-        elif event_type == 'invoice.payment_succeeded':
-            handle_invoice_payment_succeeded(event_data)
-        elif event_type == 'invoice.payment_failed':
-            handle_invoice_payment_failed(event_data)
-        elif event_type == 'charge.refunded':
-            handle_charge_refunded(event_data)
-        else:
-            logger.info(f"Unhandled Stripe event type: {event_type}")
-
+        with track_duration(
+            "stripe_webhook_process",
+            provider="stripe",
+            webhook_type=event_type,
+        ):
+            if event_type == 'payment_intent.succeeded':
+                handle_payment_intent_succeeded(event_data)
+            elif event_type == 'payment_intent.payment_failed':
+                handle_payment_intent_failed(event_data)
+            elif event_type == 'invoice.payment_succeeded':
+                handle_invoice_payment_succeeded(event_data)
+            elif event_type == 'invoice.payment_failed':
+                handle_invoice_payment_failed(event_data)
+            elif event_type == 'charge.refunded':
+                handle_charge_refunded(event_data)
+            else:
+                logger.info("Unhandled Stripe event type")
+                log_event(
+                    "stripe_webhook_unhandled",
+                    provider="stripe",
+                    webhook_type=event_type,
+                )
     except Exception as e:
-        logger.error(f"Error processing Stripe webhook: {e}", exc_info=True)
+        logger.error("Error processing Stripe webhook")
+        log_event(
+            "stripe_webhook_failed",
+            provider="stripe",
+            webhook_type=event_type,
+            error_class=e.__class__.__name__,
+        )
         return HttpResponse(status=500)
 
+    log_metric(
+        "stripe_webhook_processed",
+        provider="stripe",
+        webhook_type=event_type,
+        status="success",
+    )
     return HttpResponse(status=200)
 
 
@@ -89,7 +124,12 @@ def handle_payment_intent_succeeded(payment_intent):
     invoice_id = metadata.get('invoice_id')
 
     if not invoice_id:
-        logger.warning(f"Payment intent {payment_intent['id']} has no invoice_id in metadata")
+        logger.warning("Payment intent missing invoice metadata")
+        log_event(
+            "stripe_payment_intent_missing_invoice_id",
+            provider="stripe",
+            webhook_type="payment_intent.succeeded",
+        )
         return
 
     try:
@@ -111,12 +151,29 @@ def handle_payment_intent_succeeded(payment_intent):
         invoice.autopay_next_charge_at = None
         invoice.save(update_fields=['amount_paid', 'status', 'paid_date', 'autopay_status', 'autopay_next_charge_at'])
 
-        logger.info(f"Invoice {invoice.invoice_number} updated from payment intent {payment_intent['id']}")
+        logger.info("Invoice updated from payment intent")
+        log_metric(
+            "stripe_payment_intent_succeeded",
+            provider="stripe",
+            webhook_type="payment_intent.succeeded",
+            status="success",
+        )
 
     except Invoice.DoesNotExist:
-        logger.error(f"Invoice {invoice_id} not found for payment intent {payment_intent['id']}")
+        logger.error("Invoice not found for payment intent")
+        log_event(
+            "stripe_payment_intent_invoice_missing",
+            provider="stripe",
+            webhook_type="payment_intent.succeeded",
+        )
     except Exception as e:
-        logger.error(f"Error updating invoice {invoice_id}: {e}", exc_info=True)
+        logger.error("Error updating invoice from payment intent")
+        log_event(
+            "stripe_payment_intent_update_failed",
+            provider="stripe",
+            webhook_type="payment_intent.succeeded",
+            error_class=e.__class__.__name__,
+        )
 
 
 def handle_payment_intent_failed(payment_intent):
@@ -127,10 +184,12 @@ def handle_payment_intent_failed(payment_intent):
     metadata = payment_intent.get('metadata', {})
     invoice_id = metadata.get('invoice_id')
 
-    logger.warning(
-        f"Payment failed for invoice {invoice_id}, "
-        f"payment_intent: {payment_intent['id']}, "
-        f"failure_message: {payment_intent.get('last_payment_error', {}).get('message')}"
+    logger.warning("Payment intent reported failure")
+    log_event(
+        "stripe_payment_intent_failed",
+        provider="stripe",
+        webhook_type="payment_intent.payment_failed",
+        status="failed",
     )
 
     if invoice_id:
@@ -156,7 +215,12 @@ def handle_invoice_payment_succeeded(stripe_invoice):
     invoice_id = metadata.get('invoice_id')
 
     if not invoice_id:
-        logger.warning(f"Stripe invoice {stripe_invoice['id']} has no invoice_id in metadata")
+        logger.warning("Stripe invoice missing invoice metadata")
+        log_event(
+            "stripe_invoice_missing_invoice_id",
+            provider="stripe",
+            webhook_type="invoice.payment_succeeded",
+        )
         return
 
     try:
@@ -170,10 +234,21 @@ def handle_invoice_payment_succeeded(stripe_invoice):
         invoice.autopay_next_charge_at = None
         invoice.save(update_fields=['amount_paid', 'status', 'paid_date', 'autopay_status', 'autopay_next_charge_at'])
 
-        logger.info(f"Invoice {invoice.invoice_number} marked as paid from Stripe invoice {stripe_invoice['id']}")
+        logger.info("Invoice marked as paid from Stripe invoice")
+        log_metric(
+            "stripe_invoice_payment_succeeded",
+            provider="stripe",
+            webhook_type="invoice.payment_succeeded",
+            status="success",
+        )
 
     except Invoice.DoesNotExist:
-        logger.error(f"Invoice {invoice_id} not found for Stripe invoice {stripe_invoice['id']}")
+        logger.error("Invoice not found for Stripe invoice")
+        log_event(
+            "stripe_invoice_payment_invoice_missing",
+            provider="stripe",
+            webhook_type="invoice.payment_succeeded",
+        )
 
 
 def handle_invoice_payment_failed(stripe_invoice):
@@ -183,9 +258,12 @@ def handle_invoice_payment_failed(stripe_invoice):
     metadata = stripe_invoice.get('metadata', {})
     invoice_id = metadata.get('invoice_id')
 
-    logger.warning(
-        f"Invoice payment failed for invoice {invoice_id}, "
-        f"stripe_invoice: {stripe_invoice['id']}"
+    logger.warning("Stripe invoice payment failed")
+    log_event(
+        "stripe_invoice_payment_failed",
+        provider="stripe",
+        webhook_type="invoice.payment_failed",
+        status="failed",
     )
 
     if invoice_id:
@@ -196,7 +274,12 @@ def handle_invoice_payment_failed(stripe_invoice):
             invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
             invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at'])
         except Invoice.DoesNotExist:
-            logger.error(f"Invoice {invoice_id} not found for Stripe invoice failure")
+            logger.error("Invoice not found for Stripe invoice failure")
+            log_event(
+                "stripe_invoice_payment_failure_invoice_missing",
+                provider="stripe",
+                webhook_type="invoice.payment_failed",
+            )
 
 
 def handle_charge_refunded(charge):
@@ -224,7 +307,18 @@ def handle_charge_refunded(charge):
 
         invoice.save()
 
-        logger.info(f"Invoice {invoice.invoice_number} refunded ${refund_amount}")
+        logger.info("Invoice refunded")
+        log_metric(
+            "stripe_charge_refunded",
+            provider="stripe",
+            webhook_type="charge.refunded",
+            status="success",
+        )
 
     except Invoice.DoesNotExist:
-        logger.error(f"Invoice {invoice_id} not found for refund")
+        logger.error("Invoice not found for refund")
+        log_event(
+            "stripe_refund_invoice_missing",
+            provider="stripe",
+            webhook_type="charge.refunded",
+        )

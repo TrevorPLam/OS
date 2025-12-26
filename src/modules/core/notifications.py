@@ -14,6 +14,8 @@ from django.conf import settings
 from django.utils.html import strip_tags
 import logging
 
+from modules.core.telemetry import log_event, log_metric, track_duration
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,56 +64,66 @@ class EmailNotification:
             bool: True if email sent successfully, False otherwise
         """
         try:
-            # Use default from_email if not provided
-            if not from_email:
-                from_email = getattr(
-                    settings,
-                    'DEFAULT_FROM_EMAIL',
-                    'noreply@consultantpro.com'
-                )
+            with track_duration("notification_email_send", channel="email"):
+                # Use default from_email if not provided
+                if not from_email:
+                    from_email = getattr(
+                        settings,
+                        'DEFAULT_FROM_EMAIL',
+                        'noreply@consultantpro.com'
+                    )
 
-            # Render HTML content from template if provided
-            if template and context is not None:
-                html_content = render_to_string(template, context)
+                # Render HTML content from template if provided
+                if template and context is not None:
+                    html_content = render_to_string(template, context)
 
-            # Generate plain text version if not provided
-            if html_content and not text_content:
-                text_content = strip_tags(html_content)
+                # Generate plain text version if not provided
+                if html_content and not text_content:
+                    text_content = strip_tags(html_content)
 
-            # Create email message
-            if html_content:
-                email = EmailMultiAlternatives(
-                    subject=subject,
-                    body=text_content or '',
-                    from_email=from_email,
-                    to=to if isinstance(to, list) else [to],
-                    cc=cc,
-                    bcc=bcc,
-                    reply_to=reply_to
-                )
-                email.attach_alternative(html_content, "text/html")
-            else:
-                # Plain text only
-                email = EmailMultiAlternatives(
-                    subject=subject,
-                    body=text_content or '',
-                    from_email=from_email,
-                    to=to if isinstance(to, list) else [to],
-                    cc=cc,
-                    bcc=bcc,
-                    reply_to=reply_to
-                )
+                # Create email message
+                if html_content:
+                    email = EmailMultiAlternatives(
+                        subject=subject,
+                        body=text_content or '',
+                        from_email=from_email,
+                        to=to if isinstance(to, list) else [to],
+                        cc=cc,
+                        bcc=bcc,
+                        reply_to=reply_to
+                    )
+                    email.attach_alternative(html_content, "text/html")
+                else:
+                    # Plain text only
+                    email = EmailMultiAlternatives(
+                        subject=subject,
+                        body=text_content or '',
+                        from_email=from_email,
+                        to=to if isinstance(to, list) else [to],
+                        cc=cc,
+                        bcc=bcc,
+                        reply_to=reply_to
+                    )
 
-            # Send email
-            email.send(fail_silently=False)
+                # Send email
+                email.send(fail_silently=False)
 
-            logger.info(
-                f"Email sent successfully: '{subject}' to {', '.join(to if isinstance(to, list) else [to])}"
+            log_metric(
+                "notification_email_sent",
+                channel="email",
+                count=len(to if isinstance(to, list) else [to]),
+                status="success",
             )
+            logger.info("Email sent successfully")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to send email: {subject} to {to}. Error: {str(e)}")
+            log_event(
+                "notification_email_failed",
+                channel="email",
+                error_class=e.__class__.__name__,
+            )
+            logger.error("Failed to send email")
             return False
 
     @staticmethod
@@ -130,7 +142,8 @@ class EmailNotification:
             recipient_email = proposal.created_by.email
 
         if not recipient_email:
-            logger.warning(f"No recipient email for proposal {proposal.proposal_number}")
+            logger.warning("No recipient email for proposal")
+            log_event("notification_missing_recipient", channel="email")
             return False
 
         # Prepare email context
@@ -173,7 +186,8 @@ class EmailNotification:
             recipient_email = proposal.created_by.email
 
         if not recipient_email:
-            logger.warning(f"No recipient email for proposal {proposal.proposal_number}")
+            logger.warning("No recipient email for proposal")
+            log_event("notification_missing_recipient", channel="email")
             return False
 
         context = {
@@ -216,7 +230,8 @@ class EmailNotification:
                 recipients.append(contract.client.account_manager.email)
 
         if not recipients:
-            logger.warning(f"No recipients for contract {contract.contract_number}")
+            logger.warning("No recipients for contract")
+            log_event("notification_missing_recipient", channel="email")
             return False
 
         context = {
@@ -255,7 +270,8 @@ class EmailNotification:
             task: Task model instance
         """
         if not task.assigned_to or not task.assigned_to.email:
-            logger.warning(f"Task '{task.title}' has no assigned user with email")
+            logger.warning("Task has no assigned user with email")
+            log_event("notification_missing_recipient", channel="email")
             return False
 
         context = {
@@ -306,7 +322,8 @@ class EmailNotification:
                 recipients.append(project.client.account_manager.email)
 
         if not recipients:
-            logger.warning(f"No recipients for project '{project.name}'")
+            logger.warning("No recipients for project")
+            log_event("notification_missing_recipient", channel="email")
             return False
 
         # Remove duplicates
@@ -362,7 +379,8 @@ class SlackNotification:
             message (str): Message text
             attachments (list, optional): Slack attachments
         """
-        logger.info(f"Slack notification: {channel} - {message}")
+        logger.info("Slack notification dispatch attempted")
+        log_event("notification_slack_attempted", channel="slack")
         # TODO: Implement Slack API integration
         return False
 
@@ -384,6 +402,7 @@ class SMSNotification:
             to (str): Phone number
             message (str): SMS message text
         """
-        logger.info(f"SMS notification: {to} - {message}")
+        logger.info("SMS notification dispatch attempted")
+        log_event("notification_sms_attempted", channel="sms")
         # TODO: Implement SMS service integration
         return False
