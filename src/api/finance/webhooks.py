@@ -3,17 +3,20 @@ Stripe Webhook Handler for payment events.
 
 Handles asynchronous payment confirmations and updates.
 """
-import stripe
+import json
 import logging
+from datetime import timedelta
+from decimal import Decimal
+
+import stripe
 from django.conf import settings
 from django.http import HttpResponse
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from decimal import Decimal
-from modules.finance.models import Invoice
+
 from modules.finance import billing
-from django.utils import timezone
-import json
+from modules.finance.models import Invoice
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +111,9 @@ def handle_payment_intent_succeeded(payment_intent):
         else:
             invoice.status = 'partial'
 
-        invoice.save()
+        invoice.autopay_status = 'succeeded'
+        invoice.autopay_next_charge_at = None
+        invoice.save(update_fields=['amount_paid', 'status', 'paid_date', 'autopay_status', 'autopay_next_charge_at'])
 
         logger.info(f"Invoice {invoice.invoice_number} updated from payment intent {payment_intent['id']}")
 
@@ -147,6 +152,9 @@ def handle_payment_intent_failed(payment_intent):
                 stripe_payment_intent_id=payment_intent['id'],
                 stripe_error_code=failure_code,
             )
+            invoice.autopay_status = 'failed'
+            invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
+            invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at'])
         except Invoice.DoesNotExist:
             logger.error(f"Invoice {invoice_id} not found for failed payment intent {payment_intent['id']}")
 
@@ -169,7 +177,9 @@ def handle_invoice_payment_succeeded(stripe_invoice):
         invoice.amount_paid += amount_paid
         invoice.status = 'paid'
         invoice.paid_date = timezone.now().date()
-        invoice.save()
+        invoice.autopay_status = 'succeeded'
+        invoice.autopay_next_charge_at = None
+        invoice.save(update_fields=['amount_paid', 'status', 'paid_date', 'autopay_status', 'autopay_next_charge_at'])
 
         logger.info(f"Invoice {invoice.invoice_number} marked as paid from Stripe invoice {stripe_invoice['id']}")
 
@@ -188,6 +198,16 @@ def handle_invoice_payment_failed(stripe_invoice):
         f"Invoice payment failed for invoice {invoice_id}, "
         f"stripe_invoice: {stripe_invoice['id']}"
     )
+
+    if invoice_id:
+        try:
+            invoice = Invoice.objects.get(id=invoice_id)
+            billing.handle_payment_failure(invoice, failure_reason='processor_failure')
+            invoice.autopay_status = 'failed'
+            invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
+            invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at'])
+        except Invoice.DoesNotExist:
+            logger.error(f"Invoice {invoice_id} not found for Stripe invoice failure")
 
 
 def handle_charge_refunded(charge):
