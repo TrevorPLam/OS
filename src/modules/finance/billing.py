@@ -583,28 +583,59 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
 def _reverse_ledger_for_chargeback(invoice: Invoice, amount: Decimal, reason: str):
     """Create double-entry reversal to reflect a chargeback."""
     group_id = uuid.uuid4().hex
-    description = f"Chargeback reversal ({reason}) for invoice {invoice.invoice_number}"
-    LedgerEntry.objects.create(
-        firm=invoice.firm,
-        entry_type='debit',
-        account='accounts_receivable',
-        amount=amount,
-        transaction_date=timezone.now().date(),
-        description=description,
-        invoice=invoice,
-        transaction_group_id=group_id,
-    )
-    LedgerEntry.objects.create(
-        firm=invoice.firm,
-        entry_type='credit',
-        account='cash',
-        amount=amount,
-        transaction_date=timezone.now().date(),
-        description=description,
-        invoice=invoice,
-        transaction_group_id=group_id,
+    today = timezone.now().date()
+
+    # Attempt to mirror the original ledger entries for this invoice and amount.
+    original_entries = list(
+        LedgerEntry.objects.filter(
+            firm=invoice.firm,
+            invoice=invoice,
+            amount=amount,
+        )
     )
 
+    if original_entries:
+        for entry in original_entries:
+            if entry.entry_type == 'debit':
+                reversed_type = 'credit'
+            elif entry.entry_type == 'credit':
+                reversed_type = 'debit'
+            else:
+                # For any non-debit/credit types, keep the same type to ensure a symmetric reversal.
+                reversed_type = entry.entry_type
+
+            LedgerEntry.objects.create(
+                firm=invoice.firm,
+                entry_type=reversed_type,
+                account=entry.account,
+                amount=entry.amount,
+                transaction_date=today,
+                description=description,
+                invoice=invoice,
+                transaction_group_id=group_id,
+            )
+    else:
+        # Fallback to the previous behavior if no matching original entries are found.
+        LedgerEntry.objects.create(
+            firm=invoice.firm,
+            entry_type='debit',
+            account='accounts_receivable',
+            amount=amount,
+            transaction_date=today,
+            description=description,
+            invoice=invoice,
+            transaction_group_id=group_id,
+        )
+        LedgerEntry.objects.create(
+            firm=invoice.firm,
+            entry_type='credit',
+            account='cash',
+            amount=amount,
+            transaction_date=today,
+            description=description,
+            invoice=invoice,
+            transaction_group_id=group_id,
+        )
 
 def _record_chargeback(invoice: Invoice, stripe_dispute_data: dict) -> Chargeback:
     """Persist chargeback metadata from a closed dispute."""
