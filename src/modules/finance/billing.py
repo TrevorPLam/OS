@@ -361,7 +361,8 @@ def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
 def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
     """Close dispute and update invoice status accordingly."""
     dispute = PaymentDispute.objects.get(stripe_dispute_id=stripe_dispute_data['id'])
-
+    if dispute.status == 'closed':
+        return dispute
     reason = stripe_dispute_data.get('reason', 'general')
     valid_reasons = [choice[0] for choice in PaymentDispute.DISPUTE_REASON_CHOICES]
     if reason not in valid_reasons:
