@@ -9,6 +9,7 @@ Tasks and TimeEntry inherit firm context through Project.
 """
 
 from decimal import Decimal
+from typing import Any
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -137,10 +138,10 @@ class Expense(models.Model):
         ]
         verbose_name_plural = "Expenses"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.category} - ${self.amount} - {self.project.project_code}"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """Calculate billable amount before saving."""
         self.billable_amount = self.calculate_billable_amount()
         super().save(*args, **kwargs)
@@ -284,7 +285,7 @@ class Project(models.Model):
         # TIER 0: Project codes must be unique within a firm (not globally)
         unique_together = [["firm", "project_code"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.project_code} - {self.name}"
 
 
@@ -358,7 +359,7 @@ class Task(models.Model):
             models.Index(fields=["assigned_to"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"[{self.project.project_code}] {self.title}"
 
 
@@ -447,10 +448,10 @@ class TimeEntry(models.Model):
         ]
         verbose_name_plural = "Time Entries"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.user.username} - {self.project.project_code} - {self.date} ({self.hours}h)"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         """
         Calculate billed_amount and enforce approval gates before saving.
 
@@ -553,10 +554,18 @@ class ProjectTemplate(models.Model):
         ]
         unique_together = [["firm", "template_code"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.template_code} - {self.template_name}"
 
-    def clone_to_project(self, client, project_code, name=None, start_date=None, project_manager=None, **kwargs):
+    def clone_to_project(
+        self,
+        client: Any,
+        project_code: str,
+        name: str | None = None,
+        start_date: Any = None,
+        project_manager: Any = None,
+        **kwargs: Any,
+    ) -> Any:
         """
         Clone this template to create a new project.
 
@@ -690,10 +699,10 @@ class TaskTemplate(models.Model):
             models.Index(fields=["project_template", "position"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"[{self.project_template.template_code}] {self.title}"
 
-    def clone_to_task(self, project):
+    def clone_to_task(self, project: Any) -> Any:
         """
         Clone this template to create a task in the given project.
 

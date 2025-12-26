@@ -144,7 +144,7 @@ class Activity(models.Model):
         ]
         verbose_name_plural = "Activities"
 
-    def __str__(self):
+    def __str__(self) -> str:
         entity = "Unknown"
         if self.lead:
             entity = f"Lead: {self.lead.company_name}"
@@ -154,7 +154,7 @@ class Activity(models.Model):
             entity = f"Client: {self.client.company_name}"
         return f"{self.get_activity_type_display()} - {entity} - {self.activity_date.date()}"
 
-    def clean(self):
+    def clean(self) -> None:
         """Validate that activity is linked to at least one entity."""
         from django.core.exceptions import ValidationError
 
@@ -254,7 +254,7 @@ class Lead(models.Model):
             models.Index(fields=["campaign"]),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.company_name} - {self.get_status_display()}"
 
     def calculate_lead_score(self) -> int:
@@ -411,7 +411,7 @@ class Prospect(models.Model):
             models.Index(fields=["firm", "close_date_estimate"]),  # TIER 0: Firm scoping
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.company_name} - {self.get_pipeline_stage_display()}"
 
 
@@ -517,7 +517,7 @@ class Campaign(models.Model):
             models.Index(fields=["firm", "type"]),  # TIER 0: Firm scoping
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} ({self.get_type_display()})"
 
 
@@ -634,14 +634,14 @@ class Proposal(models.Model):
         # TIER 0: Proposal numbers must be unique within a firm (not globally)
         unique_together = [["firm", "proposal_number"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.proposal_type == "prospective_client" and self.prospect:
             return f"{self.proposal_number} - {self.prospect.company_name} (New Business)"
         elif self.client:
             return f"{self.proposal_number} - {self.client.company_name} ({self.get_proposal_type_display()})"
         return f"{self.proposal_number}"
 
-    def clean(self):
+    def clean(self) -> None:
         """Validate that proposal has either prospect OR client based on type."""
         from django.core.exceptions import ValidationError
 
@@ -755,5 +755,5 @@ class Contract(models.Model):
         # TIER 0: Contract numbers must be unique within a firm (not globally)
         unique_together = [["firm", "contract_number"]]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.contract_number} - {self.client.company_name}"
