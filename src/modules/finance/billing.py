@@ -233,7 +233,7 @@ def handle_payment_failure(
         client=invoice.client,
         amount_attempted=invoice.total_amount if amount_attempted is None else amount_attempted,
         currency=invoice.currency,
-        failure_code=failure_code or 'other',
+        failure_code=failure_code if failure_code in [choice[0] for choice in PaymentFailure.FAILURE_CODE_CHOICES] else 'other',
         failure_message=failure_reason,
         stripe_payment_intent_id=stripe_payment_intent_id or invoice.stripe_payment_intent_id,
         stripe_error_code=stripe_error_code or '',
