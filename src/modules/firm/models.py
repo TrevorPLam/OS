@@ -112,6 +112,13 @@ class Firm(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        """Auto-generate slug from name if not provided."""
+        if not self.slug:
+            self.slug = slugify(self.name)
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     CONFIG_FIELDS = {
         "status",
         "subscription_tier",
@@ -159,13 +166,6 @@ class Firm(models.Model):
 
         if errors:
             raise ValidationError(errors)
-
-    def save(self, *args, **kwargs):
-        """Auto-generate slug from name if not provided."""
-        if not self.slug:
-            self.slug = slugify(self.name)
-        self.full_clean()
-        super().save(*args, **kwargs)
 
     @property
     def is_active(self):
@@ -478,85 +478,6 @@ class BreakGlassSession(models.Model):
     def __str__(self):
         return f"Break-glass {self.id} for {self.firm.name} ({self.status})"
 
-    @property
-    def is_active(self):
-        """
-        Return True if break-glass is currently active and unexpired.
-
-        Meta-commentary:
-        - This is a convenience check for guards/permissions.
-        - Enforcement logic still needs to call this method in middleware or permissions.
-        """
-        return self.status == self.STATUS_ACTIVE and not self.is_expired
-
-    @property
-    def is_expired(self):
-        """Return True when the break-glass session is past its expiry."""
-        return timezone.now() >= self.expires_at
-
-    def clean(self):
-        """
-        Validate basic invariants for break-glass sessions.
-
-        Meta-commentary:
-        - We enforce that expiry timestamps are in the future to prevent
-          immediately-expired sessions from being created while active.
-        - Follow-up: enforce maximum duration via policy config.
-        """
-        if self.status == self.STATUS_ACTIVE and self.expires_at <= timezone.now():
-            raise ValidationError({"expires_at": "Break-glass expiry must be in the future."})
-        if self.status == self.STATUS_REVOKED:
-            if not self.revoked_at:
-                raise ValidationError({"revoked_at": "Revoked sessions must include a revocation timestamp."})
-            if not self.revoked_reason:
-                raise ValidationError({"revoked_reason": "Revoked sessions must include a revocation reason."})
-        if self.reviewed_at and not self.reviewed_by:
-            raise ValidationError({"reviewed_by": "Reviewed sessions must include a reviewer."})
-        if self.reviewed_by and not self.reviewed_at:
-            raise ValidationError({"reviewed_at": "Reviewed sessions must include a review timestamp."})
-        if self.reviewed_at and self.status == self.STATUS_ACTIVE:
-            raise ValidationError({"reviewed_at": "Active sessions cannot be reviewed until closed."})
-        if self.activated_at and self.expires_at <= self.activated_at:
-            raise ValidationError({"expires_at": "Expiry must be after activation."})
-        if self.revoked_at and self.revoked_at < self.activated_at:
-            raise ValidationError({"revoked_at": "Revocation cannot occur before activation."})
-        if self.reviewed_at and self.reviewed_at < self.activated_at:
-            raise ValidationError({"reviewed_at": "Review cannot occur before activation."})
-
-    def mark_expired(self):
-        """
-        Mark the session as expired if it has passed its expiry.
-
-        TIER 0.6: Expiration is audited automatically via save() method.
-        """
-        if self.is_expired and self.status == self.STATUS_ACTIVE:
-            self.status = self.STATUS_EXPIRED
-
-    def revoke(self, reason: str):
-        """
-        Revoke break-glass access before expiry.
-
-        TIER 0.6: Revocation is audited automatically via save() method.
-        """
-        if not reason:
-            raise ValidationError({"revoked_reason": "Revocation reason is required."})
-        self.status = self.STATUS_REVOKED
-        self.revoked_at = timezone.now()
-        self.revoked_reason = reason
-
-    def mark_reviewed(self, reviewer):
-        """
-        Mark the session as reviewed by platform ops.
-
-        TIER 0.6: Break-glass review must be audited.
-        """
-        if self.status == self.STATUS_ACTIVE:
-            raise ValidationError({"reviewed_at": "Active sessions cannot be reviewed until closed."})
-        if reviewer is None:
-            raise ValidationError({"reviewed_by": "Reviewer is required to mark a session as reviewed."})
-        self.reviewed_by = reviewer
-        self.reviewed_at = timezone.now()
-
     def save(self, *args, **kwargs):
         """Run validation and update status before saving."""
         is_new = self.pk is None
@@ -620,6 +541,71 @@ class BreakGlassSession(models.Model):
                         "impersonated_user_id": self.impersonated_user_id,
                     },
                 )
+
+    def clean(self):
+        """
+        Validate basic invariants for break-glass sessions.
+
+        Enforces time-ordering and ensures platform staff cannot impersonate other platform staff.
+        """
+        if not self.expires_at:
+            raise ValidationError({"expires_at": "Break-glass must have an expiry."})
+        if self.activated_at and self.expires_at <= self.activated_at:
+            raise ValidationError({"expires_at": "Expiry must be after activation."})
+        if self.revoked_at and self.revoked_at < self.activated_at:
+            raise ValidationError({"revoked_at": "Revocation cannot occur before activation."})
+        if self.reviewed_at and self.reviewed_at < self.activated_at:
+            raise ValidationError({"reviewed_at": "Review cannot occur before activation."})
+
+    @property
+    def is_active(self):
+        """
+        Return True if break-glass is currently active and unexpired.
+
+        Meta-commentary:
+        - This is a convenience check for guards/permissions.
+        - Enforcement logic still needs to call this method in middleware or permissions.
+        """
+        return self.status == self.STATUS_ACTIVE and not self.is_expired
+
+    @property
+    def is_expired(self):
+        """Return True when the break-glass session is past its expiry."""
+        return timezone.now() >= self.expires_at
+
+    def mark_expired(self):
+        """
+        Mark the session as expired if it has passed its expiry.
+
+        TIER 0.6: Expiration is audited automatically via save() method.
+        """
+        if self.is_expired and self.status == self.STATUS_ACTIVE:
+            self.status = self.STATUS_EXPIRED
+
+    def revoke(self, reason: str):
+        """
+        Revoke break-glass access before expiry.
+
+        TIER 0.6: Revocation is audited automatically via save() method.
+        """
+        if not reason:
+            raise ValidationError({"revoked_reason": "Revocation reason is required."})
+        self.status = self.STATUS_REVOKED
+        self.revoked_at = timezone.now()
+        self.revoked_reason = reason
+
+    def mark_reviewed(self, reviewer):
+        """
+        Mark the session as reviewed by platform ops.
+
+        TIER 0.6: Break-glass review must be audited.
+        """
+        if self.status == self.STATUS_ACTIVE:
+            raise ValidationError({"reviewed_at": "Active sessions cannot be reviewed until closed."})
+        if reviewer is None:
+            raise ValidationError({"reviewed_by": "Reviewer is required to mark a session as reviewed."})
+        self.reviewed_by = reviewer
+        self.reviewed_at = timezone.now()
 
 
 class FirmOffboardingRecord(models.Model):
@@ -755,6 +741,25 @@ class PlatformUserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.get_platform_role_display()}"
 
+    def save(self, *args, **kwargs):
+        """Run validation before saving."""
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        """Validate platform profile invariants."""
+        # Break-glass operators must have explicit break-glass activation permission
+        if self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR and not self.can_activate_break_glass:
+            raise ValidationError(
+                {"can_activate_break_glass": "Break-glass operators must have can_activate_break_glass enabled."}
+            )
+
+        # Revocation invariants
+        if not self.is_platform_active and not self.revoked_at:
+            raise ValidationError({"revoked_at": "Inactive platform profiles must have revoked_at timestamp."})
+        if self.revoked_at and not self.revoked_by:
+            raise ValidationError({"revoked_by": "Revoked platform profiles must include who revoked access."})
+
     @property
     def is_break_glass_operator(self):
         """Check if user is a break-glass operator with active access."""
@@ -777,25 +782,6 @@ class PlatformUserProfile(models.Model):
         self.revoked_by = revoker
         if reason:
             self.notes = f"{self.notes}\n[REVOKED] {reason}".strip()
-
-    def clean(self):
-        """Validate platform profile invariants."""
-        # Break-glass operators must have explicit break-glass activation permission
-        if self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR and not self.can_activate_break_glass:
-            raise ValidationError(
-                {"can_activate_break_glass": "Break-glass operators must have can_activate_break_glass enabled."}
-            )
-
-        # Revocation invariants
-        if not self.is_platform_active and not self.revoked_at:
-            raise ValidationError({"revoked_at": "Inactive platform profiles must have revoked_at timestamp."})
-        if self.revoked_at and not self.revoked_by:
-            raise ValidationError({"revoked_by": "Revoked platform profiles must include who revoked access."})
-
-    def save(self, *args, **kwargs):
-        """Run validation before saving."""
-        self.full_clean()
-        super().save(*args, **kwargs)
 
 
 # Import audit models to register them with Django

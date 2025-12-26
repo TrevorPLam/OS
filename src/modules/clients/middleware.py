@@ -52,7 +52,7 @@ class PortalContainmentMiddleware(MiddlewareMixin):
         "/admin/",
     ]
 
-    def process_view(self, request, view_func, view_args, view_kwargs):
+    def process_view(self, request, _view_func, _view_args, _view_kwargs):
         """
         Check portal containment before view execution.
 

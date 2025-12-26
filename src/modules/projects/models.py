@@ -137,20 +137,20 @@ class Expense(models.Model):
         ]
         verbose_name_plural = "Expenses"
 
-    def calculate_billable_amount(self):
-        """Calculate billable amount with markup."""
-        if not self.is_billable:
-            return Decimal("0.00")
-        markup = self.amount * (self.markup_percentage / Decimal("100.00"))
-        return self.amount + markup
+    def __str__(self):
+        return f"{self.category} - ${self.amount} - {self.project.project_code}"
 
     def save(self, *args, **kwargs):
         """Calculate billable amount before saving."""
         self.billable_amount = self.calculate_billable_amount()
         super().save(*args, **kwargs)
 
-    def __str__(self):
-        return f"{self.category} - ${self.amount} - {self.project.project_code}"
+    def calculate_billable_amount(self) -> Decimal:
+        """Calculate billable amount with markup."""
+        if not self.is_billable:
+            return Decimal("0.00")
+        markup = self.amount * (self.markup_percentage / Decimal("100.00"))
+        return self.amount + markup
 
 
 class Project(models.Model):
@@ -447,6 +447,9 @@ class TimeEntry(models.Model):
         ]
         verbose_name_plural = "Time Entries"
 
+    def __str__(self):
+        return f"{self.user.username} - {self.project.project_code} - {self.date} ({self.hours}h)"
+
     def save(self, *args, **kwargs):
         """
         Calculate billed_amount and enforce approval gates before saving.
@@ -474,9 +477,6 @@ class TimeEntry(models.Model):
                 )
 
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.project.project_code} - {self.date} ({self.hours}h)"
 
 
 class ProjectTemplate(models.Model):
@@ -552,6 +552,9 @@ class ProjectTemplate(models.Model):
             models.Index(fields=["firm", "category"]),
         ]
         unique_together = [["firm", "template_code"]]
+
+    def __str__(self):
+        return f"{self.template_code} - {self.template_name}"
 
     def clone_to_project(self, client, project_code, name=None, start_date=None, project_manager=None, **kwargs):
         """
@@ -630,9 +633,6 @@ class ProjectTemplate(models.Model):
 
         return project
 
-    def __str__(self):
-        return f"{self.template_code} - {self.template_name}"
-
 
 class TaskTemplate(models.Model):
     """
@@ -690,6 +690,9 @@ class TaskTemplate(models.Model):
             models.Index(fields=["project_template", "position"]),
         ]
 
+    def __str__(self):
+        return f"[{self.project_template.template_code}] {self.title}"
+
     def clone_to_task(self, project):
         """
         Clone this template to create a task in the given project.
@@ -719,5 +722,3 @@ class TaskTemplate(models.Model):
 
         return task
 
-    def __str__(self):
-        return f"[{self.project_template.template_code}] {self.title}"

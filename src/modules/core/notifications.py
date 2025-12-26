@@ -397,14 +397,14 @@ class SlackNotification:
     """
 
     @staticmethod
-    def send(channel, message, attachments=None):
+    def send(_channel, _message, _attachments=None):
         """
         Send Slack notification (placeholder).
 
         Args:
-            channel (str): Slack channel name or ID
-            message (str): Message text
-            attachments (list, optional): Slack attachments
+            _channel (str): Slack channel name or ID
+            _message (str): Message text
+            _attachments (list, optional): Slack attachments
         """
         logger.info("Slack notification dispatch attempted")
         log_event("notification_slack_attempted", channel="slack")
