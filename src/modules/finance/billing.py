@@ -467,3 +467,158 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
     )
 
     return dispute
+
+
+def create_milestone_invoice(project, milestone_index: int, milestone_data: dict, issue_date: Optional[date] = None) -> Invoice:
+    """
+    Create an invoice triggered by a milestone completion (Medium Feature 2.3).
+
+    Args:
+        project: The Project instance with the completed milestone
+        milestone_index: Index of the milestone in the project.milestones array
+        milestone_data: The milestone dictionary containing completion info
+        issue_date: Invoice issue date (defaults to today)
+
+    Returns:
+        Invoice: The newly created milestone invoice
+
+    Raises:
+        ValidationError: If milestone is not completed or invoice already exists
+    """
+    from modules.projects.models import Project
+
+    issue_date = issue_date or timezone.now().date()
+
+    # Validate milestone is completed
+    if not milestone_data.get('completed'):
+        raise ValidationError(
+            f"Cannot generate invoice for incomplete milestone: {milestone_data.get('name')}"
+        )
+
+    # Check for existing milestone invoice (prevent duplicates)
+    existing_invoice = Invoice.objects.filter(
+        project=project,
+        milestone_reference=milestone_index
+    ).first()
+
+    if existing_invoice:
+        raise ValidationError(
+            f"Invoice {existing_invoice.invoice_number} already exists for milestone '{milestone_data.get('name')}'"
+        )
+
+    # Calculate invoice amount
+    milestone_amount = milestone_data.get('invoice_amount')
+    if not milestone_amount:
+        # If no specific amount, calculate percentage of project budget
+        milestone_percentage = milestone_data.get('invoice_percentage', 0)
+        if milestone_percentage and project.budget:
+            milestone_amount = project.budget * Decimal(str(milestone_percentage / 100))
+        else:
+            raise ValidationError(
+                f"Milestone '{milestone_data.get('name')}' has no invoice_amount or invoice_percentage defined"
+            )
+
+    milestone_amount = Decimal(str(milestone_amount))
+
+    # Generate invoice number
+    invoice_number = f"M-{project.project_code}-{milestone_index + 1}"
+
+    # Determine payment terms
+    payment_terms_days = 30  # Default Net 30
+    if project.contract and hasattr(project.contract, 'payment_terms'):
+        if 'net_15' in project.contract.payment_terms.lower():
+            payment_terms_days = 15
+        elif 'net_45' in project.contract.payment_terms.lower():
+            payment_terms_days = 45
+        elif 'net_60' in project.contract.payment_terms.lower():
+            payment_terms_days = 60
+
+    due_date = issue_date + timedelta(days=payment_terms_days)
+
+    # Create the invoice
+    with transaction.atomic():
+        invoice = Invoice.objects.create(
+            firm=project.firm,
+            client=project.client,
+            project=project,
+            engagement=getattr(project, 'engagement', None),
+            invoice_number=invoice_number,
+            status='draft',  # Start as draft, can be sent manually or auto-sent
+            subtotal=milestone_amount,
+            tax_amount=Decimal('0.00'),
+            total_amount=milestone_amount,
+            currency='USD',
+            issue_date=issue_date,
+            due_date=due_date,
+            payment_terms=f'Net {payment_terms_days}',
+            line_items=[
+                {
+                    'description': f"Milestone: {milestone_data.get('name')}",
+                    'detail': milestone_data.get('description', ''),
+                    'quantity': 1,
+                    'rate': float(milestone_amount),
+                    'amount': float(milestone_amount),
+                    'type': 'milestone',
+                }
+            ],
+            milestone_reference=milestone_index,
+            is_auto_generated=True,
+        )
+
+    # Log the milestone invoice generation
+    audit.log_billing_event(
+        firm=project.firm,
+        action='milestone_invoice_auto_generated',
+        actor=None,
+        metadata={
+            'invoice_id': invoice.id,
+            'project_id': project.id,
+            'project_code': project.project_code,
+            'milestone_index': milestone_index,
+            'milestone_name': milestone_data.get('name'),
+            'amount': float(milestone_amount),
+        },
+    )
+
+    return invoice
+
+
+def process_milestone_completion(project, milestone_index: int):
+    """
+    Process a milestone completion and generate invoice if configured.
+
+    This function should be called when a milestone is marked as completed.
+    It checks if the milestone has invoice generation enabled and creates
+    an invoice accordingly.
+
+    Args:
+        project: The Project instance
+        milestone_index: Index of the completed milestone
+
+    Returns:
+        Invoice or None: The created invoice, or None if no invoice was generated
+    """
+    if not project.milestones or milestone_index >= len(project.milestones):
+        return None
+
+    milestone = project.milestones[milestone_index]
+
+    # Check if milestone should trigger invoice
+    if not milestone.get('triggers_invoice', False):
+        return None
+
+    # Check if milestone is completed
+    if not milestone.get('completed'):
+        return None
+
+    try:
+        invoice = create_milestone_invoice(project, milestone_index, milestone)
+        return invoice
+    except ValidationError as e:
+        # Log error but don't fail the milestone completion
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Failed to generate milestone invoice for {project.project_code}: {str(e)}"
+        )
+        return None
