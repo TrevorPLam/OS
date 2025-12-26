@@ -190,6 +190,18 @@ if engagement:
 
 ### Implementation Approach
 
+- `modules.finance.billing.get_package_billing_period()` standardizes period start/end
+  calculation based on the engagement's schedule. All generators call this helper so
+  tenant scoping and renewal boundaries stay consistent.
+- `modules.finance.billing.should_generate_package_invoice()` guards against duplicate
+  invoices by checking the computed period against the current engagement and firm.
+- `modules.finance.billing.create_package_invoice()` enforces the firm/client linkage
+  invariant before issuing the invoice and stamps the period, line items, and
+  auto-generated invoice number for audits.
+- The `generate_package_invoices` management command is thin and simply orchestrates
+  the helpers above, with a `firm` scope parameter and dry-run mode to avoid cross-firm
+  leakage while confirming what would be billed.
+
 #### Auto-Invoice Generation (Celery Task)
 ```python
 # In modules/finance/tasks.py (future)

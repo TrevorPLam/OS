@@ -8,6 +8,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 from typing import Optional
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
@@ -60,7 +61,17 @@ def _period_bounds(engagement: ClientEngagement, reference_date: Optional[date] 
     return start, end
 
 
-def should_generate_package_invoice(engagement: ClientEngagement, reference_date: Optional[date] = None) -> bool:
+def get_package_billing_period(
+    engagement: ClientEngagement, reference_date: Optional[date] = None
+):
+    """Public helper to calculate the billing window for a package engagement."""
+
+    return _period_bounds(engagement, reference_date)
+
+
+def should_generate_package_invoice(
+    engagement: ClientEngagement, reference_date: Optional[date] = None
+) -> bool:
     """Determine if a package invoice should be generated for the period."""
     if engagement.status != 'current':
         return False
@@ -71,25 +82,32 @@ def should_generate_package_invoice(engagement: ClientEngagement, reference_date
     if not engagement.package_fee:
         return False
 
-    period_start, _ = _period_bounds(engagement, reference_date)
+    period_start, _ = get_package_billing_period(engagement, reference_date)
 
     if engagement.end_date < period_start:
         return False
 
-    return not Invoice.objects.filter(engagement=engagement, period_start=period_start).exists()
+    return not Invoice.objects.filter(
+        engagement=engagement, period_start=period_start, firm=engagement.firm
+    ).exists()
 
 
 def create_package_invoice(engagement: ClientEngagement, issue_date: Optional[date] = None, reference_date: Optional[date] = None) -> Invoice:
     """Create a package-fee invoice for an engagement with duplicate prevention."""
     issue_date = issue_date or timezone.now().date()
-    period_start, period_end = _period_bounds(engagement, reference_date)
+    period_start, period_end = get_package_billing_period(engagement, reference_date)
+
+    if engagement.client.firm_id != engagement.firm_id:
+        raise ValidationError(
+            "Engagement firm must match client firm when generating package invoices."
+        )
 
     with transaction.atomic():
         invoice, created = Invoice.objects.select_for_update().get_or_create(
             engagement=engagement,
             period_start=period_start,
             defaults={
-                'firm': engagement.firm,
+                'firm': engagement.client.firm,
                 'client': engagement.client,
                 'status': 'sent',
                 'subtotal': engagement.package_fee,
@@ -129,11 +147,19 @@ def create_package_invoice(engagement: ClientEngagement, issue_date: Optional[da
     return invoice
 
 
-def generate_package_invoices(reference_date: Optional[date] = None):
-    """Generate package invoices for all active engagements."""
+def generate_package_invoices(reference_date: Optional[date] = None, firm=None):
+    """Generate package invoices for all active engagements.
+
+    Args:
+        reference_date: Optional date used to determine the billing window.
+        firm: Optional firm to scope invoice generation (tenant isolation).
+    """
     engagements = ClientEngagement.objects.filter(
-        status='current', pricing_mode__in=['package', 'mixed']
-    )
+        status='current', pricing_mode__in=['package', 'mixed'], package_fee__isnull=False
+    ).select_related('client', 'firm')
+
+    if firm:
+        engagements = engagements.filter(firm=firm)
 
     created_invoices = []
     for engagement in engagements:
