@@ -6,12 +6,11 @@
 
 ## 🎯 Current Focus: Tier 4 - Billing & Monetization
 
-**Progress:** 75% Complete (6/8 complete, 1/8 partial, 1/8 documented)
+**Progress:** 88% Complete (7/8 complete, 0/8 partial, 1/8 documented)
 
 ### Active Tasks
 
-- [ ] **4.6** Recurring payments/autopay workflow (Partial - Models ready)
-- [ ] **4.7** Handle payment failures, disputes, and chargebacks
+- [ ] **4.7** Handle payment failures, disputes, and chargebacks (Documented - Implementation in progress)
 
 ### Recently Completed
 
@@ -20,6 +19,7 @@
 - [x] **4.3** Hourly billing with approval gates ✅
 - [x] **4.4** Mixed billing reporting ✅
 - [x] **4.5** Credit ledger ✅
+- [x] **4.6** Recurring payments/autopay workflow (Complete - see docs/tier4/AUTOPAY_STATUS.md) ✅
 - [x] **4.8** Renewal billing behavior ✅
 
 ---
