@@ -384,9 +384,16 @@ def handle_payment_failure(
     )
 
     if invoice.payment_retry_count >= 2:
-        invoice.client.status = 'inactive'
-        invoice.client.save(update_fields=['status'])
+        # Only inactivate the client if they have no other non-delinquent invoices.
+        has_other_active_invoices = Invoice.objects.filter(client=invoice.client).exclude(
+            pk=invoice.pk
+        ).exclude(
+            status__in=['failed', 'overdue', 'canceled', 'cancelled', 'void']
+        ).exists()
 
+        if not has_other_active_invoices:
+            invoice.client.status = 'inactive'
+            invoice.client.save(update_fields=['status'])
     return invoice
 
 
