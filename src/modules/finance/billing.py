@@ -305,13 +305,21 @@ def process_recurring_invoices(reference_time: Optional[timezone.datetime] = Non
     return processed
 
 
-def _notify_client_portal(invoice: Invoice, message: str):
+def _append_portal_message(invoice: Invoice, message: str):
     """Append a client-facing message to invoice notes for portal visibility."""
     timestamped = f"[{timezone.now().isoformat()}] {message}"
     invoice.notes = f"{invoice.notes}\n{timestamped}" if invoice.notes else timestamped
     invoice.save(update_fields=['notes'])
 
 
+def _notify_client_portal(invoice: Invoice, message: str):
+    """
+    DEPRECATED: This function does not send a real-time portal notification.
+
+    It only appends a client-facing message to ``invoice.notes`` for later
+    display in the client portal. Use ``_append_portal_message`` instead.
+    """
+    return _append_portal_message(invoice, message)
 def handle_payment_failure(
     invoice: Invoice,
     failure_reason: str,
