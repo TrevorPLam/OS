@@ -447,12 +447,14 @@ def _reverse_ledger_for_chargeback(invoice: Invoice, amount: Decimal, reason: st
 def _record_chargeback(invoice: Invoice, stripe_dispute_data: dict) -> Chargeback:
     """Persist chargeback metadata from a closed dispute."""
     chargeback, _ = Chargeback.objects.get_or_create(
-        stripe_chargeback_id=stripe_dispute_data.get('id'),
-        defaults={
-            'firm': invoice.firm,
-            'invoice': invoice,
-            'client': invoice.client,
-            'amount': Decimal(str(stripe_dispute_data.get('amount') or invoice.total_amount)),
+        amount = stripe_dispute_data.get('amount')
+        chargeback, _ = Chargeback.objects.get_or_create(
+            stripe_chargeback_id=stripe_dispute_data.get('id'),
+            defaults={
+                'firm': invoice.firm,
+                'invoice': invoice,
+                'client': invoice.client,
+                'amount': Decimal(str(amount)) if amount is not None else invoice.total_amount,
             'currency': invoice.currency,
             'status': 'lost',
             'reason': stripe_dispute_data.get('reason', 'general'),
