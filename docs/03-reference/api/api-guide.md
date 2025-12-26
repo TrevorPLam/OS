@@ -23,17 +23,20 @@ This guide summarizes cross-cutting API conventions. For the full contract, see 
 
 ## Pagination
 
-List endpoints use DRF `PageNumberPagination` with a default page size of `50`. Use:
+List endpoints use DRF `PageNumberPagination` with a default page size of `50` and a max page size of `200`. Use:
 
 - `?page=<number>` to select a page.
+- `?page_size=<number>` to request smaller pages (capped at 200).
 
 ## Filtering, search, ordering
 
 Many list endpoints enable DjangoFilterBackend, SearchFilter, and OrderingFilter. When enabled, these are typically available:
 
 - `?search=<term>` for full-text search over configured fields.
+- Search terms are limited to 100 characters (longer requests return 400).
 - `?ordering=<field>` for ordering (prefix with `-` for descending).
 - Filter fields are endpoint-specific (see OpenAPI for the allowed fields).
+- On PostgreSQL, list/report queries enforce a 3s statement timeout.
 
 Examples:
 

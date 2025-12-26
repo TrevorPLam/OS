@@ -11,10 +11,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from modules.clients.permissions import DenyPortalAccess
 from modules.finance.models import Invoice, Bill, LedgerEntry
 from modules.firm.utils import FirmScopedMixin
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from .serializers import InvoiceSerializer, BillSerializer, LedgerEntrySerializer
 
 
-class InvoiceViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class InvoiceViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Invoice model.
 
@@ -23,7 +25,7 @@ class InvoiceViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Invoice
     serializer_class = InvoiceSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'project', 'status']
     search_fields = ['invoice_number']
     ordering_fields = ['invoice_number', 'issue_date', 'due_date']
@@ -35,7 +37,7 @@ class InvoiceViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return base_queryset.select_related('client', 'project', 'created_by')
 
 
-class BillViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class BillViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Bill model.
 
@@ -44,7 +46,7 @@ class BillViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Bill
     serializer_class = BillSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'expense_category', 'project']
     search_fields = ['reference_number', 'bill_number', 'vendor_name']
     ordering_fields = ['reference_number', 'bill_date', 'due_date']
@@ -56,7 +58,7 @@ class BillViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return base_queryset.select_related('project', 'approved_by')
 
 
-class LedgerEntryViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class LedgerEntryViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for LedgerEntry model.
 
@@ -65,7 +67,7 @@ class LedgerEntryViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = LedgerEntry
     serializer_class = LedgerEntrySerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['entry_type', 'account', 'transaction_group_id']
     search_fields = ['description', 'transaction_group_id']
     ordering_fields = ['transaction_date', 'created_at']

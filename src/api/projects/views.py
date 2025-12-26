@@ -11,10 +11,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from modules.clients.permissions import DenyPortalAccess
 from modules.projects.models import Project, Task, TimeEntry
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from .serializers import ProjectSerializer, TaskSerializer, TimeEntrySerializer
 
 
-class ProjectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Project model.
 
@@ -25,7 +27,7 @@ class ProjectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Project
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['client', 'status', 'billing_type', 'project_manager']
     search_fields = ['project_code', 'name']
     ordering_fields = ['project_code', 'created_at', 'start_date']
@@ -37,7 +39,7 @@ class ProjectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         return base_queryset.select_related('client', 'contract', 'project_manager')
 
 
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
     """
     ViewSet for Task model.
 
@@ -48,7 +50,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     """
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['project', 'status', 'priority', 'assigned_to']
     search_fields = ['title', 'description']
     ordering_fields = ['position', 'created_at', 'due_date']
@@ -64,7 +66,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Task.objects.filter(project__firm=firm).select_related('project', 'assigned_to')
 
 
-class TimeEntryViewSet(viewsets.ModelViewSet):
+class TimeEntryViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
     """
     ViewSet for TimeEntry model.
 
@@ -75,7 +77,7 @@ class TimeEntryViewSet(viewsets.ModelViewSet):
     """
     serializer_class = TimeEntrySerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['project', 'user', 'task', 'is_billable', 'invoiced', 'date']
     search_fields = ['description']
     ordering_fields = ['date', 'created_at']

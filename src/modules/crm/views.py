@@ -11,6 +11,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from config.filters import BoundedSearchFilter
+from config.query_guards import QueryTimeoutMixin
 from modules.crm.models import Lead, Prospect, Campaign, Proposal, Contract
 from modules.firm.utils import FirmScopedMixin, get_request_firm
 from modules.crm.serializers import (
@@ -22,7 +24,7 @@ from modules.crm.serializers import (
 )
 
 
-class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Lead management (Pre-Sale).
 
@@ -33,7 +35,7 @@ class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Lead
     serializer_class = LeadSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'source', 'assigned_to', 'campaign']
     search_fields = ['company_name', 'contact_name', 'contact_email']
     ordering_fields = ['company_name', 'captured_date', 'lead_score']
@@ -86,7 +88,7 @@ class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         })
 
 
-class ProspectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Prospect management (Sales Pipeline).
 
@@ -97,7 +99,7 @@ class ProspectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Prospect
     serializer_class = ProspectSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['pipeline_stage', 'assigned_to']
     search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
     ordering_fields = ['company_name', 'close_date_estimate', 'estimated_value']
@@ -114,21 +116,22 @@ class ProspectViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         from decimal import Decimal
 
         # TIER 0: self.get_queryset() is already firm-scoped
-        queryset = self.get_queryset()
+        with self.with_query_timeout():
+            queryset = self.get_queryset()
 
-        pipeline_summary = queryset.values('pipeline_stage').annotate(
-            count=Count('id'),
-            total_value=Sum('estimated_value')
-        ).order_by('pipeline_stage')
+            pipeline_summary = queryset.values('pipeline_stage').annotate(
+                count=Count('id'),
+                total_value=Sum('estimated_value')
+            ).order_by('pipeline_stage')
 
-        return Response({
-            'pipeline': list(pipeline_summary),
-            'total_prospects': queryset.count(),
-            'total_pipeline_value': queryset.aggregate(Sum('estimated_value'))['estimated_value__sum'] or Decimal('0.00')
-        })
+            return Response({
+                'pipeline': list(pipeline_summary),
+                'total_prospects': queryset.count(),
+                'total_pipeline_value': queryset.aggregate(Sum('estimated_value'))['estimated_value__sum'] or Decimal('0.00')
+            })
 
 
-class CampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class CampaignViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Campaign management.
 
@@ -139,7 +142,7 @@ class CampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Campaign
     serializer_class = CampaignSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['type', 'status', 'owner']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'start_date', 'leads_generated']
@@ -164,7 +167,7 @@ class CampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         })
 
 
-class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ProposalViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Proposal management.
 
@@ -175,7 +178,7 @@ class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Proposal
     serializer_class = ProposalSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'prospect', 'created_by']
     search_fields = ['proposal_number', 'title']
     ordering_fields = ['proposal_number', 'created_at', 'total_value']
@@ -229,7 +232,7 @@ class ProposalViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         })
 
 
-class ContractViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class ContractViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for Contract management.
 
@@ -240,7 +243,7 @@ class ContractViewSet(FirmScopedMixin, viewsets.ModelViewSet):
     model = Contract
     serializer_class = ContractSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'client', 'proposal']
     search_fields = ['contract_number', 'title']
     ordering_fields = ['contract_number', 'start_date', 'total_value']
