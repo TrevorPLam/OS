@@ -84,16 +84,16 @@
 
 ### ✅ Simple - Core Model Enhancements (Quick Wins)
 
-- [ ] 1.1 Add computed lead scoring field with basic calculation logic (CRM)
+- [x] 1.1 Add computed lead scoring field with basic calculation logic (CRM)
 - [ ] 1.2 Add configurable pipeline stages with validation (CRM)
-- [ ] 1.3 Add task dependencies field and basic dependency checking (Projects)
-- [ ] 1.4 Add milestone tracking fields to projects (Projects)
-- [ ] 1.5 Add expense tracking model with billable flag (Finance/Projects)
-- [ ] 1.6 Add retainer balance tracking to client model (Finance)
-- [ ] 1.7 Add document retention policy fields (Documents)
-- [ ] 1.8 Add legal hold flag to documents (Documents)
-- [ ] 1.9 Add WIP (Work in Progress) tracking fields (Finance)
-- [ ] 1.10 Add activity type enum and activity timeline model (CRM)
+- [x] 1.3 Add task dependencies field and basic dependency checking (Projects)
+- [x] 1.4 Add milestone tracking fields to projects (Projects)
+- [x] 1.5 Add expense tracking model with billable flag (Finance/Projects)
+- [x] 1.6 Add retainer balance tracking to client model (Finance)
+- [x] 1.7 Add document retention policy fields (Documents)
+- [x] 1.8 Add legal hold flag to documents (Documents)
+- [x] 1.9 Add WIP (Work in Progress) tracking fields (Finance)
+- [x] 1.10 Add activity type enum and activity timeline model (CRM)
 
 ### 🟡 Medium - Workflow & Business Logic
 

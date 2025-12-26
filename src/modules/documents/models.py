@@ -185,6 +185,51 @@ class Document(models.Model):
         default=1,
         help_text="Current version number"
     )
+    
+    # Document Retention Policy (Simple feature 1.7)
+    retention_policy = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Retention policy name (e.g., '7years', 'permanent', 'standard')"
+    )
+    retention_period_years = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Number of years to retain document (null = permanent)"
+    )
+    retention_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when retention period starts (usually creation date)"
+    )
+    scheduled_deletion_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when document is scheduled for deletion (if applicable)"
+    )
+    
+    # Legal Hold (Simple feature 1.8)
+    legal_hold = models.BooleanField(
+        default=False,
+        help_text="Whether document is under legal hold (prevents deletion)"
+    )
+    legal_hold_reason = models.TextField(
+        blank=True,
+        help_text="Reason for legal hold (e.g., litigation, investigation)"
+    )
+    legal_hold_applied_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='applied_legal_holds',
+        help_text="User who applied the legal hold"
+    )
+    legal_hold_applied_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When legal hold was applied"
+    )
 
     # Audit Fields
     uploaded_by = models.ForeignKey(
