@@ -1,6 +1,6 @@
 # Platform Capabilities Inventory
 
-**Last Updated:** December 25, 2025
+**Last Updated:** December 26, 2025
 
 This document provides a comprehensive inventory of ConsultantPro's capabilities, mapping what exists in the current codebase and identifying missing components relative to a full-featured professional services automation (PSA) platform.
 
@@ -307,6 +307,19 @@ Professional services-oriented customer relationship management.
 - ✅ **Basic Workflow Automation:**
   - Proposal → Contract creation
   - Location: `src/modules/crm/signals.py`
+- ✅ **Lead Scoring:** (Simple Feature 1.1)
+  - Computed lead_score field with calculation logic
+  - `calculate_lead_score()` and `update_lead_score()` methods
+  - Location: `src/modules/crm/models.py:249`
+- ✅ **Pipeline Stages:** (Simple Feature 1.2)
+  - Hardcoded pipeline_stage field with validation
+  - STAGE_CHOICES: discovery, needs_analysis, proposal, negotiation, won, lost
+  - Location: `src/modules/crm/models.py:360`
+  - Note: Not configurable per firm (enhancement opportunity)
+- ✅ **Activity Timeline Model:** (Simple Feature 1.10)
+  - Full Activity model with activity_type enum
+  - ACTIVITY_TYPE_CHOICES for structured tracking
+  - Location: `src/modules/crm/models.py:18`
 
 ### Missing Components
 
@@ -324,25 +337,34 @@ Professional services-oriented customer relationship management.
 **Impact:** Cannot accurately represent complex B2B relationships or track individuals across multiple client organizations.
 
 #### 2. Activities Timeline
-**Status:** ❌ Not Implemented
-
-**Missing:**
-- **Activity Types:** Emails, calls, meetings, tasks, notes
-- **Timeline Model:** Chronological activity feed
-- **Associations:** Link activities to accounts, contacts, deals
-- **Capture Mechanisms:** Email integration, manual entry, automated logging
-
-**Impact:** Sales and client history is fragmented; no single source of truth for client interactions.
-
-#### 3. Pipeline & Stage Governance
-**Status:** ⚠️ Partial (static stages only)
+**Status:** ✅ IMPLEMENTED (Simple Feature 1.10)
 
 **Present:**
-- Basic Lead and Prospect stages (implied in models)
+- ✅ **Activity Model:** Full Activity model with comprehensive fields
+  - Location: `src/modules/crm/models.py:18`
+  - Activity types: email, call, meeting, note, task, document, other
+  - Links to Lead, Prospect, or Client
+  - Date/time tracking with audit fields
+
+**Missing:**
+- **Enhanced Capture Mechanisms:** Email integration, automated logging
+- **Rich Timeline View:** Chronological feed UI
+- **External Integrations:** Email sync, calendar integration
+
+**Impact:** Core activity tracking exists; manual entry required but foundation is solid.
+
+#### 3. Pipeline & Stage Governance
+**Status:** ✅ PARTIAL (Simple Feature 1.2 - hardcoded stages implemented)
+
+**Present:**
+- ✅ **Pipeline Stages:** Hardcoded STAGE_CHOICES with validation
+  - Stages: discovery, needs_analysis, proposal, negotiation, won, lost
+  - Field: `pipeline_stage` in Prospect model
+  - Location: `src/modules/crm/models.py:360`
 
 **Missing:**
 - **Configurable Pipeline System:**
-  - Custom pipeline definitions
+  - Custom pipeline definitions (per firm)
   - Stage definitions with metadata
   - Required fields per stage
   - Close criteria and validation
@@ -350,21 +372,24 @@ Professional services-oriented customer relationship management.
 - **Stage-Specific Automation:** Triggers tied to stage changes
 - **Pipeline Reporting:** Conversion rates, velocity, forecasting
 
-**Impact:** Teams cannot customize sales process to their methodology; no enforcement of sales best practices.
+**Impact:** Basic pipeline stages work but cannot be customized per firm; no enforcement of advanced sales governance.
 
 #### 4. Sales/Marketing Automation
-**Status:** ⚠️ Minimal (static lead scoring only)
+**Status:** ✅ PARTIAL (Simple Feature 1.1 - lead scoring implemented)
 
 **Present:**
-- Lead scoring field exists (but not computed)
+- ✅ **Lead Scoring:** Computed lead_score field with calculation logic
+  - Field: `lead_score` IntegerField
+  - Methods: `calculate_lead_score()`, `update_lead_score()`
+  - Location: `src/modules/crm/models.py:249`
 
 **Missing:**
 - **Sequences & Follow-Ups:** Automated email/task sequences
-- **Scoring Rules:** Dynamic lead/account scoring based on behavior
+- **Dynamic Scoring Rules:** Behavior-based lead/account scoring
 - **Nurture Journeys:** Multi-touch campaigns with branching logic
 - **Campaign Analytics:** ROI tracking, attribution modeling
 
-**Impact:** Marketing and sales teams must manually follow up; no automated nurture or qualification.
+**Impact:** Basic lead scoring provides prioritization foundation; advanced automation not yet implemented.
 
 #### 5. Professional Services Add-Ons
 **Status:** ❌ Not Implemented
@@ -494,7 +519,7 @@ Execution and tracking of client work.
 
 **Current Capabilities:**
 - ✅ **Core Execution Objects:**
-  - Project, Task, TimeEntry
+  - Project, Task, TimeEntry, Expense
   - Location: `src/modules/projects/models.py`
 - ✅ **Basic State Transitions/Metrics:**
   - Logging via signals
@@ -502,42 +527,59 @@ Execution and tracking of client work.
 - ✅ **UI Pages:**
   - Projects list, Kanban board, Time Tracking
   - Location: `src/frontend/src/pages/`
+- ✅ **Task Dependencies:** (Simple Feature 1.3)
+  - `depends_on` ManyToManyField for task relationships
+  - Self-referential with `blocking_tasks` related name
+  - Location: `src/modules/projects/models.py:381`
+- ✅ **Milestone Tracking:** (Simple Feature 1.4)
+  - `milestones` JSONField for project milestones
+  - Stores: name, description, due_date, completed, completed_at
+  - Location: `src/modules/projects/models.py:266`
+- ✅ **Expense Tracking:** (Simple Feature 1.5)
+  - Full Expense model with `is_billable` flag
+  - Billable amount tracking
+  - Location: `src/modules/projects/models.py:18`
+- ✅ **WIP Tracking:** (Simple Feature 1.9)
+  - `wip_hours` and `wip_amount` fields for unbilled work
+  - `wip_last_calculated` timestamp
+  - Location: `src/modules/projects/models.py:272`
 
 ### Missing Components
 
 #### 1. Work Object Model Depth
-**Status:** ⚠️ Partial
+**Status:** ✅ PARTIAL (Simple Features 1.3, 1.4, 1.9 implemented)
 
 **Present:**
-- `ClientEngagement` exists in `src/modules/clients/models.py`
+- ✅ `ClientEngagement` exists in `src/modules/clients/models.py`
+- ✅ **Task Dependencies:** (Simple Feature 1.3)
+  - `depends_on` ManyToManyField implemented
+  - Note: No validation/enforcement logic yet
+- ✅ **Milestone Tracking:** (Simple Feature 1.4)
+  - `milestones` JSONField with structured data
+- ✅ **WIP Tracking:** (Simple Feature 1.9)
+  - Unbilled hours and amount tracking
 
 **Missing:**
 - **Engagement as First-Class Object:**
-  - Between Client and Project (currently not designed around it)
   - Engagement-level SOWs, budgets, approvals
   - Multi-project engagements
-
 - **Templates/Recurrence:**
   - Project templates (SOPs, checklists)
   - Recurring projects (monthly retainer work)
   - Template versioning
-
 - **SOP/Checklist Execution:**
   - Checklist items as tasks
   - Completion verification
   - Quality gates
-
-- **Dependencies:**
-  - Task dependencies (Task A blocks Task B)
-  - Milestone tracking
+- **Dependency Validation:**
+  - Task dependency constraint enforcement
   - Critical path calculation
-
 - **Handoff Semantics:**
   - Formal handoff between team members
   - Acceptance/approval gates
   - Deliverable sign-off
 
-**Impact:** Projects are flat lists of tasks; no structure for complex multi-phase engagements or repeatable processes.
+**Impact:** Core project tracking exists with dependencies and milestones; advanced project management features (templates, validation) not yet implemented.
 
 #### 2. Communication-in-Context
 **Status:** ⚠️ Partial (portal chat exists)
@@ -585,6 +627,15 @@ Secure storage, versioning, and collaboration on documents.
 - ✅ **Encryption:**
   - S3 pointers and fingerprints encrypted
   - Uses `src/modules/core/encryption`
+- ✅ **Document Retention Policy:** (Simple Feature 1.7)
+  - `retention_policy` CharField (legal, financial, standard, etc.)
+  - `retention_period_years` IntegerField
+  - Location: `src/modules/documents/models.py:190`
+- ✅ **Legal Hold:** (Simple Feature 1.8)
+  - `legal_hold` BooleanField flag
+  - `legal_hold_reason`, `legal_hold_applied_by`, `legal_hold_applied_at`
+  - Prevents deletion when hold is active
+  - Location: `src/modules/documents/models.py:212`
 
 ### Missing Components
 
@@ -679,18 +730,24 @@ Accounts Payable and Accounts Receivable with exception handling.
 
 **Current Capabilities:**
 - ✅ **AR: Invoice + Payment Exceptions:**
-  - Invoice model
+  - Invoice model with comprehensive fields
   - Payment failure, chargeback, dispute models
   - Stripe webhook handling
   - Location: `src/modules/finance/models.py`, `src/api/finance/webhooks.py`
-
 - ✅ **AP: Bill:**
   - Basic bill model
   - Location: `src/modules/finance/models.py`
-
 - ✅ **Billing Workflow Scaffolding:**
   - Some automation exists
   - Location: `src/modules/finance/billing.py`
+- ✅ **Client Financial Tracking:** (Simple Feature 1.6)
+  - `retainer_balance` and `retainer_hours_balance` fields
+  - `retainer_last_updated` timestamp
+  - Location: `src/modules/clients/models.py:195`
+- ✅ **Expense Tracking:** (Simple Feature 1.5)
+  - Full Expense model with `is_billable` flag
+  - Billable amount tracking
+  - Location: `src/modules/projects/models.py:18`
 
 ### Missing Components
 
@@ -735,24 +792,26 @@ Accounts Payable and Accounts Receivable with exception handling.
 **Impact:** Paying for work not received; no accountability loop between delivery and payment.
 
 #### 3. AR Contract-Aware Billing Triggers
-**Status:** ⚠️ Partial (invoice generation exists, triggers incomplete)
+**Status:** ✅ PARTIAL (Simple Features 1.5, 1.6, 1.9 support billing foundation)
 
 **Present:**
-- Invoice model and manual/command-driven generation
+- ✅ Invoice model and manual/command-driven generation
+- ✅ **Expense Tracking:** (Simple Feature 1.5) 
+  - Billable flag for expenses
+- ✅ **Retainer Balance:** (Simple Feature 1.6)
+  - Track prepaid hours and amounts
+- ✅ **WIP Tracking:** (Simple Feature 1.9)
+  - Unbilled hours and amount accumulation
 
 **Missing:**
 - **Milestone-Driven Invoicing:**
   - Trigger invoice on project milestone completion
   - Automated invoice generation on milestone dates
-
 - **WIP-Driven Invoicing:**
-  - Accrue work-in-progress
-  - Invoice on schedule (monthly) or threshold
-
+  - Automated invoice generation from WIP on schedule/threshold
 - **Delivery/Acceptance Gating:**
   - Client must accept deliverable before invoice
   - Prevent invoicing for disputed work
-
 - **Dispute Handling Beyond Chargebacks:**
   - Client disputes invoice (not just payment processor chargebacks)
   - Dispute resolution workflow
@@ -816,6 +875,15 @@ Resource planning, utilization, and profitability management.
   - Location: `src/modules/projects/models.py`
 - ✅ **Basic Billing Objects:** Invoice, Bill, Ledger
   - Location: `src/modules/finance/models.py`
+- ✅ **Expense Tracking:** (Simple Feature 1.5)
+  - Full Expense model with billable flag
+  - Location: `src/modules/projects/models.py:18`
+- ✅ **WIP Tracking:** (Simple Feature 1.9)
+  - Unbilled hours and amount tracking
+  - Location: `src/modules/projects/models.py:272`
+- ✅ **Retainer Balance:** (Simple Feature 1.6)
+  - Track prepaid hours and amounts
+  - Location: `src/modules/clients/models.py:195`
 
 ### Missing Components
 
@@ -846,66 +914,77 @@ Resource planning, utilization, and profitability management.
 **Impact:** No visibility into who's overworked or underutilized; staffing decisions are reactive, not proactive.
 
 #### 2. Expense Tracking & Approvals
-**Status:** ❌ Not Implemented
+**Status:** ✅ PARTIAL (Simple Feature 1.5 - expense model implemented)
+
+**Present:**
+- ✅ **Expense Model:** Full Expense model exists
+  - `is_billable` flag
+  - `billable_amount` tracking
+  - Location: `src/modules/projects/models.py:18`
 
 **Missing:**
 - **Expense Reports:**
-  - Employee expense submission
+  - Employee expense submission workflow
   - Receipt upload
   - Expense categories (travel, meals, supplies)
-
 - **Approval Workflows:**
   - Manager approval
   - Reimbursement processing
-  - Billable vs. non-billable expenses
-
 - **Client Billing:**
   - Pass-through expenses to clients
   - Markup rules
   - Expense invoicing
 
-**Impact:** Expense reimbursement is manual and outside the system; no linking of expenses to projects for billing.
+**Impact:** Expense model exists but no workflow/approval system; foundation in place for future implementation.
 
 #### 3. Profitability Reporting
-**Status:** ❌ Not Implemented
+**Status:** ✅ PARTIAL (Simple Feature 1.9 - WIP tracking foundation)
+
+**Present:**
+- ✅ **WIP Tracking:** (Simple Feature 1.9)
+  - `wip_hours` and `wip_amount` fields
+  - Unbilled work tracking foundation
+  - Location: `src/modules/projects/models.py:272`
 
 **Missing:**
 - **Margin Analysis:**
   - Revenue vs. cost per client/engagement/project
   - Gross margin, net margin
   - Margin trends over time
-
 - **Realization Analysis:**
   - Billed hours vs. total hours (write-offs)
   - Collection rate (billed vs. collected)
   - Realization percentage
-
 - **WIP Reporting:**
-  - Work-in-progress by project
   - Aging of WIP (how long since billed?)
   - WIP write-off analysis
+  - Automated WIP-to-invoice workflows
 
-**Impact:** No insight into which clients/projects are profitable; cannot make data-driven decisions on pricing or resource allocation.
+**Impact:** WIP tracking foundation exists; advanced profitability analytics not yet implemented.
 
 #### 4. Retainers & WIP Accounting
-**Status:** ⚠️ Partial (CreditLedgerEntry exists)
+**Status:** ✅ PARTIAL (Simple Features 1.6, 1.9 implemented)
 
 **Present:**
-- Credit ledger for tracking credits/payments
+- ✅ Credit ledger for tracking credits/payments
   - Location: `src/modules/finance/models.py`
   - Documentation: [Credit Ledger System](../tier4/CREDIT_LEDGER_SYSTEM.md)
+- ✅ **Retainer Balance Tracking:** (Simple Feature 1.6)
+  - `retainer_balance` and `retainer_hours_balance` fields
+  - Location: `src/modules/clients/models.py:195`
+- ✅ **WIP Tracking:** (Simple Feature 1.9)
+  - `wip_hours` and `wip_amount` fields
+  - Unbilled work accumulation
+  - Location: `src/modules/projects/models.py:272`
 
 **Missing:**
 - **Retainer Behaviors:**
-  - Prepaid hours (burn down as work is done)
+  - Prepaid hours burn-down automation
   - Retainer auto-renewal
   - Unused retainer handling (rollover, expire, refund)
-
-- **WIP Accounting:**
-  - Accrue unbilled time/expenses
+- **WIP Accounting Automation:**
   - WIP aging (flag old unbilled work)
-  - WIP-to-invoice workflows
-
+  - Automated WIP-to-invoice workflows
 - **T&M Reconciliation:**
   - Compare time tracked to time billed
   - Approval of billable hours
