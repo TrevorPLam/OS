@@ -381,8 +381,13 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
             "Dispute resolved in our favor. Service will continue uninterrupted.",
         )
     else:
-        stripe_dispute_data['reason'] = reason
-        _record_chargeback(dispute.invoice, stripe_dispute_data)
+        _record_chargeback(
+            dispute.invoice,
+            stripe_dispute_data,
+            reason=reason,
+            amount=dispute.amount,
+            initiated_at=dispute.opened_at,
+        )
         _reverse_ledger_for_chargeback(dispute.invoice, dispute.amount, dispute.resolution or 'lost')
         dispute.invoice.status = 'charged_back'
         dispute.invoice.amount_paid = max(
