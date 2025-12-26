@@ -1,38 +1,45 @@
 # ConsultantPro - Current Work & Roadmap
 
-**Last Updated:** December 25, 2025
+**Last Updated:** December 26, 2025
 
 ---
 
-## 🎯 Current Focus: Tier 4 - Billing & Monetization
+## 🎯 Current Focus: Tier 5 - Durability, Scale & Exit
 
-**Progress:** 63% Complete (5/8 complete, 1/8 partial, 2/8 documented)
+**Tier 4 Status:** 100% Complete ✅
 
-### Active Tasks
-
-- [ ] **4.2** Package fee invoicing (Documented - Implementation in progress)
-- [ ] **4.6** Recurring payments/autopay workflow (Partial - Models ready)
-- [ ] **4.7** Handle payment failures, disputes, and chargebacks
-
-### Recently Completed
+### Recently Completed (Tier 4)
 
 - [x] **4.1** Enforce billing invariants ✅
+- [x] **4.2** Package fee invoicing (Complete - see docs/tier4/PACKAGE_INVOICE_DEPLOYMENT.md) ✅
 - [x] **4.3** Hourly billing with approval gates ✅
 - [x] **4.4** Mixed billing reporting ✅
 - [x] **4.5** Credit ledger ✅
+- [x] **4.6** Recurring payments/autopay workflow (Complete - see docs/tier4/AUTOPAY_STATUS.md) ✅
+- [x] **4.7** Payment failures, disputes, and chargebacks (Complete - see docs/tier4/PAYMENT_FAILURE_STATUS.md) ✅
 - [x] **4.8** Renewal billing behavior ✅
 
 ---
 
 ## 🟢 Completed Tiers
 
-### Tier 0: Foundational Safety (83% Complete)
+### Tier 4: Billing & Monetization (100% Complete) ✅
+- [x] 4.1: Enforce billing invariants
+- [x] 4.2: Package fee invoicing
+- [x] 4.3: Hourly billing with approval gates
+- [x] 4.4: Mixed billing reporting
+- [x] 4.5: Credit ledger
+- [x] 4.6: Recurring payments/autopay workflow
+- [x] 4.7: Payment failures, disputes, and chargebacks
+- [x] 4.8: Renewal billing behavior
+
+### Tier 0: Foundational Safety (100% Complete) ✅
 - [x] Firm/Workspace tenancy
 - [x] Firm context resolution
 - [x] Firm + client scoping everywhere
 - [x] Portal containment
 - [x] Platform privacy enforcement (E2EE deferred - infrastructure dependency)
-- [ ] Break-glass audit records (pending Tier 3 audit system integration)
+- [x] Break-glass audit records (fully integrated with Tier 3 audit system)
 
 ### Tier 1: Schema Truth & CI Truth (100% Complete) ✅
 - [x] Fix deterministic backend crashes

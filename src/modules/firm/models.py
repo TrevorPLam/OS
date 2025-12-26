@@ -468,9 +468,7 @@ class BreakGlassSession(models.Model):
         """
         Mark the session as expired if it has passed its expiry.
 
-        Meta-commentary:
-        - This is intended for periodic cleanup jobs once the async job system
-          carries firm context (Tier 2.3).
+        TIER 0.6: Expiration is audited automatically via save() method.
         """
         if self.is_expired and self.status == self.STATUS_ACTIVE:
             self.status = self.STATUS_EXPIRED
@@ -479,8 +477,7 @@ class BreakGlassSession(models.Model):
         """
         Revoke break-glass access before expiry.
 
-        Meta-commentary:
-        - Revocations should be written to the audit event system once it exists.
+        TIER 0.6: Revocation is audited automatically via save() method.
         """
         if not reason:
             raise ValidationError({'revoked_reason': 'Revocation reason is required.'})
@@ -492,9 +489,7 @@ class BreakGlassSession(models.Model):
         """
         Mark the session as reviewed by platform ops.
 
-        Meta-commentary:
-        - Review should only occur after the session is expired or revoked.
-        - Follow-up: attach review events to the audit stream.
+        TIER 0.6: Break-glass review must be audited.
         """
         if self.status == self.STATUS_ACTIVE:
             raise ValidationError({'reviewed_at': 'Active sessions cannot be reviewed until closed.'})
