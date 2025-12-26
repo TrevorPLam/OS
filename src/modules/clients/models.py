@@ -8,6 +8,7 @@ TIER 0: All clients MUST belong to exactly one Firm for tenant isolation.
 TIER 2.6: Organizations allow optional cross-client collaboration within a firm.
 """
 
+from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
@@ -505,12 +506,12 @@ class ClientEngagement(models.Model):
 
     def renew(
         self,
-        new_package_fee=None,
-        new_hourly_rate=None,
-        new_pricing_mode=None,
-        renewal_start_date=None,
-        renewal_end_date=None,
-    ):
+        new_package_fee: Decimal | None = None,
+        new_hourly_rate: Decimal | None = None,
+        new_pricing_mode: str | None = None,
+        renewal_start_date: date | None = None,
+        renewal_end_date: date | None = None,
+    ) -> "ClientEngagement":
         """
         Create renewal engagement (TIER 4: Task 4.8).
 

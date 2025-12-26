@@ -145,7 +145,7 @@ class Expense(models.Model):
         self.billable_amount = self.calculate_billable_amount()
         super().save(*args, **kwargs)
 
-    def calculate_billable_amount(self):
+    def calculate_billable_amount(self) -> Decimal:
         """Calculate billable amount with markup."""
         if not self.is_billable:
             return Decimal("0.00")

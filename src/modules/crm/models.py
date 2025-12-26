@@ -257,7 +257,7 @@ class Lead(models.Model):
     def __str__(self):
         return f"{self.company_name} - {self.get_status_display()}"
 
-    def calculate_lead_score(self):
+    def calculate_lead_score(self) -> int:
         """
         Calculate lead score based on various factors (0-100).
 
@@ -302,7 +302,7 @@ class Lead(models.Model):
 
         return min(score, 100)  # Cap at 100
 
-    def update_lead_score(self):
+    def update_lead_score(self) -> None:
         """Update and save the lead_score field."""
         self.lead_score = self.calculate_lead_score()
         self.save(update_fields=["lead_score"])
