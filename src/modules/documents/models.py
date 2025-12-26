@@ -269,9 +269,8 @@ class Document(models.Model):
         
         # Calculate scheduled_deletion_date if retention period is set
         if self.retention_period_years and self.retention_start_date and not self.scheduled_deletion_date:
-            from datetime import timedelta
-            days = self.retention_period_years * 365  # Approximate
-            self.scheduled_deletion_date = self.retention_start_date + timedelta(days=days)
+            from dateutil.relativedelta import relativedelta
+            self.scheduled_deletion_date = self.retention_start_date + relativedelta(years=self.retention_period_years)
         
         self._encrypt_content_fields()
         super().save(*args, **kwargs)

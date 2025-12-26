@@ -143,6 +143,9 @@ class Expense(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # TIER 0: Managers (inherit firm context through project)
+    objects = models.Manager()  # Default manager
+    
     class Meta:
         db_table = 'projects_expenses'
         ordering = ['-date', '-created_at']
