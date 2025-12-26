@@ -19,12 +19,14 @@ Options:
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from django.db import transaction
-from decimal import Decimal
-from datetime import timedelta
 import logging
 
 from modules.clients.models import ClientEngagement
-from modules.finance.models import Invoice
+from modules.finance.billing import (
+    create_package_invoice,
+    get_package_billing_period,
+    should_generate_package_invoice,
+)
 from modules.firm.models import Firm
 
 logger = logging.getLogger(__name__)
@@ -109,19 +111,28 @@ class Command(BaseCommand):
             self.stdout.write(f'  No package billing engagements found')
             return 0, 0
 
+        reference_date = timezone.now().date()
+
         for engagement in engagements:
             try:
-                if self.should_generate_invoice(engagement):
+                period_start, period_end = get_package_billing_period(
+                    engagement, reference_date=reference_date
+                )
+
+                if self.should_generate_invoice(engagement, reference_date=reference_date):
                     if dry_run:
                         self.stdout.write(
                             self.style.WARNING(
                                 f'  [DRY RUN] Would generate invoice for: '
-                                f'{engagement.client.name} - ${engagement.package_fee}'
+                                f'{engagement.client.name} - ${engagement.package_fee} '
+                                f'({period_start} to {period_end})'
                             )
                         )
                         generated_count += 1
                     else:
-                        invoice = self.generate_invoice(engagement)
+                        invoice = self.generate_invoice(
+                            engagement, issue_date=reference_date, reference_date=reference_date
+                        )
                         self.stdout.write(
                             self.style.SUCCESS(
                                 f'  ✓ Generated invoice {invoice.invoice_number} for '
@@ -141,7 +152,7 @@ class Command(BaseCommand):
 
         return generated_count, skipped_count
 
-    def should_generate_invoice(self, engagement):
+    def should_generate_invoice(self, engagement, reference_date=None):
         """
         Determine if an invoice should be generated for this engagement.
 
@@ -150,110 +161,18 @@ class Command(BaseCommand):
         - Check based on package_fee_schedule (Monthly, Quarterly, etc.)
         - Ensure we don't generate duplicates
         """
-        today = timezone.now().date()
-
-        # Determine billing period based on schedule
-        schedule = engagement.package_fee_schedule.lower() if engagement.package_fee_schedule else 'monthly'
-
-        if 'monthly' in schedule:
-            # Generate invoice at start of each month
-            period_start = today.replace(day=1)
-            period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-        elif 'quarterly' in schedule:
-            # Generate invoice at start of each quarter
-            quarter = (today.month - 1) // 3
-            period_start = today.replace(month=quarter * 3 + 1, day=1)
-            period_end = (period_start + timedelta(days=95)).replace(day=1) - timedelta(days=1)
-        elif 'annual' in schedule or 'yearly' in schedule:
-            # Generate invoice once per year
-            period_start = engagement.start_date
-            period_end = engagement.end_date
-        else:
-            # Default to monthly
-            period_start = today.replace(day=1)
-            period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-
-        # Check if invoice already exists for this period
-        existing = Invoice.objects.filter(
-            engagement=engagement,
-            period_start=period_start,
-            period_end=period_end
-        ).exists()
-
-        if existing:
-            logger.debug(
-                f'Invoice already exists for engagement {engagement.id} '
-                f'period {period_start} to {period_end}'
-            )
-            return False
-
-        # Check if we're within the billing period
-        if today < period_start or today > engagement.end_date:
-            return False
-
-        return True
+        return should_generate_package_invoice(engagement, reference_date=reference_date)
 
     @transaction.atomic
-    def generate_invoice(self, engagement):
+    def generate_invoice(self, engagement, issue_date=None, reference_date=None):
         """
         Generate a package fee invoice for the engagement.
 
         Returns:
             Invoice: The created invoice
         """
-        today = timezone.now().date()
-        schedule = engagement.package_fee_schedule.lower() if engagement.package_fee_schedule else 'monthly'
-
-        # Determine billing period
-        if 'monthly' in schedule:
-            period_start = today.replace(day=1)
-            period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-            due_date = period_start + timedelta(days=30)
-        elif 'quarterly' in schedule:
-            quarter = (today.month - 1) // 3
-            period_start = today.replace(month=quarter * 3 + 1, day=1)
-            period_end = (period_start + timedelta(days=95)).replace(day=1) - timedelta(days=1)
-            due_date = period_start + timedelta(days=30)
-        elif 'annual' in schedule or 'yearly' in schedule:
-            period_start = engagement.start_date
-            period_end = engagement.end_date
-            due_date = period_start + timedelta(days=30)
-        else:
-            period_start = today.replace(day=1)
-            period_end = (period_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
-            due_date = period_start + timedelta(days=30)
-
-        # Generate invoice number
-        # Format: {FIRM_PREFIX}-{YEAR}{MONTH}-{SEQUENCE}
-        firm_prefix = engagement.firm.slug.upper()[:4]
-        year_month = today.strftime('%Y%m')
-
-        # Find next sequence number for this month
-        existing_count = Invoice.objects.filter(
-            firm=engagement.firm,
-            invoice_number__startswith=f'{firm_prefix}-{year_month}'
-        ).count()
-        sequence = existing_count + 1
-
-        invoice_number = f'{firm_prefix}-{year_month}-{sequence:04d}'
-
-        # Create invoice
-        invoice = Invoice.objects.create(
-            firm=engagement.firm,
-            client=engagement.client,
-            engagement=engagement,
-            invoice_number=invoice_number,
-            status='draft',
-            subtotal=engagement.package_fee,
-            tax_amount=Decimal('0.00'),  # Tax calculation can be added later
-            total_amount=engagement.package_fee,
-            amount_paid=Decimal('0.00'),
-            currency='USD',
-            issue_date=today,
-            due_date=due_date,
-            payment_terms='Net 30',
-            period_start=period_start,
-            period_end=period_end,
+        invoice = create_package_invoice(
+            engagement, issue_date=issue_date, reference_date=reference_date
         )
 
         # Log generation

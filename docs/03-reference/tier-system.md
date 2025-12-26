@@ -139,6 +139,7 @@ ConsultantPro follows a **strict tiered implementation model** where each tier r
 
 **Completion Criteria:**
 - Billing always traces back to an engagement
+- Package invoice generation is firm- and client-scoped with per-period duplicate prevention and portal visibility gates
 - Package, hourly, and mixed billing are correct and auditable
 - Credits, payments, disputes, and renewals are survivable
 - Autopay behaves predictably
