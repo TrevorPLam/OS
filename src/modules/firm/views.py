@@ -9,8 +9,15 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 
-from modules.firm.models import Firm, BreakGlassSession
-from modules.firm.utils import get_active_break_glass_session
+from modules.firm.models import Firm, BreakGlassSession, FirmOffboardingRecord
+from modules.firm.utils import get_active_break_glass_session, get_firm_or_403
+from modules.firm.permissions import IsFirmOwnerOrAdmin
+from modules.firm.export import (
+    export_firm_data,
+    DEFAULT_RETENTION_DAYS,
+    DEFAULT_PURGE_GRACE_DAYS,
+)
+from modules.firm.audit import audit
 
 
 class BreakGlassStatusViewSet(viewsets.ViewSet):
@@ -133,4 +140,137 @@ class BreakGlassStatusViewSet(viewsets.ViewSet):
         return Response({
             'success': True,
             'message': 'Break-glass session ended successfully'
+        })
+
+
+class FirmOffboardingViewSet(viewsets.ViewSet):
+    """Endpoints for firm offboarding exports and purge sequencing."""
+
+    permission_classes = [IsAuthenticated, IsFirmOwnerOrAdmin]
+
+    @action(detail=False, methods=['post'], url_path='export')
+    def export(self, request):
+        firm = get_firm_or_403(request)
+        retention_days = int(request.data.get('retention_days', DEFAULT_RETENTION_DAYS))
+        purge_grace_days = int(request.data.get('purge_grace_days', DEFAULT_PURGE_GRACE_DAYS))
+
+        record = FirmOffboardingRecord.objects.create(
+            firm=firm,
+            requested_by=request.user,
+            retention_days=retention_days,
+            purge_grace_days=purge_grace_days,
+            status=FirmOffboardingRecord.STATUS_EXPORTING,
+        )
+
+        payload = export_firm_data(
+            firm=firm,
+            requested_by=request.user,
+            retention_days=retention_days,
+            purge_grace_days=purge_grace_days,
+        )
+
+        retention = payload['retention']
+        record.export_completed_at = payload['generated_at']
+        record.retention_expires_at = retention['retention_expires_at']
+        record.purge_scheduled_at = retention['purge_scheduled_at']
+        record.export_manifest = payload['manifest']
+        record.integrity_report = payload['integrity']
+        record.export_checksum = payload['checksum']
+        record.status = (
+            FirmOffboardingRecord.STATUS_EXPORTED
+            if payload['integrity']['status'] == 'ok'
+            else FirmOffboardingRecord.STATUS_FAILED
+        )
+        record.save()
+
+        return Response({
+            'record_id': record.id,
+            'status': record.status,
+            'export': payload,
+        })
+
+    @action(detail=False, methods=['get'], url_path='status')
+    def status(self, request):
+        firm = get_firm_or_403(request)
+        record = FirmOffboardingRecord.objects.filter(firm=firm).first()
+        if not record:
+            return Response({'status': 'no_exports'})
+        return Response({
+            'record_id': record.id,
+            'status': record.status,
+            'export_started_at': record.export_started_at,
+            'export_completed_at': record.export_completed_at,
+            'retention_expires_at': record.retention_expires_at,
+            'purge_scheduled_at': record.purge_scheduled_at,
+            'purge_completed_at': record.purge_completed_at,
+            'export_manifest': record.export_manifest,
+            'integrity_report': record.integrity_report,
+            'export_checksum': record.export_checksum,
+        })
+
+    @action(detail=False, methods=['post'], url_path='purge')
+    def purge(self, request):
+        firm = get_firm_or_403(request)
+        record_id = request.data.get('record_id')
+        reason = request.data.get('reason', '').strip()
+
+        if not reason:
+            return Response(
+                {'error': 'Reason is required to purge firm data'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        record = FirmOffboardingRecord.objects.filter(firm=firm)
+        if record_id:
+            record = record.filter(id=record_id)
+        record = record.first()
+
+        if not record:
+            return Response(
+                {'error': 'No offboarding record found for this firm'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if record.status not in [
+            FirmOffboardingRecord.STATUS_EXPORTED,
+            FirmOffboardingRecord.STATUS_PURGE_PENDING,
+        ]:
+            return Response(
+                {'error': 'Offboarding record is not ready for purge'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if record.retention_expires_at and timezone.now() < record.retention_expires_at:
+            return Response(
+                {
+                    'error': 'Retention window has not expired',
+                    'retention_expires_at': record.retention_expires_at,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        record.status = FirmOffboardingRecord.STATUS_PURGED
+        record.purge_completed_at = timezone.now()
+        record.save()
+
+        firm.status = 'canceled'
+        firm.save(update_fields=['status'])
+
+        try:
+            audit.log_purge_event(
+                firm=firm,
+                action='firm_offboarding_purge',
+                actor=request.user,
+                target_model='firm.Firm',
+                target_id=str(firm.id),
+                reason=reason,
+                metadata={'offboarding_record_id': record.id},
+            )
+        except Exception:
+            pass
+
+        return Response({
+            'status': 'purged',
+            'record_id': record.id,
+            'purge_completed_at': record.purge_completed_at,
         })

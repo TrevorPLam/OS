@@ -17,6 +17,7 @@ Meta-commentary:
 from rest_framework import permissions
 from django.core.exceptions import PermissionDenied
 from modules.firm.models import BreakGlassSession
+from modules.firm.models import FirmMembership
 
 
 class IsPlatformOperator(permissions.BasePermission):
@@ -280,6 +281,22 @@ class RequireBreakGlassForContent(permissions.BasePermission):
             )
 
         return True
+
+
+class IsFirmOwnerOrAdmin(permissions.BasePermission):
+    """Allow access to firm owners or admins for sensitive firm operations."""
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        if not hasattr(request, 'firm') or request.firm is None:
+            return False
+        return FirmMembership.objects.filter(
+            firm=request.firm,
+            user=request.user,
+            role__in=['owner', 'admin'],
+            is_active=True,
+        ).exists()
 
     def has_object_permission(self, request, view, obj):
         """Same requirement at object level."""
