@@ -441,6 +441,19 @@ def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
     reason = stripe_dispute_data.get('reason', 'general')
     valid_reasons = [choice[0] for choice in PaymentDispute.DISPUTE_REASON_CHOICES]
     if reason not in valid_reasons:
+        audit.log_billing_event(
+            firm=invoice.firm,
+            action='payment_dispute_unknown_reason',
+            actor=None,
+            metadata={
+                'invoice_id': invoice.id,
+                'stripe_dispute_id': stripe_dispute_data.get('id'),
+                'original_reason': reason,
+                'normalized_reason': 'general',
+                'valid_reasons': valid_reasons,
+            },
+            severity='WARNING',
+        )
         reason = 'general'
 
     dispute = PaymentDispute.objects.create(
