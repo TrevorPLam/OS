@@ -19,7 +19,11 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 - **[Documentation Best Practices](04-explanation/documentation-best-practices.md)** - How we organize and write docs
 - **[Tier System Reference](03-reference/tier-system.md)** - Architecture governance model
 - **[API Reference](03-reference/api-usage.md)** - Complete API documentation
+- **[Environment Variables](03-reference/environment-variables.md)** - Configuration reference
+- **[Management Commands](03-reference/management-commands.md)** - Django commands reference
 - **[Production Deployment](02-how-to/production-deployment.md)** - Deploy to production
+- **[Firm Admin Guide](06-user-guides/firm-admin-guide.md)** - End-user guide for administrators
+- **[Client Portal Guide](06-user-guides/client-portal-guide.md)** - Guide for client portal users
 - **[System Invariants](../spec/SYSTEM_INVARIANTS.md)** - Core system rules
 - **[Changelog](../CHANGELOG.md)** - Release history and changes
 - **[Contributing Guide](../CONTRIBUTING.md)** - Development workflow
