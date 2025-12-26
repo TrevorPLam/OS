@@ -133,7 +133,7 @@ def handle_payment_intent_failed(payment_intent):
 
     failure_message = payment_intent.get('last_payment_error', {}).get('message')
     failure_code = payment_intent.get('last_payment_error', {}).get('code')
-    amount_attempted = Decimal(str(payment_intent.get('amount', 0))) / 100
+    amount_attempted = Decimal(str(payment_intent.get('amount') or 0)) / 100
 
     logger.warning(
         f"Payment failed for invoice {invoice_id}, "
