@@ -503,9 +503,11 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
             dispute.invoice,
             "Dispute resolved in our favor. Service will continue uninterrupted.",
         )
-    else:
+        # Work on a copy to avoid mutating the original stripe_dispute_data dict
+        chargeback_data = dict(stripe_dispute_data)
         _record_chargeback(
             dispute.invoice,
+            chargeback_data,
             stripe_dispute_data,
             reason=reason,
             amount=dispute.amount,
