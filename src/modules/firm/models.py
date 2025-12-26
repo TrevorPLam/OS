@@ -563,6 +563,68 @@ class BreakGlassSession(models.Model):
                 )
 
 
+class FirmOffboardingRecord(models.Model):
+    """
+    Tracks firm offboarding exports and purge sequencing.
+
+    Stores export manifests, integrity reports, and retention scheduling.
+    """
+
+    STATUS_EXPORTING = 'exporting'
+    STATUS_EXPORTED = 'exported'
+    STATUS_PURGE_PENDING = 'purge_pending'
+    STATUS_PURGED = 'purged'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_EXPORTING, 'Exporting'),
+        (STATUS_EXPORTED, 'Exported'),
+        (STATUS_PURGE_PENDING, 'Purge Pending'),
+        (STATUS_PURGED, 'Purged'),
+        (STATUS_FAILED, 'Failed'),
+    ]
+
+    firm = models.ForeignKey(
+        Firm,
+        on_delete=models.CASCADE,
+        related_name='offboarding_records'
+    )
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='firm_offboarding_requests'
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_EXPORTING
+    )
+    retention_days = models.PositiveIntegerField(default=30)
+    purge_grace_days = models.PositiveIntegerField(default=7)
+
+    export_started_at = models.DateTimeField(auto_now_add=True)
+    export_completed_at = models.DateTimeField(null=True, blank=True)
+    retention_expires_at = models.DateTimeField(null=True, blank=True)
+    purge_scheduled_at = models.DateTimeField(null=True, blank=True)
+    purge_completed_at = models.DateTimeField(null=True, blank=True)
+
+    export_manifest = models.JSONField(default=dict, blank=True)
+    integrity_report = models.JSONField(default=dict, blank=True)
+    export_checksum = models.CharField(max_length=64, blank=True)
+
+    class Meta:
+        db_table = 'firm_offboarding_record'
+        ordering = ['-export_started_at']
+        indexes = [
+            models.Index(fields=['firm', '-export_started_at']),
+            models.Index(fields=['status', '-export_started_at']),
+        ]
+
+    def __str__(self):
+        return f"Offboarding {self.firm.name} ({self.status})"
+
+
 class PlatformUserProfile(models.Model):
     """
     Platform operator profile for users with platform-level access.

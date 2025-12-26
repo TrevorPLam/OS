@@ -5,10 +5,11 @@ Provides break-glass session management and firm-level operations.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from modules.firm.views import BreakGlassStatusViewSet
+from modules.firm.views import BreakGlassStatusViewSet, FirmOffboardingViewSet
 
 router = DefaultRouter()
 router.register(r'break-glass', BreakGlassStatusViewSet, basename='break-glass')
+router.register(r'offboarding', FirmOffboardingViewSet, basename='firm-offboarding')
 
 urlpatterns = [
     path('', include(router.urls)),
