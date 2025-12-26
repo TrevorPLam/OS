@@ -55,14 +55,11 @@ class TestSalesToCashFlowJourney:
             notes="Interested in implementation support",
         )
 
-        convert_request = factory.post(
+        convert_response = client_a.post(
             f"/api/crm/leads/{lead.id}/convert_to_prospect/",
-            {"close_date_estimate": str(timezone.now().date() + timezone.timedelta(days=30))},
+            data={"close_date_estimate": str(timezone.now().date() + timezone.timedelta(days=30))},
+            format="json",
         )
-        convert_request.firm = firm_a
-        force_authenticate(convert_request, user=user_a)
-        convert_view = LeadViewSet.as_view({'post': 'convert_to_prospect'})
-        convert_response = convert_view(convert_request, pk=lead.id)
         assert convert_response.status_code == 200
         prospect_id = convert_response.data["prospect"]["id"]
 
