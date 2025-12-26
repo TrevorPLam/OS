@@ -71,6 +71,8 @@
 
 ## 📋 Platform Capabilities Roadmap
 
+**For a comprehensive inventory of what exists and what's missing, see [Platform Capabilities Inventory](docs/03-reference/platform-capabilities.md)**
+
 ### High Priority (Post-Tier 5)
 
 1. **Identity & Access Management**
