@@ -231,7 +231,7 @@ def handle_payment_failure(
         firm=invoice.firm,
         invoice=invoice,
         client=invoice.client,
-        amount_attempted=amount_attempted or invoice.total_amount,
+        amount_attempted=invoice.total_amount if amount_attempted is None else amount_attempted,
         currency=invoice.currency,
         failure_code=failure_code or 'other',
         failure_message=failure_reason,
