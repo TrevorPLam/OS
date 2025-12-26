@@ -15,6 +15,163 @@ from modules.crm.models import Contract
 from modules.firm.utils import FirmScopedManager
 
 
+class Expense(models.Model):
+    """
+    Expense tracking for projects (TIER 4+: Simple feature 1.5).
+    
+    Tracks project-related expenses that can be billed to clients
+    or recorded as internal costs.
+    
+    TIER 0: Belongs to a Firm through Project.
+    """
+    CATEGORY_CHOICES = [
+        ('travel', 'Travel'),
+        ('meals', 'Meals & Entertainment'),
+        ('supplies', 'Office Supplies'),
+        ('software', 'Software & Tools'),
+        ('subcontractor', 'Subcontractor'),
+        ('other', 'Other'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('invoiced', 'Invoiced'),
+    ]
+    
+    # Relationships
+    project = models.ForeignKey(
+        'Project',
+        on_delete=models.CASCADE,
+        related_name='expenses',
+        help_text="Project this expense belongs to"
+    )
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='submitted_expenses',
+        help_text="User who submitted this expense"
+    )
+    
+    # Expense Details
+    category = models.CharField(
+        max_length=20,
+        choices=CATEGORY_CHOICES,
+        default='other'
+    )
+    description = models.TextField(
+        help_text="Description of the expense"
+    )
+    date = models.DateField(
+        help_text="Date expense was incurred"
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        help_text="Expense amount"
+    )
+    currency = models.CharField(max_length=3, default='USD')
+    
+    # Billing
+    is_billable = models.BooleanField(
+        default=True,
+        help_text="Whether this expense should be billed to the client"
+    )
+    markup_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+        help_text="Markup percentage for billable expenses (e.g., 10.00 for 10%)"
+    )
+    billable_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))],
+        help_text="Amount to bill to client (amount + markup)"
+    )
+    
+    # Approval & Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft'
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_expenses',
+        help_text="User who approved this expense"
+    )
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When expense was approved"
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        help_text="Reason for rejection (if rejected)"
+    )
+    
+    # Invoicing
+    invoiced = models.BooleanField(
+        default=False,
+        help_text="Has this expense been included in an invoice?"
+    )
+    invoice = models.ForeignKey(
+        'finance.Invoice',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='expenses',
+        help_text="The invoice that includes this expense"
+    )
+    
+    # Receipt/Attachment
+    receipt_url = models.URLField(
+        blank=True,
+        help_text="URL to receipt document in S3"
+    )
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # TIER 0: Managers (inherit firm context through project)
+    objects = models.Manager()  # Default manager
+    
+    class Meta:
+        db_table = 'projects_expenses'
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['project', 'status']),
+            models.Index(fields=['submitted_by', 'status']),
+            models.Index(fields=['date']),
+        ]
+        verbose_name_plural = 'Expenses'
+    
+    def calculate_billable_amount(self):
+        """Calculate billable amount with markup."""
+        if not self.is_billable:
+            return Decimal('0.00')
+        markup = self.amount * (self.markup_percentage / Decimal('100.00'))
+        return self.amount + markup
+    
+    def save(self, *args, **kwargs):
+        """Calculate billable amount before saving."""
+        self.billable_amount = self.calculate_billable_amount()
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.category} - ${self.amount} - {self.project.project_code}"
+
+
 class Project(models.Model):
     """
     Project entity.
@@ -105,6 +262,36 @@ class Project(models.Model):
     end_date = models.DateField()
     actual_completion_date = models.DateField(null=True, blank=True)
 
+    # Milestone Tracking
+    milestones = models.JSONField(
+        default=list,
+        help_text="List of project milestones: [{name, description, due_date, completed, completed_at}, ...]"
+    )
+    
+    # WIP (Work in Progress) Tracking (Simple feature 1.9)
+    wip_hours = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Unbilled hours accumulated (Work in Progress)"
+    )
+    wip_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Unbilled amount accumulated (Work in Progress)"
+    )
+    wip_last_calculated = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When WIP was last calculated"
+    )
+    last_billed_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date of last invoice for this project"
+    )
+    
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -188,6 +375,15 @@ class Task(models.Model):
         null=True,
         blank=True,
         validators=[MinValueValidator(Decimal('0.01'))]
+    )
+    
+    # Task Dependencies
+    depends_on = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        blank=True,
+        related_name='blocking_tasks',
+        help_text="Tasks that must be completed before this task can start"
     )
 
     # Timeline

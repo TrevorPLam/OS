@@ -190,6 +190,25 @@ class Client(models.Model):
         validators=[MinValueValidator(Decimal('0.00'))],
         help_text="Total revenue from this client across all engagements"
     )
+    
+    # Retainer Balance Tracking (Simple feature 1.6)
+    retainer_balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Current retainer balance (prepaid hours/amount)"
+    )
+    retainer_hours_balance = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Prepaid hours remaining in retainer"
+    )
+    retainer_last_updated = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When retainer balance was last updated"
+    )
 
     # TIER 4: Autopay Settings
     autopay_enabled = models.BooleanField(

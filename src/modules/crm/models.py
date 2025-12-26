@@ -15,6 +15,180 @@ from decimal import Decimal
 from modules.firm.utils import FirmScopedManager
 
 
+class Activity(models.Model):
+    """
+    Activity Timeline entity (Simple feature 1.10).
+    
+    Tracks all interactions with leads, prospects, and clients.
+    Provides a chronological activity feed for relationship management.
+    
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+    ACTIVITY_TYPE_CHOICES = [
+        ('call', 'Phone Call'),
+        ('email', 'Email'),
+        ('meeting', 'Meeting'),
+        ('note', 'Note'),
+        ('task', 'Task'),
+        ('proposal_sent', 'Proposal Sent'),
+        ('contract_signed', 'Contract Signed'),
+        ('follow_up', 'Follow-up'),
+        ('other', 'Other'),
+    ]
+    
+    DIRECTION_CHOICES = [
+        ('inbound', 'Inbound'),
+        ('outbound', 'Outbound'),
+    ]
+    
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        'firm.Firm',
+        on_delete=models.CASCADE,
+        related_name='activities',
+        help_text="Firm (workspace) this activity belongs to"
+    )
+    
+    # Activity Details
+    activity_type = models.CharField(
+        max_length=20,
+        choices=ACTIVITY_TYPE_CHOICES,
+        help_text="Type of activity"
+    )
+    direction = models.CharField(
+        max_length=10,
+        choices=DIRECTION_CHOICES,
+        default='outbound',
+        help_text="Direction of communication"
+    )
+    subject = models.CharField(
+        max_length=255,
+        help_text="Activity subject/title"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Detailed notes about the activity"
+    )
+    activity_date = models.DateTimeField(
+        help_text="When the activity occurred"
+    )
+    
+    # Relationships - Can be linked to Lead, Prospect, or Client
+    lead = models.ForeignKey(
+        'Lead',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='activities',
+        help_text="Lead this activity is associated with"
+    )
+    prospect = models.ForeignKey(
+        'Prospect',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='activities',
+        help_text="Prospect this activity is associated with"
+    )
+    client = models.ForeignKey(
+        'clients.Client',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='crm_activities',
+        help_text="Client this activity is associated with"
+    )
+    
+    # Optional links to related objects
+    campaign = models.ForeignKey(
+        'Campaign',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activities',
+        help_text="Campaign this activity is part of"
+    )
+    proposal = models.ForeignKey(
+        'Proposal',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='activities',
+        help_text="Proposal this activity is related to"
+    )
+    
+    # User tracking
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='created_activities',
+        help_text="User who logged this activity"
+    )
+    
+    # Duration (for calls/meetings)
+    duration_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Duration in minutes (for calls/meetings)"
+    )
+    
+    # Follow-up
+    requires_follow_up = models.BooleanField(
+        default=False,
+        help_text="Whether this activity requires follow-up"
+    )
+    follow_up_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="When to follow up"
+    )
+    follow_up_completed = models.BooleanField(
+        default=False,
+        help_text="Whether follow-up was completed"
+    )
+    
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # TIER 0: Managers
+    objects = models.Manager()  # Default manager
+    firm_scoped = FirmScopedManager()  # Firm-scoped queries
+    
+    class Meta:
+        db_table = 'crm_activities'
+        ordering = ['-activity_date']
+        indexes = [
+            models.Index(fields=['firm', '-activity_date']),  # TIER 0: Firm scoping
+            models.Index(fields=['firm', 'activity_type']),  # TIER 0: Firm scoping
+            models.Index(fields=['lead', '-activity_date']),
+            models.Index(fields=['prospect', '-activity_date']),
+            models.Index(fields=['client', '-activity_date']),
+            models.Index(fields=['created_by', '-activity_date']),
+        ]
+        verbose_name_plural = 'Activities'
+    
+    def clean(self):
+        """Validate that activity is linked to at least one entity."""
+        from django.core.exceptions import ValidationError
+        
+        if not any([self.lead_id, self.prospect_id, self.client_id]):
+            raise ValidationError(
+                "Activity must be associated with at least one entity (Lead, Prospect, or Client)"
+            )
+    
+    def __str__(self):
+        entity = "Unknown"
+        if self.lead:
+            entity = f"Lead: {self.lead.company_name}"
+        elif self.prospect:
+            entity = f"Prospect: {self.prospect.company_name}"
+        elif self.client:
+            entity = f"Client: {self.client.company_name}"
+        return f"{self.get_activity_type_display()} - {entity} - {self.activity_date.date()}"
+
+
 class Lead(models.Model):
     """
     Marketing-captured prospect (Pre-Sale).
@@ -119,6 +293,56 @@ class Lead(models.Model):
             models.Index(fields=['firm', 'assigned_to']),  # TIER 0: Firm scoping
             models.Index(fields=['campaign']),
         ]
+
+    def calculate_lead_score(self):
+        """
+        Calculate lead score based on various factors (0-100).
+        
+        Simple scoring algorithm:
+        - Has contact email: +20
+        - Has phone: +10
+        - Has website: +10
+        - From campaign: +15
+        - Contacted status: +20
+        - Qualified status: +25
+        - Industry filled: +10
+        - Assigned to rep: +10
+        
+        Returns:
+            int: Calculated lead score (0-100)
+        """
+        score = 0
+        
+        # Contact completeness
+        if self.contact_email:
+            score += 20
+        if self.contact_phone:
+            score += 10
+        if self.website:
+            score += 10
+        if self.industry:
+            score += 10
+            
+        # Campaign source (marketing qualified)
+        if self.campaign_id:
+            score += 15
+            
+        # Status progression
+        if self.status == 'contacted':
+            score += 20
+        elif self.status == 'qualified':
+            score += 25
+            
+        # Assignment (shows active pursuit)
+        if self.assigned_to_id:
+            score += 10
+            
+        return min(score, 100)  # Cap at 100
+    
+    def update_lead_score(self):
+        """Update and save the lead_score field."""
+        self.lead_score = self.calculate_lead_score()
+        self.save(update_fields=['lead_score'])
 
     def __str__(self):
         return f"{self.company_name} - {self.get_status_display()}"

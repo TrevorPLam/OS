@@ -76,9 +76,93 @@
 
 ---
 
-## 📋 Platform Capabilities Roadmap
+## 📋 Missing & Partially Implemented Features Checklist
 
-**For a comprehensive inventory of what exists and what's missing, see [Platform Capabilities Inventory](docs/03-reference/platform-capabilities.md)**
+**Prioritized by Implementation Complexity (Simple → Complex)**
+
+**For detailed information on each feature, see [Platform Capabilities Inventory](docs/03-reference/platform-capabilities.md)**
+
+### ✅ Simple - Core Model Enhancements (Quick Wins)
+
+- [x] 1.1 Add computed lead scoring field with basic calculation logic (CRM)
+- [ ] 1.2 Add configurable pipeline stages with validation (CRM)
+- [x] 1.3 Add task dependencies field and basic dependency checking (Projects)
+- [x] 1.4 Add milestone tracking fields to projects (Projects)
+- [x] 1.5 Add expense tracking model with billable flag (Finance/Projects)
+- [x] 1.6 Add retainer balance tracking to client model (Finance)
+- [x] 1.7 Add document retention policy fields (Documents)
+- [x] 1.8 Add legal hold flag to documents (Documents)
+- [x] 1.9 Add WIP (Work in Progress) tracking fields (Finance)
+- [x] 1.10 Add activity type enum and activity timeline model (CRM)
+
+### 🟡 Medium - Workflow & Business Logic
+
+- [ ] 2.1 Implement Contract → Project creation workflow (CRM → Projects)
+- [ ] 2.2 Add project template system with cloning (Projects)
+- [ ] 2.3 Implement milestone-triggered invoice generation (Finance)
+- [ ] 2.4 Add basic approval workflow for expenses (Finance)
+- [ ] 2.5 Add AP bill state machine (Received → Validated → Approved → Paid) (Finance)
+- [ ] 2.6 Implement dunning workflow for overdue invoices (Finance)
+- [ ] 2.7 Add document approval workflow (Draft → Review → Approved → Published) (Documents)
+- [ ] 2.8 Add client acceptance gate before invoicing (Projects/Finance)
+- [ ] 2.9 Implement utilization tracking and reporting (Projects)
+- [ ] 2.10 Add cash application matching (partial/over/under payments) (Finance)
+
+### 🟠 Complex - New Subsystems & Integrations
+
+- [ ] 3.1 Build Account & Contact relationship graph (CRM)
+- [ ] 3.2 Implement resource planning & allocation system (Projects)
+- [ ] 3.3 Add profitability reporting with margin analysis (Finance)
+- [ ] 3.4 Build intake form system with qualification logic (CRM)
+- [ ] 3.5 Implement CPQ (Configure-Price-Quote) engine (CRM)
+- [ ] 3.6 Add Gantt chart/timeline view for projects (Projects)
+- [ ] 3.7 Build general webhook platform (Integration)
+- [ ] 3.8 Add email/calendar sync integration (Integration)
+- [ ] 3.9 Implement document co-authoring with real-time collaboration (Documents)
+- [ ] 3.10 Add secure external document sharing with permissions (Documents)
+
+### 🔴 Advanced - Enterprise Features
+
+- [ ] 4.1 Implement SSO/OAuth (Google/Microsoft) authentication (IAM)
+- [ ] 4.2 Add SAML support for enterprise SSO (IAM)
+- [ ] 4.3 Implement Multi-Factor Authentication (MFA) (IAM)
+- [ ] 4.4 Build RBAC/ABAC policy system with object-level permissions (IAM)
+- [ ] 4.5 Add QuickBooks Online integration (Integration)
+- [ ] 4.6 Add Xero accounting integration (Integration)
+- [ ] 4.7 Implement e-signature integration (DocuSign/HelloSign) (Integration)
+- [ ] 4.8 Build general automation/workflow engine with rule builder (Automation)
+- [ ] 4.9 Add API versioning strategy and backward compatibility (API)
+- [ ] 4.10 Implement materialized views for reporting performance (Reporting)
+
+### 🎯 Strategic - Platform Transformation
+
+- [ ] 5.1 Build unified event bus for cross-module automation (Platform)
+- [ ] 5.2 Implement SCIM provisioning for automated user management (IAM)
+- [ ] 5.3 Add audit review UI with query/filter/export capabilities (Compliance)
+- [ ] 5.4 Build integration marketplace scaffolding (Platform)
+- [ ] 5.5 Implement records management system with immutability (Compliance)
+- [ ] 5.6 Add operational observability without content access (Platform)
+- [ ] 5.7 Build custom dashboard builder with widget system (Reporting)
+- [ ] 5.8 Implement ERP connectors for enterprise customers (Integration)
+- [ ] 5.9 Add AI-powered lead scoring and sales automation (CRM)
+- [ ] 5.10 Build comprehensive PSA operations suite (Planning/Analytics)
+
+---
+
+### 📝 Implementation Notes
+
+**Execution Strategy:**
+1. Start with Simple features (1.1-1.10) - Low risk, immediate value
+2. Progress to Medium features (2.1-2.10) - Build on existing foundations
+3. Tackle Complex features (3.1-3.10) - New capabilities, higher ROI
+4. Consider Advanced features (4.1-4.10) - Enterprise requirements
+5. Plan Strategic features (5.1-5.10) - Long-term platform evolution
+
+**Current Focus:** Complete Tier 5 first, then begin Simple checklist items.
+
+---
+
+## 📋 Legacy Roadmap Summary
 
 ### High Priority (Post-Tier 5)
 
