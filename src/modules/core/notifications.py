@@ -358,7 +358,9 @@ class EmailNotification:
             "completion_date": (
                 project.actual_completion_date
                 if hasattr(project, "actual_completion_date") and project.actual_completion_date
-                else project.end_date if hasattr(project, "end_date") else "N/A"
+                else project.end_date
+                if hasattr(project, "end_date")
+                else "N/A"
             ),
         }
 

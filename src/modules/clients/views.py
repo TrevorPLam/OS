@@ -10,6 +10,7 @@ TIER 2.6: Organizations enable cross-client collaboration within firms.
 
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from permissions import PortalAccessMixin, PortalFirmAccessPermission
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -43,7 +44,6 @@ from modules.clients.serializers import (
     OrganizationSerializer,
 )
 from modules.firm.utils import FirmScopedMixin, get_request_firm
-from permissions import PortalAccessMixin, PortalFirmAccessPermission
 
 
 class OrganizationViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):

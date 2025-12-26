@@ -67,7 +67,7 @@ def sanitize_telemetry_fields(fields: dict[str, Any]) -> dict[str, Any]:
             sanitized[key] = value
             continue
 
-        if isinstance(value, (int, float, bool)) or value is None:
+        if isinstance(value, int | float | bool) or value is None:
             sanitized[key] = value
             continue
 
