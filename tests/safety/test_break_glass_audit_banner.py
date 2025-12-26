@@ -87,6 +87,22 @@ class TestBreakGlassAuditAndBanner:
         assert expired is not None
         assert expired.metadata.get('impersonated_user_id') == active_session.impersonated_user_id
 
+    def test_revocation_logs_audit_event(self, active_session):
+        """When a session is revoked, an audit event should be created."""
+        revocation_reason = "Support incident resolved"
+        active_session.revoke(revocation_reason)
+        active_session.save()
+
+        revoked = AuditEvent.objects.filter(
+            action='break_glass_revoked', target_id=str(active_session.id)
+        ).first()
+        assert revoked is not None
+        assert revoked.category == AuditEvent.CATEGORY_BREAK_GLASS
+        assert revoked.severity == AuditEvent.SEVERITY_CRITICAL
+        assert revoked.reason == revocation_reason
+        assert revoked.metadata.get('impersonated_user_id') == active_session.impersonated_user_id
+        assert revoked.metadata.get('revoked_at') is not None
+
     def test_impersonation_banner_header_and_audit(self, firm, platform_operator, active_session):
         """Middleware should emit banner headers and log impersonated requests."""
         request = RequestFactory().get('/api/projects/')
