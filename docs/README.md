@@ -21,6 +21,7 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 - **[API Reference](03-reference/api-usage.md)** - Complete API documentation
 - **[Production Deployment](02-how-to/production-deployment.md)** - Deploy to production
 - **[System Invariants](../spec/SYSTEM_INVARIANTS.md)** - Core system rules
+- **[Changelog](../CHANGELOG.md)** - Release history and changes
 - **[Contributing Guide](../CONTRIBUTING.md)** - Development workflow
 
 ## Tier-Specific Documentation
