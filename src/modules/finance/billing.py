@@ -21,6 +21,7 @@ from modules.finance.models import (
     PaymentDispute,
     PaymentFailure,
 )
+from modules.finance.services import StripeService
 from modules.firm.audit import audit
 
 
@@ -117,6 +118,8 @@ def create_package_invoice(engagement: ClientEngagement, issue_date: Optional[da
                 'invoice_number': f'PKG-{engagement.id}-{period_start.isoformat()}',
                 'is_auto_generated': True,
                 'period_end': period_end,
+                'autopay_opt_in': engagement.client.autopay_enabled,
+                'autopay_payment_method_id': engagement.client.autopay_payment_method_id,
             },
         )
 
@@ -188,6 +191,118 @@ def execute_autopay_for_invoice(invoice: Invoice):
     )
 
     return invoice
+
+
+def schedule_autopay(invoice: Invoice, reference_time: Optional[timezone.datetime] = None):
+    """Mark an invoice for autopay execution based on cadence and due date."""
+
+    if not invoice.client.autopay_enabled:
+        invoice.autopay_status = 'cancelled'
+        invoice.autopay_opt_in = False
+        invoice.autopay_next_charge_at = None
+        invoice.save(update_fields=['autopay_status', 'autopay_opt_in', 'autopay_next_charge_at'])
+        return invoice
+
+    invoice.autopay_opt_in = True
+    invoice.autopay_payment_method_id = invoice.autopay_payment_method_id or invoice.client.autopay_payment_method_id
+    invoice.autopay_status = 'scheduled'
+    reference_time = reference_time or timezone.now()
+
+    if invoice.autopay_cadence == 'monthly':
+        scheduled_for = invoice.due_date.replace(day=1)
+    elif invoice.autopay_cadence == 'quarterly':
+        scheduled_for = invoice.due_date.replace(month=((invoice.due_date.month - 1) // 3) * 3 + 1, day=1)
+    else:
+        scheduled_for = invoice.due_date
+
+    invoice.autopay_next_charge_at = timezone.make_aware(timezone.datetime.combine(scheduled_for, timezone.datetime.min.time()))
+    invoice.save(update_fields=['autopay_status', 'autopay_opt_in', 'autopay_payment_method_id', 'autopay_next_charge_at'])
+    return invoice
+
+
+def _charge_invoice(invoice: Invoice, payment_service=StripeService):
+    """Attempt to charge an invoice using the configured payment method."""
+
+    payment_method_id = invoice.autopay_payment_method_id or invoice.client.autopay_payment_method_id
+    if not payment_method_id:
+        result = handle_payment_failure(
+            invoice,
+            failure_reason='Missing autopay payment method',
+            failure_code='payment_method_missing',
+        )
+        invoice.autopay_status = 'failed'
+        invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
+        invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at'])
+        return result
+
+    invoice.autopay_status = 'processing'
+    invoice.autopay_last_attempt_at = timezone.now()
+    invoice.save(update_fields=['autopay_status', 'autopay_last_attempt_at'])
+
+    try:
+        intent = payment_service.create_payment_intent(
+            amount=invoice.total_amount,
+            currency=invoice.currency.lower(),
+            customer_id=None,
+            metadata={'invoice_id': invoice.id},
+            payment_method=payment_method_id,
+        )
+    except Exception as exc:  # pragma: no cover - safety net
+        result = handle_payment_failure(invoice, failure_reason=str(exc), failure_code='processor_error')
+        invoice.autopay_status = 'failed'
+        invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
+        invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at'])
+        return result
+
+    invoice.stripe_payment_intent_id = getattr(intent, 'id', '') or intent.get('id', '') if hasattr(intent, 'get') else ''
+    invoice.amount_paid = invoice.total_amount
+    invoice.status = 'paid'
+    invoice.paid_date = timezone.now().date()
+    invoice.autopay_status = 'succeeded'
+    invoice.autopay_next_charge_at = None
+    invoice.save(
+        update_fields=[
+            'stripe_payment_intent_id',
+            'amount_paid',
+            'status',
+            'paid_date',
+            'autopay_status',
+            'autopay_next_charge_at',
+        ]
+    )
+    return invoice
+
+
+def process_recurring_invoices(reference_time: Optional[timezone.datetime] = None, payment_service=StripeService):
+    """Find invoices marked for autopay and execute charges."""
+
+    now = reference_time or timezone.now()
+    due_invoices = Invoice.objects.filter(
+        autopay_opt_in=True,
+        status__in=['sent', 'partial', 'overdue'],
+    ).select_related('client')
+
+    processed = []
+    for invoice in due_invoices:
+        if not invoice.client.autopay_enabled:
+            invoice.autopay_status = 'cancelled'
+            invoice.autopay_next_charge_at = None
+            invoice.autopay_opt_in = False
+            invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at', 'autopay_opt_in'])
+            continue
+
+        if invoice.autopay_next_charge_at and invoice.autopay_next_charge_at > now:
+            continue
+
+        try:
+            processed.append(_charge_invoice(invoice, payment_service=payment_service))
+        except Exception as exc:  # pragma: no cover - guardrail
+            handle_payment_failure(invoice, failure_reason=str(exc), failure_code='processor_error')
+            invoice.autopay_status = 'failed'
+            invoice.autopay_next_charge_at = now + timedelta(days=3)
+            invoice.save(update_fields=['autopay_status', 'autopay_next_charge_at'])
+
+    return processed
 
 
 def _notify_client_portal(invoice: Invoice, message: str):
