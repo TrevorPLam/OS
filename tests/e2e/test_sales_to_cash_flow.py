@@ -82,97 +82,104 @@ class TestSalesToCashFlowJourney:
         )
         proposal.estimated_value = proposal.total_value
 
-        # Signals reference legacy estimated_value attribute; provide compatibility shim
-        if not isinstance(getattr(Proposal, 'estimated_value', None), property):
-            Proposal.estimated_value = property(lambda self: getattr(self, 'total_value', 0))
+            _sentinel = object()
+            original_proposal_estimated_value = getattr(Proposal, 'estimated_value', _sentinel)
 
-        original_engagement_save = ClientEngagement.save
+            # Signals reference legacy estimated_value attribute; provide compatibility shim
+            if original_proposal_estimated_value is _sentinel:
+                Proposal.estimated_value = property(lambda self: getattr(self, 'total_value', 0))
 
-        def patched_engagement_save(self, *args, **kwargs):
-            if self.package_fee is None:
-                self.package_fee = self.contracted_value or Decimal('0.01')
-            if not self.package_fee_schedule:
-                self.package_fee_schedule = 'monthly'
-            return original_engagement_save(self, *args, **kwargs)
+            original_engagement_save = ClientEngagement.save
 
-        ClientEngagement.save = patched_engagement_save
+            def patched_engagement_save(self, *args, **kwargs):
+                if self.package_fee is None:
+                    self.package_fee = self.contracted_value or Decimal('0.01')
+                if not self.package_fee_schedule:
+                    self.package_fee_schedule = 'monthly'
+                return original_engagement_save(self, *args, **kwargs)
 
-        accept_request = factory.post(f"/api/crm/proposals/{proposal.id}/accept/")
-        accept_request.firm = firm_a
-        force_authenticate(accept_request, user=user_a)
-        accept_view = ProposalViewSet.as_view({'post': 'accept'})
-        accept_response = accept_view(accept_request, pk=proposal.id)
-        assert accept_response.status_code == 200
-        proposal.refresh_from_db()
-        assert proposal.status == "accepted"
+            ClientEngagement.save = patched_engagement_save
 
-        client = Client.objects.get(source_proposal=proposal)
-        contract = proposal.contracts.first()
-        engagement = ClientEngagement.objects.get(contract=contract)
-        project = Project.objects.get(contract=contract)
+            try:
+                accept_request = factory.post(f"/api/crm/proposals/{proposal.id}/accept/")
+                accept_request.firm = firm_a
+                force_authenticate(accept_request, user=user_a)
+                accept_view = ProposalViewSet.as_view({'post': 'accept'})
+                accept_response = accept_view(accept_request, pk=proposal.id)
+                assert accept_response.status_code == 200
+                proposal.refresh_from_db()
+                assert proposal.status == "accepted"
 
-        assert client.firm == firm_a
-        assert contract.firm == firm_a
-        assert engagement.firm == firm_a
-        assert project.firm == firm_a
+                client = Client.objects.get(source_proposal=proposal)
+                contract = proposal.contracts.first()
+                engagement = ClientEngagement.objects.get(contract=contract)
+                project = Project.objects.get(contract=contract)
 
-        client.autopay_enabled = True
-        client.autopay_payment_method_id = "pm_alpha_test"
-        client.save()
+                assert client.firm == firm_a
+                assert contract.firm == firm_a
+                assert engagement.firm == firm_a
+                assert project.firm == firm_a
 
-        invoice_request = factory.post(
-            "/api/finance/invoices/",
-            {
-                "firm": firm_a.id,
-                "client": client.id,
-                "engagement": engagement.id,
-                "project": project.id,
-                "invoice_number": "INV-ALPHA-001",
-                "status": "sent",
-                "subtotal": "25000.00",
-                "tax_amount": "0.00",
-                "total_amount": "25000.00",
-                "issue_date": str(timezone.now().date()),
-                "due_date": str(timezone.now().date() + timezone.timedelta(days=30)),
-                "period_start": str(timezone.now().date()),
-                "period_end": str(timezone.now().date() + timezone.timedelta(days=30)),
-                "line_items": [
+                client.autopay_enabled = True
+                client.autopay_payment_method_id = "pm_alpha_test"
+                client.save()
+
+                invoice_request = factory.post(
+                    "/api/finance/invoices/",
                     {
-                        "description": "Implementation services",
-                        "quantity": 1,
-                        "rate": 25000,
-                        "amount": 25000,
-                    }
-                ],
-            },
-            format="json",
-        )
-        invoice_request.firm = firm_a
-        force_authenticate(invoice_request, user=user_a)
-        invoice_view = InvoiceViewSet.as_view({'post': 'create'})
-        invoice_response = invoice_view(invoice_request)
-        assert invoice_response.status_code == 201
-        invoice = Invoice.objects.get(id=invoice_response.data["id"])
+                        "firm": firm_a.id,
+                        "client": client.id,
+                        "engagement": engagement.id,
+                        "project": project.id,
+                        "invoice_number": "INV-ALPHA-001",
+                        "status": "sent",
+                        "subtotal": "25000.00",
+                        "tax_amount": "0.00",
+                        "total_amount": "25000.00",
+                        "issue_date": str(timezone.now().date()),
+                        "due_date": str(timezone.now().date() + timezone.timedelta(days=30)),
+                        "period_start": str(timezone.now().date()),
+                        "period_end": str(timezone.now().date() + timezone.timedelta(days=30)),
+                        "line_items": [
+                            {
+                                "description": "Implementation services",
+                                "quantity": 1,
+                                "rate": 25000,
+                                "amount": 25000,
+                            }
+                        ],
+                    },
+                    format="json",
+                )
+                invoice_request.firm = firm_a
+                force_authenticate(invoice_request, user=user_a)
+                invoice_view = InvoiceViewSet.as_view({'post': 'create'})
+                invoice_response = invoice_view(invoice_request)
+                assert invoice_response.status_code == 201
+                invoice = Invoice.objects.get(id=invoice_response.data["id"])
 
-        invoice.amount_paid = invoice.total_amount
-        invoice.status = "paid"
-        invoice.save(update_fields=["amount_paid", "status"])
+                invoice.amount_paid = invoice.total_amount
+                invoice.status = "paid"
+                invoice.save(update_fields=["amount_paid", "status"])
 
-        # Firm B should not be able to access Firm A records
-        firm_b, user_b, _ = self._setup_firm_and_user("bravo")
-        isolation_request = factory.get(f"/api/crm/proposals/{proposal.id}/")
-        isolation_request.firm = firm_b
-        force_authenticate(isolation_request, user=user_b)
-        proposal_view = ProposalViewSet.as_view({'get': 'retrieve'})
-        isolation_response = proposal_view(isolation_request, pk=proposal.id)
-        assert isolation_response.status_code in {403, 404}
+                # Firm B should not be able to access Firm A records
+                firm_b, user_b, _ = self._setup_firm_and_user("bravo")
+                isolation_request = factory.get(f"/api/crm/proposals/{proposal.id}/")
+                isolation_request.firm = firm_b
+                force_authenticate(isolation_request, user=user_b)
+                proposal_view = ProposalViewSet.as_view({'get': 'retrieve'})
+                isolation_response = proposal_view(isolation_request, pk=proposal.id)
+                assert isolation_response.status_code in {403, 404}
 
-        invoice_request_b = factory.get(f"/api/finance/invoices/{invoice.id}/")
-        invoice_request_b.firm = firm_b
-        force_authenticate(invoice_request_b, user=user_b)
-        invoice_view_b = InvoiceViewSet.as_view({'get': 'retrieve'})
-        invoice_denied = invoice_view_b(invoice_request_b, pk=invoice.id)
-        assert invoice_denied.status_code in {403, 404}
-
-        ClientEngagement.save = original_engagement_save
-
+                invoice_request_b = factory.get(f"/api/finance/invoices/{invoice.id}/")
+                invoice_request_b.firm = firm_b
+                force_authenticate(invoice_request_b, user=user_b)
+                invoice_view_b = InvoiceViewSet.as_view({'get': 'retrieve'})
+                invoice_denied = invoice_view_b(invoice_request_b, pk=invoice.id)
+                assert invoice_denied.status_code in {403, 404}
+            finally:
+                ClientEngagement.save = original_engagement_save
+                if original_proposal_estimated_value is _sentinel:
+                    delattr(Proposal, 'estimated_value')
+                else:
+                    Proposal.estimated_value = original_proposal_estimated_value
