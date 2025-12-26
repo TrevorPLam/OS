@@ -9,6 +9,8 @@ from django.http import Http404
 from django.db import IntegrityError
 import logging
 
+from modules.core.telemetry import log_event
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,7 +95,12 @@ def custom_exception_handler(exc, context):
         return response
 
     # Handle all other exceptions
-    logger.error(f"Unhandled exception: {exc}", exc_info=True, extra={'context': context})
+    logger.error("Unhandled exception")
+    log_event(
+        "api_unhandled_exception",
+        operation="drf_exception_handler",
+        error_class=exc.__class__.__name__,
+    )
 
     error_response = {
         'error': {
@@ -129,18 +136,22 @@ def log_exception(exc, context, status_code):
     request = context.get('request')
 
     log_data = {
-        'exception': str(exc),
         'exception_type': exc.__class__.__name__,
         'status_code': status_code,
         'view': view.__class__.__name__ if view else 'Unknown',
         'method': request.method if request else 'Unknown',
-        'path': request.path if request else 'Unknown',
-        'user': request.user.username if request and hasattr(request, 'user') and request.user.is_authenticated else 'Anonymous'
     }
 
+    log_event(
+        "api_exception",
+        operation="drf_exception_handler",
+        http_status=status_code,
+        error_class=exc.__class__.__name__,
+    )
+
     if status_code >= 500:
-        logger.error(f"Server error: {exc}", extra=log_data, exc_info=True)
+        logger.error("Server error", extra=log_data)
     elif status_code >= 400:
-        logger.warning(f"Client error: {exc}", extra=log_data)
+        logger.warning("Client error", extra=log_data)
     else:
-        logger.info(f"Request processed with exception: {exc}", extra=log_data)
+        logger.info("Request processed with exception", extra=log_data)
