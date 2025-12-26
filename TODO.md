@@ -97,10 +97,10 @@
 
 ### 🟡 Medium - Workflow & Business Logic
 
-- [ ] 2.1 Implement Contract → Project creation workflow (CRM → Projects)
-- [ ] 2.2 Add project template system with cloning (Projects)
-- [ ] 2.3 Implement milestone-triggered invoice generation (Finance)
-- [ ] 2.4 Add basic approval workflow for expenses (Finance)
+- [x] 2.1 Implement Contract → Project creation workflow (CRM → Projects) ✅
+- [x] 2.2 Add project template system with cloning (Projects) ✅
+- [x] 2.3 Implement milestone-triggered invoice generation (Finance) ✅
+- [x] 2.4 Add basic approval workflow for expenses (Finance) ✅
 - [ ] 2.5 Add AP bill state machine (Received → Validated → Approved → Paid) (Finance)
 - [ ] 2.6 Implement dunning workflow for overdue invoices (Finance)
 - [ ] 2.7 Add document approval workflow (Draft → Review → Approved → Published) (Documents)
