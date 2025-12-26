@@ -19,10 +19,9 @@ setup:
 	$(Q)$(PYTHON) -m pip install -r ../requirements.txt
 
 lint:
-	$(Q)flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-	$(Q)flake8 . --count --max-complexity=10 --max-line-length=120 --statistics
+	$(Q)ruff check . --select=E9,F63,F7,F82
+	$(Q)ruff check . --statistics
 	$(Q)black --check . --line-length=120
-	$(Q)isort --check-only . --profile black
 
 test:
 	$(Q)pytest --cov=modules --cov=api --cov-report=term -v

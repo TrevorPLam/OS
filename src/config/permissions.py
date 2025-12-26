@@ -1,6 +1,7 @@
 """
 Custom permission classes for fine-grained access control.
 """
+
 from rest_framework import permissions
 
 
@@ -16,7 +17,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
 
         # Write permissions are only allowed to the owner
-        return hasattr(obj, 'owner') and obj.owner == request.user
+        return hasattr(obj, "owner") and obj.owner == request.user
 
 
 class IsCreatorOrReadOnly(permissions.BasePermission):
@@ -31,7 +32,7 @@ class IsCreatorOrReadOnly(permissions.BasePermission):
             return True
 
         # Write permissions are only allowed to the creator
-        return hasattr(obj, 'created_by') and obj.created_by == request.user
+        return hasattr(obj, "created_by") and obj.created_by == request.user
 
 
 class IsAssignedUserOrReadOnly(permissions.BasePermission):
@@ -46,14 +47,13 @@ class IsAssignedUserOrReadOnly(permissions.BasePermission):
             return True
 
         # For time entries, only the user can edit their own entries
-        if hasattr(obj, 'user'):
+        if hasattr(obj, "user"):
             return obj.user == request.user
 
         # For tasks, assigned user or project manager can edit
-        if hasattr(obj, 'assigned_to') and hasattr(obj, 'project'):
-            return (
-                obj.assigned_to == request.user or
-                (hasattr(obj.project, 'project_manager') and obj.project.project_manager == request.user)
+        if hasattr(obj, "assigned_to") and hasattr(obj, "project"):
+            return obj.assigned_to == request.user or (
+                hasattr(obj.project, "project_manager") and obj.project.project_manager == request.user
             )
 
         return False
@@ -71,11 +71,11 @@ class CannotModifyInvoicedItems(permissions.BasePermission):
             return True
 
         # Allow creation (POST is handled at view level)
-        if request.method == 'POST':
+        if request.method == "POST":
             return True
 
         # Block modification of invoiced items
-        if hasattr(obj, 'invoiced') and obj.invoiced:
+        if hasattr(obj, "invoiced") and obj.invoiced:
             return False
 
         return True
@@ -120,12 +120,12 @@ class IsPaymentAuthorized(permissions.BasePermission):
             return True
 
         # For invoices, check if user is the client owner or project manager
-        if hasattr(obj, 'client'):
-            return (
-                (hasattr(obj.client, 'owner') and obj.client.owner == request.user) or
-                (hasattr(obj, 'project') and obj.project and
-                 hasattr(obj.project, 'project_manager') and
-                 obj.project.project_manager == request.user)
+        if hasattr(obj, "client"):
+            return (hasattr(obj.client, "owner") and obj.client.owner == request.user) or (
+                hasattr(obj, "project")
+                and obj.project
+                and hasattr(obj.project, "project_manager")
+                and obj.project.project_manager == request.user
             )
 
         return False

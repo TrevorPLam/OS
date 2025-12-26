@@ -4,24 +4,26 @@ API Views for CRM module (Pre-Sale).
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 """
-from rest_framework import viewsets, filters, status
-from rest_framework.permissions import IsAuthenticated
-from modules.clients.permissions import DenyPortalAccess
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
-from modules.crm.models import Lead, Prospect, Campaign, Proposal, Contract
-from modules.firm.utils import FirmScopedMixin, get_request_firm
+from modules.clients.permissions import DenyPortalAccess
+from modules.crm.models import Campaign, Contract, Lead, Proposal, Prospect
 from modules.crm.serializers import (
-    LeadSerializer,
-    ProspectSerializer,
     CampaignSerializer,
-    ProposalSerializer,
     ContractSerializer,
+    LeadSerializer,
+    ProposalSerializer,
+    ProspectSerializer,
 )
+from modules.firm.utils import FirmScopedMixin, get_request_firm
 
 
 class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -32,16 +34,17 @@ class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = Lead
     serializer_class = LeadSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'source', 'assigned_to', 'campaign']
-    search_fields = ['company_name', 'contact_name', 'contact_email']
-    ordering_fields = ['company_name', 'captured_date', 'lead_score']
-    ordering = ['-captured_date']
+    filterset_fields = ["status", "source", "assigned_to", "campaign"]
+    search_fields = ["company_name", "contact_name", "contact_email"]
+    ordering_fields = ["company_name", "captured_date", "lead_score"]
+    ordering = ["-captured_date"]
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def convert_to_prospect(self, request, pk=None):
         """
         Convert this lead to a prospect (sales pipeline).
@@ -50,11 +53,8 @@ class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         """
         lead = self.get_object()
 
-        if lead.status == 'converted':
-            return Response(
-                {'error': 'Lead already converted to prospect'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if lead.status == "converted":
+            return Response({"error": "Lead already converted to prospect"}, status=status.HTTP_400_BAD_REQUEST)
 
         # TIER 0: Get firm from request
         firm = get_request_firm(request)
@@ -70,22 +70,21 @@ class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             primary_contact_email=lead.contact_email,
             primary_contact_phone=lead.contact_phone,
             primary_contact_title=lead.contact_title,
-            pipeline_stage='discovery',
+            pipeline_stage="discovery",
             estimated_value=0,  # To be updated by sales team
-            close_date_estimate=request.data.get('close_date_estimate'),
+            close_date_estimate=request.data.get("close_date_estimate"),
             assigned_to=lead.assigned_to,
-            notes=f"Converted from Lead #{lead.id}"
+            notes=f"Converted from Lead #{lead.id}",
         )
 
         # Mark lead as converted
-        lead.status = 'converted'
+        lead.status = "converted"
         lead.qualified_date = timezone.now().date()
         lead.save()
 
-        return Response({
-            'message': 'Lead converted to prospect successfully',
-            'prospect': ProspectSerializer(prospect).data
-        })
+        return Response(
+            {"message": "Lead converted to prospect successfully", "prospect": ProspectSerializer(prospect).data}
+        )
 
 
 class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -96,39 +95,45 @@ class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = Prospect
     serializer_class = ProspectSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['pipeline_stage', 'assigned_to']
-    search_fields = ['company_name', 'primary_contact_name', 'primary_contact_email']
-    ordering_fields = ['company_name', 'close_date_estimate', 'estimated_value']
-    ordering = ['-created_at']
+    filterset_fields = ["pipeline_stage", "assigned_to"]
+    search_fields = ["company_name", "primary_contact_name", "primary_contact_email"]
+    ordering_fields = ["company_name", "close_date_estimate", "estimated_value"]
+    ordering = ["-created_at"]
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def pipeline_report(self, request):
         """
         Get pipeline summary report.
 
         TIER 0: Report automatically scoped to request.firm.
         """
-        from django.db.models import Count, Sum
         from decimal import Decimal
+
+        from django.db.models import Count, Sum
 
         # TIER 0: self.get_queryset() is already firm-scoped
         with self.with_query_timeout():
             queryset = self.get_queryset()
 
-            pipeline_summary = queryset.values('pipeline_stage').annotate(
-                count=Count('id'),
-                total_value=Sum('estimated_value')
-            ).order_by('pipeline_stage')
+            pipeline_summary = (
+                queryset.values("pipeline_stage")
+                .annotate(count=Count("id"), total_value=Sum("estimated_value"))
+                .order_by("pipeline_stage")
+            )
 
-            return Response({
-                'pipeline': list(pipeline_summary),
-                'total_prospects': queryset.count(),
-                'total_pipeline_value': queryset.aggregate(Sum('estimated_value'))['estimated_value__sum'] or Decimal('0.00')
-            })
+            return Response(
+                {
+                    "pipeline": list(pipeline_summary),
+                    "total_prospects": queryset.count(),
+                    "total_pipeline_value": queryset.aggregate(Sum("estimated_value"))["estimated_value__sum"]
+                    or Decimal("0.00"),
+                }
+            )
 
 
 class CampaignViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -139,16 +144,17 @@ class CampaignViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = Campaign
     serializer_class = CampaignSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'status', 'owner']
-    search_fields = ['name', 'description']
-    ordering_fields = ['name', 'start_date', 'leads_generated']
-    ordering = ['-start_date']
+    filterset_fields = ["type", "status", "owner"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["name", "start_date", "leads_generated"]
+    ordering = ["-start_date"]
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def performance(self, request, pk=None):
         """
         Get campaign performance metrics.
@@ -157,14 +163,26 @@ class CampaignViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
         """
         campaign = self.get_object()
 
-        return Response({
-            'campaign': CampaignSerializer(campaign).data,
-            'metrics': {
-                'roi': float((campaign.revenue_generated - campaign.actual_cost) / campaign.actual_cost * 100) if campaign.actual_cost > 0 else 0,
-                'cost_per_lead': float(campaign.actual_cost / campaign.leads_generated) if campaign.leads_generated > 0 else 0,
-                'conversion_rate': float(campaign.opportunities_created / campaign.leads_generated * 100) if campaign.leads_generated > 0 else 0,
+        return Response(
+            {
+                "campaign": CampaignSerializer(campaign).data,
+                "metrics": {
+                    "roi": (
+                        float((campaign.revenue_generated - campaign.actual_cost) / campaign.actual_cost * 100)
+                        if campaign.actual_cost > 0
+                        else 0
+                    ),
+                    "cost_per_lead": (
+                        float(campaign.actual_cost / campaign.leads_generated) if campaign.leads_generated > 0 else 0
+                    ),
+                    "conversion_rate": (
+                        float(campaign.opportunities_created / campaign.leads_generated * 100)
+                        if campaign.leads_generated > 0
+                        else 0
+                    ),
+                },
             }
-        })
+        )
 
 
 class ProposalViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -175,16 +193,17 @@ class ProposalViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = Proposal
     serializer_class = ProposalSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'prospect', 'created_by']
-    search_fields = ['proposal_number', 'title']
-    ordering_fields = ['proposal_number', 'created_at', 'total_value']
-    ordering = ['-created_at']
+    filterset_fields = ["status", "prospect", "created_by"]
+    search_fields = ["proposal_number", "title"]
+    ordering_fields = ["proposal_number", "created_at", "total_value"]
+    ordering = ["-created_at"]
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def send(self, request, pk=None):
         """
         Mark proposal as sent to prospect.
@@ -192,21 +211,19 @@ class ProposalViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
         TIER 0: get_object() automatically verifies firm access.
         """
         from django.utils import timezone
+
         proposal = self.get_object()
 
-        if proposal.status != 'draft':
-            return Response(
-                {'error': 'Only draft proposals can be sent'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if proposal.status != "draft":
+            return Response({"error": "Only draft proposals can be sent"}, status=status.HTTP_400_BAD_REQUEST)
 
-        proposal.status = 'sent'
+        proposal.status = "sent"
         proposal.sent_at = timezone.now()
         proposal.save()
 
-        return Response({'message': 'Proposal sent', 'proposal': ProposalSerializer(proposal).data})
+        return Response({"message": "Proposal sent", "proposal": ProposalSerializer(proposal).data})
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def accept(self, request, pk=None):
         """
         Accept proposal and trigger client conversion.
@@ -217,19 +234,20 @@ class ProposalViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
         """
         proposal = self.get_object()
 
-        if proposal.status not in ['sent', 'under_review']:
+        if proposal.status not in ["sent", "under_review"]:
             return Response(
-                {'error': 'Only sent or under review proposals can be accepted'},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Only sent or under review proposals can be accepted"}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        proposal.status = 'accepted'
+        proposal.status = "accepted"
         proposal.save()  # This triggers the signal in modules.clients.signals
 
-        return Response({
-            'message': 'Proposal accepted - Client conversion in progress',
-            'proposal': ProposalSerializer(proposal).data
-        })
+        return Response(
+            {
+                "message": "Proposal accepted - Client conversion in progress",
+                "proposal": ProposalSerializer(proposal).data,
+            }
+        )
 
 
 class ContractViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -240,11 +258,12 @@ class ContractViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = Contract
     serializer_class = ContractSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'client', 'proposal']
-    search_fields = ['contract_number', 'title']
-    ordering_fields = ['contract_number', 'start_date', 'total_value']
-    ordering = ['-created_at']
+    filterset_fields = ["status", "client", "proposal"]
+    search_fields = ["contract_number", "title"]
+    ordering_fields = ["contract_number", "start_date", "total_value"]
+    ordering = ["-created_at"]

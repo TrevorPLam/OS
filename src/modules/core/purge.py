@@ -16,10 +16,11 @@ Meta-commentary:
 - Signature evidence survives content purge
 - All purge operations are immutably audited
 """
-from django.db import models, transaction
+
 from django.conf import settings
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import models, transaction
 from django.utils import timezone
-from django.core.exceptions import ValidationError, PermissionDenied
 
 
 def is_master_admin(user, firm):
@@ -44,12 +45,8 @@ def is_master_admin(user, firm):
     from modules.firm.models import FirmMembership
 
     try:
-        membership = FirmMembership.objects.get(
-            user=user,
-            firm=firm,
-            is_active=True
-        )
-        return membership.role == 'owner'
+        membership = FirmMembership.objects.get(user=user, firm=firm, is_active=True)
+        return membership.role == "owner"
     except FirmMembership.DoesNotExist:
         return False
 
@@ -77,37 +74,37 @@ class PurgedContent(models.Model):
     """
 
     # Purge Types
-    TYPE_DOCUMENT = 'document'
-    TYPE_MESSAGE = 'message'
-    TYPE_COMMENT = 'comment'
-    TYPE_NOTE = 'note'
-    TYPE_VERSION = 'document_version'
-    TYPE_INVOICE_LINE_ITEM = 'invoice_line_item'
+    TYPE_DOCUMENT = "document"
+    TYPE_MESSAGE = "message"
+    TYPE_COMMENT = "comment"
+    TYPE_NOTE = "note"
+    TYPE_VERSION = "document_version"
+    TYPE_INVOICE_LINE_ITEM = "invoice_line_item"
 
     TYPE_CHOICES = [
-        (TYPE_DOCUMENT, 'Document'),
-        (TYPE_MESSAGE, 'Message'),
-        (TYPE_COMMENT, 'Comment'),
-        (TYPE_NOTE, 'Note'),
-        (TYPE_VERSION, 'Document Version'),
-        (TYPE_INVOICE_LINE_ITEM, 'Invoice Line Item'),
+        (TYPE_DOCUMENT, "Document"),
+        (TYPE_MESSAGE, "Message"),
+        (TYPE_COMMENT, "Comment"),
+        (TYPE_NOTE, "Note"),
+        (TYPE_VERSION, "Document Version"),
+        (TYPE_INVOICE_LINE_ITEM, "Invoice Line Item"),
     ]
 
     # Purge Reasons (legal basis)
-    REASON_GDPR_RIGHT_TO_ERASURE = 'gdpr_erasure'
-    REASON_CCPA_DELETION_REQUEST = 'ccpa_deletion'
-    REASON_LEGAL_HOLD_EXPIRED = 'legal_hold_expired'
-    REASON_FIRM_OFFBOARDING = 'firm_offboarding'
-    REASON_COURT_ORDER = 'court_order'
-    REASON_OTHER_LEGAL = 'other_legal'
+    REASON_GDPR_RIGHT_TO_ERASURE = "gdpr_erasure"
+    REASON_CCPA_DELETION_REQUEST = "ccpa_deletion"
+    REASON_LEGAL_HOLD_EXPIRED = "legal_hold_expired"
+    REASON_FIRM_OFFBOARDING = "firm_offboarding"
+    REASON_COURT_ORDER = "court_order"
+    REASON_OTHER_LEGAL = "other_legal"
 
     REASON_CHOICES = [
-        (REASON_GDPR_RIGHT_TO_ERASURE, 'GDPR Right to Erasure (Article 17)'),
-        (REASON_CCPA_DELETION_REQUEST, 'CCPA Deletion Request'),
-        (REASON_LEGAL_HOLD_EXPIRED, 'Legal Hold Expired'),
-        (REASON_FIRM_OFFBOARDING, 'Firm Offboarding/Deletion'),
-        (REASON_COURT_ORDER, 'Court Order'),
-        (REASON_OTHER_LEGAL, 'Other Legal Requirement'),
+        (REASON_GDPR_RIGHT_TO_ERASURE, "GDPR Right to Erasure (Article 17)"),
+        (REASON_CCPA_DELETION_REQUEST, "CCPA Deletion Request"),
+        (REASON_LEGAL_HOLD_EXPIRED, "Legal Hold Expired"),
+        (REASON_FIRM_OFFBOARDING, "Firm Offboarding/Deletion"),
+        (REASON_COURT_ORDER, "Court Order"),
+        (REASON_OTHER_LEGAL, "Other Legal Requirement"),
     ]
 
     # Core Fields
@@ -115,124 +112,81 @@ class PurgedContent(models.Model):
 
     # Tenant Context
     firm = models.ForeignKey(
-        'firm.Firm',
+        "firm.Firm",
         on_delete=models.PROTECT,  # Never delete tombstones
-        related_name='purged_content',
-        help_text="Firm that owned the purged content"
+        related_name="purged_content",
+        help_text="Firm that owned the purged content",
     )
 
     # Content Identification
     content_type = models.CharField(
-        max_length=50,
-        choices=TYPE_CHOICES,
-        db_index=True,
-        help_text="Type of content that was purged"
+        max_length=50, choices=TYPE_CHOICES, db_index=True, help_text="Type of content that was purged"
     )
 
-    original_model = models.CharField(
-        max_length=100,
-        help_text="Django model name (e.g., 'documents.Document')"
-    )
+    original_model = models.CharField(max_length=100, help_text="Django model name (e.g., 'documents.Document')")
 
-    original_id = models.CharField(
-        max_length=255,
-        db_index=True,
-        help_text="ID of original object before purge"
-    )
+    original_id = models.CharField(max_length=255, db_index=True, help_text="ID of original object before purge")
 
     # Metadata Preservation (NO CONTENT)
-    created_at = models.DateTimeField(
-        help_text="When original content was created"
-    )
+    created_at = models.DateTimeField(help_text="When original content was created")
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='created_purged_content',
-        help_text="Who created the original content"
+        related_name="created_purged_content",
+        help_text="Who created the original content",
     )
 
     # File Metadata (for documents, NO file path/S3 key)
-    file_size_bytes = models.BigIntegerField(
-        null=True,
-        blank=True,
-        help_text="Size of purged file (metadata only)"
-    )
+    file_size_bytes = models.BigIntegerField(null=True, blank=True, help_text="Size of purged file (metadata only)")
 
-    mime_type = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="MIME type of purged file (metadata only)"
-    )
+    mime_type = models.CharField(max_length=255, blank=True, help_text="MIME type of purged file (metadata only)")
 
     # Purge Information
-    purged_at = models.DateTimeField(
-        default=timezone.now,
-        db_index=True,
-        help_text="When content was purged"
-    )
+    purged_at = models.DateTimeField(default=timezone.now, db_index=True, help_text="When content was purged")
 
     purged_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='purged_content',
-        help_text="Master Admin who authorized purge"
+        related_name="purged_content",
+        help_text="Master Admin who authorized purge",
     )
 
-    purge_reason_category = models.CharField(
-        max_length=50,
-        choices=REASON_CHOICES,
-        help_text="Legal basis for purge"
-    )
+    purge_reason_category = models.CharField(max_length=50, choices=REASON_CHOICES, help_text="Legal basis for purge")
 
-    purge_reason_detail = models.TextField(
-        help_text="Detailed explanation for purge (e.g., ticket number, legal case)"
-    )
+    purge_reason_detail = models.TextField(help_text="Detailed explanation for purge (e.g., ticket number, legal case)")
 
     # Legal Documentation
     legal_reference = models.CharField(
-        max_length=500,
-        blank=True,
-        help_text="Reference to legal documentation (case number, request ID, etc.)"
+        max_length=500, blank=True, help_text="Reference to legal documentation (case number, request ID, etc.)"
     )
 
     confirmation_token = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Confirmation token from Master Admin approval"
+        max_length=100, blank=True, help_text="Confirmation token from Master Admin approval"
     )
 
     # Audit Trail
-    audit_event_id = models.BigIntegerField(
-        null=True,
-        blank=True,
-        help_text="Link to audit event for this purge"
-    )
+    audit_event_id = models.BigIntegerField(null=True, blank=True, help_text="Link to audit event for this purge")
 
     # Signature Preservation (if content was signed)
-    was_signed = models.BooleanField(
-        default=False,
-        help_text="Whether content had a signature before purge"
-    )
+    was_signed = models.BooleanField(default=False, help_text="Whether content had a signature before purge")
 
     signature_metadata = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="Preserved signature metadata (who, when, version hash - NO CONTENT)"
+        default=dict, blank=True, help_text="Preserved signature metadata (who, when, version hash - NO CONTENT)"
     )
 
     class Meta:
-        db_table = 'core_purged_content'
-        ordering = ['-purged_at']
+        db_table = "core_purged_content"
+        ordering = ["-purged_at"]
         indexes = [
-            models.Index(fields=['firm', 'content_type', '-purged_at']),
-            models.Index(fields=['original_model', 'original_id']),
-            models.Index(fields=['purged_by', '-purged_at']),
+            models.Index(fields=["firm", "content_type", "-purged_at"]),
+            models.Index(fields=["original_model", "original_id"]),
+            models.Index(fields=["purged_by", "-purged_at"]),
         ]
         permissions = [
-            ('can_purge_content', 'Can purge customer content (Master Admin only)'),
+            ("can_purge_content", "Can purge customer content (Master Admin only)"),
         ]
 
     def __str__(self):
@@ -253,10 +207,7 @@ class PurgedContent(models.Model):
 
         Tombstones must be retained for legal compliance.
         """
-        raise ValidationError(
-            "Purge tombstones cannot be deleted. "
-            "They must be retained for legal compliance."
-        )
+        raise ValidationError("Purge tombstones cannot be deleted. " "They must be retained for legal compliance.")
 
 
 class PurgeHelper:
@@ -283,7 +234,7 @@ class PurgeHelper:
         purged_by,
         reason_category,
         reason_detail,
-        legal_reference='',
+        legal_reference="",
         signature_metadata=None,
     ):
         """
@@ -306,7 +257,7 @@ class PurgeHelper:
             ValidationError: If required fields missing
         """
         # Verify permissions
-        if not hasattr(obj, 'firm'):
+        if not hasattr(obj, "firm"):
             raise ValidationError(f"{obj.__class__.__name__} must have a firm attribute")
 
         firm = obj.firm
@@ -319,22 +270,22 @@ class PurgeHelper:
             )
 
         # Collect metadata before purge
-        created_at = getattr(obj, 'created_at', timezone.now())
-        created_by = getattr(obj, 'created_by', None) or getattr(obj, 'author', None)
-        file_size = getattr(obj, 'file_size', None)
-        mime_type = getattr(obj, 'mime_type', None) or getattr(obj, 'content_type', None)
+        created_at = getattr(obj, "created_at", timezone.now())
+        created_by = getattr(obj, "created_by", None) or getattr(obj, "author", None)
+        file_size = getattr(obj, "file_size", None)
+        mime_type = getattr(obj, "mime_type", None) or getattr(obj, "content_type", None)
 
         # Check for signatures
         was_signed = False
         if signature_metadata is None:
             signature_metadata = {}
             # Check for signature fields
-            if hasattr(obj, 'signed_at') and obj.signed_at:
+            if hasattr(obj, "signed_at") and obj.signed_at:
                 was_signed = True
                 signature_metadata = {
-                    'signed_at': str(obj.signed_at),
-                    'signed_by_email': getattr(obj.signed_by, 'email', None) if hasattr(obj, 'signed_by') else None,
-                    'version_hash': getattr(obj, 'version_hash', None),
+                    "signed_at": str(obj.signed_at),
+                    "signed_by_email": getattr(obj.signed_by, "email", None) if hasattr(obj, "signed_by") else None,
+                    "version_hash": getattr(obj, "version_hash", None),
                 }
 
         # Create tombstone BEFORE purging content
@@ -356,75 +307,69 @@ class PurgeHelper:
         )
 
         # Create audit event
-        from modules.firm.audit import audit, AuditEvent
+        from modules.firm.audit import audit
 
         audit_event = audit.log_purge_event(
             firm=firm,
-            action=f'{content_type}_content_purged',
+            action=f"{content_type}_content_purged",
             actor=purged_by,
             target_model=tombstone.original_model,
             target_id=tombstone.original_id,
             reason=reason_detail,
             metadata={
-                'tombstone_id': tombstone.id,
-                'reason_category': reason_category,
-                'legal_reference': legal_reference,
-                'was_signed': was_signed,
-            }
+                "tombstone_id": tombstone.id,
+                "reason_category": reason_category,
+                "legal_reference": legal_reference,
+                "was_signed": was_signed,
+            },
         )
 
         # Link audit event to tombstone
         tombstone.audit_event_id = audit_event.id
-        tombstone.save(update_fields=['audit_event_id'])
+        tombstone.save(update_fields=["audit_event_id"])
 
         # Purge the actual content
         # For documents: delete S3 file (TIER 4)
-        if hasattr(obj, 's3_key') and obj.s3_key:
+        if hasattr(obj, "s3_key") and obj.s3_key:
             try:
                 import boto3
                 from django.conf import settings
 
-                s3_client = boto3.client('s3')
-                bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', None)
+                s3_client = boto3.client("s3")
+                bucket = getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
 
                 if bucket:
-                    s3_client.delete_object(
-                        Bucket=bucket,
-                        Key=obj.s3_key
-                    )
+                    s3_client.delete_object(Bucket=bucket, Key=obj.s3_key)
                     # Also delete any versioned copies if versioning is enabled
                     # This ensures complete purge for legal compliance
                 else:
                     # Log warning if S3 is not configured
                     import logging
+
                     logger = logging.getLogger(__name__)
-                    logger.warning(
-                        f"S3 bucket not configured. Cannot delete S3 object: {obj.s3_key}"
-                    )
+                    logger.warning(f"S3 bucket not configured. Cannot delete S3 object: {obj.s3_key}")
             except Exception as e:
                 # Log error but don't fail the purge
                 # The tombstone records that purge was attempted
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.error(
-                    f"Failed to delete S3 object {obj.s3_key}: {e}. "
-                    f"Continuing with content field purge."
-                )
+                logger.error(f"Failed to delete S3 object {obj.s3_key}: {e}. " f"Continuing with content field purge.")
 
         # Clear content fields (keep metadata)
-        if hasattr(obj, 'content'):
-            obj.content = '[PURGED]'
-        if hasattr(obj, 'text'):
-            obj.text = '[PURGED]'
-        if hasattr(obj, 'body'):
-            obj.body = '[PURGED]'
-        if hasattr(obj, 's3_key'):
-            obj.s3_key = ''
-        if hasattr(obj, 'file_path'):
-            obj.file_path = ''
+        if hasattr(obj, "content"):
+            obj.content = "[PURGED]"
+        if hasattr(obj, "text"):
+            obj.text = "[PURGED]"
+        if hasattr(obj, "body"):
+            obj.body = "[PURGED]"
+        if hasattr(obj, "s3_key"):
+            obj.s3_key = ""
+        if hasattr(obj, "file_path"):
+            obj.file_path = ""
 
         # Mark as purged
-        if not hasattr(obj, 'purged_at'):
+        if not hasattr(obj, "purged_at"):
             # Add purged_at field dynamically if needed
             # In production, models should have this field
             pass
@@ -436,7 +381,7 @@ class PurgeHelper:
         return tombstone
 
     @staticmethod
-    def purge_document(document, purged_by, reason_category, reason_detail, legal_reference=''):
+    def purge_document(document, purged_by, reason_category, reason_detail, legal_reference=""):
         """Purge a Document."""
         return PurgeHelper.purge_content(
             obj=document,
@@ -448,7 +393,7 @@ class PurgeHelper:
         )
 
     @staticmethod
-    def purge_message(message, purged_by, reason_category, reason_detail, legal_reference=''):
+    def purge_message(message, purged_by, reason_category, reason_detail, legal_reference=""):
         """Purge a Message."""
         return PurgeHelper.purge_content(
             obj=message,
@@ -460,7 +405,7 @@ class PurgeHelper:
         )
 
     @staticmethod
-    def purge_comment(comment, purged_by, reason_category, reason_detail, legal_reference=''):
+    def purge_comment(comment, purged_by, reason_category, reason_detail, legal_reference=""):
         """Purge a Comment."""
         return PurgeHelper.purge_content(
             obj=comment,
@@ -472,7 +417,7 @@ class PurgeHelper:
         )
 
     @staticmethod
-    def purge_note(note, purged_by, reason_category, reason_detail, legal_reference=''):
+    def purge_note(note, purged_by, reason_category, reason_detail, legal_reference=""):
         """Purge a Note."""
         return PurgeHelper.purge_content(
             obj=note,

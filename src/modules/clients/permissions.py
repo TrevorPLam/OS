@@ -9,7 +9,9 @@ These permission classes implement portal containment (default-deny):
 TIER 0 REQUIREMENT: Portal users must be fully contained.
 TIER 2.6 REQUIREMENT: Cross-client access allowed ONLY within same organization.
 """
+
 from rest_framework.permissions import BasePermission
+
 from modules.clients.models import ClientPortalUser, Organization
 
 
@@ -90,7 +92,7 @@ class PortalUserHasPermission(BasePermission):
             return False
 
         # Get the required permission from the view
-        permission_required = getattr(view, 'portal_permission_required', None)
+        permission_required = getattr(view, "portal_permission_required", None)
         if not permission_required:
             # No specific permission required - check if firm user
             try:
@@ -136,14 +138,14 @@ class DenyPortalAccess(BasePermission):
 # TIER 0: Portal endpoint allowlist
 # These are the ONLY ViewSet classes that portal users can access
 PORTAL_ALLOWED_VIEWSETS = {
-    'ClientProjectViewSet',
-    'ClientCommentViewSet',
-    'ClientInvoiceViewSet',
-    'ClientChatThreadViewSet',
-    'ClientMessageViewSet',
-    'ClientProposalViewSet',
-    'ClientContractViewSet',
-    'ClientEngagementHistoryViewSet',
+    "ClientProjectViewSet",
+    "ClientCommentViewSet",
+    "ClientInvoiceViewSet",
+    "ClientChatThreadViewSet",
+    "ClientMessageViewSet",
+    "ClientProposalViewSet",
+    "ClientContractViewSet",
+    "ClientEngagementHistoryViewSet",
 }
 
 
@@ -232,11 +234,11 @@ class HasOrganizationAccess(BasePermission):
             return obj
 
         # If object has organization FK
-        if hasattr(obj, 'organization'):
+        if hasattr(obj, "organization"):
             return obj.organization
 
         # If object is a Client with organization
-        if hasattr(obj, 'client') and hasattr(obj.client, 'organization'):
+        if hasattr(obj, "client") and hasattr(obj.client, "organization"):
             return obj.client.organization
 
         return None
@@ -276,7 +278,7 @@ class RequiresSameOrganization(BasePermission):
             if not portal_user.client.organization:
                 # Portal user has no organization - can only see own client data
                 # Check if object belongs to their client
-                if hasattr(obj, 'client'):
+                if hasattr(obj, "client"):
                     return obj.client_id == portal_user.client_id
                 return False
 
@@ -284,7 +286,7 @@ class RequiresSameOrganization(BasePermission):
             obj_organization = self._get_organization_from_object(obj)
             if not obj_organization:
                 # Object has no organization - deny cross-client access
-                if hasattr(obj, 'client'):
+                if hasattr(obj, "client"):
                     return obj.client_id == portal_user.client_id
                 return False
 
@@ -294,7 +296,7 @@ class RequiresSameOrganization(BasePermission):
 
             if not obj_organization.enable_cross_client_visibility:
                 # Cross-client visibility disabled - can only see own client
-                if hasattr(obj, 'client'):
+                if hasattr(obj, "client"):
                     return obj.client_id == portal_user.client_id
                 return False
 
@@ -312,11 +314,11 @@ class RequiresSameOrganization(BasePermission):
             return obj
 
         # If object has organization FK
-        if hasattr(obj, 'organization'):
+        if hasattr(obj, "organization"):
             return obj.organization
 
         # If object is related to a Client with organization
-        if hasattr(obj, 'client') and hasattr(obj.client, 'organization'):
+        if hasattr(obj, "client") and hasattr(obj.client, "organization"):
             return obj.client.organization
 
         return None

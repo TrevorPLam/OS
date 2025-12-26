@@ -5,14 +5,17 @@ TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 TIER 2: All ViewSets have explicit permission classes.
 TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 """
-from rest_framework import viewsets, filters
-from rest_framework.permissions import IsAuthenticated
+
 from django_filters.rest_framework import DjangoFilterBackend
-from modules.clients.permissions import DenyPortalAccess
-from modules.assets.models import Asset, MaintenanceLog
-from modules.firm.utils import FirmScopedMixin
+from rest_framework import filters, viewsets
+from rest_framework.permissions import IsAuthenticated
+
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
+from modules.assets.models import Asset, MaintenanceLog
+from modules.clients.permissions import DenyPortalAccess
+from modules.firm.utils import FirmScopedMixin
+
 from .serializers import AssetSerializer, MaintenanceLogSerializer
 
 
@@ -22,19 +25,20 @@ class AssetViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = Asset
     serializer_class = AssetSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category', 'status', 'assigned_to']
-    search_fields = ['asset_tag', 'name', 'serial_number', 'manufacturer']
-    ordering_fields = ['asset_tag', 'name', 'purchase_date']
-    ordering = ['-created_at']
+    filterset_fields = ["category", "status", "assigned_to"]
+    search_fields = ["asset_tag", "name", "serial_number", "manufacturer"]
+    ordering_fields = ["asset_tag", "name", "purchase_date"]
+    ordering = ["-created_at"]
 
     def get_queryset(self):
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
-        return base_queryset.select_related('assigned_to')
+        return base_queryset.select_related("assigned_to")
 
 
 class MaintenanceLogViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -43,16 +47,17 @@ class MaintenanceLogViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVi
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
+
     model = MaintenanceLog
     serializer_class = MaintenanceLogSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ['asset', 'maintenance_type', 'status']
-    search_fields = ['description']
-    ordering_fields = ['scheduled_date', 'created_at']
-    ordering = ['-scheduled_date', '-created_at']
+    filterset_fields = ["asset", "maintenance_type", "status"]
+    search_fields = ["description"]
+    ordering_fields = ["scheduled_date", "created_at"]
+    ordering = ["-scheduled_date", "-created_at"]
 
     def get_queryset(self):
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
-        return base_queryset.select_related('asset', 'created_by')
+        return base_queryset.select_related("asset", "created_by")

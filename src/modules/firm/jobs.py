@@ -1,10 +1,11 @@
 """Background job handlers with explicit tenant guards."""
+
 from django.utils import timezone
 
-from job_guards import require_firm_for_job, require_client_for_job
-from modules.firm.utils import expire_overdue_break_glass_sessions
+from job_guards import require_client_for_job, require_firm_for_job
 from modules.firm.export import export_firm_data, resolve_requested_by
 from modules.firm.models import FirmOffboardingRecord
+from modules.firm.utils import expire_overdue_break_glass_sessions
 
 
 def expire_overdue_break_glass_sessions_job(*, firm_id=None):
@@ -33,17 +34,17 @@ def firm_offboarding_export_job(*, firm_id=None, requested_by_id=None, retention
     record = FirmOffboardingRecord.objects.create(
         firm=firm,
         requested_by=requested_by,
-        retention_days=payload['retention']['retention_days'],
-        purge_grace_days=payload['retention']['purge_grace_days'],
-        export_completed_at=payload['generated_at'],
-        retention_expires_at=payload['retention']['retention_expires_at'],
-        purge_scheduled_at=payload['retention']['purge_scheduled_at'],
-        export_manifest=payload['manifest'],
-        integrity_report=payload['integrity'],
-        export_checksum=payload['checksum'],
+        retention_days=payload["retention"]["retention_days"],
+        purge_grace_days=payload["retention"]["purge_grace_days"],
+        export_completed_at=payload["generated_at"],
+        retention_expires_at=payload["retention"]["retention_expires_at"],
+        purge_scheduled_at=payload["retention"]["purge_scheduled_at"],
+        export_manifest=payload["manifest"],
+        integrity_report=payload["integrity"],
+        export_checksum=payload["checksum"],
         status=(
             FirmOffboardingRecord.STATUS_EXPORTED
-            if payload['integrity']['status'] == 'ok'
+            if payload["integrity"]["status"] == "ok"
             else FirmOffboardingRecord.STATUS_FAILED
         ),
     )
@@ -68,6 +69,6 @@ def firm_offboarding_purge_job(*, firm_id=None, record_id=None):
     record.purge_completed_at = timezone.now()
     record.save()
 
-    firm.status = 'canceled'
-    firm.save(update_fields=['status'])
+    firm.status = "canceled"
+    firm.save(update_fields=["status"])
     return {"record_id": record.id, "status": record.status}

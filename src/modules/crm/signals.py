@@ -7,11 +7,14 @@ Implements business logic and automatic state transitions:
 - Auto-create contracts from accepted proposals
 - Validate business rules
 """
-from django.db.models.signals import pre_save, post_save
+
+import logging
+
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Proposal, Contract
-import logging
+
+from .models import Contract, Proposal
 
 logger = logging.getLogger(__name__)
 
@@ -38,22 +41,23 @@ def proposal_status_workflow(sender, instance, **kwargs):
                 )
 
                 # Auto-set sent_at when status changes to 'sent'
-                if instance.status == 'sent' and not instance.sent_at:
+                if instance.status == "sent" and not instance.sent_at:
                     instance.sent_at = timezone.now()
                     logger.info(f"Auto-set sent_at for proposal {instance.proposal_number}")
 
                     # Send notification when proposal is sent
-                    if old_instance.status == 'draft':
+                    if old_instance.status == "draft":
                         from modules.core.notifications import EmailNotification
+
                         EmailNotification.send_proposal_sent(instance)
 
                 # Auto-set accepted_at when status changes to 'accepted'
-                if instance.status == 'accepted' and not instance.accepted_at:
+                if instance.status == "accepted" and not instance.accepted_at:
                     instance.accepted_at = timezone.now()
                     logger.info(f"Auto-set accepted_at for proposal {instance.proposal_number}")
 
                 # Clear accepted_at if status changes away from 'accepted'
-                if old_instance.status == 'accepted' and instance.status != 'accepted':
+                if old_instance.status == "accepted" and instance.status != "accepted":
                     instance.accepted_at = None
                     logger.info(f"Cleared accepted_at for proposal {instance.proposal_number}")
 
@@ -70,13 +74,14 @@ def proposal_accepted_notification(sender, instance, created, **kwargs):
     - Sales team member who created the proposal
     - Account manager (if assigned)
     """
-    if not created and instance.status == 'accepted':
+    if not created and instance.status == "accepted":
         logger.info(
             f"🎉 Proposal {instance.proposal_number} accepted! "
             f"Value: {instance.estimated_value} {instance.currency}"
         )
         # Send email notification
         from modules.core.notifications import EmailNotification
+
         EmailNotification.send_proposal_accepted(instance)
 
 
@@ -101,18 +106,17 @@ def contract_status_workflow(sender, instance, **kwargs):
                 )
 
                 # Ensure signed_date is set when activating contract
-                if instance.status == 'active' and not instance.signed_date:
+                if instance.status == "active" and not instance.signed_date:
                     instance.signed_date = timezone.now().date()
                     logger.warning(
-                        f"Auto-set signed_date for contract {instance.contract_number} "
-                        f"(should be set manually)"
+                        f"Auto-set signed_date for contract {instance.contract_number} " f"(should be set manually)"
                     )
 
                 # Log important transitions
-                if instance.status == 'cancelled':
+                if instance.status == "cancelled":
                     logger.warning(f"Contract {instance.contract_number} cancelled")
 
-                if instance.status == 'completed':
+                if instance.status == "completed":
                     logger.info(
                         f"Contract {instance.contract_number} completed. "
                         f"Duration: {instance.start_date} to {instance.end_date}"
@@ -137,7 +141,7 @@ def contract_activation_notification(sender, instance, created, **kwargs):
     - Account manager
     - Finance team (for billing setup)
     """
-    if not created and instance.status == 'active':
+    if not created and instance.status == "active":
         logger.info(
             f"📋 Contract {instance.contract_number} activated! "
             f"Value: {instance.total_value} {instance.currency}, "
@@ -152,6 +156,7 @@ def contract_activation_notification(sender, instance, created, **kwargs):
 
         # Send email notification
         from modules.core.notifications import EmailNotification
+
         EmailNotification.send_contract_activated(instance)
 
 
@@ -179,10 +184,10 @@ def _create_project_from_contract(contract):
     project_code = f"PRJ-{contract.contract_number}"
 
     # Determine billing type from contract payment terms
-    billing_type = 'fixed_price'  # Default
-    if contract.payment_terms == 'milestone':
-        billing_type = 'fixed_price'
-    elif hasattr(contract, 'billing_type'):
+    billing_type = "fixed_price"  # Default
+    if contract.payment_terms == "milestone":
+        billing_type = "fixed_price"
+    elif hasattr(contract, "billing_type"):
         billing_type = contract.billing_type
 
     # Create the project
@@ -193,17 +198,15 @@ def _create_project_from_contract(contract):
         project_code=project_code,
         name=contract.title,
         description=contract.description,
-        status='planning',
+        status="planning",
         billing_type=billing_type,
         budget=contract.total_value,
         start_date=contract.start_date,
         end_date=contract.end_date,
-        notes=f"Auto-created from contract {contract.contract_number}"
+        notes=f"Auto-created from contract {contract.contract_number}",
     )
 
-    logger.info(
-        f"✅ Created project {project.project_code} from contract {contract.contract_number}"
-    )
+    logger.info(f"✅ Created project {project.project_code} from contract {contract.contract_number}")
 
     return project
 
@@ -219,12 +222,7 @@ def _enable_client_portal(contract):
 
     if not client.portal_enabled:
         client.portal_enabled = True
-        client.save(update_fields=['portal_enabled'])
-        logger.info(
-            f"✅ Enabled client portal for {client.company_name} "
-            f"(contract {contract.contract_number})"
-        )
+        client.save(update_fields=["portal_enabled"])
+        logger.info(f"✅ Enabled client portal for {client.company_name} " f"(contract {contract.contract_number})")
     else:
-        logger.info(
-            f"Client portal already enabled for {client.company_name}"
-        )
+        logger.info(f"Client portal already enabled for {client.company_name}")

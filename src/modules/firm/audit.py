@@ -16,11 +16,11 @@ Meta-commentary:
 - All audit events are tenant-scoped (firm_id required)
 - Content is never logged (metadata only, privacy-first)
 """
-from django.db import models
+
 from django.conf import settings
-from django.utils import timezone
 from django.core.exceptions import ValidationError
-import json
+from django.db import models
+from django.utils import timezone
 
 
 class AuditEvent(models.Model):
@@ -42,35 +42,35 @@ class AuditEvent(models.Model):
     """
 
     # Event Categories (as per TODO requirements)
-    CATEGORY_AUTH = 'AUTH'
-    CATEGORY_PERMISSIONS = 'PERMISSIONS'
-    CATEGORY_BREAK_GLASS = 'BREAK_GLASS'
-    CATEGORY_BILLING_METADATA = 'BILLING_METADATA'
-    CATEGORY_PURGE = 'PURGE'
-    CATEGORY_CONFIG = 'CONFIG'
-    CATEGORY_DATA_ACCESS = 'DATA_ACCESS'
-    CATEGORY_SYSTEM = 'SYSTEM'
+    CATEGORY_AUTH = "AUTH"
+    CATEGORY_PERMISSIONS = "PERMISSIONS"
+    CATEGORY_BREAK_GLASS = "BREAK_GLASS"
+    CATEGORY_BILLING_METADATA = "BILLING_METADATA"
+    CATEGORY_PURGE = "PURGE"
+    CATEGORY_CONFIG = "CONFIG"
+    CATEGORY_DATA_ACCESS = "DATA_ACCESS"
+    CATEGORY_SYSTEM = "SYSTEM"
 
     CATEGORY_CHOICES = [
-        (CATEGORY_AUTH, 'Authentication & Authorization'),
-        (CATEGORY_PERMISSIONS, 'Permission Changes'),
-        (CATEGORY_BREAK_GLASS, 'Break-Glass Access'),
-        (CATEGORY_BILLING_METADATA, 'Billing Metadata'),
-        (CATEGORY_PURGE, 'Content Purge'),
-        (CATEGORY_CONFIG, 'Configuration Changes'),
-        (CATEGORY_DATA_ACCESS, 'Data Access'),
-        (CATEGORY_SYSTEM, 'System Events'),
+        (CATEGORY_AUTH, "Authentication & Authorization"),
+        (CATEGORY_PERMISSIONS, "Permission Changes"),
+        (CATEGORY_BREAK_GLASS, "Break-Glass Access"),
+        (CATEGORY_BILLING_METADATA, "Billing Metadata"),
+        (CATEGORY_PURGE, "Content Purge"),
+        (CATEGORY_CONFIG, "Configuration Changes"),
+        (CATEGORY_DATA_ACCESS, "Data Access"),
+        (CATEGORY_SYSTEM, "System Events"),
     ]
 
     # Severity Levels
-    SEVERITY_INFO = 'INFO'
-    SEVERITY_WARNING = 'WARNING'
-    SEVERITY_CRITICAL = 'CRITICAL'
+    SEVERITY_INFO = "INFO"
+    SEVERITY_WARNING = "WARNING"
+    SEVERITY_CRITICAL = "CRITICAL"
 
     SEVERITY_CHOICES = [
-        (SEVERITY_INFO, 'Informational'),
-        (SEVERITY_WARNING, 'Warning - Requires Review'),
-        (SEVERITY_CRITICAL, 'Critical - Immediate Review Required'),
+        (SEVERITY_INFO, "Informational"),
+        (SEVERITY_WARNING, "Warning - Requires Review"),
+        (SEVERITY_CRITICAL, "Critical - Immediate Review Required"),
     ]
 
     # Core Fields (required for all events)
@@ -78,24 +78,21 @@ class AuditEvent(models.Model):
 
     # Tenant Context (REQUIRED for tenant isolation)
     firm = models.ForeignKey(
-        'firm.Firm',
+        "firm.Firm",
         on_delete=models.PROTECT,  # Never delete audit records
-        related_name='audit_events',
-        help_text="Firm (tenant) this event belongs to"
+        related_name="audit_events",
+        help_text="Firm (tenant) this event belongs to",
     )
 
     # Event Classification
     category = models.CharField(
-        max_length=50,
-        choices=CATEGORY_CHOICES,
-        db_index=True,
-        help_text="Event category for filtering and review"
+        max_length=50, choices=CATEGORY_CHOICES, db_index=True, help_text="Event category for filtering and review"
     )
 
     action = models.CharField(
         max_length=255,
         db_index=True,
-        help_text="Specific action taken (e.g., 'login_failed', 'purge_document', 'break_glass_activated')"
+        help_text="Specific action taken (e.g., 'login_failed', 'purge_document', 'break_glass_activated')",
     )
 
     severity = models.CharField(
@@ -103,7 +100,7 @@ class AuditEvent(models.Model):
         choices=SEVERITY_CHOICES,
         default=SEVERITY_INFO,
         db_index=True,
-        help_text="Event severity for prioritization"
+        help_text="Event severity for prioritization",
     )
 
     # Actor (who performed the action)
@@ -112,90 +109,49 @@ class AuditEvent(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='audit_events_as_actor',
-        help_text="User who performed the action (null for system events)"
+        related_name="audit_events_as_actor",
+        help_text="User who performed the action (null for system events)",
     )
 
-    actor_email = models.EmailField(
-        blank=True,
-        help_text="Email at time of action (preserved even if user deleted)"
-    )
+    actor_email = models.EmailField(blank=True, help_text="Email at time of action (preserved even if user deleted)")
 
-    actor_role = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="User's role at time of action"
-    )
+    actor_role = models.CharField(max_length=50, blank=True, help_text="User's role at time of action")
 
     # Target (what was acted upon)
     target_model = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Model name of target object (e.g., 'Client', 'Document')"
+        max_length=100, blank=True, help_text="Model name of target object (e.g., 'Client', 'Document')"
     )
 
-    target_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="ID of target object"
-    )
+    target_id = models.CharField(max_length=255, blank=True, help_text="ID of target object")
 
     target_repr = models.CharField(
-        max_length=500,
-        blank=True,
-        help_text="Human-readable representation of target (no sensitive data)"
+        max_length=500, blank=True, help_text="Human-readable representation of target (no sensitive data)"
     )
 
     # Event Details
-    timestamp = models.DateTimeField(
-        default=timezone.now,
-        db_index=True,
-        help_text="When the event occurred"
-    )
+    timestamp = models.DateTimeField(default=timezone.now, db_index=True, help_text="When the event occurred")
 
-    reason = models.TextField(
-        blank=True,
-        help_text="Reason for action (required for break-glass, purge, etc.)"
-    )
+    reason = models.TextField(blank=True, help_text="Reason for action (required for break-glass, purge, etc.)")
 
     outcome = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Result of action (e.g., 'success', 'denied', 'failed')"
+        max_length=50, blank=True, help_text="Result of action (e.g., 'success', 'denied', 'failed')"
     )
 
     # Metadata (JSON for extensibility, NO CUSTOMER CONTENT)
     metadata = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="Additional context (metadata only, never customer content)"
+        default=dict, blank=True, help_text="Additional context (metadata only, never customer content)"
     )
 
     # Request Context
-    ip_address = models.GenericIPAddressField(
-        null=True,
-        blank=True,
-        help_text="IP address of request"
-    )
+    ip_address = models.GenericIPAddressField(null=True, blank=True, help_text="IP address of request")
 
-    user_agent = models.CharField(
-        max_length=500,
-        blank=True,
-        help_text="User agent string"
-    )
+    user_agent = models.CharField(max_length=500, blank=True, help_text="User agent string")
 
-    request_id = models.CharField(
-        max_length=100,
-        blank=True,
-        db_index=True,
-        help_text="Request ID for correlation"
-    )
+    request_id = models.CharField(max_length=100, blank=True, db_index=True, help_text="Request ID for correlation")
 
     # Review Tracking
     reviewed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When this event was reviewed (for anomaly detection)"
+        null=True, blank=True, help_text="When this event was reviewed (for anomaly detection)"
     )
 
     reviewed_by = models.ForeignKey(
@@ -203,27 +159,24 @@ class AuditEvent(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='audit_events_reviewed',
-        help_text="Who reviewed this event"
+        related_name="audit_events_reviewed",
+        help_text="Who reviewed this event",
     )
 
-    review_notes = models.TextField(
-        blank=True,
-        help_text="Notes from review"
-    )
+    review_notes = models.TextField(blank=True, help_text="Notes from review")
 
     class Meta:
-        db_table = 'firm_audit_events'
-        ordering = ['-timestamp']
+        db_table = "firm_audit_events"
+        ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=['firm', 'category', '-timestamp']),
-            models.Index(fields=['firm', 'actor', '-timestamp']),
-            models.Index(fields=['category', 'severity', '-timestamp']),
-            models.Index(fields=['firm', 'action', '-timestamp']),
+            models.Index(fields=["firm", "category", "-timestamp"]),
+            models.Index(fields=["firm", "actor", "-timestamp"]),
+            models.Index(fields=["category", "severity", "-timestamp"]),
+            models.Index(fields=["firm", "action", "-timestamp"]),
         ]
         permissions = [
-            ('review_audit_events', 'Can review audit events'),
-            ('export_audit_events', 'Can export audit events'),
+            ("review_audit_events", "Can review audit events"),
+            ("export_audit_events", "Can export audit events"),
         ]
 
     def __str__(self):
@@ -238,8 +191,7 @@ class AuditEvent(models.Model):
         """
         if self.pk is not None:
             raise ValidationError(
-                "Audit events are immutable and cannot be modified after creation. "
-                "Create a new audit event instead."
+                "Audit events are immutable and cannot be modified after creation. " "Create a new audit event instead."
             )
 
         # Auto-populate actor_email from actor if not set
@@ -255,8 +207,7 @@ class AuditEvent(models.Model):
         Audit events must be retained per compliance requirements.
         """
         raise ValidationError(
-            "Audit events cannot be deleted. "
-            "If legal deletion is required, mark as purged via metadata."
+            "Audit events cannot be deleted. " "If legal deletion is required, mark as purged via metadata."
         )
 
 
@@ -285,14 +236,14 @@ class AuditEventManager:
         target_model=None,
         target_id=None,
         target_repr=None,
-        reason='',
-        outcome='',
+        reason="",
+        outcome="",
         severity=AuditEvent.SEVERITY_INFO,
         metadata=None,
         ip_address=None,
         user_agent=None,
         request_id=None,
-        actor_role='',
+        actor_role="",
     ):
         """
         Create an audit event with standard fields.
@@ -326,8 +277,8 @@ class AuditEventManager:
             action=action,
             actor=actor,
             target_model=target_model,
-            target_id=str(target_id) if target_id else '',
-            target_repr=target_repr or '',
+            target_id=str(target_id) if target_id else "",
+            target_repr=target_repr or "",
             reason=reason,
             outcome=outcome,
             severity=severity,
@@ -339,15 +290,10 @@ class AuditEventManager:
         )
 
     @staticmethod
-    def log_auth_event(firm, action, actor=None, outcome='success', **kwargs):
+    def log_auth_event(firm, action, actor=None, outcome="success", **kwargs):
         """Log authentication/authorization event."""
         return AuditEventManager.log_event(
-            firm=firm,
-            category=AuditEvent.CATEGORY_AUTH,
-            action=action,
-            actor=actor,
-            outcome=outcome,
-            **kwargs
+            firm=firm, category=AuditEvent.CATEGORY_AUTH, action=action, actor=actor, outcome=outcome, **kwargs
         )
 
     @staticmethod
@@ -367,7 +313,7 @@ class AuditEventManager:
             actor=actor,
             reason=reason,
             severity=AuditEvent.SEVERITY_CRITICAL,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -391,7 +337,7 @@ class AuditEventManager:
             target_id=target_id,
             reason=reason,
             severity=AuditEvent.SEVERITY_CRITICAL,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -405,18 +351,14 @@ class AuditEventManager:
             target_model=target_model,
             target_id=target_id,
             severity=AuditEvent.SEVERITY_WARNING,
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
     def log_billing_event(firm, action, actor=None, **kwargs):
         """Log billing metadata event."""
         return AuditEventManager.log_event(
-            firm=firm,
-            category=AuditEvent.CATEGORY_BILLING_METADATA,
-            action=action,
-            actor=actor,
-            **kwargs
+            firm=firm, category=AuditEvent.CATEGORY_BILLING_METADATA, action=action, actor=actor, **kwargs
         )
 
     @staticmethod
@@ -428,7 +370,7 @@ class AuditEventManager:
             action=action,
             actor=actor,
             severity=AuditEvent.SEVERITY_WARNING,
-            **kwargs
+            **kwargs,
         )
 
 

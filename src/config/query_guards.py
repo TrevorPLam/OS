@@ -1,6 +1,7 @@
 """
 Query guardrails for API endpoints.
 """
+
 from contextlib import contextmanager
 
 from django.conf import settings

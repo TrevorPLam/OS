@@ -8,13 +8,16 @@ Implements basic accounting for management consulting:
 
 TIER 0: All financial records MUST belong to exactly one Firm for tenant isolation.
 """
-from django.conf import settings
-from django.db import models
-from django.core.validators import MinValueValidator
-from django.utils import timezone
+
 from decimal import Decimal
-from modules.projects.models import Project
+
+from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils import timezone
+
 from modules.firm.utils import FirmScopedManager
+from modules.projects.models import Project
 
 
 class Invoice(models.Model):
@@ -27,61 +30,60 @@ class Invoice(models.Model):
     TIER 0: Belongs to a Firm through Client relationship.
     Direct firm FK included for efficient queries.
     """
+
     STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('sent', 'Sent to Client'),
-        ('paid', 'Paid'),
-        ('partial', 'Partially Paid'),
-        ('overdue', 'Overdue'),
-        ('cancelled', 'Cancelled'),
-        ('failed', 'Payment Failed'),
-        ('disputed', 'Under Dispute'),
-        ('refunded', 'Refunded'),
-        ('charged_back', 'Charged Back'),
+        ("draft", "Draft"),
+        ("sent", "Sent to Client"),
+        ("paid", "Paid"),
+        ("partial", "Partially Paid"),
+        ("overdue", "Overdue"),
+        ("cancelled", "Cancelled"),
+        ("failed", "Payment Failed"),
+        ("disputed", "Under Dispute"),
+        ("refunded", "Refunded"),
+        ("charged_back", "Charged Back"),
     ]
 
     # TIER 0: Firm tenancy (REQUIRED for efficient queries)
     firm = models.ForeignKey(
-        'firm.Firm',
+        "firm.Firm",
         on_delete=models.CASCADE,
-        related_name='invoices',
-        help_text="Firm (workspace) this invoice belongs to"
+        related_name="invoices",
+        help_text="Firm (workspace) this invoice belongs to",
     )
 
     # Relationships - UPDATED to reference clients.Client
     client = models.ForeignKey(
-        'clients.Client',
+        "clients.Client",
         on_delete=models.CASCADE,
-        related_name='invoices',
-        help_text="The post-sale client being invoiced"
+        related_name="invoices",
+        help_text="The post-sale client being invoiced",
     )
 
     # TIER 4: Link to Engagement (default, can be overridden by Master Admin)
     engagement = models.ForeignKey(
-        'clients.ClientEngagement',
+        "clients.ClientEngagement",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='invoices',
-        help_text="Engagement this invoice belongs to (Master Admin can override)"
+        related_name="invoices",
+        help_text="Engagement this invoice belongs to (Master Admin can override)",
     )
 
     # TIER 4: Override tracking for engagement linkage
     engagement_override = models.BooleanField(
-        default=False,
-        help_text="True if Master Admin overrode default engagement linkage"
+        default=False, help_text="True if Master Admin overrode default engagement linkage"
     )
     engagement_override_reason = models.TextField(
-        blank=True,
-        help_text="Reason for engagement override (required if overridden)"
+        blank=True, help_text="Reason for engagement override (required if overridden)"
     )
     engagement_override_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='invoice_engagement_overrides',
-        help_text="Master Admin who overrode engagement"
+        related_name="invoice_engagement_overrides",
+        help_text="Master Admin who overrode engagement",
     )
 
     project = models.ForeignKey(
@@ -89,180 +91,105 @@ class Invoice(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='invoices',
-        help_text="Optional: link to specific project"
+        related_name="invoices",
+        help_text="Optional: link to specific project",
     )
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='created_invoices'
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_invoices"
     )
 
     # Invoice Details
     invoice_number = models.CharField(max_length=50)  # TIER 0: Unique per firm (see Meta)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
 
     # Financial Amounts
-    subtotal = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.00'))]
-    )
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
     tax_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal('0.00'),
-        validators=[MinValueValidator(Decimal('0.00'))]
+        max_digits=12, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))]
     )
-    total_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
-    )
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
     amount_paid = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal('0.00'),
-        validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Total amount received from client"
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total amount received from client",
     )
-    currency = models.CharField(max_length=3, default='USD')
+    currency = models.CharField(max_length=3, default="USD")
 
     # Payment Terms
     issue_date = models.DateField()
     due_date = models.DateField()
-    payment_terms = models.CharField(
-        max_length=50,
-        default='Net 30',
-        help_text="e.g., Net 30, Due on Receipt"
-    )
+    payment_terms = models.CharField(max_length=50, default="Net 30", help_text="e.g., Net 30, Due on Receipt")
 
     # Package invoice scheduling (TIER 4)
-    period_start = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Start date for billing period (package invoices)"
-    )
-    period_end = models.DateField(
-        null=True,
-        blank=True,
-        help_text="End date for billing period (package invoices)"
-    )
-    is_auto_generated = models.BooleanField(
-        default=False,
-        help_text="True if invoice was generated by scheduler"
-    )
+    period_start = models.DateField(null=True, blank=True, help_text="Start date for billing period (package invoices)")
+    period_end = models.DateField(null=True, blank=True, help_text="End date for billing period (package invoices)")
+    is_auto_generated = models.BooleanField(default=False, help_text="True if invoice was generated by scheduler")
 
     # Milestone Billing (Medium Feature 2.3)
     milestone_reference = models.IntegerField(
-        null=True,
-        blank=True,
-        help_text="Index of milestone in project.milestones that triggered this invoice"
+        null=True, blank=True, help_text="Index of milestone in project.milestones that triggered this invoice"
     )
 
     # Dunning Workflow (Medium Feature 2.6)
     dunning_level = models.IntegerField(
         default=0,
-        help_text="Current dunning level (0=no reminders, 1=first reminder, 2=second, 3=final, 4=collections)"
+        help_text="Current dunning level (0=no reminders, 1=first reminder, 2=second, 3=final, 4=collections)",
     )
-    last_dunning_sent_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When last dunning reminder was sent"
-    )
+    last_dunning_sent_at = models.DateTimeField(null=True, blank=True, help_text="When last dunning reminder was sent")
     dunning_paused = models.BooleanField(
-        default=False,
-        help_text="Whether dunning reminders are paused for this invoice"
+        default=False, help_text="Whether dunning reminders are paused for this invoice"
     )
     dunning_pause_reason = models.TextField(
-        blank=True,
-        help_text="Reason for pausing dunning (e.g., payment plan agreed, dispute)"
+        blank=True, help_text="Reason for pausing dunning (e.g., payment plan agreed, dispute)"
     )
 
     # Payment Tracking
-    paid_date = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Date when invoice was fully paid"
-    )
+    paid_date = models.DateField(null=True, blank=True, help_text="Date when invoice was fully paid")
 
     # Payment failure/dispute metadata (TIER 4)
-    payment_failed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When payment attempt failed"
-    )
+    payment_failed_at = models.DateTimeField(null=True, blank=True, help_text="When payment attempt failed")
     payment_failure_reason = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Reason for payment failure (from processor)"
+        max_length=255, blank=True, help_text="Reason for payment failure (from processor)"
     )
-    payment_failure_code = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Processor error code"
-    )
-    payment_retry_count = models.IntegerField(
-        default=0,
-        help_text="Number of payment retry attempts"
-    )
+    payment_failure_code = models.CharField(max_length=50, blank=True, help_text="Processor error code")
+    payment_retry_count = models.IntegerField(default=0, help_text="Number of payment retry attempts")
     last_payment_retry_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When last payment retry was attempted"
+        null=True, blank=True, help_text="When last payment retry was attempted"
     )
 
     stripe_payment_intent_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Stripe Payment Intent ID for tracking"
+        max_length=255, blank=True, help_text="Stripe Payment Intent ID for tracking"
     )
 
     # Invoice Content
     line_items = models.JSONField(
-        default=list,
-        help_text="List of line items: [{description, quantity, rate, amount}, ...]"
+        default=list, help_text="List of line items: [{description, quantity, rate, amount}, ...]"
     )
-    notes = models.TextField(
-        blank=True,
-        help_text="Notes visible to client on invoice"
-    )
+    notes = models.TextField(blank=True, help_text="Notes visible to client on invoice")
 
     # Payment Integration
     stripe_invoice_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Stripe Invoice ID if using Stripe billing"
+        max_length=255, blank=True, help_text="Stripe Invoice ID if using Stripe billing"
     )
     autopay_opt_in = models.BooleanField(
-        default=False,
-        help_text="Whether this invoice should be automatically charged"
+        default=False, help_text="Whether this invoice should be automatically charged"
     )
     autopay_cadence = models.CharField(
-        max_length=20,
-        default='due_date',
-        help_text="Cadence for recurring autopay (monthly/quarterly/due_date)"
+        max_length=20, default="due_date", help_text="Cadence for recurring autopay (monthly/quarterly/due_date)"
     )
     autopay_payment_method_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Payment method to use for autopay (defaults to client setting)"
+        max_length=255, blank=True, help_text="Payment method to use for autopay (defaults to client setting)"
     )
     autopay_next_charge_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the next autopay attempt is scheduled"
+        null=True, blank=True, help_text="When the next autopay attempt is scheduled"
     )
-    autopay_last_attempt_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When autopay was last attempted"
-    )
+    autopay_last_attempt_at = models.DateTimeField(null=True, blank=True, help_text="When autopay was last attempted")
     autopay_status = models.CharField(
         max_length=20,
-        default='idle',
-        help_text="Autopay lifecycle status (idle, scheduled, processing, succeeded, failed, cancelled)"
+        default="idle",
+        help_text="Autopay lifecycle status (idle, scheduled, processing, succeeded, failed, cancelled)",
     )
 
     # Audit Fields
@@ -274,18 +201,18 @@ class Invoice(models.Model):
     firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
-        db_table = 'finance_invoices'
-        ordering = ['-issue_date', '-created_at']
+        db_table = "finance_invoices"
+        ordering = ["-issue_date", "-created_at"]
         indexes = [
-            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'client', 'status']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'invoice_number']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'due_date']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', '-issue_date']),  # TIER 0: Firm scoping
-            models.Index(fields=['engagement', 'period_start']),
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "invoice_number"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "due_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "-issue_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["engagement", "period_start"]),
         ]
         # TIER 0: Invoice numbers must be unique within a firm (not globally)
-        unique_together = [['firm', 'invoice_number'], ['engagement', 'period_start']]
+        unique_together = [["firm", "invoice_number"], ["engagement", "period_start"]]
 
     def save(self, *args, **kwargs):
         """
@@ -307,34 +234,28 @@ class Invoice(models.Model):
         # Invariant 3: Master Admin override validation
         if self.engagement_override:
             if not self.engagement_override_reason:
-                raise ValidationError(
-                    "Override reason required when engagement is overridden"
-                )
+                raise ValidationError("Override reason required when engagement is overridden")
             if not self.engagement_override_by_id:
-                raise ValidationError(
-                    "Override by (Master Admin) required when engagement is overridden"
-                )
+                raise ValidationError("Override by (Master Admin) required when engagement is overridden")
 
         # Invariant 2: Invoice should link to engagement (auto-link if not provided)
         if not self.engagement_id and not self.engagement_override and self.client_id:
             # Try to auto-link to active engagement
             from modules.clients.models import ClientEngagement
-            active_engagement = ClientEngagement.objects.filter(
-                client_id=self.client_id,
-                status='current'
-            ).first()
+
+            active_engagement = ClientEngagement.objects.filter(client_id=self.client_id, status="current").first()
 
             if active_engagement:
                 self.engagement = active_engagement
             else:
                 raise ValidationError(
-                    f"Client has no active engagement. Master Admin override required. "
-                    f"Set engagement_override=True, provide reason, and specify override_by."
+                    "Client has no active engagement. Master Admin override required. "
+                    "Set engagement_override=True, provide reason, and specify override_by."
                 )
 
         # Invariant 5: Validate time entry approval (TIER 4 billing gate)
         # Only check for existing invoices (pk is set)
-        if self.pk and self.status not in ['draft', 'cancelled']:
+        if self.pk and self.status not in ["draft", "cancelled"]:
             unapproved_entries = self.time_entries.filter(approved=False)
             if unapproved_entries.exists():
                 count = unapproved_entries.count()
@@ -354,7 +275,8 @@ class Invoice(models.Model):
     def is_overdue(self):
         """Check if invoice is overdue."""
         from django.utils import timezone
-        return self.status in ['sent', 'partial'] and self.due_date < timezone.now().date()
+
+        return self.status in ["sent", "partial"] and self.due_date < timezone.now().date()
 
     def get_package_revenue(self):
         """
@@ -363,10 +285,10 @@ class Invoice(models.Model):
         Returns:
             Decimal: Total amount from package fee line items
         """
-        total = Decimal('0.00')
+        total = Decimal("0.00")
         for item in self.line_items:
-            if item.get('type') == 'package_fee':
-                total += Decimal(str(item.get('amount', 0)))
+            if item.get("type") == "package_fee":
+                total += Decimal(str(item.get("amount", 0)))
         return total
 
     def get_hourly_revenue(self):
@@ -376,10 +298,10 @@ class Invoice(models.Model):
         Returns:
             Decimal: Total amount from hourly line items
         """
-        total = Decimal('0.00')
+        total = Decimal("0.00")
         for item in self.line_items:
-            if item.get('type') == 'hourly':
-                total += Decimal(str(item.get('amount', 0)))
+            if item.get("type") == "hourly":
+                total += Decimal(str(item.get("amount", 0)))
         return total
 
     def get_billing_breakdown(self):
@@ -404,29 +326,29 @@ class Invoice(models.Model):
         other_items = []
 
         for item in self.line_items:
-            item_type = item.get('type', 'other')
-            if item_type == 'package_fee':
+            item_type = item.get("type", "other")
+            if item_type == "package_fee":
                 package_items.append(item)
-            elif item_type == 'hourly':
+            elif item_type == "hourly":
                 hourly_items.append(item)
             else:
                 other_items.append(item)
 
-        package_revenue = sum(Decimal(str(item.get('amount', 0))) for item in package_items)
-        hourly_revenue = sum(Decimal(str(item.get('amount', 0))) for item in hourly_items)
-        other_revenue = sum(Decimal(str(item.get('amount', 0))) for item in other_items)
+        package_revenue = sum(Decimal(str(item.get("amount", 0))) for item in package_items)
+        hourly_revenue = sum(Decimal(str(item.get("amount", 0))) for item in hourly_items)
+        other_revenue = sum(Decimal(str(item.get("amount", 0))) for item in other_items)
 
         return {
-            'package_revenue': package_revenue,
-            'hourly_revenue': hourly_revenue,
-            'other_revenue': other_revenue,
-            'total_revenue': package_revenue + hourly_revenue + other_revenue,
-            'package_items': package_items,
-            'hourly_items': hourly_items,
-            'other_items': other_items,
-            'package_count': len(package_items),
-            'hourly_count': len(hourly_items),
-            'other_count': len(other_items),
+            "package_revenue": package_revenue,
+            "hourly_revenue": hourly_revenue,
+            "other_revenue": other_revenue,
+            "total_revenue": package_revenue + hourly_revenue + other_revenue,
+            "package_items": package_items,
+            "hourly_items": hourly_items,
+            "other_items": other_items,
+            "package_count": len(package_items),
+            "hourly_count": len(hourly_items),
+            "other_count": len(other_items),
         }
 
     def __str__(self):
@@ -442,102 +364,51 @@ class PaymentDispute(models.Model):
     """
 
     DISPUTE_STATUS_CHOICES = [
-        ('opened', 'Opened'),
-        ('under_review', 'Under Review'),
-        ('won', 'Won'),
-        ('lost', 'Lost'),
-        ('closed', 'Closed'),
+        ("opened", "Opened"),
+        ("under_review", "Under Review"),
+        ("won", "Won"),
+        ("lost", "Lost"),
+        ("closed", "Closed"),
     ]
 
     DISPUTE_REASON_CHOICES = [
-        ('fraudulent', 'Fraudulent'),
-        ('duplicate', 'Duplicate Charge'),
-        ('product_not_received', 'Product/Service Not Received'),
-        ('product_unacceptable', 'Product/Service Unacceptable'),
-        ('credit_not_processed', 'Credit Not Processed'),
-        ('general', 'General'),
+        ("fraudulent", "Fraudulent"),
+        ("duplicate", "Duplicate Charge"),
+        ("product_not_received", "Product/Service Not Received"),
+        ("product_unacceptable", "Product/Service Unacceptable"),
+        ("credit_not_processed", "Credit Not Processed"),
+        ("general", "General"),
     ]
 
     firm = models.ForeignKey(
-        'firm.Firm',
-        on_delete=models.CASCADE,
-        related_name='payment_disputes',
-        help_text="Firm this dispute belongs to"
+        "firm.Firm", on_delete=models.CASCADE, related_name="payment_disputes", help_text="Firm this dispute belongs to"
     )
     invoice = models.ForeignKey(
-        'Invoice',
-        on_delete=models.CASCADE,
-        related_name='disputes',
-        help_text="Invoice being disputed"
+        "Invoice", on_delete=models.CASCADE, related_name="disputes", help_text="Invoice being disputed"
     )
-    status = models.CharField(
-        max_length=20,
-        choices=DISPUTE_STATUS_CHOICES,
-        default='opened'
-    )
-    reason = models.CharField(
-        max_length=50,
-        choices=DISPUTE_REASON_CHOICES,
-        help_text="Reason for dispute"
-    )
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        help_text="Amount being disputed"
-    )
-    stripe_dispute_id = models.CharField(
-        max_length=255,
-        unique=True,
-        help_text="Stripe Dispute ID"
-    )
-    stripe_charge_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Stripe Charge ID"
-    )
+    status = models.CharField(max_length=20, choices=DISPUTE_STATUS_CHOICES, default="opened")
+    reason = models.CharField(max_length=50, choices=DISPUTE_REASON_CHOICES, help_text="Reason for dispute")
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount being disputed")
+    stripe_dispute_id = models.CharField(max_length=255, unique=True, help_text="Stripe Dispute ID")
+    stripe_charge_id = models.CharField(max_length=255, blank=True, help_text="Stripe Charge ID")
     opened_at = models.DateTimeField(help_text="When dispute was opened")
-    respond_by = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Deadline to respond to dispute"
-    )
-    closed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When dispute was closed"
-    )
-    evidence_submitted = models.BooleanField(
-        default=False,
-        help_text="Whether evidence was submitted to processor"
-    )
-    evidence_submitted_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When evidence was submitted"
-    )
-    resolution = models.CharField(
-        max_length=20,
-        blank=True,
-        help_text="Dispute resolution (won/lost)"
-    )
-    resolution_reason = models.TextField(
-        blank=True,
-        help_text="Reason for resolution (from processor)"
-    )
-    internal_notes = models.TextField(
-        blank=True,
-        help_text="Internal notes about dispute (platform use only)"
-    )
+    respond_by = models.DateTimeField(null=True, blank=True, help_text="Deadline to respond to dispute")
+    closed_at = models.DateTimeField(null=True, blank=True, help_text="When dispute was closed")
+    evidence_submitted = models.BooleanField(default=False, help_text="Whether evidence was submitted to processor")
+    evidence_submitted_at = models.DateTimeField(null=True, blank=True, help_text="When evidence was submitted")
+    resolution = models.CharField(max_length=20, blank=True, help_text="Dispute resolution (won/lost)")
+    resolution_reason = models.TextField(blank=True, help_text="Reason for resolution (from processor)")
+    internal_notes = models.TextField(blank=True, help_text="Internal notes about dispute (platform use only)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'finance_payment_dispute'
-        ordering = ['-opened_at']
+        db_table = "finance_payment_dispute"
+        ordering = ["-opened_at"]
         indexes = [
-            models.Index(fields=['firm', 'status', '-opened_at']),
-            models.Index(fields=['invoice', '-opened_at']),
-            models.Index(fields=['stripe_dispute_id']),
+            models.Index(fields=["firm", "status", "-opened_at"]),
+            models.Index(fields=["invoice", "-opened_at"]),
+            models.Index(fields=["stripe_dispute_id"]),
         ]
 
     def __str__(self):
@@ -562,118 +433,70 @@ class PaymentFailure(models.Model):
     """
 
     FAILURE_CODE_CHOICES = [
-        ('card_declined', 'Card Declined'),
-        ('insufficient_funds', 'Insufficient Funds'),
-        ('expired_card', 'Expired Card'),
-        ('incorrect_cvc', 'Incorrect CVC'),
-        ('processing_error', 'Processing Error'),
-        ('authentication_required', 'Authentication Required'),
-        ('network_error', 'Network Error'),
-        ('other', 'Other'),
+        ("card_declined", "Card Declined"),
+        ("insufficient_funds", "Insufficient Funds"),
+        ("expired_card", "Expired Card"),
+        ("incorrect_cvc", "Incorrect CVC"),
+        ("processing_error", "Processing Error"),
+        ("authentication_required", "Authentication Required"),
+        ("network_error", "Network Error"),
+        ("other", "Other"),
     ]
 
     firm = models.ForeignKey(
-        'firm.Firm',
-        on_delete=models.CASCADE,
-        related_name='payment_failures',
-        help_text="Firm this failure belongs to"
+        "firm.Firm", on_delete=models.CASCADE, related_name="payment_failures", help_text="Firm this failure belongs to"
     )
     invoice = models.ForeignKey(
-        'Invoice',
-        on_delete=models.CASCADE,
-        related_name='payment_failures',
-        help_text="Invoice that failed to pay"
+        "Invoice", on_delete=models.CASCADE, related_name="payment_failures", help_text="Invoice that failed to pay"
     )
     client = models.ForeignKey(
-        'clients.Client',
+        "clients.Client",
         on_delete=models.CASCADE,
-        related_name='payment_failures',
-        help_text="Client whose payment failed"
+        related_name="payment_failures",
+        help_text="Client whose payment failed",
     )
 
     # Payment Details
     amount_attempted = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        help_text="Amount that was attempted to charge"
+        max_digits=12, decimal_places=2, help_text="Amount that was attempted to charge"
     )
-    currency = models.CharField(max_length=3, default='USD')
+    currency = models.CharField(max_length=3, default="USD")
 
     # Failure Details
-    failure_code = models.CharField(
-        max_length=50,
-        choices=FAILURE_CODE_CHOICES,
-        help_text="Reason code for failure"
-    )
-    failure_message = models.TextField(
-        help_text="Human-readable failure message (no sensitive data)"
-    )
+    failure_code = models.CharField(max_length=50, choices=FAILURE_CODE_CHOICES, help_text="Reason code for failure")
+    failure_message = models.TextField(help_text="Human-readable failure message (no sensitive data)")
 
     # Stripe References (metadata only, no sensitive data)
-    stripe_payment_intent_id = models.CharField(
-        max_length=255,
-        help_text="Stripe PaymentIntent ID for reference"
-    )
-    stripe_error_code = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Stripe error code"
-    )
+    stripe_payment_intent_id = models.CharField(max_length=255, help_text="Stripe PaymentIntent ID for reference")
+    stripe_error_code = models.CharField(max_length=100, blank=True, help_text="Stripe error code")
 
     # Retry Logic
-    retry_count = models.IntegerField(
-        default=0,
-        help_text="Number of retry attempts made"
-    )
-    next_retry_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When to retry payment (if automated)"
-    )
-    max_retries_reached = models.BooleanField(
-        default=False,
-        help_text="Whether max retries have been attempted"
-    )
+    retry_count = models.IntegerField(default=0, help_text="Number of retry attempts made")
+    next_retry_at = models.DateTimeField(null=True, blank=True, help_text="When to retry payment (if automated)")
+    max_retries_reached = models.BooleanField(default=False, help_text="Whether max retries have been attempted")
 
     # Communication
-    customer_notified = models.BooleanField(
-        default=False,
-        help_text="Whether customer was notified of failure"
-    )
-    notified_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When customer was notified"
-    )
+    customer_notified = models.BooleanField(default=False, help_text="Whether customer was notified of failure")
+    notified_at = models.DateTimeField(null=True, blank=True, help_text="When customer was notified")
 
     # Resolution
-    resolved = models.BooleanField(
-        default=False,
-        help_text="Whether payment was eventually successful"
-    )
-    resolved_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When payment succeeded after failure"
-    )
+    resolved = models.BooleanField(default=False, help_text="Whether payment was eventually successful")
+    resolved_at = models.DateTimeField(null=True, blank=True, help_text="When payment succeeded after failure")
 
     # Audit
-    failed_at = models.DateTimeField(
-        default=timezone.now,
-        help_text="When payment failed"
-    )
+    failed_at = models.DateTimeField(default=timezone.now, help_text="When payment failed")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'finance_payment_failure'
-        ordering = ['-failed_at']
+        db_table = "finance_payment_failure"
+        ordering = ["-failed_at"]
         indexes = [
-            models.Index(fields=['firm', 'resolved', '-failed_at']),
-            models.Index(fields=['invoice', '-failed_at']),
-            models.Index(fields=['client', '-failed_at']),
-            models.Index(fields=['stripe_payment_intent_id']),
-            models.Index(fields=['next_retry_at']),
+            models.Index(fields=["firm", "resolved", "-failed_at"]),
+            models.Index(fields=["invoice", "-failed_at"]),
+            models.Index(fields=["client", "-failed_at"]),
+            models.Index(fields=["stripe_payment_intent_id"]),
+            models.Index(fields=["next_retry_at"]),
         ]
 
     def __str__(self):
@@ -694,130 +517,77 @@ class Chargeback(models.Model):
     """
 
     CHARGEBACK_STATUS_CHOICES = [
-        ('pending', 'Pending Review'),
-        ('accepted', 'Accepted (Refunded)'),
-        ('contested', 'Contested'),
-        ('won', 'Won (Funds Retained)'),
-        ('lost', 'Lost (Funds Reversed)'),
+        ("pending", "Pending Review"),
+        ("accepted", "Accepted (Refunded)"),
+        ("contested", "Contested"),
+        ("won", "Won (Funds Retained)"),
+        ("lost", "Lost (Funds Reversed)"),
     ]
 
     CHARGEBACK_REASON_CHOICES = [
-        ('fraudulent', 'Fraudulent'),
-        ('duplicate', 'Duplicate'),
-        ('product_not_received', 'Product/Service Not Received'),
-        ('product_unacceptable', 'Product/Service Unacceptable'),
-        ('subscription_canceled', 'Subscription Canceled'),
-        ('credit_not_processed', 'Credit Not Processed'),
-        ('general', 'General'),
+        ("fraudulent", "Fraudulent"),
+        ("duplicate", "Duplicate"),
+        ("product_not_received", "Product/Service Not Received"),
+        ("product_unacceptable", "Product/Service Unacceptable"),
+        ("subscription_canceled", "Subscription Canceled"),
+        ("credit_not_processed", "Credit Not Processed"),
+        ("general", "General"),
     ]
 
     firm = models.ForeignKey(
-        'firm.Firm',
-        on_delete=models.CASCADE,
-        related_name='chargebacks',
-        help_text="Firm this chargeback belongs to"
+        "firm.Firm", on_delete=models.CASCADE, related_name="chargebacks", help_text="Firm this chargeback belongs to"
     )
     invoice = models.ForeignKey(
-        'Invoice',
-        on_delete=models.CASCADE,
-        related_name='chargebacks',
-        help_text="Invoice that was charged back"
+        "Invoice", on_delete=models.CASCADE, related_name="chargebacks", help_text="Invoice that was charged back"
     )
     client = models.ForeignKey(
-        'clients.Client',
+        "clients.Client",
         on_delete=models.CASCADE,
-        related_name='chargebacks',
-        help_text="Client who initiated chargeback"
+        related_name="chargebacks",
+        help_text="Client who initiated chargeback",
     )
 
     # Chargeback Details
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        help_text="Amount charged back"
-    )
-    currency = models.CharField(max_length=3, default='USD')
-    status = models.CharField(
-        max_length=20,
-        choices=CHARGEBACK_STATUS_CHOICES,
-        default='pending'
-    )
-    reason = models.CharField(
-        max_length=50,
-        choices=CHARGEBACK_REASON_CHOICES,
-        help_text="Reason for chargeback"
-    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2, help_text="Amount charged back")
+    currency = models.CharField(max_length=3, default="USD")
+    status = models.CharField(max_length=20, choices=CHARGEBACK_STATUS_CHOICES, default="pending")
+    reason = models.CharField(max_length=50, choices=CHARGEBACK_REASON_CHOICES, help_text="Reason for chargeback")
 
     # Stripe References
-    stripe_chargeback_id = models.CharField(
-        max_length=255,
-        unique=True,
-        help_text="Stripe Chargeback/Dispute ID"
-    )
-    stripe_charge_id = models.CharField(
-        max_length=255,
-        help_text="Original Stripe Charge ID"
-    )
+    stripe_chargeback_id = models.CharField(max_length=255, unique=True, help_text="Stripe Chargeback/Dispute ID")
+    stripe_charge_id = models.CharField(max_length=255, help_text="Original Stripe Charge ID")
 
     # Timeline
-    initiated_at = models.DateTimeField(
-        help_text="When customer initiated chargeback"
-    )
-    respond_by = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Deadline to respond with evidence"
-    )
-    resolved_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When chargeback was resolved"
-    )
+    initiated_at = models.DateTimeField(help_text="When customer initiated chargeback")
+    respond_by = models.DateTimeField(null=True, blank=True, help_text="Deadline to respond with evidence")
+    resolved_at = models.DateTimeField(null=True, blank=True, help_text="When chargeback was resolved")
 
     # Evidence & Response
-    evidence_submitted = models.BooleanField(
-        default=False,
-        help_text="Whether evidence was submitted"
-    )
-    evidence_submitted_at = models.DateTimeField(
-        null=True,
-        blank=True
-    )
-    resolution_notes = models.TextField(
-        blank=True,
-        help_text="Notes on chargeback resolution"
-    )
+    evidence_submitted = models.BooleanField(default=False, help_text="Whether evidence was submitted")
+    evidence_submitted_at = models.DateTimeField(null=True, blank=True)
+    resolution_notes = models.TextField(blank=True, help_text="Notes on chargeback resolution")
 
     # Financial Impact
     fee_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal('0.00'),
-        help_text="Chargeback fee charged by processor"
+        max_digits=10, decimal_places=2, default=Decimal("0.00"), help_text="Chargeback fee charged by processor"
     )
-    funds_reversed = models.BooleanField(
-        default=False,
-        help_text="Whether funds were reversed to customer"
-    )
+    funds_reversed = models.BooleanField(default=False, help_text="Whether funds were reversed to customer")
 
     # Internal Tracking
-    internal_notes = models.TextField(
-        blank=True,
-        help_text="Internal notes (platform use only)"
-    )
+    internal_notes = models.TextField(blank=True, help_text="Internal notes (platform use only)")
 
     # Audit
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'finance_chargeback'
-        ordering = ['-initiated_at']
+        db_table = "finance_chargeback"
+        ordering = ["-initiated_at"]
         indexes = [
-            models.Index(fields=['firm', 'status', '-initiated_at']),
-            models.Index(fields=['invoice', '-initiated_at']),
-            models.Index(fields=['client', '-initiated_at']),
-            models.Index(fields=['stripe_chargeback_id']),
+            models.Index(fields=["firm", "status", "-initiated_at"]),
+            models.Index(fields=["invoice", "-initiated_at"]),
+            models.Index(fields=["client", "-initiated_at"]),
+            models.Index(fields=["stripe_chargeback_id"]),
         ]
 
     def __str__(self):
@@ -833,24 +603,22 @@ class Bill(models.Model):
 
     TIER 0: Belongs to exactly one Firm (tenant boundary).
     """
+
     STATUS_CHOICES = [
-        ('received', 'Received'),
-        ('validated', 'Validated'),  # Medium Feature 2.5
-        ('approved', 'Approved'),
-        ('scheduled', 'Scheduled for Payment'),  # Medium Feature 2.5
-        ('paid', 'Paid'),
-        ('partial', 'Partially Paid'),
-        ('overdue', 'Overdue'),
-        ('disputed', 'Disputed'),
-        ('rejected', 'Rejected'),  # Medium Feature 2.5
+        ("received", "Received"),
+        ("validated", "Validated"),  # Medium Feature 2.5
+        ("approved", "Approved"),
+        ("scheduled", "Scheduled for Payment"),  # Medium Feature 2.5
+        ("paid", "Paid"),
+        ("partial", "Partially Paid"),
+        ("overdue", "Overdue"),
+        ("disputed", "Disputed"),
+        ("rejected", "Rejected"),  # Medium Feature 2.5
     ]
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
-        'firm.Firm',
-        on_delete=models.CASCADE,
-        related_name='bills',
-        help_text="Firm (workspace) this bill belongs to"
+        "firm.Firm", on_delete=models.CASCADE, related_name="bills", help_text="Firm (workspace) this bill belongs to"
     )
 
     # Vendor Information
@@ -863,69 +631,42 @@ class Bill(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='bills',
-        help_text="Optional: link to project if this is a project expense"
+        related_name="bills",
+        help_text="Optional: link to project if this is a project expense",
     )
 
     # Bill Details
-    bill_number = models.CharField(
-        max_length=50,
-        help_text="Vendor's bill/invoice number"
-    )
-    reference_number = models.CharField(
-        max_length=50,
-        help_text="Our internal reference number (unique per firm)"
-    )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='received')
+    bill_number = models.CharField(max_length=50, help_text="Vendor's bill/invoice number")
+    reference_number = models.CharField(max_length=50, help_text="Our internal reference number (unique per firm)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="received")
 
     # Financial Amounts
-    subtotal = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.00'))]
-    )
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.00"))])
     tax_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal('0.00'),
-        validators=[MinValueValidator(Decimal('0.00'))]
+        max_digits=12, decimal_places=2, default=Decimal("0.00"), validators=[MinValueValidator(Decimal("0.00"))]
     )
-    total_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
-    )
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
     amount_paid = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        default=Decimal('0.00'),
-        validators=[MinValueValidator(Decimal('0.00'))],
-        help_text="Total amount paid to vendor"
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total amount paid to vendor",
     )
-    currency = models.CharField(max_length=3, default='USD')
+    currency = models.CharField(max_length=3, default="USD")
 
     # Dates
-    bill_date = models.DateField(
-        help_text="Date on vendor's bill"
-    )
+    bill_date = models.DateField(help_text="Date on vendor's bill")
     due_date = models.DateField()
-    paid_date = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Date when bill was fully paid"
-    )
+    paid_date = models.DateField(null=True, blank=True, help_text="Date when bill was fully paid")
 
     # Categorization
-    expense_category = models.CharField(
-        max_length=100,
-        help_text="e.g., Software, Travel, Office Supplies"
-    )
+    expense_category = models.CharField(max_length=100, help_text="e.g., Software, Travel, Office Supplies")
 
     # Bill Content
     description = models.TextField(blank=True)
     line_items = models.JSONField(
-        default=list,
-        help_text="List of line items: [{description, quantity, rate, amount}, ...]"
+        default=list, help_text="List of line items: [{description, quantity, rate, amount}, ...]"
     )
 
     # Validation Workflow (Medium Feature 2.5)
@@ -934,18 +675,11 @@ class Bill(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='validated_bills',
-        help_text="User who validated this bill (checked for accuracy)"
+        related_name="validated_bills",
+        help_text="User who validated this bill (checked for accuracy)",
     )
-    validated_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When bill was validated"
-    )
-    validation_notes = models.TextField(
-        blank=True,
-        help_text="Notes from validation process"
-    )
+    validated_at = models.DateTimeField(null=True, blank=True, help_text="When bill was validated")
+    validation_notes = models.TextField(blank=True, help_text="Notes from validation process")
 
     # Approval
     approved_by = models.ForeignKey(
@@ -953,21 +687,13 @@ class Bill(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='approved_bills',
-        help_text="User who approved this bill for payment"
+        related_name="approved_bills",
+        help_text="User who approved this bill for payment",
     )
-    approved_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When bill was approved for payment"
-    )
+    approved_at = models.DateTimeField(null=True, blank=True, help_text="When bill was approved for payment")
 
     # Payment Scheduling (Medium Feature 2.5)
-    scheduled_payment_date = models.DateField(
-        null=True,
-        blank=True,
-        help_text="Date when payment is scheduled"
-    )
+    scheduled_payment_date = models.DateField(null=True, blank=True, help_text="Date when payment is scheduled")
 
     # Rejection Tracking (Medium Feature 2.5)
     rejected_by = models.ForeignKey(
@@ -975,18 +701,11 @@ class Bill(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='rejected_bills',
-        help_text="User who rejected this bill"
+        related_name="rejected_bills",
+        help_text="User who rejected this bill",
     )
-    rejected_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When bill was rejected"
-    )
-    rejection_reason = models.TextField(
-        blank=True,
-        help_text="Reason for bill rejection"
-    )
+    rejected_at = models.DateTimeField(null=True, blank=True, help_text="When bill was rejected")
+    rejection_reason = models.TextField(blank=True, help_text="Reason for bill rejection")
 
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
@@ -997,17 +716,17 @@ class Bill(models.Model):
     firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
-        db_table = 'finance_bills'
-        ordering = ['-bill_date', '-created_at']
+        db_table = "finance_bills"
+        ordering = ["-bill_date", "-created_at"]
         indexes = [
-            models.Index(fields=['firm', 'status']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'vendor_name', 'status']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'reference_number']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'due_date']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', '-bill_date']),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "vendor_name", "status"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "reference_number"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "due_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "-bill_date"]),  # TIER 0: Firm scoping
         ]
         # TIER 0: Reference numbers must be unique within a firm (not globally)
-        unique_together = [['firm', 'reference_number']]
+        unique_together = [["firm", "reference_number"]]
 
     @property
     def balance_due(self):
@@ -1032,53 +751,46 @@ class LedgerEntry(models.Model):
     TIER 0: Belongs to exactly one Firm (tenant boundary).
     Firm is inherited through Invoice/Bill references, but included directly for efficiency.
     """
+
     ENTRY_TYPE_CHOICES = [
-        ('debit', 'Debit'),
-        ('credit', 'Credit'),
+        ("debit", "Debit"),
+        ("credit", "Credit"),
     ]
 
     ACCOUNT_CHOICES = [
         # Assets
-        ('cash', 'Cash'),
-        ('accounts_receivable', 'Accounts Receivable'),
-        ('equipment', 'Equipment'),
-
+        ("cash", "Cash"),
+        ("accounts_receivable", "Accounts Receivable"),
+        ("equipment", "Equipment"),
         # Liabilities
-        ('accounts_payable', 'Accounts Payable'),
-        ('loans_payable', 'Loans Payable'),
-
+        ("accounts_payable", "Accounts Payable"),
+        ("loans_payable", "Loans Payable"),
         # Equity
-        ('owners_equity', "Owner's Equity"),
-        ('retained_earnings', 'Retained Earnings'),
-
+        ("owners_equity", "Owner's Equity"),
+        ("retained_earnings", "Retained Earnings"),
         # Revenue
-        ('consulting_revenue', 'Consulting Revenue'),
-        ('other_income', 'Other Income'),
-
+        ("consulting_revenue", "Consulting Revenue"),
+        ("other_income", "Other Income"),
         # Expenses
-        ('salaries_expense', 'Salaries Expense'),
-        ('software_expense', 'Software Expense'),
-        ('travel_expense', 'Travel Expense'),
-        ('office_expense', 'Office Supplies'),
-        ('other_expense', 'Other Expense'),
+        ("salaries_expense", "Salaries Expense"),
+        ("software_expense", "Software Expense"),
+        ("travel_expense", "Travel Expense"),
+        ("office_expense", "Office Supplies"),
+        ("other_expense", "Other Expense"),
     ]
 
     # TIER 0: Firm tenancy (REQUIRED)
     firm = models.ForeignKey(
-        'firm.Firm',
+        "firm.Firm",
         on_delete=models.CASCADE,
-        related_name='ledger_entries',
-        help_text="Firm (workspace) this ledger entry belongs to"
+        related_name="ledger_entries",
+        help_text="Firm (workspace) this ledger entry belongs to",
     )
 
     # Core Double-Entry Fields
     entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES)
     account = models.CharField(max_length=50, choices=ACCOUNT_CHOICES)
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
-    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
 
     # Transaction Metadata
     transaction_date = models.DateField()
@@ -1086,32 +798,16 @@ class LedgerEntry(models.Model):
 
     # Reference Links (for audit trail)
     invoice = models.ForeignKey(
-        Invoice,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='ledger_entries'
+        Invoice, on_delete=models.SET_NULL, null=True, blank=True, related_name="ledger_entries"
     )
-    bill = models.ForeignKey(
-        Bill,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='ledger_entries'
-    )
+    bill = models.ForeignKey(Bill, on_delete=models.SET_NULL, null=True, blank=True, related_name="ledger_entries")
 
     # Grouping (to link debit and credit entries together)
-    transaction_group_id = models.CharField(
-        max_length=50,
-        help_text="UUID to group related debit/credit entries"
-    )
+    transaction_group_id = models.CharField(max_length=50, help_text="UUID to group related debit/credit entries")
 
     # Audit Fields
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='ledger_entries'
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="ledger_entries"
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1120,15 +816,15 @@ class LedgerEntry(models.Model):
     firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
-        db_table = 'finance_ledger_entries'
-        ordering = ['-transaction_date', '-created_at']
+        db_table = "finance_ledger_entries"
+        ordering = ["-transaction_date", "-created_at"]
         indexes = [
-            models.Index(fields=['firm', 'account', 'transaction_date']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'transaction_group_id']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', '-transaction_date']),  # TIER 0: Firm scoping
-            models.Index(fields=['firm', 'entry_type']),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "account", "transaction_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "transaction_group_id"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "-transaction_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "entry_type"]),  # TIER 0: Firm scoping
         ]
-        verbose_name_plural = 'Ledger Entries'
+        verbose_name_plural = "Ledger Entries"
 
     def __str__(self):
         return f"{self.entry_type.upper()}: {self.account} - ${self.amount} ({self.transaction_date})"
@@ -1143,61 +839,52 @@ class CreditLedgerEntry(models.Model):
 
     TIER 4: All credit operations must go through this ledger.
     """
+
     ENTRY_TYPE_CHOICES = [
-        ('credit', 'Credit Added'),
-        ('debit', 'Credit Applied/Used'),
+        ("credit", "Credit Added"),
+        ("debit", "Credit Applied/Used"),
     ]
 
     SOURCE_CHOICES = [
-        ('overpayment', 'Overpayment'),
-        ('refund', 'Refund'),
-        ('goodwill', 'Goodwill Credit'),
-        ('promotional', 'Promotional Credit'),
-        ('correction', 'Billing Correction'),
+        ("overpayment", "Overpayment"),
+        ("refund", "Refund"),
+        ("goodwill", "Goodwill Credit"),
+        ("promotional", "Promotional Credit"),
+        ("correction", "Billing Correction"),
     ]
 
     USE_CHOICES = [
-        ('invoice_payment', 'Applied to Invoice'),
-        ('partial_payment', 'Partial Payment'),
-        ('expired', 'Credit Expired'),
-        ('refunded', 'Refunded to Client'),
+        ("invoice_payment", "Applied to Invoice"),
+        ("partial_payment", "Partial Payment"),
+        ("expired", "Credit Expired"),
+        ("refunded", "Refunded to Client"),
     ]
 
     # Tenant Context
     firm = models.ForeignKey(
-        'firm.Firm',
-        on_delete=models.CASCADE,
-        related_name='credit_ledger',
-        help_text="Firm this credit belongs to"
+        "firm.Firm", on_delete=models.CASCADE, related_name="credit_ledger", help_text="Firm this credit belongs to"
     )
 
     client = models.ForeignKey(
-        'clients.Client',
+        "clients.Client",
         on_delete=models.CASCADE,
-        related_name='credit_ledger',
-        help_text="Client this credit belongs to"
+        related_name="credit_ledger",
+        help_text="Client this credit belongs to",
     )
 
     # Entry Details
-    entry_type = models.CharField(
-        max_length=10,
-        choices=ENTRY_TYPE_CHOICES,
-        help_text="Credit (added) or Debit (used)"
-    )
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, help_text="Credit (added) or Debit (used)")
 
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))],
-        help_text="Amount of credit (always positive)"
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Amount of credit (always positive)",
     )
 
     # For Credits (entry_type='credit')
     source = models.CharField(
-        max_length=20,
-        choices=SOURCE_CHOICES,
-        blank=True,
-        help_text="How credit was created (for credit entries)"
+        max_length=20, choices=SOURCE_CHOICES, blank=True, help_text="How credit was created (for credit entries)"
     )
 
     source_invoice = models.ForeignKey(
@@ -1205,16 +892,13 @@ class CreditLedgerEntry(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='credit_sources',
-        help_text="Invoice that generated this credit (if applicable)"
+        related_name="credit_sources",
+        help_text="Invoice that generated this credit (if applicable)",
     )
 
     # For Debits (entry_type='debit')
     use = models.CharField(
-        max_length=20,
-        choices=USE_CHOICES,
-        blank=True,
-        help_text="How credit was used (for debit entries)"
+        max_length=20, choices=USE_CHOICES, blank=True, help_text="How credit was used (for debit entries)"
     )
 
     applied_to_invoice = models.ForeignKey(
@@ -1222,27 +906,22 @@ class CreditLedgerEntry(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='credit_applications',
-        help_text="Invoice this credit was applied to (if applicable)"
+        related_name="credit_applications",
+        help_text="Invoice this credit was applied to (if applicable)",
     )
 
     # Metadata
-    description = models.TextField(
-        help_text="Description of credit creation or use"
-    )
+    description = models.TextField(help_text="Description of credit creation or use")
 
-    reason = models.TextField(
-        blank=True,
-        help_text="Reason for credit (required for goodwill/correction credits)"
-    )
+    reason = models.TextField(blank=True, help_text="Reason for credit (required for goodwill/correction credits)")
 
     # Authorization
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='created_credits',
-        help_text="Who created this credit entry"
+        related_name="created_credits",
+        help_text="Who created this credit entry",
     )
 
     approved_by = models.ForeignKey(
@@ -1250,25 +929,19 @@ class CreditLedgerEntry(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='approved_credits',
-        help_text="Who approved this credit (for goodwill/correction)"
+        related_name="approved_credits",
+        help_text="Who approved this credit (for goodwill/correction)",
     )
 
     # Expiration (if credits expire)
-    expires_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When this credit expires (if applicable)"
-    )
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="When this credit expires (if applicable)")
 
     # Audit
     created_at = models.DateTimeField(auto_now_add=True)
 
     # Audit Event Link
     audit_event_id = models.BigIntegerField(
-        null=True,
-        blank=True,
-        help_text="Link to audit event for this credit operation"
+        null=True, blank=True, help_text="Link to audit event for this credit operation"
     )
 
     # TIER 0: Managers
@@ -1276,35 +949,31 @@ class CreditLedgerEntry(models.Model):
     firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
     class Meta:
-        db_table = 'finance_credit_ledger'
-        ordering = ['-created_at']
+        db_table = "finance_credit_ledger"
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=['firm', 'client', '-created_at']),
-            models.Index(fields=['client', 'entry_type', '-created_at']),
-            models.Index(fields=['source_invoice']),
-            models.Index(fields=['applied_to_invoice']),
+            models.Index(fields=["firm", "client", "-created_at"]),
+            models.Index(fields=["client", "entry_type", "-created_at"]),
+            models.Index(fields=["source_invoice"]),
+            models.Index(fields=["applied_to_invoice"]),
         ]
-        verbose_name_plural = 'Credit Ledger Entries'
+        verbose_name_plural = "Credit Ledger Entries"
 
     def save(self, *args, **kwargs):
         """Enforce credit ledger invariants."""
         from django.core.exceptions import ValidationError
 
         # Goodwill/correction credits require reason and approval
-        if self.entry_type == 'credit' and self.source in ['goodwill', 'correction']:
+        if self.entry_type == "credit" and self.source in ["goodwill", "correction"]:
             if not self.reason:
-                raise ValidationError(
-                    f"Reason required for {self.source} credits"
-                )
+                raise ValidationError(f"Reason required for {self.source} credits")
             if not self.approved_by_id:
-                raise ValidationError(
-                    f"Approval required for {self.source} credits"
-                )
+                raise ValidationError(f"Approval required for {self.source} credits")
 
         # Credits must have source, debits must have use
-        if self.entry_type == 'credit' and not self.source:
+        if self.entry_type == "credit" and not self.source:
             raise ValidationError("Source required for credit entries")
-        if self.entry_type == 'debit' and not self.use:
+        if self.entry_type == "debit" and not self.use:
             raise ValidationError("Use required for debit entries")
 
         # Prevent modifications (immutable)
@@ -1316,10 +985,8 @@ class CreditLedgerEntry(models.Model):
     def delete(self, *args, **kwargs):
         """Prevent deletion of credit entries."""
         from django.core.exceptions import ValidationError
-        raise ValidationError(
-            "Credit ledger entries cannot be deleted. "
-            "Create a reversing entry instead."
-        )
+
+        raise ValidationError("Credit ledger entries cannot be deleted. " "Create a reversing entry instead.")
 
     def __str__(self):
         return f"{self.entry_type.upper()}: ${self.amount} - {self.client.company_name}"

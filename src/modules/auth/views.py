@@ -1,18 +1,15 @@
 """
 Authentication Views.
 """
-from rest_framework import status, generics
+
+from django.contrib.auth import authenticate, get_user_model
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate, get_user_model
-from .serializers import (
-    UserSerializer,
-    RegisterSerializer,
-    LoginSerializer,
-    ChangePasswordSerializer
-)
+
+from .serializers import ChangePasswordSerializer, LoginSerializer, RegisterSerializer, UserSerializer
 
 User = get_user_model()
 
@@ -31,6 +28,7 @@ class RegisterView(generics.CreateAPIView):
         "password2": "SecurePass123!"
     }
     """
+
     queryset = User.objects.all()
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
@@ -43,15 +41,18 @@ class RegisterView(generics.CreateAPIView):
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
 
-        return Response({
-            'user': UserSerializer(user).data,
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'message': 'User created successfully'
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "user": UserSerializer(user).data,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "message": "User created successfully",
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def login_view(request):
     """
@@ -66,28 +67,29 @@ def login_view(request):
     serializer = LoginSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 
-    username = serializer.validated_data['username']
-    password = serializer.validated_data['password']
+    username = serializer.validated_data["username"]
+    password = serializer.validated_data["password"]
 
     user = authenticate(username=username, password=password)
 
     if user is None:
-        return Response({
-            'error': 'Invalid username or password'
-        }, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"error": "Invalid username or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
     # Generate JWT tokens
     refresh = RefreshToken.for_user(user)
 
-    return Response({
-        'user': UserSerializer(user).data,
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-        'message': 'Login successful'
-    }, status=status.HTTP_200_OK)
+    return Response(
+        {
+            "user": UserSerializer(user).data,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "message": "Login successful",
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout_view(request):
     """
@@ -99,20 +101,16 @@ def logout_view(request):
     }
     """
     try:
-        refresh_token = request.data.get('refresh')
+        refresh_token = request.data.get("refresh")
         if refresh_token:
             token = RefreshToken(refresh_token)
             token.blacklist()
-        return Response({
-            'message': 'Logout successful'
-        }, status=status.HTTP_200_OK)
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def user_profile_view(request):
     """
@@ -134,6 +132,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         "new_password": "NewPass456!"
     }
     """
+
     permission_classes = [IsAuthenticated]
     serializer_class = ChangePasswordSerializer
 
@@ -144,15 +143,11 @@ class ChangePasswordView(generics.UpdateAPIView):
         user = request.user
 
         # Check old password
-        if not user.check_password(serializer.validated_data['old_password']):
-            return Response({
-                'error': 'Old password is incorrect'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if not user.check_password(serializer.validated_data["old_password"]):
+            return Response({"error": "Old password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Set new password
-        user.set_password(serializer.validated_data['new_password'])
+        user.set_password(serializer.validated_data["new_password"])
         user.save()
 
-        return Response({
-            'message': 'Password changed successfully'
-        }, status=status.HTTP_200_OK)
+        return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)

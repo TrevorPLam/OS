@@ -1,6 +1,7 @@
 """
 Pagination guards for API list endpoints.
 """
+
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
@@ -22,8 +23,6 @@ class BoundedPageNumberPagination(PageNumberPagination):
             raise ValidationError({"page_size": "page_size must be a positive integer."})
 
         if self.max_page_size and page_size > self.max_page_size:
-            raise ValidationError({
-                "page_size": f"page_size exceeds maximum of {self.max_page_size}."
-            })
+            raise ValidationError({"page_size": f"page_size exceeds maximum of {self.max_page_size}."})
 
         return page_size
