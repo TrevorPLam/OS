@@ -9,10 +9,13 @@ Every firm-side object MUST belong to exactly one Firm.
 """
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import models
+from decimal import Decimal
+
+from django.db import models, transaction
 from django.utils import timezone
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.text import slugify
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 class Firm(models.Model):
@@ -153,10 +156,57 @@ class Firm(models.Model):
     def __str__(self):
         return self.name
 
+    CONFIG_FIELDS = {
+        'status',
+        'subscription_tier',
+        'trial_ends_at',
+        'timezone',
+        'currency',
+        'max_users',
+        'max_clients',
+        'max_storage_gb',
+        'kms_key_id',
+        'notes',
+    }
+
+    STATUS_TRANSITIONS = {
+        'trial': {'trial', 'active', 'suspended', 'canceled'},
+        'active': {'active', 'suspended', 'canceled'},
+        'suspended': {'suspended', 'active', 'canceled'},
+        'canceled': {'canceled'},
+    }
+
+    def clean(self):
+        """Validate firm configuration invariants."""
+        errors = {}
+
+        if self.max_users < 1:
+            errors['max_users'] = 'Maximum users must be at least 1.'
+        if self.max_clients < 1:
+            errors['max_clients'] = 'Maximum clients must be at least 1.'
+        if self.max_storage_gb < 1:
+            errors['max_storage_gb'] = 'Maximum storage must be at least 1 GB.'
+
+        if self.trial_ends_at and self.trial_ends_at <= timezone.now():
+            errors['trial_ends_at'] = 'Trial end date must be in the future.'
+
+        if self.currency and (len(self.currency) != 3 or not self.currency.isalpha() or self.currency != self.currency.upper()):
+            errors['currency'] = 'Currency must be a 3-letter ISO code (uppercase).'
+
+        if self.timezone:
+            try:
+                ZoneInfo(self.timezone)
+            except ZoneInfoNotFoundError:
+                errors['timezone'] = 'Timezone must be a valid IANA identifier.'
+
+        if errors:
+            raise ValidationError(errors)
+
     def save(self, *args, **kwargs):
         """Auto-generate slug from name if not provided."""
         if not self.slug:
             self.slug = slugify(self.name)
+        self.full_clean()
         super().save(*args, **kwargs)
 
     @property
@@ -178,6 +228,108 @@ class Firm(models.Model):
     def is_over_storage_limit(self):
         """Check if firm has exceeded storage limit."""
         return self.current_storage_gb >= self.max_storage_gb
+
+    def _serialize_config_value(self, value):
+        if isinstance(value, Decimal):
+            return str(value)
+        if isinstance(value, timezone.datetime):
+            return value.isoformat()
+        return value
+
+    def _build_config_changes(self, previous, updates):
+        changes = {}
+        for field, new_value in updates.items():
+            old_value = previous.get(field)
+            changes[field] = {
+                'before': self._serialize_config_value(old_value),
+                'after': self._serialize_config_value(new_value),
+            }
+        return changes
+
+    def _validate_config_update(self, previous_values, updates):
+        errors = {}
+        current_status = previous_values.get('status', self.status)
+        new_status = updates.get('status', current_status)
+        allowed = self.STATUS_TRANSITIONS.get(current_status, {current_status})
+        if new_status not in allowed:
+            errors['status'] = f"Cannot transition firm status from {current_status} to {new_status}."
+
+        if 'max_users' in updates:
+            if updates['max_users'] < self.current_users_count:
+                errors['max_users'] = 'Maximum users cannot be below current active users.'
+        if 'max_clients' in updates:
+            if updates['max_clients'] < self.current_clients_count:
+                errors['max_clients'] = 'Maximum clients cannot be below current active clients.'
+        if 'max_storage_gb' in updates:
+            max_storage = Decimal(str(updates['max_storage_gb']))
+            if max_storage < self.current_storage_gb:
+                errors['max_storage_gb'] = 'Maximum storage cannot be below current usage.'
+
+        if 'trial_ends_at' in updates:
+            trial_ends_at = updates.get('trial_ends_at')
+            if trial_ends_at and trial_ends_at <= timezone.now():
+                errors['trial_ends_at'] = 'Trial end date must be in the future.'
+
+        if errors:
+            raise ValidationError(errors)
+
+    def apply_config_update(self, actor, updates, reason='', action='firm_settings_updated'):
+        """
+        Apply configuration updates with validation, auditing, and rollback snapshot.
+
+        Returns:
+            dict of previous values suitable for rollback.
+        """
+        if not updates:
+            raise ValidationError({'updates': 'No configuration updates provided.'})
+
+        invalid_fields = set(updates) - self.CONFIG_FIELDS
+        if invalid_fields:
+            raise ValidationError({'updates': f"Unsupported configuration fields: {', '.join(sorted(invalid_fields))}."})
+
+        with transaction.atomic():
+            locked = Firm.objects.select_for_update().get(pk=self.pk)
+            previous_values = {field: getattr(locked, field) for field in updates.keys()}
+
+            self._validate_config_update(previous_values, updates)
+
+            for field, value in updates.items():
+                setattr(locked, field, value)
+
+            locked.full_clean()
+            locked.save(update_fields=[*updates.keys(), 'updated_at'])
+
+            from modules.firm.audit import audit
+
+            audit.log_config_change(
+                firm=locked,
+                action=action,
+                actor=actor,
+                target_model=self.__class__.__name__,
+                target_id=locked.pk,
+                target_repr=str(locked),
+                reason=reason,
+                metadata={
+                    'changes': self._build_config_changes(previous_values, updates),
+                    'rollback_snapshot': {
+                        field: self._serialize_config_value(value)
+                        for field, value in previous_values.items()
+                    },
+                },
+                outcome='success',
+            )
+
+        self.refresh_from_db()
+        return previous_values
+
+    def rollback_config_update(self, actor, previous_values, reason=''):
+        """Rollback a prior configuration update using a snapshot of previous values."""
+        return self.apply_config_update(
+            actor=actor,
+            updates=previous_values,
+            reason=reason or 'Rollback configuration update',
+            action='firm_settings_rolled_back',
+        )
 
 
 class FirmMembership(models.Model):

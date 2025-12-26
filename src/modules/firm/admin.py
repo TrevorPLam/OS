@@ -29,6 +29,22 @@ class FirmAdmin(admin.ModelAdmin):
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        if change:
+            updates = {
+                field: form.cleaned_data[field]
+                for field in form.changed_data
+                if field in Firm.CONFIG_FIELDS
+            }
+            if updates:
+                obj.apply_config_update(
+                    actor=request.user,
+                    updates=updates,
+                    reason='Updated via admin',
+                )
+                return
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(FirmMembership)
 class FirmMembershipAdmin(admin.ModelAdmin):
