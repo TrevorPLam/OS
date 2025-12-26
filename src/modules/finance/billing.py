@@ -539,12 +539,31 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
         dispute.invoice.amount_paid = max(
             Decimal('0.00'), dispute.invoice.amount_paid - dispute.amount
         )
-        dispute.invoice.save(update_fields=['status', 'amount_paid'])
+
+        client = dispute.invoice.client
+        # Allow business rules or flags on the client to control whether services
+        # are automatically suspended when a dispute is lost. Default to True to
+        # preserve existing behavior if no flag is configured.
+        should_suspend_services = getattr(client, "suspend_on_chargeback", True)
+
+        if should_suspend_services:
+            portal_message = (
+                "We were unable to defend a dispute. Services are paused while we "
+                "rebill the outstanding balance."
+            )
+            client.status = 'inactive'
+            client.save(update_fields=['status'])
+        else:
+            portal_message = (
+                "We were unable to defend a dispute on your recent payment. Your "
+                "services will remain active while we work with you to resolve the "
+                "outstanding balance."
+            )
+
         _notify_client_portal(
             dispute.invoice,
-            "We were unable to defend a dispute. Services are paused while we rebill the outstanding balance.",
+            portal_message,
         )
-        dispute.invoice.client.status = 'inactive'
         dispute.invoice.client.save(update_fields=['status'])
 
     audit.log_billing_event(
