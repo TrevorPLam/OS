@@ -1,8 +1,7 @@
 """Shared permission utilities for APIs and background jobs."""
-from typing import Optional
 
-from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import BasePermission
 
 from modules.clients.models import ClientPortalUser
 from modules.firm.utils import get_request_firm
@@ -48,7 +47,7 @@ class PortalFirmAccessPermission(BasePermission):
 class PortalAccessMixin:
     """Helper mixin to centralize portal-user validation for viewsets."""
 
-    portal_permission_required: Optional[str] = None
+    portal_permission_required: str | None = None
 
     def get_validated_portal_user(self, request, enforce_permission: bool = True):
         """

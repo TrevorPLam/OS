@@ -13,20 +13,17 @@ Exceptions:
 - Public endpoints (health checks, auth endpoints)
 - Platform operator endpoints (explicitly marked)
 """
-import logging
-from typing import Optional
 
-from django.conf import settings
-from django.http import JsonResponse, HttpRequest
+import json
+import logging
+
+from django.http import HttpRequest, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken
 
-import json
-
-from modules.firm.models import Firm, FirmMembership, BreakGlassSession
+from modules.firm.models import BreakGlassSession, Firm, FirmMembership
 from modules.firm.utils import get_active_break_glass_session
-
 
 logger = logging.getLogger(__name__)
 
@@ -40,22 +37,22 @@ class FirmContextMiddleware(MiddlewareMixin):
 
     # Public endpoints that don't require firm context
     PUBLIC_PATHS = [
-        '/api/auth/login/',
-        '/api/auth/register/',
-        '/api/auth/token/',
-        '/api/auth/token/refresh/',
-        '/api/health/',
-        '/api/docs/',
-        '/api/schema/',
-        '/admin/login/',
+        "/api/auth/login/",
+        "/api/auth/register/",
+        "/api/auth/token/",
+        "/api/auth/token/refresh/",
+        "/api/health/",
+        "/api/docs/",
+        "/api/schema/",
+        "/admin/login/",
     ]
 
     # Platform operator endpoints (require platform role, not firm context)
     PLATFORM_PATHS = [
-        '/api/platform/',
+        "/api/platform/",
     ]
 
-    def process_request(self, request: HttpRequest) -> Optional[JsonResponse]:
+    def process_request(self, request: HttpRequest) -> JsonResponse | None:
         """
         Resolve firm context for the request.
 
@@ -66,13 +63,13 @@ class FirmContextMiddleware(MiddlewareMixin):
         # Skip firm context for public endpoints
         if self._is_public_path(request.path):
             request.firm = None
-            request.firm_context_source = 'public'
+            request.firm_context_source = "public"
             return None
 
         # Skip firm context for platform endpoints (different auth model)
         if self._is_platform_path(request.path):
             request.firm = None
-            request.firm_context_source = 'platform'
+            request.firm_context_source = "platform"
             return None
 
         # Try to resolve firm context from multiple sources
@@ -87,24 +84,21 @@ class FirmContextMiddleware(MiddlewareMixin):
             )
             return JsonResponse(
                 {
-                    'error': 'Firm context required',
-                    'detail': (
-                        'This request requires firm/workspace context. '
-                        'Please access via firm subdomain or include firm_id in token.'
+                    "error": "Firm context required",
+                    "detail": (
+                        "This request requires firm/workspace context. "
+                        "Please access via firm subdomain or include firm_id in token."
                     ),
-                    'code': 'FIRM_CONTEXT_REQUIRED'
+                    "code": "FIRM_CONTEXT_REQUIRED",
                 },
-                status=403
+                status=403,
             )
 
         # Attach firm context to request
         request.firm = firm
         request.firm_context_source = source
 
-        logger.debug(
-            f"Firm context resolved: {firm.slug} "
-            f"(source: {source}, path: {request.path})"
-        )
+        logger.debug(f"Firm context resolved: {firm.slug} " f"(source: {source}, path: {request.path})")
 
         return None
 
@@ -116,7 +110,7 @@ class FirmContextMiddleware(MiddlewareMixin):
         """Check if path is a platform operator endpoint."""
         return any(path.startswith(platform_path) for platform_path in self.PLATFORM_PATHS)
 
-    def _resolve_firm_context(self, request: HttpRequest) -> tuple[Optional[Firm], str]:
+    def _resolve_firm_context(self, request: HttpRequest) -> tuple[Firm | None, str]:
         """
         Resolve firm context from available sources.
 
@@ -131,19 +125,19 @@ class FirmContextMiddleware(MiddlewareMixin):
         # 1. Try subdomain resolution
         firm = self._resolve_from_subdomain(request)
         if firm:
-            return (firm, 'subdomain')
+            return (firm, "subdomain")
 
         # 2. Try JWT token
         firm = self._resolve_from_token(request)
         if firm:
-            return (firm, 'token')
+            return (firm, "token")
 
         # 3. Try session (for logged-in users)
         firm = self._resolve_from_session(request)
         if firm:
-            return (firm, 'session')
+            return (firm, "session")
 
-        return (None, 'none')
+        return (None, "none")
 
 
 class BreakGlassImpersonationMiddleware:
@@ -154,7 +148,7 @@ class BreakGlassImpersonationMiddleware:
     - Emits immutable audit events for impersonated requests
     """
 
-    HEADER_NAME = 'X-Break-Glass-Impersonation'
+    HEADER_NAME = "X-Break-Glass-Impersonation"
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -166,20 +160,20 @@ class BreakGlassImpersonationMiddleware:
         if request.break_glass_session and request.break_glass_session.impersonated_user:
             payload = self._serialize_session(request.break_glass_session)
             response[self.HEADER_NAME] = json.dumps(payload)
-            response['X-Impersonation-Mode'] = 'true'
+            response["X-Impersonation-Mode"] = "true"
             self._log_impersonated_request(request, response)
 
         return response
 
     def _resolve_break_glass_session(self, request: HttpRequest):
         """Lookup the active break-glass session for the current operator."""
-        if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        if not getattr(request, "user", None) or not request.user.is_authenticated:
             return None
 
-        if not hasattr(request.user, 'platform_profile'):
+        if not hasattr(request.user, "platform_profile"):
             return None
 
-        if not getattr(request, 'firm', None):
+        if not getattr(request, "firm", None):
             return None
 
         session = get_active_break_glass_session(request.firm)
@@ -192,16 +186,12 @@ class BreakGlassImpersonationMiddleware:
         """Serialize impersonation context for UI banners."""
         impersonated = session.impersonated_user
         return {
-            'session_id': session.id,
-            'impersonated_user': (
-                impersonated.get_full_name()
-                or impersonated.email
-                or impersonated.username
-                if impersonated
-                else ''
+            "session_id": session.id,
+            "impersonated_user": (
+                impersonated.get_full_name() or impersonated.email or impersonated.username if impersonated else ""
             ),
-            'reason': session.reason,
-            'expires_at': session.expires_at.isoformat(),
+            "reason": session.reason,
+            "expires_at": session.expires_at.isoformat(),
         }
 
     def _log_impersonated_request(self, request: HttpRequest, response):
@@ -214,28 +204,28 @@ class BreakGlassImpersonationMiddleware:
         session = request.break_glass_session
         audit.log_break_glass_event(
             firm=session.firm,
-            action='break_glass_impersonated_request',
+            action="break_glass_impersonated_request",
             actor=session.operator,
             reason=session.reason,
             target_model=session.__class__.__name__,
             target_id=session.id,
             metadata={
-                'path': request.path,
-                'method': request.method,
-                'status_code': response.status_code,
-                'impersonated_user_id': session.impersonated_user_id,
-                'request_id': request.META.get('HTTP_X_REQUEST_ID', ''),
+                "path": request.path,
+                "method": request.method,
+                "status_code": response.status_code,
+                "impersonated_user_id": session.impersonated_user_id,
+                "request_id": request.META.get("HTTP_X_REQUEST_ID", ""),
             },
         )
 
-    def _resolve_from_subdomain(self, request: HttpRequest) -> Optional[Firm]:
+    def _resolve_from_subdomain(self, request: HttpRequest) -> Firm | None:
         """
         Resolve firm from subdomain.
 
         Example: acme.consultantpro.com → Firm with slug='acme'
         """
-        host = request.get_host().split(':')[0]  # Remove port if present
-        parts = host.split('.')
+        host = request.get_host().split(":")[0]  # Remove port if present
+        parts = host.split(".")
 
         # Check if this looks like a firm subdomain
         # Example: acme.consultantpro.com has 3+ parts
@@ -246,39 +236,39 @@ class BreakGlassImpersonationMiddleware:
         potential_slug = parts[0]
 
         # Skip special subdomains
-        if potential_slug in ['www', 'api', 'admin', 'platform']:
+        if potential_slug in ["www", "api", "admin", "platform"]:
             return None
 
         try:
-            firm = Firm.objects.get(slug=potential_slug, status__in=['trial', 'active'])
+            firm = Firm.objects.get(slug=potential_slug, status__in=["trial", "active"])
             return firm
         except Firm.DoesNotExist:
             logger.debug(f"No active firm found for subdomain: {potential_slug}")
             return None
 
-    def _resolve_from_token(self, request: HttpRequest) -> Optional[Firm]:
+    def _resolve_from_token(self, request: HttpRequest) -> Firm | None:
         """
         Resolve firm from JWT token firm_id claim.
 
         Token must include 'firm_id' in payload.
         """
-        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        auth_header = request.META.get("HTTP_AUTHORIZATION", "")
 
-        if not auth_header.startswith('Bearer '):
+        if not auth_header.startswith("Bearer "):
             return None
 
         try:
             # Use DRF's JWT authentication to validate and decode token
             jwt_auth = JWTAuthentication()
-            validated_token = jwt_auth.get_validated_token(auth_header.split(' ')[1])
+            validated_token = jwt_auth.get_validated_token(auth_header.split(" ")[1])
 
             # Extract firm_id from token payload
-            firm_id = validated_token.get('firm_id')
+            firm_id = validated_token.get("firm_id")
             if not firm_id:
                 logger.debug("JWT token missing firm_id claim")
                 return None
 
-            firm = Firm.objects.get(id=firm_id, status__in=['trial', 'active'])
+            firm = Firm.objects.get(id=firm_id, status__in=["trial", "active"])
             return firm
 
         except InvalidToken:
@@ -291,7 +281,7 @@ class BreakGlassImpersonationMiddleware:
             logger.error(f"Error resolving firm from token: {e}")
             return None
 
-    def _resolve_from_session(self, request: HttpRequest) -> Optional[Firm]:
+    def _resolve_from_session(self, request: HttpRequest) -> Firm | None:
         """
         Resolve firm from user session via FirmMembership.
 
@@ -303,29 +293,26 @@ class BreakGlassImpersonationMiddleware:
             return None
 
         # Check if user has explicitly set an active firm in their session
-        active_firm_id = request.session.get('active_firm_id')
+        active_firm_id = request.session.get("active_firm_id")
         if active_firm_id:
             try:
                 # Verify user has access to this firm
-                membership = FirmMembership.objects.select_related('firm').get(
-                    user=request.user,
-                    firm_id=active_firm_id,
-                    firm__status__in=['trial', 'active']
+                membership = FirmMembership.objects.select_related("firm").get(
+                    user=request.user, firm_id=active_firm_id, firm__status__in=["trial", "active"]
                 )
                 return membership.firm
             except FirmMembership.DoesNotExist:
-                logger.warning(
-                    f"User {request.user.id} session references inaccessible firm {active_firm_id}"
-                )
+                logger.warning(f"User {request.user.id} session references inaccessible firm {active_firm_id}")
                 # Clear invalid session firm
-                del request.session['active_firm_id']
+                del request.session["active_firm_id"]
 
         # Fall back to user's first firm (primary firm)
         try:
-            membership = FirmMembership.objects.select_related('firm').filter(
-                user=request.user,
-                firm__status__in=['trial', 'active']
-            ).first()
+            membership = (
+                FirmMembership.objects.select_related("firm")
+                .filter(user=request.user, firm__status__in=["trial", "active"])
+                .first()
+            )
 
             if membership:
                 return membership.firm

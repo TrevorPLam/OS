@@ -7,15 +7,16 @@ All data isolation, authorization, and privacy guarantees depend on this boundar
 CRITICAL: This is Tier 0 - Foundational Safety.
 Every firm-side object MUST belong to exactly one Firm.
 """
+
+from decimal import Decimal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from decimal import Decimal
-
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models, transaction
 from django.utils import timezone
-from django.core.validators import MinLengthValidator, RegexValidator
 from django.utils.text import slugify
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
 class Firm(models.Model):
@@ -27,25 +28,22 @@ class Firm(models.Model):
 
     SECURITY: Firm isolation MUST be enforced at the query level everywhere.
     """
+
     STATUS_CHOICES = [
-        ('active', 'Active'),
-        ('trial', 'Trial Period'),
-        ('suspended', 'Suspended'),
-        ('canceled', 'Canceled'),
+        ("active", "Active"),
+        ("trial", "Trial Period"),
+        ("suspended", "Suspended"),
+        ("canceled", "Canceled"),
     ]
 
     SUBSCRIPTION_TIER_CHOICES = [
-        ('starter', 'Starter'),
-        ('professional', 'Professional'),
-        ('enterprise', 'Enterprise'),
+        ("starter", "Starter"),
+        ("professional", "Professional"),
+        ("enterprise", "Enterprise"),
     ]
 
     # Identity
-    name = models.CharField(
-        max_length=255,
-        unique=True,
-        help_text="Firm name (must be unique across platform)"
-    )
+    name = models.CharField(max_length=255, unique=True, help_text="Firm name (must be unique across platform)")
     slug = models.SlugField(
         max_length=255,
         unique=True,
@@ -53,78 +51,39 @@ class Firm(models.Model):
         validators=[
             MinLengthValidator(3),
             RegexValidator(
-                regex=r'^[a-z0-9-]+$',
-                message='Slug must contain only lowercase letters, numbers, and hyphens'
-            )
-        ]
+                regex=r"^[a-z0-9-]+$", message="Slug must contain only lowercase letters, numbers, and hyphens"
+            ),
+        ],
     )
 
     # Subscription & Status
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='trial'
-    )
-    subscription_tier = models.CharField(
-        max_length=20,
-        choices=SUBSCRIPTION_TIER_CHOICES,
-        default='starter'
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="trial")
+    subscription_tier = models.CharField(max_length=20, choices=SUBSCRIPTION_TIER_CHOICES, default="starter")
 
     # Trial Management
     trial_ends_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When trial period ends (null if not on trial)"
+        null=True, blank=True, help_text="When trial period ends (null if not on trial)"
     )
 
     # Firm Settings
-    timezone = models.CharField(
-        max_length=50,
-        default='America/New_York',
-        help_text="Firm's default timezone"
-    )
-    currency = models.CharField(
-        max_length=3,
-        default='USD',
-        help_text="Default currency code (ISO 4217)"
-    )
+    timezone = models.CharField(max_length=50, default="America/New_York", help_text="Firm's default timezone")
+    currency = models.CharField(max_length=3, default="USD", help_text="Default currency code (ISO 4217)")
 
     # Limits & Quotas
-    max_users = models.IntegerField(
-        default=5,
-        help_text="Maximum number of firm users allowed"
-    )
-    max_clients = models.IntegerField(
-        default=25,
-        help_text="Maximum number of active clients allowed"
-    )
-    max_storage_gb = models.IntegerField(
-        default=10,
-        help_text="Maximum storage in gigabytes"
-    )
+    max_users = models.IntegerField(default=5, help_text="Maximum number of firm users allowed")
+    max_clients = models.IntegerField(default=25, help_text="Maximum number of active clients allowed")
+    max_storage_gb = models.IntegerField(default=10, help_text="Maximum storage in gigabytes")
 
     # Security & Key Management
     kms_key_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="Firm-scoped KMS key or alias for content encryption"
+        max_length=255, blank=True, help_text="Firm-scoped KMS key or alias for content encryption"
     )
 
     # Usage Tracking
-    current_users_count = models.IntegerField(
-        default=0,
-        help_text="Current number of active users"
-    )
-    current_clients_count = models.IntegerField(
-        default=0,
-        help_text="Current number of active clients"
-    )
+    current_users_count = models.IntegerField(default=0, help_text="Current number of active users")
+    current_clients_count = models.IntegerField(default=0, help_text="Current number of active clients")
     current_storage_gb = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-        help_text="Current storage usage in GB"
+        max_digits=10, decimal_places=2, default=0, help_text="Current storage usage in GB"
     )
 
     # Audit & Compliance
@@ -134,46 +93,43 @@ class Firm(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='created_firms',
-        help_text="User who created this firm"
+        related_name="created_firms",
+        help_text="User who created this firm",
     )
 
     # Metadata
-    notes = models.TextField(
-        blank=True,
-        help_text="Internal platform notes (not visible to firm)"
-    )
+    notes = models.TextField(blank=True, help_text="Internal platform notes (not visible to firm)")
 
     class Meta:
-        db_table = 'firm_firm'
-        ordering = ['name']
+        db_table = "firm_firm"
+        ordering = ["name"]
         indexes = [
-            models.Index(fields=['status']),
-            models.Index(fields=['slug']),
-            models.Index(fields=['subscription_tier']),
+            models.Index(fields=["status"]),
+            models.Index(fields=["slug"]),
+            models.Index(fields=["subscription_tier"]),
         ]
 
     def __str__(self):
         return self.name
 
     CONFIG_FIELDS = {
-        'status',
-        'subscription_tier',
-        'trial_ends_at',
-        'timezone',
-        'currency',
-        'max_users',
-        'max_clients',
-        'max_storage_gb',
-        'kms_key_id',
-        'notes',
+        "status",
+        "subscription_tier",
+        "trial_ends_at",
+        "timezone",
+        "currency",
+        "max_users",
+        "max_clients",
+        "max_storage_gb",
+        "kms_key_id",
+        "notes",
     }
 
     STATUS_TRANSITIONS = {
-        'trial': {'trial', 'active', 'suspended', 'canceled'},
-        'active': {'active', 'suspended', 'canceled'},
-        'suspended': {'suspended', 'active', 'canceled'},
-        'canceled': {'canceled'},
+        "trial": {"trial", "active", "suspended", "canceled"},
+        "active": {"active", "suspended", "canceled"},
+        "suspended": {"suspended", "active", "canceled"},
+        "canceled": {"canceled"},
     }
 
     def clean(self):
@@ -181,23 +137,25 @@ class Firm(models.Model):
         errors = {}
 
         if self.max_users < 1:
-            errors['max_users'] = 'Maximum users must be at least 1.'
+            errors["max_users"] = "Maximum users must be at least 1."
         if self.max_clients < 1:
-            errors['max_clients'] = 'Maximum clients must be at least 1.'
+            errors["max_clients"] = "Maximum clients must be at least 1."
         if self.max_storage_gb < 1:
-            errors['max_storage_gb'] = 'Maximum storage must be at least 1 GB.'
+            errors["max_storage_gb"] = "Maximum storage must be at least 1 GB."
 
         if self.trial_ends_at and self.trial_ends_at <= timezone.now():
-            errors['trial_ends_at'] = 'Trial end date must be in the future.'
+            errors["trial_ends_at"] = "Trial end date must be in the future."
 
-        if self.currency and (len(self.currency) != 3 or not self.currency.isalpha() or self.currency != self.currency.upper()):
-            errors['currency'] = 'Currency must be a 3-letter ISO code (uppercase).'
+        if self.currency and (
+            len(self.currency) != 3 or not self.currency.isalpha() or self.currency != self.currency.upper()
+        ):
+            errors["currency"] = "Currency must be a 3-letter ISO code (uppercase)."
 
         if self.timezone:
             try:
                 ZoneInfo(self.timezone)
             except ZoneInfoNotFoundError:
-                errors['timezone'] = 'Timezone must be a valid IANA identifier.'
+                errors["timezone"] = "Timezone must be a valid IANA identifier."
 
         if errors:
             raise ValidationError(errors)
@@ -212,7 +170,7 @@ class Firm(models.Model):
     @property
     def is_active(self):
         """Check if firm is in active status."""
-        return self.status == 'active'
+        return self.status == "active"
 
     @property
     def is_over_user_limit(self):
@@ -241,39 +199,39 @@ class Firm(models.Model):
         for field, new_value in updates.items():
             old_value = previous.get(field)
             changes[field] = {
-                'before': self._serialize_config_value(old_value),
-                'after': self._serialize_config_value(new_value),
+                "before": self._serialize_config_value(old_value),
+                "after": self._serialize_config_value(new_value),
             }
         return changes
 
     def _validate_config_update(self, previous_values, updates):
         errors = {}
-        current_status = previous_values.get('status', self.status)
-        new_status = updates.get('status', current_status)
+        current_status = previous_values.get("status", self.status)
+        new_status = updates.get("status", current_status)
         allowed = self.STATUS_TRANSITIONS.get(current_status, {current_status})
         if new_status not in allowed:
-            errors['status'] = f"Cannot transition firm status from {current_status} to {new_status}."
+            errors["status"] = f"Cannot transition firm status from {current_status} to {new_status}."
 
-        if 'max_users' in updates:
-            if updates['max_users'] < self.current_users_count:
-                errors['max_users'] = 'Maximum users cannot be below current active users.'
-        if 'max_clients' in updates:
-            if updates['max_clients'] < self.current_clients_count:
-                errors['max_clients'] = 'Maximum clients cannot be below current active clients.'
-        if 'max_storage_gb' in updates:
-            max_storage = Decimal(str(updates['max_storage_gb']))
+        if "max_users" in updates:
+            if updates["max_users"] < self.current_users_count:
+                errors["max_users"] = "Maximum users cannot be below current active users."
+        if "max_clients" in updates:
+            if updates["max_clients"] < self.current_clients_count:
+                errors["max_clients"] = "Maximum clients cannot be below current active clients."
+        if "max_storage_gb" in updates:
+            max_storage = Decimal(str(updates["max_storage_gb"]))
             if max_storage < self.current_storage_gb:
-                errors['max_storage_gb'] = 'Maximum storage cannot be below current usage.'
+                errors["max_storage_gb"] = "Maximum storage cannot be below current usage."
 
-        if 'trial_ends_at' in updates:
-            trial_ends_at = updates.get('trial_ends_at')
+        if "trial_ends_at" in updates:
+            trial_ends_at = updates.get("trial_ends_at")
             if trial_ends_at and trial_ends_at <= timezone.now():
-                errors['trial_ends_at'] = 'Trial end date must be in the future.'
+                errors["trial_ends_at"] = "Trial end date must be in the future."
 
         if errors:
             raise ValidationError(errors)
 
-    def apply_config_update(self, actor, updates, reason='', action='firm_settings_updated'):
+    def apply_config_update(self, actor, updates, reason="", action="firm_settings_updated"):
         """
         Apply configuration updates with validation, auditing, and rollback snapshot.
 
@@ -281,11 +239,13 @@ class Firm(models.Model):
             dict of previous values suitable for rollback.
         """
         if not updates:
-            raise ValidationError({'updates': 'No configuration updates provided.'})
+            raise ValidationError({"updates": "No configuration updates provided."})
 
         invalid_fields = set(updates) - self.CONFIG_FIELDS
         if invalid_fields:
-            raise ValidationError({'updates': f"Unsupported configuration fields: {', '.join(sorted(invalid_fields))}."})
+            raise ValidationError(
+                {"updates": f"Unsupported configuration fields: {', '.join(sorted(invalid_fields))}."}
+            )
 
         with transaction.atomic():
             locked = Firm.objects.select_for_update().get(pk=self.pk)
@@ -297,7 +257,7 @@ class Firm(models.Model):
                 setattr(locked, field, value)
 
             locked.full_clean()
-            locked.save(update_fields=[*updates.keys(), 'updated_at'])
+            locked.save(update_fields=[*updates.keys(), "updated_at"])
 
             from modules.firm.audit import audit
 
@@ -310,25 +270,24 @@ class Firm(models.Model):
                 target_repr=str(locked),
                 reason=reason,
                 metadata={
-                    'changes': self._build_config_changes(previous_values, updates),
-                    'rollback_snapshot': {
-                        field: self._serialize_config_value(value)
-                        for field, value in previous_values.items()
+                    "changes": self._build_config_changes(previous_values, updates),
+                    "rollback_snapshot": {
+                        field: self._serialize_config_value(value) for field, value in previous_values.items()
                     },
                 },
-                outcome='success',
+                outcome="success",
             )
 
         self.refresh_from_db()
         return previous_values
 
-    def rollback_config_update(self, actor, previous_values, reason=''):
+    def rollback_config_update(self, actor, previous_values, reason=""):
         """Rollback a prior configuration update using a snapshot of previous values."""
         return self.apply_config_update(
             actor=actor,
             updates=previous_values,
-            reason=reason or 'Rollback configuration update',
-            action='firm_settings_rolled_back',
+            reason=reason or "Rollback configuration update",
+            action="firm_settings_rolled_back",
         )
 
 
@@ -339,80 +298,47 @@ class FirmMembership(models.Model):
     Implements the Firm ↔ User relationship required for tenant isolation.
     Each user can be a member of multiple firms (e.g., consultants, contractors).
     """
+
     ROLE_CHOICES = [
-        ('owner', 'Firm Owner'),           # Master Admin - full control
-        ('admin', 'Firm Admin'),           # Admin with granular permissions
-        ('staff', 'Staff Member'),         # Standard user with limited permissions
-        ('contractor', 'Contractor'),       # External contractor
+        ("owner", "Firm Owner"),  # Master Admin - full control
+        ("admin", "Firm Admin"),  # Admin with granular permissions
+        ("staff", "Staff Member"),  # Standard user with limited permissions
+        ("contractor", "Contractor"),  # External contractor
     ]
 
-    firm = models.ForeignKey(
-        Firm,
-        on_delete=models.CASCADE,
-        related_name='memberships'
-    )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='firm_memberships'
-    )
-    role = models.CharField(
-        max_length=20,
-        choices=ROLE_CHOICES,
-        default='staff'
-    )
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="memberships")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="firm_memberships")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="staff")
 
     # Permissions
-    can_manage_users = models.BooleanField(
-        default=False,
-        help_text="Can invite/remove users"
-    )
-    can_manage_clients = models.BooleanField(
-        default=False,
-        help_text="Can create/delete clients"
-    )
-    can_manage_billing = models.BooleanField(
-        default=False,
-        help_text="Can view/modify billing"
-    )
-    can_manage_settings = models.BooleanField(
-        default=False,
-        help_text="Can modify firm settings"
-    )
-    can_view_reports = models.BooleanField(
-        default=False,
-        help_text="Can access analytics/reports"
-    )
+    can_manage_users = models.BooleanField(default=False, help_text="Can invite/remove users")
+    can_manage_clients = models.BooleanField(default=False, help_text="Can create/delete clients")
+    can_manage_billing = models.BooleanField(default=False, help_text="Can view/modify billing")
+    can_manage_settings = models.BooleanField(default=False, help_text="Can modify firm settings")
+    can_view_reports = models.BooleanField(default=False, help_text="Can access analytics/reports")
 
     # Status
-    is_active = models.BooleanField(
-        default=True,
-        help_text="Whether this membership is currently active"
-    )
+    is_active = models.BooleanField(default=True, help_text="Whether this membership is currently active")
 
     # Audit
     invited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name='invited_firm_members',
-        help_text="User who invited this member"
+        related_name="invited_firm_members",
+        help_text="User who invited this member",
     )
     invited_at = models.DateTimeField(auto_now_add=True)
-    last_active_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Last time user was active in this firm"
-    )
+    last_active_at = models.DateTimeField(null=True, blank=True, help_text="Last time user was active in this firm")
 
     class Meta:
-        db_table = 'firm_membership'
-        unique_together = [['firm', 'user']]
-        ordering = ['-invited_at']
+        db_table = "firm_membership"
+        unique_together = [["firm", "user"]]
+        ordering = ["-invited_at"]
         indexes = [
-            models.Index(fields=['firm', 'is_active']),
-            models.Index(fields=['user', 'is_active']),
-            models.Index(fields=['role']),
+            models.Index(fields=["firm", "is_active"]),
+            models.Index(fields=["user", "is_active"]),
+            models.Index(fields=["role"]),
         ]
 
     def __str__(self):
@@ -420,14 +346,14 @@ class FirmMembership(models.Model):
 
     def save(self, *args, **kwargs):
         """Auto-set permissions based on role."""
-        if self.role == 'owner':
+        if self.role == "owner":
             # Owner has all permissions
             self.can_manage_users = True
             self.can_manage_clients = True
             self.can_manage_billing = True
             self.can_manage_settings = True
             self.can_view_reports = True
-        elif self.role == 'admin':
+        elif self.role == "admin":
             # Admin has most permissions (but not settings by default)
             self.can_manage_users = True
             self.can_manage_clients = True
@@ -450,67 +376,48 @@ class BreakGlassSession(models.Model):
       session for action-level logging once the audit subsystem exists.
     """
 
-    STATUS_ACTIVE = 'active'
-    STATUS_EXPIRED = 'expired'
-    STATUS_REVOKED = 'revoked'
+    STATUS_ACTIVE = "active"
+    STATUS_EXPIRED = "expired"
+    STATUS_REVOKED = "revoked"
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, 'Active'),
-        (STATUS_EXPIRED, 'Expired'),
-        (STATUS_REVOKED, 'Revoked'),
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_EXPIRED, "Expired"),
+        (STATUS_REVOKED, "Revoked"),
     ]
 
-    firm = models.ForeignKey(
-        Firm,
-        on_delete=models.CASCADE,
-        related_name='break_glass_sessions'
-    )
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="break_glass_sessions")
     operator = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
-        related_name='break_glass_sessions',
-        help_text="Platform operator who activated break-glass"
+        related_name="break_glass_sessions",
+        help_text="Platform operator who activated break-glass",
     )
     impersonated_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='impersonated_by_break_glass_sessions',
-        help_text="Optional: firm user being impersonated during break-glass"
+        related_name="impersonated_by_break_glass_sessions",
+        help_text="Optional: firm user being impersonated during break-glass",
     )
-    reason = models.TextField(
-        help_text="Required reason string for break-glass activation"
-    )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default=STATUS_ACTIVE
-    )
+    reason = models.TextField(help_text="Required reason string for break-glass activation")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
     activated_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(
-        help_text="Auto-expiration timestamp for break-glass"
-    )
+    expires_at = models.DateTimeField(help_text="Auto-expiration timestamp for break-glass")
     revoked_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When break-glass was revoked early (if applicable)"
+        null=True, blank=True, help_text="When break-glass was revoked early (if applicable)"
     )
-    revoked_reason = models.TextField(
-        blank=True,
-        help_text="Optional: why break-glass was revoked early"
-    )
+    revoked_reason = models.TextField(blank=True, help_text="Optional: why break-glass was revoked early")
     reviewed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When break-glass usage was reviewed by platform ops"
+        null=True, blank=True, help_text="When break-glass usage was reviewed by platform ops"
     )
     reviewed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='reviewed_break_glass_sessions',
-        help_text="Reviewer for break-glass session audit"
+        related_name="reviewed_break_glass_sessions",
+        help_text="Reviewer for break-glass session audit",
     )
 
     class BreakGlassSessionQuerySet(models.QuerySet):
@@ -560,12 +467,12 @@ class BreakGlassSession(models.Model):
     objects = BreakGlassSessionQuerySet.as_manager()
 
     class Meta:
-        db_table = 'firm_break_glass_session'
-        ordering = ['-activated_at']
+        db_table = "firm_break_glass_session"
+        ordering = ["-activated_at"]
         indexes = [
-            models.Index(fields=['firm', 'status'], name='firm_bg_firm_status_idx'),
-            models.Index(fields=['operator', 'status'], name='firm_bg_operator_status_idx'),
-            models.Index(fields=['expires_at'], name='firm_bg_expires_at_idx'),
+            models.Index(fields=["firm", "status"], name="firm_bg_firm_status_idx"),
+            models.Index(fields=["operator", "status"], name="firm_bg_operator_status_idx"),
+            models.Index(fields=["expires_at"], name="firm_bg_expires_at_idx"),
         ]
 
     def __str__(self):
@@ -597,24 +504,24 @@ class BreakGlassSession(models.Model):
         - Follow-up: enforce maximum duration via policy config.
         """
         if self.status == self.STATUS_ACTIVE and self.expires_at <= timezone.now():
-            raise ValidationError({'expires_at': 'Break-glass expiry must be in the future.'})
+            raise ValidationError({"expires_at": "Break-glass expiry must be in the future."})
         if self.status == self.STATUS_REVOKED:
             if not self.revoked_at:
-                raise ValidationError({'revoked_at': 'Revoked sessions must include a revocation timestamp.'})
+                raise ValidationError({"revoked_at": "Revoked sessions must include a revocation timestamp."})
             if not self.revoked_reason:
-                raise ValidationError({'revoked_reason': 'Revoked sessions must include a revocation reason.'})
+                raise ValidationError({"revoked_reason": "Revoked sessions must include a revocation reason."})
         if self.reviewed_at and not self.reviewed_by:
-            raise ValidationError({'reviewed_by': 'Reviewed sessions must include a reviewer.'})
+            raise ValidationError({"reviewed_by": "Reviewed sessions must include a reviewer."})
         if self.reviewed_by and not self.reviewed_at:
-            raise ValidationError({'reviewed_at': 'Reviewed sessions must include a review timestamp.'})
+            raise ValidationError({"reviewed_at": "Reviewed sessions must include a review timestamp."})
         if self.reviewed_at and self.status == self.STATUS_ACTIVE:
-            raise ValidationError({'reviewed_at': 'Active sessions cannot be reviewed until closed.'})
+            raise ValidationError({"reviewed_at": "Active sessions cannot be reviewed until closed."})
         if self.activated_at and self.expires_at <= self.activated_at:
-            raise ValidationError({'expires_at': 'Expiry must be after activation.'})
+            raise ValidationError({"expires_at": "Expiry must be after activation."})
         if self.revoked_at and self.revoked_at < self.activated_at:
-            raise ValidationError({'revoked_at': 'Revocation cannot occur before activation.'})
+            raise ValidationError({"revoked_at": "Revocation cannot occur before activation."})
         if self.reviewed_at and self.reviewed_at < self.activated_at:
-            raise ValidationError({'reviewed_at': 'Review cannot occur before activation.'})
+            raise ValidationError({"reviewed_at": "Review cannot occur before activation."})
 
     def mark_expired(self):
         """
@@ -632,7 +539,7 @@ class BreakGlassSession(models.Model):
         TIER 0.6: Revocation is audited automatically via save() method.
         """
         if not reason:
-            raise ValidationError({'revoked_reason': 'Revocation reason is required.'})
+            raise ValidationError({"revoked_reason": "Revocation reason is required."})
         self.status = self.STATUS_REVOKED
         self.revoked_at = timezone.now()
         self.revoked_reason = reason
@@ -644,9 +551,9 @@ class BreakGlassSession(models.Model):
         TIER 0.6: Break-glass review must be audited.
         """
         if self.status == self.STATUS_ACTIVE:
-            raise ValidationError({'reviewed_at': 'Active sessions cannot be reviewed until closed.'})
+            raise ValidationError({"reviewed_at": "Active sessions cannot be reviewed until closed."})
         if reviewer is None:
-            raise ValidationError({'reviewed_by': 'Reviewer is required to mark a session as reviewed.'})
+            raise ValidationError({"reviewed_by": "Reviewer is required to mark a session as reviewed."})
         self.reviewed_by = reviewer
         self.reviewed_at = timezone.now()
 
@@ -676,41 +583,41 @@ class BreakGlassSession(models.Model):
         if is_new:
             audit.log_break_glass_event(
                 firm=self.firm,
-                action='break_glass_activated',
+                action="break_glass_activated",
                 actor=self.operator,
                 reason=self.reason,
                 target_model=self.__class__.__name__,
                 target_id=self.pk,
                 metadata={
-                    'impersonated_user_id': self.impersonated_user_id,
-                    'expires_at': self.expires_at.isoformat(),
+                    "impersonated_user_id": self.impersonated_user_id,
+                    "expires_at": self.expires_at.isoformat(),
                 },
             )
         elif previous_status and previous_status != self.status:
             if previous_status == self.STATUS_ACTIVE and self.status == self.STATUS_EXPIRED:
                 audit.log_break_glass_event(
                     firm=self.firm,
-                    action='break_glass_expired',
+                    action="break_glass_expired",
                     actor=self.operator,
                     reason=self.reason,
                     target_model=self.__class__.__name__,
                     target_id=self.pk,
                     metadata={
-                        'expired_at': timezone.now().isoformat(),
-                        'impersonated_user_id': self.impersonated_user_id,
+                        "expired_at": timezone.now().isoformat(),
+                        "impersonated_user_id": self.impersonated_user_id,
                     },
                 )
             elif previous_status == self.STATUS_ACTIVE and self.status == self.STATUS_REVOKED:
                 audit.log_break_glass_event(
                     firm=self.firm,
-                    action='break_glass_revoked',
+                    action="break_glass_revoked",
                     actor=self.operator,
                     reason=self.revoked_reason or self.reason,
                     target_model=self.__class__.__name__,
                     target_id=self.pk,
                     metadata={
-                        'revoked_at': (self.revoked_at or timezone.now()).isoformat(),
-                        'impersonated_user_id': self.impersonated_user_id,
+                        "revoked_at": (self.revoked_at or timezone.now()).isoformat(),
+                        "impersonated_user_id": self.impersonated_user_id,
                     },
                 )
 
@@ -722,36 +629,28 @@ class FirmOffboardingRecord(models.Model):
     Stores export manifests, integrity reports, and retention scheduling.
     """
 
-    STATUS_EXPORTING = 'exporting'
-    STATUS_EXPORTED = 'exported'
-    STATUS_PURGE_PENDING = 'purge_pending'
-    STATUS_PURGED = 'purged'
-    STATUS_FAILED = 'failed'
+    STATUS_EXPORTING = "exporting"
+    STATUS_EXPORTED = "exported"
+    STATUS_PURGE_PENDING = "purge_pending"
+    STATUS_PURGED = "purged"
+    STATUS_FAILED = "failed"
     STATUS_CHOICES = [
-        (STATUS_EXPORTING, 'Exporting'),
-        (STATUS_EXPORTED, 'Exported'),
-        (STATUS_PURGE_PENDING, 'Purge Pending'),
-        (STATUS_PURGED, 'Purged'),
-        (STATUS_FAILED, 'Failed'),
+        (STATUS_EXPORTING, "Exporting"),
+        (STATUS_EXPORTED, "Exported"),
+        (STATUS_PURGE_PENDING, "Purge Pending"),
+        (STATUS_PURGED, "Purged"),
+        (STATUS_FAILED, "Failed"),
     ]
 
-    firm = models.ForeignKey(
-        Firm,
-        on_delete=models.CASCADE,
-        related_name='offboarding_records'
-    )
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="offboarding_records")
     requested_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='firm_offboarding_requests'
+        related_name="firm_offboarding_requests",
     )
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default=STATUS_EXPORTING
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_EXPORTING)
     retention_days = models.PositiveIntegerField(default=30)
     purge_grace_days = models.PositiveIntegerField(default=7)
 
@@ -766,11 +665,11 @@ class FirmOffboardingRecord(models.Model):
     export_checksum = models.CharField(max_length=64, blank=True)
 
     class Meta:
-        db_table = 'firm_offboarding_record'
-        ordering = ['-export_started_at']
+        db_table = "firm_offboarding_record"
+        ordering = ["-export_started_at"]
         indexes = [
-            models.Index(fields=['firm', '-export_started_at']),
-            models.Index(fields=['status', '-export_started_at']),
+            models.Index(fields=["firm", "-export_started_at"]),
+            models.Index(fields=["status", "-export_started_at"]),
         ]
 
     def __str__(self):
@@ -792,76 +691,64 @@ class PlatformUserProfile(models.Model):
     - All platform actions should be auditable (future: link to audit system).
     """
 
-    ROLE_PLATFORM_OPERATOR = 'platform_operator'
-    ROLE_BREAK_GLASS_OPERATOR = 'break_glass_operator'
+    ROLE_PLATFORM_OPERATOR = "platform_operator"
+    ROLE_BREAK_GLASS_OPERATOR = "break_glass_operator"
     ROLE_CHOICES = [
-        (ROLE_PLATFORM_OPERATOR, 'Platform Operator (Metadata Only)'),
-        (ROLE_BREAK_GLASS_OPERATOR, 'Break-Glass Operator (Rare, Audited Access)'),
+        (ROLE_PLATFORM_OPERATOR, "Platform Operator (Metadata Only)"),
+        (ROLE_BREAK_GLASS_OPERATOR, "Break-Glass Operator (Rare, Audited Access)"),
     ]
 
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='platform_profile',
-        help_text="Link to Django User"
+        related_name="platform_profile",
+        help_text="Link to Django User",
     )
     platform_role = models.CharField(
         max_length=50,
         choices=ROLE_CHOICES,
         default=ROLE_PLATFORM_OPERATOR,
-        help_text="Platform access level: operator (metadata) or break-glass (rare content access)"
+        help_text="Platform access level: operator (metadata) or break-glass (rare content access)",
     )
-    is_platform_active = models.BooleanField(
-        default=True,
-        help_text="Whether platform access is currently active"
-    )
+    is_platform_active = models.BooleanField(default=True, help_text="Whether platform access is currently active")
     can_activate_break_glass = models.BooleanField(
-        default=False,
-        help_text="Explicit flag: can this user activate break-glass sessions? (separate from role)"
+        default=False, help_text="Explicit flag: can this user activate break-glass sessions? (separate from role)"
     )
 
     # Audit
-    granted_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text="When platform access was granted"
-    )
+    granted_at = models.DateTimeField(auto_now_add=True, help_text="When platform access was granted")
     granted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='granted_platform_profiles',
-        help_text="Who granted this platform access"
+        related_name="granted_platform_profiles",
+        help_text="Who granted this platform access",
     )
     revoked_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When platform access was revoked (if applicable)"
+        null=True, blank=True, help_text="When platform access was revoked (if applicable)"
     )
     revoked_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='revoked_platform_profiles',
-        help_text="Who revoked this platform access"
+        related_name="revoked_platform_profiles",
+        help_text="Who revoked this platform access",
     )
-    notes = models.TextField(
-        blank=True,
-        help_text="Internal notes about this platform user (e.g., reason for access)"
-    )
+    notes = models.TextField(blank=True, help_text="Internal notes about this platform user (e.g., reason for access)")
 
     class Meta:
-        db_table = 'firm_platform_user_profile'
-        ordering = ['-granted_at']
+        db_table = "firm_platform_user_profile"
+        ordering = ["-granted_at"]
         indexes = [
             models.Index(
-                fields=['platform_role', 'is_platform_active'],
-                name='firm_plat_role_active_idx',
+                fields=["platform_role", "is_platform_active"],
+                name="firm_plat_role_active_idx",
             ),
             models.Index(
-                fields=['can_activate_break_glass'],
-                name='firm_plat_bg_perm_idx',
+                fields=["can_activate_break_glass"],
+                name="firm_plat_bg_perm_idx",
             ),
         ]
 
@@ -895,19 +782,15 @@ class PlatformUserProfile(models.Model):
         """Validate platform profile invariants."""
         # Break-glass operators must have explicit break-glass activation permission
         if self.platform_role == self.ROLE_BREAK_GLASS_OPERATOR and not self.can_activate_break_glass:
-            raise ValidationError({
-                'can_activate_break_glass': 'Break-glass operators must have can_activate_break_glass enabled.'
-            })
+            raise ValidationError(
+                {"can_activate_break_glass": "Break-glass operators must have can_activate_break_glass enabled."}
+            )
 
         # Revocation invariants
         if not self.is_platform_active and not self.revoked_at:
-            raise ValidationError({
-                'revoked_at': 'Inactive platform profiles must have revoked_at timestamp.'
-            })
+            raise ValidationError({"revoked_at": "Inactive platform profiles must have revoked_at timestamp."})
         if self.revoked_at and not self.revoked_by:
-            raise ValidationError({
-                'revoked_by': 'Revoked platform profiles must include who revoked access.'
-            })
+            raise ValidationError({"revoked_by": "Revoked platform profiles must include who revoked access."})
 
     def save(self, *args, **kwargs):
         """Run validation before saving."""

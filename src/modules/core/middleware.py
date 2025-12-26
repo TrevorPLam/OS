@@ -1,6 +1,7 @@
 """
 Core middleware for telemetry and observability.
 """
+
 from __future__ import annotations
 
 import time
@@ -24,9 +25,7 @@ class TelemetryRequestMiddleware:
 
         if hasattr(request, "resolver_match") and request.resolver_match:
             operation = (
-                request.resolver_match.view_name
-                or request.resolver_match.url_name
-                or request.resolver_match.route
+                request.resolver_match.view_name or request.resolver_match.url_name or request.resolver_match.route
             )
 
         try:

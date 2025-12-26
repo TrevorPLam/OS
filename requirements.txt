@@ -43,9 +43,8 @@ factory-boy==3.3.0
 faker==22.0.0
 
 # Code Quality & Linting (required by CI)
-flake8==7.0.0
+ruff==0.1.9  # Modern Python linter (replaces flake8, isort, pyupgrade)
 black==23.12.1
-isort==5.13.2
 
 # Security Scanning (required by CI)
 safety==3.0.1

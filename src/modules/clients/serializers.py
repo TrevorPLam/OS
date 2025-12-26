@@ -3,16 +3,18 @@ Serializers for Clients module.
 
 TIER 2.6: Added Organization serializer for cross-client collaboration.
 """
+
 from rest_framework import serializers
+
 from modules.clients.models import (
-    Organization,
     Client,
-    ClientPortalUser,
-    ClientNote,
-    ClientEngagement,
-    ClientComment,
     ClientChatThread,
+    ClientComment,
+    ClientEngagement,
     ClientMessage,
+    ClientNote,
+    ClientPortalUser,
+    Organization,
 )
 
 
@@ -29,18 +31,18 @@ class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = [
-            'id',
-            'firm',
-            'name',
-            'description',
-            'enable_cross_client_visibility',
-            'client_count',
-            'created_at',
-            'updated_at',
-            'created_by',
-            'created_by_name',
+            "id",
+            "firm",
+            "name",
+            "description",
+            "enable_cross_client_visibility",
+            "client_count",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
         ]
-        read_only_fields = ['firm', 'created_at', 'updated_at', 'created_by']
+        read_only_fields = ["firm", "created_at", "updated_at", "created_by"]
 
     def get_client_count(self, obj):
         """Return number of clients in this organization."""
@@ -62,49 +64,49 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = [
-            'id',
-            'organization',  # TIER 2.6: Optional organization grouping
-            'source_prospect',
-            'source_proposal',
-            'company_name',
-            'industry',
-            'primary_contact_name',
-            'primary_contact_email',
-            'primary_contact_phone',
-            'street_address',
-            'city',
-            'state',
-            'postal_code',
-            'country',
-            'website',
-            'employee_count',
-            'status',
-            'account_manager',
-            'account_manager_name',
-            'assigned_team',
-            'assigned_team_names',
-            'portal_enabled',
-            'autopay_enabled',
-            'autopay_payment_method_id',
-            'autopay_activated_at',
-            'autopay_activated_by',
-            'total_lifetime_value',
-            'active_projects_count',
-            'client_since',
-            'created_at',
-            'updated_at',
-            'notes',
+            "id",
+            "organization",  # TIER 2.6: Optional organization grouping
+            "source_prospect",
+            "source_proposal",
+            "company_name",
+            "industry",
+            "primary_contact_name",
+            "primary_contact_email",
+            "primary_contact_phone",
+            "street_address",
+            "city",
+            "state",
+            "postal_code",
+            "country",
+            "website",
+            "employee_count",
+            "status",
+            "account_manager",
+            "account_manager_name",
+            "assigned_team",
+            "assigned_team_names",
+            "portal_enabled",
+            "autopay_enabled",
+            "autopay_payment_method_id",
+            "autopay_activated_at",
+            "autopay_activated_by",
+            "total_lifetime_value",
+            "active_projects_count",
+            "client_since",
+            "created_at",
+            "updated_at",
+            "notes",
         ]
         read_only_fields = [
-            'id',
-            'source_prospect',
-            'source_proposal',
-            'total_lifetime_value',
-            'active_projects_count',
-            'created_at',
-            'updated_at',
-            'autopay_activated_at',
-            'autopay_activated_by',
+            "id",
+            "source_prospect",
+            "source_proposal",
+            "total_lifetime_value",
+            "active_projects_count",
+            "created_at",
+            "updated_at",
+            "autopay_activated_at",
+            "autopay_activated_by",
         ]
 
     def get_account_manager_name(self, obj):
@@ -116,10 +118,7 @@ class ClientSerializer(serializers.ModelSerializer):
     def get_assigned_team_names(self, obj):
         """Get names of assigned team members."""
         return [
-            {
-                'id': user.id,
-                'name': f"{user.first_name} {user.last_name}".strip() or user.username
-            }
+            {"id": user.id, "name": f"{user.first_name} {user.last_name}".strip() or user.username}
             for user in obj.assigned_team.all()
         ]
 
@@ -127,29 +126,29 @@ class ClientSerializer(serializers.ModelSerializer):
 class ClientPortalUserSerializer(serializers.ModelSerializer):
     """Serializer for ClientPortalUser model."""
 
-    user_email = serializers.EmailField(source='user.email', read_only=True)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
     user_name = serializers.SerializerMethodField()
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
 
     class Meta:
         model = ClientPortalUser
         fields = [
-            'id',
-            'client',
-            'client_name',
-            'user',
-            'user_email',
-            'user_name',
-            'role',
-            'can_upload_documents',
-            'can_view_billing',
-            'can_message_team',
-            'can_view_projects',
-            'invited_by',
-            'invited_at',
-            'last_login',
+            "id",
+            "client",
+            "client_name",
+            "user",
+            "user_email",
+            "user_name",
+            "role",
+            "can_upload_documents",
+            "can_view_billing",
+            "can_message_team",
+            "can_view_projects",
+            "invited_by",
+            "invited_at",
+            "last_login",
         ]
-        read_only_fields = ['id', 'invited_by', 'invited_at']
+        read_only_fields = ["id", "invited_by", "invited_at"]
 
     def get_user_name(self, obj):
         """Get user's full name."""
@@ -160,22 +159,22 @@ class ClientNoteSerializer(serializers.ModelSerializer):
     """Serializer for ClientNote model."""
 
     author_name = serializers.SerializerMethodField()
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
 
     class Meta:
         model = ClientNote
         fields = [
-            'id',
-            'client',
-            'client_name',
-            'author',
-            'author_name',
-            'note',
-            'is_pinned',
-            'created_at',
-            'updated_at',
+            "id",
+            "client",
+            "client_name",
+            "author",
+            "author_name",
+            "note",
+            "is_pinned",
+            "created_at",
+            "updated_at",
         ]
-        read_only_fields = ['id', 'author', 'created_at', 'updated_at']
+        read_only_fields = ["id", "author", "created_at", "updated_at"]
 
     def get_author_name(self, obj):
         """Get author's full name."""
@@ -185,78 +184,78 @@ class ClientNoteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Set author from request user."""
-        validated_data['author'] = self.context['request'].user
+        validated_data["author"] = self.context["request"].user
         return super().create(validated_data)
 
 
 class ClientEngagementSerializer(serializers.ModelSerializer):
     """Serializer for ClientEngagement model."""
 
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
-    contract_number = serializers.CharField(source='contract.contract_number', read_only=True)
-    parent_engagement_version = serializers.IntegerField(source='parent_engagement.version', read_only=True)
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
+    contract_number = serializers.CharField(source="contract.contract_number", read_only=True)
+    parent_engagement_version = serializers.IntegerField(source="parent_engagement.version", read_only=True)
 
     class Meta:
         model = ClientEngagement
         fields = [
-            'id',
-            'client',
-            'client_name',
-            'contract',
-            'contract_number',
-            'status',
-            'version',
-            'parent_engagement',
-            'parent_engagement_version',
-            'start_date',
-            'end_date',
-            'actual_end_date',
-            'contracted_value',
-            'actual_revenue',
-            'created_at',
-            'updated_at',
-            'notes',
+            "id",
+            "client",
+            "client_name",
+            "contract",
+            "contract_number",
+            "status",
+            "version",
+            "parent_engagement",
+            "parent_engagement_version",
+            "start_date",
+            "end_date",
+            "actual_end_date",
+            "contracted_value",
+            "actual_revenue",
+            "created_at",
+            "updated_at",
+            "notes",
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class ClientCommentSerializer(serializers.ModelSerializer):
     """Serializer for ClientComment model."""
 
     author_name = serializers.SerializerMethodField()
-    author_email = serializers.EmailField(source='user.email', read_only=True)
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
-    task_title = serializers.CharField(source='task.title', read_only=True)
+    author_email = serializers.EmailField(source="user.email", read_only=True)
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
+    task_title = serializers.CharField(source="task.title", read_only=True)
     task_project = serializers.SerializerMethodField()
 
     class Meta:
         model = ClientComment
         fields = [
-            'id',
-            'client',
-            'client_name',
-            'task',
-            'task_title',
-            'task_project',
-            'author',
-            'author_name',
-            'author_email',
-            'comment',
-            'has_attachment',
-            'is_read_by_firm',
-            'read_by',
-            'read_at',
-            'created_at',
-            'updated_at',
+            "id",
+            "client",
+            "client_name",
+            "task",
+            "task_title",
+            "task_project",
+            "author",
+            "author_name",
+            "author_email",
+            "comment",
+            "has_attachment",
+            "is_read_by_firm",
+            "read_by",
+            "read_at",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = [
-            'id',
-            'author',
-            'is_read_by_firm',
-            'read_by',
-            'read_at',
-            'created_at',
-            'updated_at',
+            "id",
+            "author",
+            "is_read_by_firm",
+            "read_by",
+            "read_at",
+            "created_at",
+            "updated_at",
         ]
 
     def get_author_name(self, obj):
@@ -269,24 +268,25 @@ class ClientCommentSerializer(serializers.ModelSerializer):
         """Get task's project info."""
         if obj.task and obj.task.project:
             return {
-                'id': obj.task.project.id,
-                'name': obj.task.project.name,
-                'project_code': obj.task.project.project_code if hasattr(obj.task.project, 'project_code') else None,
+                "id": obj.task.project.id,
+                "name": obj.task.project.name,
+                "project_code": obj.task.project.project_code if hasattr(obj.task.project, "project_code") else None,
             }
         return None
 
     def create(self, validated_data):
         """Set author and client from request context."""
-        request = self.context.get('request')
-        validated_data['author'] = request.user
+        request = self.context.get("request")
+        validated_data["author"] = request.user
 
         # Get client from portal user
         from modules.clients.models import ClientPortalUser
+
         try:
             portal_user = ClientPortalUser.objects.get(user=request.user)
-            validated_data['client'] = portal_user.client
-        except ClientPortalUser.DoesNotExist:
-            raise serializers.ValidationError("User is not a client portal user")
+            validated_data["client"] = portal_user.client
+        except ClientPortalUser.DoesNotExist as e:
+            raise serializers.ValidationError("User is not a client portal user") from e
 
         return super().create(validated_data)
 
@@ -297,6 +297,7 @@ class ClientTaskSerializer(serializers.ModelSerializer):
 
     Shows task details without exposing sensitive firm information.
     """
+
     assigned_to_name = serializers.SerializerMethodField()
     hours_logged = serializers.SerializerMethodField()
     comments = serializers.SerializerMethodField()
@@ -304,23 +305,24 @@ class ClientTaskSerializer(serializers.ModelSerializer):
 
     class Meta:
         from modules.projects.models import Task
+
         model = Task
         fields = [
-            'id',
-            'title',
-            'description',
-            'status',
-            'priority',
-            'position',
-            'estimated_hours',
-            'due_date',
-            'completed_at',
-            'created_at',
-            'updated_at',
-            'assigned_to_name',
-            'hours_logged',
-            'comments',
-            'progress_percentage',
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "position",
+            "estimated_hours",
+            "due_date",
+            "completed_at",
+            "created_at",
+            "updated_at",
+            "assigned_to_name",
+            "hours_logged",
+            "comments",
+            "progress_percentage",
         ]
         read_only_fields = fields  # All fields are read-only for clients
 
@@ -333,27 +335,32 @@ class ClientTaskSerializer(serializers.ModelSerializer):
     def get_hours_logged(self, obj):
         """Calculate total hours logged for this task."""
         from django.db.models import Sum
-        total = obj.time_entries.aggregate(total=Sum('hours'))['total']
+
+        total = obj.time_entries.aggregate(total=Sum("hours"))["total"]
         return float(total) if total else 0.0
 
     def get_comments(self, obj):
         """Get client comments for this task."""
         from modules.clients.models import ClientComment
-        comments = ClientComment.objects.filter(task=obj).order_by('-created_at')[:10]
-        return [{
-            'id': comment.id,
-            'author_name': comment.author.get_full_name() or comment.author.username,
-            'comment': comment.comment,
-            'created_at': comment.created_at,
-        } for comment in comments]
+
+        comments = ClientComment.objects.filter(task=obj).order_by("-created_at")[:10]
+        return [
+            {
+                "id": comment.id,
+                "author_name": comment.author.get_full_name() or comment.author.username,
+                "comment": comment.comment,
+                "created_at": comment.created_at,
+            }
+            for comment in comments
+        ]
 
     def get_progress_percentage(self, obj):
         """Calculate progress percentage based on status."""
         status_progress = {
-            'todo': 0,
-            'in_progress': 50,
-            'review': 75,
-            'done': 100,
+            "todo": 0,
+            "in_progress": 50,
+            "review": 75,
+            "done": 100,
         }
         return status_progress.get(obj.status, 0)
 
@@ -365,32 +372,34 @@ class ClientProjectSerializer(serializers.ModelSerializer):
     Shows project details with tasks, suitable for client portal.
     Hides sensitive firm information like hourly rates and internal notes.
     """
+
     project_manager_name = serializers.SerializerMethodField()
-    tasks = ClientTaskSerializer(many=True, read_only=True, source='tasks_set')
+    tasks = ClientTaskSerializer(many=True, read_only=True, source="tasks_set")
     total_hours_logged = serializers.SerializerMethodField()
     progress_percentage = serializers.SerializerMethodField()
     tasks_summary = serializers.SerializerMethodField()
 
     class Meta:
         from modules.projects.models import Project
+
         model = Project
         fields = [
-            'id',
-            'project_code',
-            'name',
-            'description',
-            'status',
-            'budget',  # Show budget but hide hourly_rate
-            'start_date',
-            'end_date',
-            'actual_completion_date',
-            'created_at',
-            'updated_at',
-            'project_manager_name',
-            'tasks',
-            'total_hours_logged',
-            'progress_percentage',
-            'tasks_summary',
+            "id",
+            "project_code",
+            "name",
+            "description",
+            "status",
+            "budget",  # Show budget but hide hourly_rate
+            "start_date",
+            "end_date",
+            "actual_completion_date",
+            "created_at",
+            "updated_at",
+            "project_manager_name",
+            "tasks",
+            "total_hours_logged",
+            "progress_percentage",
+            "tasks_summary",
         ]
         read_only_fields = fields  # All fields are read-only for clients
 
@@ -403,42 +412,43 @@ class ClientProjectSerializer(serializers.ModelSerializer):
     def get_total_hours_logged(self, obj):
         """Calculate total hours logged for this project."""
         from django.db.models import Sum
-        total = obj.time_entries.aggregate(total=Sum('hours'))['total']
+
+        total = obj.time_entries.aggregate(total=Sum("hours"))["total"]
         return float(total) if total else 0.0
 
     def get_progress_percentage(self, obj):
         """Calculate overall project progress based on completed tasks."""
         from modules.projects.models import Task
+
         total_tasks = Task.objects.filter(project=obj).count()
         if total_tasks == 0:
             return 0
 
-        completed_tasks = Task.objects.filter(project=obj, status='done').count()
+        completed_tasks = Task.objects.filter(project=obj, status="done").count()
         return int((completed_tasks / total_tasks) * 100)
 
     def get_tasks_summary(self, obj):
         """Get task counts by status."""
-        from modules.projects.models import Task
         from django.db.models import Count
 
-        summary = Task.objects.filter(project=obj).values('status').annotate(
-            count=Count('id')
-        )
+        from modules.projects.models import Task
+
+        summary = Task.objects.filter(project=obj).values("status").annotate(count=Count("id"))
 
         result = {
-            'todo': 0,
-            'in_progress': 0,
-            'review': 0,
-            'done': 0,
-            'total': 0,
+            "todo": 0,
+            "in_progress": 0,
+            "review": 0,
+            "done": 0,
+            "total": 0,
         }
 
         for item in summary:
-            status = item['status']
-            count = item['count']
+            status = item["status"]
+            count = item["count"]
             if status in result:
                 result[status] = count
-            result['total'] += count
+            result["total"] += count
 
         return result
 
@@ -450,8 +460,9 @@ class ClientInvoiceSerializer(serializers.ModelSerializer):
     Shows invoice details suitable for client portal.
     Hides sensitive firm information like internal notes and markup details.
     """
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
-    project_name = serializers.CharField(source='project.name', read_only=True)
+
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
+    project_name = serializers.CharField(source="project.name", read_only=True)
     project_code = serializers.SerializerMethodField()
     balance_due = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     is_overdue = serializers.BooleanField(read_only=True)
@@ -460,40 +471,42 @@ class ClientInvoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         from modules.finance.models import Invoice
+
         model = Invoice
         fields = [
-            'id',
-            'invoice_number',
-            'client_name',
-            'project',
-            'project_name',
-            'project_code',
-            'status',
-            'subtotal',
-            'tax_amount',
-            'total_amount',
-            'amount_paid',
-            'balance_due',
-            'issue_date',
-            'due_date',
-            'paid_date',
-            'line_items',
-            'is_overdue',
-            'days_until_due',
-            'can_pay_online',
-            'created_at',
+            "id",
+            "invoice_number",
+            "client_name",
+            "project",
+            "project_name",
+            "project_code",
+            "status",
+            "subtotal",
+            "tax_amount",
+            "total_amount",
+            "amount_paid",
+            "balance_due",
+            "issue_date",
+            "due_date",
+            "paid_date",
+            "line_items",
+            "is_overdue",
+            "days_until_due",
+            "can_pay_online",
+            "created_at",
         ]
         read_only_fields = fields  # All fields are read-only for clients
 
     def get_project_code(self, obj):
         """Get project code if available."""
-        if obj.project and hasattr(obj.project, 'project_code'):
+        if obj.project and hasattr(obj.project, "project_code"):
             return obj.project.project_code
         return None
 
     def get_days_until_due(self, obj):
         """Calculate days until due date."""
         from django.utils import timezone
+
         if obj.due_date:
             today = timezone.now().date()
             delta = (obj.due_date - today).days
@@ -503,7 +516,7 @@ class ClientInvoiceSerializer(serializers.ModelSerializer):
     def get_can_pay_online(self, obj):
         """Check if invoice can be paid online."""
         # Can pay if status is sent, partial, or overdue and has balance due
-        payable_statuses = ['sent', 'partial', 'overdue']
+        payable_statuses = ["sent", "partial", "overdue"]
         return obj.status in payable_statuses and obj.balance_due > 0
 
 
@@ -511,37 +524,37 @@ class ClientMessageSerializer(serializers.ModelSerializer):
     """Serializer for ClientMessage model."""
 
     sender_name = serializers.SerializerMethodField()
-    sender_email = serializers.EmailField(source='sender.email', read_only=True)
+    sender_email = serializers.EmailField(source="sender.email", read_only=True)
 
     class Meta:
         model = ClientMessage
         fields = [
-            'id',
-            'thread',
-            'sender',
-            'sender_name',
-            'sender_email',
-            'is_from_client',
-            'message_type',
-            'content',
-            'attachment_url',
-            'attachment_filename',
-            'attachment_size_bytes',
-            'is_read',
-            'read_at',
-            'read_by',
-            'created_at',
-            'updated_at',
+            "id",
+            "thread",
+            "sender",
+            "sender_name",
+            "sender_email",
+            "is_from_client",
+            "message_type",
+            "content",
+            "attachment_url",
+            "attachment_filename",
+            "attachment_size_bytes",
+            "is_read",
+            "read_at",
+            "read_by",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = [
-            'id',
-            'sender',
-            'is_from_client',
-            'is_read',
-            'read_at',
-            'read_by',
-            'created_at',
-            'updated_at',
+            "id",
+            "sender",
+            "is_from_client",
+            "is_read",
+            "read_at",
+            "read_by",
+            "created_at",
+            "updated_at",
         ]
 
     def get_sender_name(self, obj):
@@ -552,16 +565,17 @@ class ClientMessageSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """Set sender and is_from_client from request context."""
-        request = self.context.get('request')
-        validated_data['sender'] = request.user
+        request = self.context.get("request")
+        validated_data["sender"] = request.user
 
         # Check if sender is a client portal user
         from modules.clients.models import ClientPortalUser
+
         try:
             ClientPortalUser.objects.get(user=request.user)
-            validated_data['is_from_client'] = True
+            validated_data["is_from_client"] = True
         except ClientPortalUser.DoesNotExist:
-            validated_data['is_from_client'] = False
+            validated_data["is_from_client"] = False
 
         return super().create(validated_data)
 
@@ -569,7 +583,7 @@ class ClientMessageSerializer(serializers.ModelSerializer):
 class ClientChatThreadSerializer(serializers.ModelSerializer):
     """Serializer for ClientChatThread model."""
 
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
     last_message_by_name = serializers.SerializerMethodField()
     messages = ClientMessageSerializer(many=True, read_only=True)
     recent_messages = serializers.SerializerMethodField()
@@ -577,40 +591,43 @@ class ClientChatThreadSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientChatThread
         fields = [
-            'id',
-            'client',
-            'client_name',
-            'date',
-            'is_active',
-            'archived_at',
-            'message_count',
-            'last_message_at',
-            'last_message_by',
-            'last_message_by_name',
-            'created_at',
-            'updated_at',
-            'messages',
-            'recent_messages',
+            "id",
+            "client",
+            "client_name",
+            "date",
+            "is_active",
+            "archived_at",
+            "message_count",
+            "last_message_at",
+            "last_message_by",
+            "last_message_by_name",
+            "created_at",
+            "updated_at",
+            "messages",
+            "recent_messages",
         ]
         read_only_fields = [
-            'id',
-            'message_count',
-            'last_message_at',
-            'last_message_by',
-            'archived_at',
-            'created_at',
-            'updated_at',
+            "id",
+            "message_count",
+            "last_message_at",
+            "last_message_by",
+            "archived_at",
+            "created_at",
+            "updated_at",
         ]
 
     def get_last_message_by_name(self, obj):
         """Get last message sender's name."""
         if obj.last_message_by:
-            return f"{obj.last_message_by.first_name} {obj.last_message_by.last_name}".strip() or obj.last_message_by.username
+            return (
+                f"{obj.last_message_by.first_name} {obj.last_message_by.last_name}".strip()
+                or obj.last_message_by.username
+            )
         return None
 
     def get_recent_messages(self, obj):
         """Get recent messages (last 50) for efficiency."""
-        messages = obj.messages.all().order_by('-created_at')[:50]
+        messages = obj.messages.all().order_by("-created_at")[:50]
         return ClientMessageSerializer(messages, many=True).data
 
 
@@ -621,35 +638,37 @@ class ClientProposalSerializer(serializers.ModelSerializer):
     Shows proposal details suitable for client portal.
     Hides internal firm information and decision-making details.
     """
+
     client_name = serializers.SerializerMethodField()
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    type_display = serializers.CharField(source='get_proposal_type_display', read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    type_display = serializers.CharField(source="get_proposal_type_display", read_only=True)
     is_expired = serializers.SerializerMethodField()
     days_until_expiry = serializers.SerializerMethodField()
 
     class Meta:
         from modules.crm.models import Proposal
+
         model = Proposal
         fields = [
-            'id',
-            'proposal_number',
-            'proposal_type',
-            'type_display',
-            'title',
-            'description',
-            'status',
-            'status_display',
-            'total_value',
-            'currency',
-            'valid_until',
-            'estimated_start_date',
-            'estimated_end_date',
-            'sent_at',
-            'accepted_at',
-            'is_expired',
-            'days_until_expiry',
-            'client_name',
-            'created_at',
+            "id",
+            "proposal_number",
+            "proposal_type",
+            "type_display",
+            "title",
+            "description",
+            "status",
+            "status_display",
+            "total_value",
+            "currency",
+            "valid_until",
+            "estimated_start_date",
+            "estimated_end_date",
+            "sent_at",
+            "accepted_at",
+            "is_expired",
+            "days_until_expiry",
+            "client_name",
+            "created_at",
         ]
         read_only_fields = fields  # All fields are read-only for clients
 
@@ -664,6 +683,7 @@ class ClientProposalSerializer(serializers.ModelSerializer):
     def get_is_expired(self, obj):
         """Check if proposal has expired."""
         from django.utils import timezone
+
         if obj.valid_until:
             return obj.valid_until < timezone.now().date()
         return False
@@ -671,6 +691,7 @@ class ClientProposalSerializer(serializers.ModelSerializer):
     def get_days_until_expiry(self, obj):
         """Calculate days until expiry."""
         from django.utils import timezone
+
         if obj.valid_until:
             today = timezone.now().date()
             delta = (obj.valid_until - today).days
@@ -685,37 +706,39 @@ class ClientContractSerializer(serializers.ModelSerializer):
     Shows contract details suitable for client portal.
     Hides internal firm notes and sensitive information.
     """
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    payment_terms_display = serializers.CharField(source='get_payment_terms_display', read_only=True)
+
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
+    payment_terms_display = serializers.CharField(source="get_payment_terms_display", read_only=True)
     proposal_number = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
     days_remaining = serializers.SerializerMethodField()
 
     class Meta:
         from modules.crm.models import Contract
+
         model = Contract
         fields = [
-            'id',
-            'contract_number',
-            'title',
-            'description',
-            'status',
-            'status_display',
-            'total_value',
-            'currency',
-            'payment_terms',
-            'payment_terms_display',
-            'start_date',
-            'end_date',
-            'signed_date',
-            'contract_file_url',
-            'proposal_number',
-            'is_active',
-            'days_remaining',
-            'client_name',
-            'created_at',
-            'updated_at',
+            "id",
+            "contract_number",
+            "title",
+            "description",
+            "status",
+            "status_display",
+            "total_value",
+            "currency",
+            "payment_terms",
+            "payment_terms_display",
+            "start_date",
+            "end_date",
+            "signed_date",
+            "contract_file_url",
+            "proposal_number",
+            "is_active",
+            "days_remaining",
+            "client_name",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = fields  # All fields are read-only for clients
 
@@ -727,11 +750,12 @@ class ClientContractSerializer(serializers.ModelSerializer):
 
     def get_is_active(self, obj):
         """Check if contract is currently active."""
-        return obj.status == 'active'
+        return obj.status == "active"
 
     def get_days_remaining(self, obj):
         """Calculate days remaining in contract."""
         from django.utils import timezone
+
         if obj.end_date:
             today = timezone.now().date()
             delta = (obj.end_date - today).days
@@ -745,27 +769,29 @@ class ClientEngagementDetailSerializer(serializers.ModelSerializer):
 
     Shows engagement history with version tracking.
     """
+
     contract = ClientContractSerializer(read_only=True)
-    client_name = serializers.CharField(source='client.company_name', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
+    status_display = serializers.CharField(source="get_status_display", read_only=True)
     has_parent = serializers.SerializerMethodField()
     has_renewals = serializers.SerializerMethodField()
 
     class Meta:
         from modules.clients.models import ClientEngagement
+
         model = ClientEngagement
         fields = [
-            'id',
-            'client_name',
-            'contract',
-            'status',
-            'status_display',
-            'version',
-            'start_date',
-            'end_date',
-            'actual_end_date',
-            'has_parent',
-            'has_renewals',
+            "id",
+            "client_name",
+            "contract",
+            "status",
+            "status_display",
+            "version",
+            "start_date",
+            "end_date",
+            "actual_end_date",
+            "has_parent",
+            "has_renewals",
         ]
         read_only_fields = fields  # All fields are read-only for clients
 

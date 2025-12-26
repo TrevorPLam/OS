@@ -14,10 +14,15 @@ Meta-commentary:
 - Platform staff should use metadata-only views for diagnostics and support
 - Content access requires active break-glass session (Tier 0.6)
 """
-from rest_framework import permissions
+
+import logging
+
 from django.core.exceptions import PermissionDenied
-from modules.firm.models import BreakGlassSession
-from modules.firm.models import FirmMembership
+from rest_framework import permissions
+
+from modules.firm.models import BreakGlassSession, FirmMembership
+
+logger = logging.getLogger(__name__)
 
 
 class IsPlatformOperator(permissions.BasePermission):
@@ -35,7 +40,7 @@ class IsPlatformOperator(permissions.BasePermission):
             return False
 
         # Check if user has platform profile
-        if not hasattr(request.user, 'platform_profile'):
+        if not hasattr(request.user, "platform_profile"):
             return False
 
         profile = request.user.platform_profile
@@ -70,21 +75,21 @@ class DenyContentAccessByDefault(permissions.BasePermission):
 
     # Content models that are explicitly denied
     CONTENT_MODEL_DENY_LIST = [
-        'documents.Document',
-        'documents.Version',
+        "documents.Document",
+        "documents.Version",
         # Future: add Message, Comment, Note models when they exist
     ]
 
     # Content fields that should never be returned to platform operators
     CONTENT_FIELD_DENY_LIST = [
-        'content',
-        'text',
-        'body',
-        'message',
-        'notes',
-        's3_key',  # S3 keys allow content retrieval
-        'bucket_name',  # Same as above
-        'line_items',  # Invoice line items contain billing context
+        "content",
+        "text",
+        "body",
+        "message",
+        "notes",
+        "s3_key",  # S3 keys allow content retrieval
+        "bucket_name",  # Same as above
+        "line_items",  # Invoice line items contain billing context
     ]
 
     def has_permission(self, request, view):
@@ -127,14 +132,14 @@ class DenyContentAccessByDefault(permissions.BasePermission):
         """Check if user is a platform operator."""
         if not user or not user.is_authenticated:
             return False
-        return hasattr(user, 'platform_profile') and user.platform_profile.is_platform_active
+        return hasattr(user, "platform_profile") and user.platform_profile.is_platform_active
 
     def _get_model_name(self, view):
         """Get the model name for a ViewSet."""
-        if hasattr(view, 'queryset') and view.queryset is not None:
+        if hasattr(view, "queryset") and view.queryset is not None:
             model = view.queryset.model
             return f"{model._meta.app_label}.{model._meta.model_name}"
-        elif hasattr(view, 'model'):
+        elif hasattr(view, "model"):
             model = view.model
             return f"{model._meta.app_label}.{model._meta.model_name}"
         return None
@@ -146,7 +151,7 @@ class DenyContentAccessByDefault(permissions.BasePermission):
         Logs audit event when break-glass is used to access content.
         """
         # Platform user must have break-glass capability
-        if not hasattr(request.user, 'platform_profile'):
+        if not hasattr(request.user, "platform_profile"):
             return False
 
         profile = request.user.platform_profile
@@ -154,14 +159,12 @@ class DenyContentAccessByDefault(permissions.BasePermission):
             return False
 
         # Must have firm context
-        if not hasattr(request, 'firm') or request.firm is None:
+        if not hasattr(request, "firm") or request.firm is None:
             return False
 
         # Check for active break-glass session for this operator in this firm
         active_session = BreakGlassSession.objects.filter(
-            firm=request.firm,
-            operator=request.user,
-            status=BreakGlassSession.STATUS_ACTIVE
+            firm=request.firm, operator=request.user, status=BreakGlassSession.STATUS_ACTIVE
         ).first()
 
         if active_session and active_session.is_active:
@@ -178,21 +181,21 @@ class DenyContentAccessByDefault(permissions.BasePermission):
 
             audit.log_break_glass_event(
                 firm=request.firm,
-                action='break_glass_content_access',
+                action="break_glass_content_access",
                 actor=request.user,
                 reason=session.reason,
-                target_model='ContentModel',
-                target_id='',
+                target_model="ContentModel",
+                target_id="",
                 metadata={
-                    'path': request.path,
-                    'method': request.method,
-                    'session_id': session.id,
-                    'impersonated_user_id': session.impersonated_user_id,
+                    "path": request.path,
+                    "method": request.method,
+                    "session_id": session.id,
+                    "impersonated_user_id": session.impersonated_user_id,
                 },
             )
-        except Exception:
+        except Exception as e:
             # Don't block access if audit logging fails
-            pass
+            logger.warning(f"Failed to log break glass access: {e}")
 
 
 class MetadataOnlyAccess(permissions.BasePermission):
@@ -228,19 +231,19 @@ class MetadataOnlyAccess(permissions.BasePermission):
     """
 
     METADATA_ALLOWED_FIELDS = [
-        'id',
-        'created_at',
-        'updated_at',
-        'status',
-        'firm_id',
-        'client_id',
-        'user_id',
-        'file_size',
-        'mime_type',
-        'version_number',
-        'count',
-        'total',
-        'error_trace',
+        "id",
+        "created_at",
+        "updated_at",
+        "status",
+        "firm_id",
+        "client_id",
+        "user_id",
+        "file_size",
+        "mime_type",
+        "version_number",
+        "count",
+        "total",
+        "error_trace",
     ]
 
     def has_permission(self, request, view):
@@ -289,12 +292,12 @@ class IsFirmOwnerOrAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        if not hasattr(request, 'firm') or request.firm is None:
+        if not hasattr(request, "firm") or request.firm is None:
             return False
         return FirmMembership.objects.filter(
             firm=request.firm,
             user=request.user,
-            role__in=['owner', 'admin'],
+            role__in=["owner", "admin"],
             is_active=True,
         ).exists()
 
@@ -306,24 +309,22 @@ class IsFirmOwnerOrAdmin(permissions.BasePermission):
         """Check if user is a platform operator."""
         if not user or not user.is_authenticated:
             return False
-        return hasattr(user, 'platform_profile') and user.platform_profile.is_platform_active
+        return hasattr(user, "platform_profile") and user.platform_profile.is_platform_active
 
     def _has_active_break_glass(self, request):
         """Check for active break-glass session and log content access."""
-        if not hasattr(request.user, 'platform_profile'):
+        if not hasattr(request.user, "platform_profile"):
             return False
 
         profile = request.user.platform_profile
         if not profile.can_activate_break_glass:
             return False
 
-        if not hasattr(request, 'firm') or request.firm is None:
+        if not hasattr(request, "firm") or request.firm is None:
             return False
 
         active_session = BreakGlassSession.objects.filter(
-            firm=request.firm,
-            operator=request.user,
-            status=BreakGlassSession.STATUS_ACTIVE
+            firm=request.firm, operator=request.user, status=BreakGlassSession.STATUS_ACTIVE
         ).first()
 
         if active_session and active_session.is_active:
@@ -340,18 +341,18 @@ class IsFirmOwnerOrAdmin(permissions.BasePermission):
 
             audit.log_break_glass_event(
                 firm=request.firm,
-                action='break_glass_content_access',
+                action="break_glass_content_access",
                 actor=request.user,
                 reason=session.reason,
-                target_model='ContentModel',
-                target_id='',
+                target_model="ContentModel",
+                target_id="",
                 metadata={
-                    'path': request.path,
-                    'method': request.method,
-                    'session_id': session.id,
-                    'impersonated_user_id': session.impersonated_user_id,
+                    "path": request.path,
+                    "method": request.method,
+                    "session_id": session.id,
+                    "impersonated_user_id": session.impersonated_user_id,
                 },
             )
-        except Exception:
+        except Exception as e:
             # Don't block access if audit logging fails
-            pass
+            logger.warning(f"Failed to log break glass access: {e}")

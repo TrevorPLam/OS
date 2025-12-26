@@ -3,10 +3,12 @@ Stripe Service for Payment Processing.
 
 Provides utilities for creating invoices, processing payments, and managing subscriptions.
 """
+
+from decimal import Decimal
+from typing import Any
+
 import stripe
 from django.conf import settings
-from typing import Optional, Dict, Any
-from decimal import Decimal
 
 # Configure Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -20,7 +22,7 @@ class StripeService:
     """
 
     @staticmethod
-    def create_customer(email: str, name: str, metadata: Optional[Dict] = None) -> stripe.Customer:
+    def create_customer(email: str, name: str, metadata: dict | None = None) -> stripe.Customer:
         """
         Create a Stripe customer.
 
@@ -33,21 +35,14 @@ class StripeService:
             stripe.Customer: Created customer object
         """
         try:
-            customer = stripe.Customer.create(
-                email=email,
-                name=name,
-                metadata=metadata or {}
-            )
+            customer = stripe.Customer.create(email=email, name=name, metadata=metadata or {})
             return customer
         except stripe.error.StripeError as e:
-            raise Exception(f"Failed to create Stripe customer: {str(e)}")
+            raise Exception(f"Failed to create Stripe customer: {str(e)}") from e
 
     @staticmethod
     def create_invoice(
-        customer_id: str,
-        amount: Decimal,
-        description: str,
-        metadata: Optional[Dict] = None
+        customer_id: str, amount: Decimal, description: str, metadata: dict | None = None
     ) -> stripe.Invoice:
         """
         Create and send a Stripe invoice.
@@ -67,17 +62,12 @@ class StripeService:
 
             # Create invoice item
             stripe.InvoiceItem.create(
-                customer=customer_id,
-                amount=amount_cents,
-                currency='usd',
-                description=description
+                customer=customer_id, amount=amount_cents, currency="usd", description=description
             )
 
             # Create invoice
             invoice = stripe.Invoice.create(
-                customer=customer_id,
-                auto_advance=True,  # Auto-finalize the invoice
-                metadata=metadata or {}
+                customer=customer_id, auto_advance=True, metadata=metadata or {}  # Auto-finalize the invoice
             )
 
             # Send the invoice
@@ -85,15 +75,15 @@ class StripeService:
 
             return invoice
         except stripe.error.StripeError as e:
-            raise Exception(f"Failed to create Stripe invoice: {str(e)}")
+            raise Exception(f"Failed to create Stripe invoice: {str(e)}") from e
 
     @staticmethod
     def create_payment_intent(
         amount: Decimal,
-        currency: str = 'usd',
-        customer_id: Optional[str] = None,
-        metadata: Optional[Dict] = None,
-        payment_method: Optional[str] = None,
+        currency: str = "usd",
+        customer_id: str | None = None,
+        metadata: dict | None = None,
+        payment_method: str | None = None,
     ) -> stripe.PaymentIntent:
         """
         Create a payment intent for one-time payments.
@@ -111,24 +101,24 @@ class StripeService:
             # Convert amount to cents
             amount_cents = int(amount * 100)
 
-            kwargs: Dict[str, Any] = {
-                'amount': amount_cents,
-                'currency': currency,
-                'customer': customer_id,
-                'metadata': metadata or {},
-                'automatic_payment_methods': {'enabled': True},
+            kwargs: dict[str, Any] = {
+                "amount": amount_cents,
+                "currency": currency,
+                "customer": customer_id,
+                "metadata": metadata or {},
+                "automatic_payment_methods": {"enabled": True},
             }
 
             if payment_method:
-                kwargs['payment_method'] = payment_method
-                kwargs['confirm'] = True
-                kwargs['off_session'] = True
+                kwargs["payment_method"] = payment_method
+                kwargs["confirm"] = True
+                kwargs["off_session"] = True
 
             payment_intent = stripe.PaymentIntent.create(**kwargs)
 
             return payment_intent
         except stripe.error.StripeError as e:
-            raise Exception(f"Failed to create payment intent: {str(e)}")
+            raise Exception(f"Failed to create payment intent: {str(e)}") from e
 
     @staticmethod
     def retrieve_invoice(invoice_id: str) -> stripe.Invoice:
@@ -144,7 +134,7 @@ class StripeService:
         try:
             return stripe.Invoice.retrieve(invoice_id)
         except stripe.error.StripeError as e:
-            raise Exception(f"Failed to retrieve invoice: {str(e)}")
+            raise Exception(f"Failed to retrieve invoice: {str(e)}") from e
 
     @staticmethod
     def retrieve_payment_intent(payment_intent_id: str) -> stripe.PaymentIntent:
@@ -160,10 +150,10 @@ class StripeService:
         try:
             return stripe.PaymentIntent.retrieve(payment_intent_id)
         except stripe.error.StripeError as e:
-            raise Exception(f"Failed to retrieve payment intent: {str(e)}")
+            raise Exception(f"Failed to retrieve payment intent: {str(e)}") from e
 
     @staticmethod
-    def refund_payment(payment_intent_id: str, amount: Optional[Decimal] = None) -> stripe.Refund:
+    def refund_payment(payment_intent_id: str, amount: Decimal | None = None) -> stripe.Refund:
         """
         Refund a payment.
 
@@ -175,11 +165,11 @@ class StripeService:
             stripe.Refund: Refund object
         """
         try:
-            refund_params = {'payment_intent': payment_intent_id}
+            refund_params = {"payment_intent": payment_intent_id}
 
             if amount is not None:
-                refund_params['amount'] = int(amount * 100)
+                refund_params["amount"] = int(amount * 100)
 
             return stripe.Refund.create(**refund_params)
         except stripe.error.StripeError as e:
-            raise Exception(f"Failed to refund payment: {str(e)}")
+            raise Exception(f"Failed to refund payment: {str(e)}") from e

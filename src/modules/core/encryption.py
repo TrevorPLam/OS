@@ -16,7 +16,6 @@ import boto3
 from cryptography.fernet import Fernet, InvalidToken
 from django.conf import settings
 
-
 ENCRYPTED_PREFIX = "enc::"
 
 
@@ -70,9 +69,7 @@ class AWSKMSBackend:
         return base64.b64encode(response["CiphertextBlob"]).decode()
 
     def decrypt(self, key_id: str, ciphertext: str) -> str:
-        response = self.client.decrypt(
-            KeyId=key_id, CiphertextBlob=base64.b64decode(ciphertext.encode())
-        )
+        response = self.client.decrypt(KeyId=key_id, CiphertextBlob=base64.b64decode(ciphertext.encode()))
         return response["Plaintext"].decode()
 
 

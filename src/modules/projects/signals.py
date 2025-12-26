@@ -7,11 +7,14 @@ Implements business logic and automatic state transitions:
 - Update project status based on task completion
 - Send notifications for task assignments
 """
-from django.db.models.signals import pre_save, post_save
+
+import logging
+
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from .models import Project, Task, TimeEntry, Expense
-import logging
+
+from .models import Expense, Project, Task, TimeEntry
 
 logger = logging.getLogger(__name__)
 
@@ -30,29 +33,25 @@ def task_status_workflow(sender, instance, **kwargs):
             old_instance = Task.objects.get(pk=instance.pk)
 
             if old_instance.status != instance.status:
-                logger.info(
-                    f"Task '{instance.title}' status changed: "
-                    f"{old_instance.status} -> {instance.status}"
-                )
+                logger.info(f"Task '{instance.title}' status changed: " f"{old_instance.status} -> {instance.status}")
 
                 # Auto-set completed_at when status changes to 'done'
-                if instance.status == 'done' and not instance.completed_at:
+                if instance.status == "done" and not instance.completed_at:
                     instance.completed_at = timezone.now()
                     logger.info(f"Auto-set completed_at for task '{instance.title}'")
 
                 # Clear completed_at if status changes away from 'done'
-                if old_instance.status == 'done' and instance.status != 'done':
+                if old_instance.status == "done" and instance.status != "done":
                     instance.completed_at = None
                     logger.info(f"Cleared completed_at for task '{instance.title}'")
 
             # Log task assignment changes
             if old_instance.assigned_to != instance.assigned_to:
                 if instance.assigned_to:
-                    logger.info(
-                        f"Task '{instance.title}' assigned to {instance.assigned_to.username}"
-                    )
+                    logger.info(f"Task '{instance.title}' assigned to {instance.assigned_to.username}")
                     # Send email notification to assigned user
                     from modules.core.notifications import EmailNotification
+
                     EmailNotification.send_task_assignment(instance)
                 else:
                     logger.info(f"Task '{instance.title}' unassigned")
@@ -74,6 +73,7 @@ def task_created_notification(sender, instance, created, **kwargs):
         )
         # Send email notification
         from modules.core.notifications import EmailNotification
+
         EmailNotification.send_task_assignment(instance)
 
 
@@ -97,10 +97,9 @@ def time_entry_validation(sender, instance, **kwargs):
                 or old_instance.hourly_rate != instance.hourly_rate
                 or old_instance.is_billable != instance.is_billable
             ):
-                logger.error(
-                    f"Attempted modification of invoiced time entry {instance.id}"
-                )
+                logger.error(f"Attempted modification of invoiced time entry {instance.id}")
                 from rest_framework.exceptions import ValidationError
+
                 raise ValidationError("Cannot modify invoiced time entries")
 
         except TimeEntry.DoesNotExist:
@@ -110,6 +109,7 @@ def time_entry_validation(sender, instance, **kwargs):
     if instance.date > timezone.now().date():
         logger.error(f"Attempted to log time entry for future date: {instance.date}")
         from rest_framework.exceptions import ValidationError
+
         raise ValidationError("Cannot log time for future dates")
 
 
@@ -140,24 +140,19 @@ def project_status_workflow(sender, instance, **kwargs):
             old_instance = Project.objects.get(pk=instance.pk)
 
             if old_instance.status != instance.status:
-                logger.info(
-                    f"Project '{instance.name}' status changed: "
-                    f"{old_instance.status} -> {instance.status}"
-                )
+                logger.info(f"Project '{instance.name}' status changed: " f"{old_instance.status} -> {instance.status}")
 
                 # Auto-set actual_completion_date when status changes to 'completed'
-                if instance.status == 'completed' and not instance.actual_completion_date:
+                if instance.status == "completed" and not instance.actual_completion_date:
                     instance.actual_completion_date = timezone.now().date()
-                    logger.info(
-                        f"Auto-set actual_completion_date for project '{instance.name}'"
-                    )
+                    logger.info(f"Auto-set actual_completion_date for project '{instance.name}'")
 
                 # Clear actual_completion_date if status changes away from 'completed'
-                if old_instance.status == 'completed' and instance.status != 'completed':
+                if old_instance.status == "completed" and instance.status != "completed":
                     instance.actual_completion_date = None
 
                 # Log project cancellation
-                if instance.status == 'cancelled':
+                if instance.status == "cancelled":
                     logger.warning(
                         f"Project '{instance.name}' cancelled. "
                         f"Budget: {instance.budget}, "
@@ -178,7 +173,7 @@ def project_completion_notification(sender, instance, created, **kwargs):
     2. Calculate final billing metrics
     3. Log completion for reporting
     """
-    if not created and instance.status == 'completed':
+    if not created and instance.status == "completed":
         logger.info(
             f"🎊 Project '{instance.name}' completed! "
             f"Duration: {instance.start_date} to {instance.actual_completion_date or instance.end_date}"
@@ -186,6 +181,7 @@ def project_completion_notification(sender, instance, created, **kwargs):
 
         # Send email notification to stakeholders
         from modules.core.notifications import EmailNotification
+
         EmailNotification.send_project_completed(instance)
 
         # Log project metrics for completion report
@@ -208,24 +204,19 @@ def _log_project_completion_metrics(project):
     try:
         # Calculate total time logged
         from django.db.models import Sum
-        total_hours = TimeEntry.objects.filter(
-            project=project
-        ).aggregate(total=Sum('hours'))['total'] or 0
+
+        total_hours = TimeEntry.objects.filter(project=project).aggregate(total=Sum("hours"))["total"] or 0
 
         # Calculate billable vs non-billable hours
-        billable_hours = TimeEntry.objects.filter(
-            project=project,
-            is_billable=True
-        ).aggregate(total=Sum('hours'))['total'] or 0
+        billable_hours = (
+            TimeEntry.objects.filter(project=project, is_billable=True).aggregate(total=Sum("hours"))["total"] or 0
+        )
 
         non_billable_hours = total_hours - billable_hours
 
         # Count completed tasks
         total_tasks = Task.objects.filter(project=project).count()
-        completed_tasks = Task.objects.filter(
-            project=project,
-            status='done'
-        ).count()
+        completed_tasks = Task.objects.filter(project=project, status="done").count()
 
         # Log metrics
         logger.info(
@@ -264,61 +255,47 @@ def expense_approval_workflow(sender, instance, **kwargs):
             old_instance = Expense.objects.get(pk=instance.pk)
 
             # Prevent modification of invoiced expenses
-            if old_instance.status == 'invoiced':
-                if (old_instance.amount != instance.amount or
-                    old_instance.billable_amount != instance.billable_amount or
-                    old_instance.is_billable != instance.is_billable):
-                    logger.error(
-                        f"Attempted modification of invoiced expense {instance.id}"
-                    )
-                    raise ValidationError(
-                        "Cannot modify invoiced expenses. "
-                        "Contact finance to adjust the invoice."
-                    )
+            if old_instance.status == "invoiced":
+                if (
+                    old_instance.amount != instance.amount
+                    or old_instance.billable_amount != instance.billable_amount
+                    or old_instance.is_billable != instance.is_billable
+                ):
+                    logger.error(f"Attempted modification of invoiced expense {instance.id}")
+                    raise ValidationError("Cannot modify invoiced expenses. " "Contact finance to adjust the invoice.")
 
             # Track status changes
             if old_instance.status != instance.status:
-                logger.info(
-                    f"Expense {instance.id} status changed: "
-                    f"{old_instance.status} -> {instance.status}"
-                )
+                logger.info(f"Expense {instance.id} status changed: " f"{old_instance.status} -> {instance.status}")
 
                 # Validate approval workflow
-                if instance.status == 'approved':
+                if instance.status == "approved":
                     # Set approval timestamp if not already set
                     if not instance.approved_at:
                         instance.approved_at = timezone.now()
 
                     # Ensure approver is set (should be set by the API)
                     if not instance.approved_by:
-                        logger.warning(
-                            f"Expense {instance.id} approved without approver set"
-                        )
+                        logger.warning(f"Expense {instance.id} approved without approver set")
 
-                    logger.info(
-                        f"✅ Expense {instance.id} approved: "
-                        f"${instance.amount} ({instance.category})"
-                    )
+                    logger.info(f"✅ Expense {instance.id} approved: " f"${instance.amount} ({instance.category})")
 
                 # Handle rejection
-                if instance.status == 'rejected':
+                if instance.status == "rejected":
                     if not instance.rejected_at:
                         instance.rejected_at = timezone.now()
 
-                    logger.info(
-                        f"❌ Expense {instance.id} rejected: "
-                        f"${instance.amount} ({instance.category})"
-                    )
+                    logger.info(f"❌ Expense {instance.id} rejected: " f"${instance.amount} ({instance.category})")
 
                 # Clear approval fields if status changes away from approved
-                if old_instance.status == 'approved' and instance.status != 'approved':
-                    if instance.status != 'invoiced':  # Don't clear if moving to invoiced
+                if old_instance.status == "approved" and instance.status != "approved":
+                    if instance.status != "invoiced":  # Don't clear if moving to invoiced
                         instance.approved_at = None
                         instance.approved_by = None
                         logger.info(f"Cleared approval for expense {instance.id}")
 
                 # Clear rejection fields if status changes away from rejected
-                if old_instance.status == 'rejected' and instance.status != 'rejected':
+                if old_instance.status == "rejected" and instance.status != "rejected":
                     instance.rejected_at = None
                     instance.rejected_by = None
                     logger.info(f"Cleared rejection for expense {instance.id}")
@@ -327,7 +304,7 @@ def expense_approval_workflow(sender, instance, **kwargs):
             pass
     else:
         # New expense creation
-        if instance.status == 'approved' and not instance.approved_at:
+        if instance.status == "approved" and not instance.approved_at:
             instance.approved_at = timezone.now()
 
 
@@ -347,7 +324,7 @@ def expense_submission_notification(sender, instance, created, **kwargs):
         # Get old instance to detect status changes
         # Note: We use a try-except since the instance might have just been saved
         try:
-            if instance.status == 'submitted':
+            if instance.status == "submitted":
                 logger.info(
                     f"📋 Expense submitted for approval: "
                     f"${instance.amount} by {instance.submitted_by.username} "
@@ -355,24 +332,15 @@ def expense_submission_notification(sender, instance, created, **kwargs):
                 )
                 # Send notification to project manager
                 if instance.project.project_manager:
-                    EmailNotification.send_expense_submitted(
-                        instance,
-                        approver=instance.project.project_manager
-                    )
+                    EmailNotification.send_expense_submitted(instance, approver=instance.project.project_manager)
 
-            elif instance.status == 'approved':
-                logger.info(
-                    f"✅ Expense approved: ${instance.amount} "
-                    f"for {instance.submitted_by.username}"
-                )
+            elif instance.status == "approved":
+                logger.info(f"✅ Expense approved: ${instance.amount} " f"for {instance.submitted_by.username}")
                 # Send notification to submitter
                 EmailNotification.send_expense_approved(instance)
 
-            elif instance.status == 'rejected':
-                logger.info(
-                    f"❌ Expense rejected: ${instance.amount} "
-                    f"for {instance.submitted_by.username}"
-                )
+            elif instance.status == "rejected":
+                logger.info(f"❌ Expense rejected: ${instance.amount} " f"for {instance.submitted_by.username}")
                 # Send notification to submitter
                 EmailNotification.send_expense_rejected(instance)
 
@@ -396,26 +364,23 @@ def approve_expense(expense, approver):
     """
     from rest_framework.exceptions import ValidationError
 
-    if expense.status not in ['submitted', 'draft']:
+    if expense.status not in ["submitted", "draft"]:
         raise ValidationError(
             f"Cannot approve expense with status '{expense.status}'. "
             "Only 'submitted' or 'draft' expenses can be approved."
         )
 
-    expense.status = 'approved'
+    expense.status = "approved"
     expense.approved_by = approver
     expense.approved_at = timezone.now()
     expense.save()
 
-    logger.info(
-        f"Expense {expense.id} approved by {approver.username}: "
-        f"${expense.amount} ({expense.category})"
-    )
+    logger.info(f"Expense {expense.id} approved by {approver.username}: " f"${expense.amount} ({expense.category})")
 
     return expense
 
 
-def reject_expense(expense, rejector, reason=''):
+def reject_expense(expense, rejector, reason=""):
     """
     Helper function to reject an expense (Medium Feature 2.4).
 
@@ -432,13 +397,13 @@ def reject_expense(expense, rejector, reason=''):
     """
     from rest_framework.exceptions import ValidationError
 
-    if expense.status not in ['submitted', 'draft']:
+    if expense.status not in ["submitted", "draft"]:
         raise ValidationError(
             f"Cannot reject expense with status '{expense.status}'. "
             "Only 'submitted' or 'draft' expenses can be rejected."
         )
 
-    expense.status = 'rejected'
+    expense.status = "rejected"
     expense.rejected_by = rejector
     expense.rejected_at = timezone.now()
     if reason:

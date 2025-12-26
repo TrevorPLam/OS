@@ -6,7 +6,7 @@ Provides helpers for ensuring all database queries are properly scoped to a firm
 TIER 0 REQUIREMENT: All customer data queries MUST be scoped to a firm.
 Using Model.objects.all() on firm-scoped models is FORBIDDEN.
 """
-from typing import Optional
+
 from django.db import models
 from django.http import HttpRequest
 
@@ -15,6 +15,7 @@ from modules.firm.models import BreakGlassSession
 
 class FirmScopingError(Exception):
     """Raised when firm scoping is violated."""
+
     pass
 
 
@@ -28,14 +29,12 @@ def get_request_firm(request: HttpRequest):
     Returns:
         Firm instance from request
     """
-    if not hasattr(request, 'firm') or request.firm is None:
-        raise FirmScopingError(
-            "Request has no firm context. All firm-scoped operations require firm context."
-        )
+    if not hasattr(request, "firm") or request.firm is None:
+        raise FirmScopingError("Request has no firm context. All firm-scoped operations require firm context.")
     return request.firm
 
 
-def firm_scoped_queryset(model_class: models.Model, firm, base_queryset: Optional[models.QuerySet] = None):
+def firm_scoped_queryset(model_class: models.Model, firm, base_queryset: models.QuerySet | None = None):
     """
     Get a firm-scoped queryset for a model.
 
@@ -89,8 +88,7 @@ class FirmScopedManager(models.Manager):
         """
         if firm is None:
             raise FirmScopingError(
-                f"Cannot scope {self.model.__name__} to None firm. "
-                "All firm-scoped queries require a firm."
+                f"Cannot scope {self.model.__name__} to None firm. " "All firm-scoped queries require a firm."
             )
         return self.filter(firm=firm)
 
@@ -115,10 +113,9 @@ class FirmScopedMixin:
 
         Override this method if you need additional filtering.
         """
-        if not hasattr(self, 'model'):
+        if not hasattr(self, "model"):
             raise NotImplementedError(
-                f"{self.__class__.__name__} must define 'model' attribute "
-                "when using FirmScopedMixin"
+                f"{self.__class__.__name__} must define 'model' attribute " "when using FirmScopedMixin"
             )
 
         firm = get_request_firm(self.request)
@@ -140,10 +137,9 @@ def validate_firm_access(obj, firm):
         client = Client.objects.get(id=client_id)
         validate_firm_access(client, request.firm)
     """
-    if not hasattr(obj, 'firm'):
+    if not hasattr(obj, "firm"):
         raise FirmScopingError(
-            f"{obj.__class__.__name__} does not have 'firm' attribute. "
-            "Cannot validate firm access."
+            f"{obj.__class__.__name__} does not have 'firm' attribute. " "Cannot validate firm access."
         )
 
     if obj.firm_id != firm.id:
@@ -167,10 +163,9 @@ def get_firm_or_403(request: HttpRequest):
     """
     from django.core.exceptions import PermissionDenied
 
-    if not hasattr(request, 'firm') or request.firm is None:
+    if not hasattr(request, "firm") or request.firm is None:
         raise PermissionDenied(
-            "This operation requires firm context. "
-            "Access via firm subdomain or include firm_id in token."
+            "This operation requires firm context. " "Access via firm subdomain or include firm_id in token."
         )
 
     return request.firm

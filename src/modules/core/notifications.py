@@ -8,11 +8,13 @@ Provides utilities for sending notifications via:
 
 Email templates are rendered using Django's template system.
 """
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.conf import settings
-from django.utils.html import strip_tags
+
 import logging
+
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 from modules.core.telemetry import log_event, log_metric, track_duration
 
@@ -43,7 +45,7 @@ class EmailNotification:
         from_email=None,
         cc=None,
         bcc=None,
-        reply_to=None
+        reply_to=None,
     ):
         """
         Send email notification.
@@ -67,11 +69,7 @@ class EmailNotification:
             with track_duration("notification_email_send", channel="email"):
                 # Use default from_email if not provided
                 if not from_email:
-                    from_email = getattr(
-                        settings,
-                        'DEFAULT_FROM_EMAIL',
-                        'noreply@consultantpro.com'
-                    )
+                    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@consultantpro.com")
 
                 # Render HTML content from template if provided
                 if template and context is not None:
@@ -85,24 +83,24 @@ class EmailNotification:
                 if html_content:
                     email = EmailMultiAlternatives(
                         subject=subject,
-                        body=text_content or '',
+                        body=text_content or "",
                         from_email=from_email,
                         to=to if isinstance(to, list) else [to],
                         cc=cc,
                         bcc=bcc,
-                        reply_to=reply_to
+                        reply_to=reply_to,
                     )
                     email.attach_alternative(html_content, "text/html")
                 else:
                     # Plain text only
                     email = EmailMultiAlternatives(
                         subject=subject,
-                        body=text_content or '',
+                        body=text_content or "",
                         from_email=from_email,
                         to=to if isinstance(to, list) else [to],
                         cc=cc,
                         bcc=bcc,
-                        reply_to=reply_to
+                        reply_to=reply_to,
                     )
 
                 # Send email
@@ -134,11 +132,10 @@ class EmailNotification:
         Args:
             proposal: Proposal model instance
         """
-        from modules.crm.models import Proposal
 
         # Determine recipient email
         recipient_email = None
-        if hasattr(proposal, 'created_by') and proposal.created_by:
+        if hasattr(proposal, "created_by") and proposal.created_by:
             recipient_email = proposal.created_by.email
 
         if not recipient_email:
@@ -148,18 +145,26 @@ class EmailNotification:
 
         # Prepare email context
         context = {
-            'proposal': proposal,
-            'proposal_number': proposal.proposal_number,
-            'proposal_title': proposal.title,
-            'estimated_value': proposal.estimated_value,
-            'currency': proposal.currency,
-            'client_name': getattr(proposal.client, 'company_name', 'N/A') if hasattr(proposal, 'client') and proposal.client else getattr(proposal.prospect, 'company_name', 'N/A') if hasattr(proposal, 'prospect') and proposal.prospect else 'N/A',
+            "proposal": proposal,
+            "proposal_number": proposal.proposal_number,
+            "proposal_title": proposal.title,
+            "estimated_value": proposal.estimated_value,
+            "currency": proposal.currency,
+            "client_name": (
+                getattr(proposal.client, "company_name", "N/A")
+                if hasattr(proposal, "client") and proposal.client
+                else (
+                    getattr(proposal.prospect, "company_name", "N/A")
+                    if hasattr(proposal, "prospect") and proposal.prospect
+                    else "N/A"
+                )
+            ),
         }
 
         # Send email
         return EmailNotification.send(
             to=[recipient_email],
-            subject=f'🎉 Proposal {proposal.proposal_number} Accepted!',
+            subject=f"🎉 Proposal {proposal.proposal_number} Accepted!",
             html_content=f"""
                 <h2>Congratulations! Your proposal has been accepted.</h2>
                 <p><strong>Proposal:</strong> {context['proposal_number']} - {context['proposal_title']}</p>
@@ -170,7 +175,7 @@ class EmailNotification:
                 <p style="color: #666; font-size: 12px;">
                     This is an automated notification from ConsultantPro CRM.
                 </p>
-            """
+            """,
         )
 
     @staticmethod
@@ -182,7 +187,7 @@ class EmailNotification:
             proposal: Proposal model instance
         """
         recipient_email = None
-        if hasattr(proposal, 'created_by') and proposal.created_by:
+        if hasattr(proposal, "created_by") and proposal.created_by:
             recipient_email = proposal.created_by.email
 
         if not recipient_email:
@@ -191,15 +196,23 @@ class EmailNotification:
             return False
 
         context = {
-            'proposal_number': proposal.proposal_number,
-            'proposal_title': proposal.title,
-            'client_name': getattr(proposal.client, 'company_name', 'N/A') if hasattr(proposal, 'client') and proposal.client else getattr(proposal.prospect, 'company_name', 'N/A') if hasattr(proposal, 'prospect') and proposal.prospect else 'N/A',
-            'valid_until': proposal.valid_until,
+            "proposal_number": proposal.proposal_number,
+            "proposal_title": proposal.title,
+            "client_name": (
+                getattr(proposal.client, "company_name", "N/A")
+                if hasattr(proposal, "client") and proposal.client
+                else (
+                    getattr(proposal.prospect, "company_name", "N/A")
+                    if hasattr(proposal, "prospect") and proposal.prospect
+                    else "N/A"
+                )
+            ),
+            "valid_until": proposal.valid_until,
         }
 
         return EmailNotification.send(
             to=[recipient_email],
-            subject=f'Proposal {proposal.proposal_number} Sent',
+            subject=f"Proposal {proposal.proposal_number} Sent",
             html_content=f"""
                 <h2>Proposal Sent Successfully</h2>
                 <p><strong>Proposal:</strong> {context['proposal_number']} - {context['proposal_title']}</p>
@@ -210,7 +223,7 @@ class EmailNotification:
                 <p style="color: #666; font-size: 12px;">
                     This is an automated notification from ConsultantPro CRM.
                 </p>
-            """
+            """,
         )
 
     @staticmethod
@@ -225,8 +238,8 @@ class EmailNotification:
         recipients = []
 
         # Add client's account manager if available
-        if hasattr(contract, 'client') and contract.client:
-            if hasattr(contract.client, 'account_manager') and contract.client.account_manager:
+        if hasattr(contract, "client") and contract.client:
+            if hasattr(contract.client, "account_manager") and contract.client.account_manager:
                 recipients.append(contract.client.account_manager.email)
 
         if not recipients:
@@ -235,18 +248,22 @@ class EmailNotification:
             return False
 
         context = {
-            'contract_number': contract.contract_number,
-            'contract_title': contract.title,
-            'client_name': getattr(contract.client, 'company_name', 'N/A') if hasattr(contract, 'client') and contract.client else 'N/A',
-            'contract_value': contract.contract_value,
-            'currency': contract.currency,
-            'start_date': contract.start_date,
-            'end_date': contract.end_date,
+            "contract_number": contract.contract_number,
+            "contract_title": contract.title,
+            "client_name": (
+                getattr(contract.client, "company_name", "N/A")
+                if hasattr(contract, "client") and contract.client
+                else "N/A"
+            ),
+            "contract_value": contract.contract_value,
+            "currency": contract.currency,
+            "start_date": contract.start_date,
+            "end_date": contract.end_date,
         }
 
         return EmailNotification.send(
             to=recipients,
-            subject=f'📋 Contract {contract.contract_number} Activated',
+            subject=f"📋 Contract {contract.contract_number} Activated",
             html_content=f"""
                 <h2>Contract Activated</h2>
                 <p><strong>Contract:</strong> {context['contract_number']} - {context['contract_title']}</p>
@@ -258,7 +275,7 @@ class EmailNotification:
                 <p style="color: #666; font-size: 12px;">
                     This is an automated notification from ConsultantPro CRM.
                 </p>
-            """
+            """,
         )
 
     @staticmethod
@@ -275,17 +292,17 @@ class EmailNotification:
             return False
 
         context = {
-            'task_title': task.title,
-            'task_description': task.description or 'No description provided',
-            'project_name': task.project.name if hasattr(task, 'project') and task.project else 'N/A',
-            'due_date': task.due_date if hasattr(task, 'due_date') else 'Not set',
-            'priority': task.priority if hasattr(task, 'priority') else 'normal',
-            'assigned_to_name': task.assigned_to.get_full_name() or task.assigned_to.username,
+            "task_title": task.title,
+            "task_description": task.description or "No description provided",
+            "project_name": task.project.name if hasattr(task, "project") and task.project else "N/A",
+            "due_date": task.due_date if hasattr(task, "due_date") else "Not set",
+            "priority": task.priority if hasattr(task, "priority") else "normal",
+            "assigned_to_name": task.assigned_to.get_full_name() or task.assigned_to.username,
         }
 
         return EmailNotification.send(
             to=[task.assigned_to.email],
-            subject=f'📋 New Task Assigned: {task.title}',
+            subject=f"📋 New Task Assigned: {task.title}",
             html_content=f"""
                 <h2>New Task Assigned</h2>
                 <p>Hello {context['assigned_to_name']},</p>
@@ -300,7 +317,7 @@ class EmailNotification:
                 <p style="color: #666; font-size: 12px;">
                     This is an automated notification from ConsultantPro Project Management.
                 </p>
-            """
+            """,
         )
 
     @staticmethod
@@ -314,11 +331,11 @@ class EmailNotification:
         # Send to project manager, client account manager, and project team
         recipients = []
 
-        if hasattr(project, 'project_manager') and project.project_manager:
+        if hasattr(project, "project_manager") and project.project_manager:
             recipients.append(project.project_manager.email)
 
-        if hasattr(project, 'client') and project.client:
-            if hasattr(project.client, 'account_manager') and project.client.account_manager:
+        if hasattr(project, "client") and project.client:
+            if hasattr(project.client, "account_manager") and project.client.account_manager:
                 recipients.append(project.client.account_manager.email)
 
         if not recipients:
@@ -330,16 +347,26 @@ class EmailNotification:
         recipients = list(set(recipients))
 
         context = {
-            'project_name': project.name,
-            'project_code': project.project_code if hasattr(project, 'project_code') else 'N/A',
-            'client_name': getattr(project.client, 'company_name', 'N/A') if hasattr(project, 'client') and project.client else 'N/A',
-            'start_date': project.start_date if hasattr(project, 'start_date') else 'N/A',
-            'completion_date': project.actual_completion_date if hasattr(project, 'actual_completion_date') and project.actual_completion_date else project.end_date if hasattr(project, 'end_date') else 'N/A',
+            "project_name": project.name,
+            "project_code": project.project_code if hasattr(project, "project_code") else "N/A",
+            "client_name": (
+                getattr(project.client, "company_name", "N/A")
+                if hasattr(project, "client") and project.client
+                else "N/A"
+            ),
+            "start_date": project.start_date if hasattr(project, "start_date") else "N/A",
+            "completion_date": (
+                project.actual_completion_date
+                if hasattr(project, "actual_completion_date") and project.actual_completion_date
+                else project.end_date
+                if hasattr(project, "end_date")
+                else "N/A"
+            ),
         }
 
         return EmailNotification.send(
             to=recipients,
-            subject=f'🎊 Project Completed: {project.name}',
+            subject=f"🎊 Project Completed: {project.name}",
             html_content=f"""
                 <h2>Project Completed Successfully</h2>
                 <p><strong>Project:</strong> {context['project_code']} - {context['project_name']}</p>
@@ -356,7 +383,7 @@ class EmailNotification:
                 <p style="color: #666; font-size: 12px;">
                     This is an automated notification from ConsultantPro Project Management.
                 </p>
-            """
+            """,
         )
 
 

@@ -1,13 +1,13 @@
 """
 Telemetry helpers for safe, non-content metrics/events logging.
 """
+
 from __future__ import annotations
 
-from contextlib import contextmanager
 import logging
 import time
-from typing import Any, Dict
-
+from contextlib import contextmanager
+from typing import Any
 
 logger = logging.getLogger("telemetry")
 
@@ -53,11 +53,11 @@ SENSITIVE_FIELDS = {
 REDACTED_VALUE = "[REDACTED]"
 
 
-def sanitize_telemetry_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
+def sanitize_telemetry_fields(fields: dict[str, Any]) -> dict[str, Any]:
     """
     Remove or redact any potentially sensitive telemetry fields.
     """
-    sanitized: Dict[str, Any] = {}
+    sanitized: dict[str, Any] = {}
     for key, value in fields.items():
         if key in SENSITIVE_FIELDS:
             sanitized[key] = REDACTED_VALUE
@@ -67,7 +67,7 @@ def sanitize_telemetry_fields(fields: Dict[str, Any]) -> Dict[str, Any]:
             sanitized[key] = value
             continue
 
-        if isinstance(value, (int, float, bool)) or value is None:
+        if isinstance(value, int | float | bool) or value is None:
             sanitized[key] = value
             continue
 

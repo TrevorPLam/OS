@@ -3,6 +3,7 @@ Firm data export helpers for offboarding workflows.
 
 Defines export schema, data domains, integrity checks, and retention sequencing.
 """
+
 import hashlib
 import json
 from datetime import timedelta
@@ -11,27 +12,27 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from modules.clients.models import (
-    Organization,
     Client,
-    ClientPortalUser,
-    ClientNote,
-    ClientEngagement,
-    ClientComment,
     ClientChatThread,
+    ClientComment,
+    ClientEngagement,
     ClientMessage,
+    ClientNote,
+    ClientPortalUser,
+    Organization,
 )
-from modules.projects.models import Project, Task, TimeEntry
+from modules.core.purge import PurgedContent
 from modules.finance.models import (
+    Bill,
+    Chargeback,
+    CreditLedgerEntry,
     Invoice,
+    LedgerEntry,
     PaymentDispute,
     PaymentFailure,
-    Chargeback,
-    Bill,
-    LedgerEntry,
-    CreditLedgerEntry,
 )
 from modules.firm.audit import AuditEvent
-from modules.core.purge import PurgedContent
+from modules.projects.models import Project, Task, TimeEntry
 
 EXPORT_SCHEMA_VERSION = "2025-02-01"
 DEFAULT_RETENTION_DAYS = 30
@@ -187,45 +188,27 @@ def _export_domains(firm):
                 organizations, schema["domains"]["clients"]["organizations"]["fields"]
             ),
             "clients": _serialize_instances(clients, client_fields, _assigned_team_ids),
-            "portal_users": _serialize_instances(
-                portal_users, schema["domains"]["clients"]["portal_users"]["fields"]
-            ),
+            "portal_users": _serialize_instances(portal_users, schema["domains"]["clients"]["portal_users"]["fields"]),
             "notes": _serialize_instances(notes, schema["domains"]["clients"]["notes"]["fields"]),
-            "engagements": _serialize_instances(
-                engagements, schema["domains"]["clients"]["engagements"]["fields"]
-            ),
-            "comments": _serialize_instances(
-                comments, schema["domains"]["clients"]["comments"]["fields"]
-            ),
-            "chat_threads": _serialize_instances(
-                chat_threads, schema["domains"]["clients"]["chat_threads"]["fields"]
-            ),
-            "messages": _serialize_instances(
-                messages, schema["domains"]["clients"]["messages"]["fields"]
-            ),
+            "engagements": _serialize_instances(engagements, schema["domains"]["clients"]["engagements"]["fields"]),
+            "comments": _serialize_instances(comments, schema["domains"]["clients"]["comments"]["fields"]),
+            "chat_threads": _serialize_instances(chat_threads, schema["domains"]["clients"]["chat_threads"]["fields"]),
+            "messages": _serialize_instances(messages, schema["domains"]["clients"]["messages"]["fields"]),
         },
         "projects": {
-            "projects": _serialize_instances(
-                projects, schema["domains"]["projects"]["projects"]["fields"]
-            ),
+            "projects": _serialize_instances(projects, schema["domains"]["projects"]["projects"]["fields"]),
             "tasks": _serialize_instances(tasks, schema["domains"]["projects"]["tasks"]["fields"]),
-            "time_entries": _serialize_instances(
-                time_entries, schema["domains"]["projects"]["time_entries"]["fields"]
-            ),
+            "time_entries": _serialize_instances(time_entries, schema["domains"]["projects"]["time_entries"]["fields"]),
         },
         "billing": {
-            "invoices": _serialize_instances(
-                invoices, schema["domains"]["billing"]["invoices"]["fields"]
-            ),
+            "invoices": _serialize_instances(invoices, schema["domains"]["billing"]["invoices"]["fields"]),
             "payment_disputes": _serialize_instances(
                 disputes, schema["domains"]["billing"]["payment_disputes"]["fields"]
             ),
             "payment_failures": _serialize_instances(
                 failures, schema["domains"]["billing"]["payment_failures"]["fields"]
             ),
-            "chargebacks": _serialize_instances(
-                chargebacks, schema["domains"]["billing"]["chargebacks"]["fields"]
-            ),
+            "chargebacks": _serialize_instances(chargebacks, schema["domains"]["billing"]["chargebacks"]["fields"]),
             "bills": _serialize_instances(bills, schema["domains"]["billing"]["bills"]["fields"]),
             "ledger_entries": _serialize_instances(
                 ledger_entries, schema["domains"]["billing"]["ledger_entries"]["fields"]
@@ -235,9 +218,7 @@ def _export_domains(firm):
             ),
         },
         "audit": {
-            "events": _serialize_instances(
-                audit_events, schema["domains"]["audit"]["events"]["fields"]
-            ),
+            "events": _serialize_instances(audit_events, schema["domains"]["audit"]["events"]["fields"]),
             "purged_content": _serialize_instances(
                 purged_content, schema["domains"]["audit"]["purged_content"]["fields"]
             ),
@@ -278,86 +259,84 @@ def _integrity_report(firm, domains):
     invalid_client_orgs = _check_fk_membership(
         domains["clients"]["clients"], "organization_id", organization_ids | {None}
     )
-    checks.append({
-        "name": "clients.organization_links",
-        "status": "ok" if not invalid_client_orgs else "failed",
-        "details": {"invalid_organization_ids": invalid_client_orgs},
-    })
+    checks.append(
+        {
+            "name": "clients.organization_links",
+            "status": "ok" if not invalid_client_orgs else "failed",
+            "details": {"invalid_organization_ids": invalid_client_orgs},
+        }
+    )
 
-    invalid_project_clients = _check_fk_membership(
-        domains["projects"]["projects"], "client_id", client_ids
+    invalid_project_clients = _check_fk_membership(domains["projects"]["projects"], "client_id", client_ids)
+    checks.append(
+        {
+            "name": "projects.client_links",
+            "status": "ok" if not invalid_project_clients else "failed",
+            "details": {"invalid_client_ids": invalid_project_clients},
+        }
     )
-    checks.append({
-        "name": "projects.client_links",
-        "status": "ok" if not invalid_project_clients else "failed",
-        "details": {"invalid_client_ids": invalid_project_clients},
-    })
 
-    invalid_task_projects = _check_fk_membership(
-        domains["projects"]["tasks"], "project_id", project_ids
+    invalid_task_projects = _check_fk_membership(domains["projects"]["tasks"], "project_id", project_ids)
+    checks.append(
+        {
+            "name": "projects.task_links",
+            "status": "ok" if not invalid_task_projects else "failed",
+            "details": {"invalid_project_ids": invalid_task_projects},
+        }
     )
-    checks.append({
-        "name": "projects.task_links",
-        "status": "ok" if not invalid_task_projects else "failed",
-        "details": {"invalid_project_ids": invalid_task_projects},
-    })
 
-    invalid_time_projects = _check_fk_membership(
-        domains["projects"]["time_entries"], "project_id", project_ids
+    invalid_time_projects = _check_fk_membership(domains["projects"]["time_entries"], "project_id", project_ids)
+    invalid_time_tasks = _check_fk_membership(domains["projects"]["time_entries"], "task_id", task_ids | {None})
+    checks.append(
+        {
+            "name": "projects.time_entry_links",
+            "status": "ok" if not invalid_time_projects and not invalid_time_tasks else "failed",
+            "details": {
+                "invalid_project_ids": invalid_time_projects,
+                "invalid_task_ids": invalid_time_tasks,
+            },
+        }
     )
-    invalid_time_tasks = _check_fk_membership(
-        domains["projects"]["time_entries"], "task_id", task_ids | {None}
-    )
-    checks.append({
-        "name": "projects.time_entry_links",
-        "status": "ok" if not invalid_time_projects and not invalid_time_tasks else "failed",
-        "details": {
-            "invalid_project_ids": invalid_time_projects,
-            "invalid_task_ids": invalid_time_tasks,
-        },
-    })
 
-    invalid_invoice_clients = _check_fk_membership(
-        domains["billing"]["invoices"], "client_id", client_ids
-    )
-    invalid_invoice_projects = _check_fk_membership(
-        domains["billing"]["invoices"], "project_id", project_ids | {None}
-    )
+    invalid_invoice_clients = _check_fk_membership(domains["billing"]["invoices"], "client_id", client_ids)
+    invalid_invoice_projects = _check_fk_membership(domains["billing"]["invoices"], "project_id", project_ids | {None})
     invalid_invoice_engagements = _check_fk_membership(
         domains["billing"]["invoices"], "engagement_id", engagement_ids | {None}
     )
-    checks.append({
-        "name": "billing.invoice_links",
-        "status": "ok"
-        if not invalid_invoice_clients and not invalid_invoice_projects and not invalid_invoice_engagements
-        else "failed",
-        "details": {
-            "invalid_client_ids": invalid_invoice_clients,
-            "invalid_project_ids": invalid_invoice_projects,
-            "invalid_engagement_ids": invalid_invoice_engagements,
-        },
-    })
+    checks.append(
+        {
+            "name": "billing.invoice_links",
+            "status": (
+                "ok"
+                if not invalid_invoice_clients and not invalid_invoice_projects and not invalid_invoice_engagements
+                else "failed"
+            ),
+            "details": {
+                "invalid_client_ids": invalid_invoice_clients,
+                "invalid_project_ids": invalid_invoice_projects,
+                "invalid_engagement_ids": invalid_invoice_engagements,
+            },
+        }
+    )
 
-    invalid_dispute_invoices = _check_fk_membership(
-        domains["billing"]["payment_disputes"], "invoice_id", invoice_ids
+    invalid_dispute_invoices = _check_fk_membership(domains["billing"]["payment_disputes"], "invoice_id", invoice_ids)
+    invalid_failure_invoices = _check_fk_membership(domains["billing"]["payment_failures"], "invoice_id", invoice_ids)
+    invalid_chargeback_invoices = _check_fk_membership(domains["billing"]["chargebacks"], "invoice_id", invoice_ids)
+    checks.append(
+        {
+            "name": "billing.dispute_links",
+            "status": (
+                "ok"
+                if not invalid_dispute_invoices and not invalid_failure_invoices and not invalid_chargeback_invoices
+                else "failed"
+            ),
+            "details": {
+                "invalid_dispute_invoice_ids": invalid_dispute_invoices,
+                "invalid_failure_invoice_ids": invalid_failure_invoices,
+                "invalid_chargeback_invoice_ids": invalid_chargeback_invoices,
+            },
+        }
     )
-    invalid_failure_invoices = _check_fk_membership(
-        domains["billing"]["payment_failures"], "invoice_id", invoice_ids
-    )
-    invalid_chargeback_invoices = _check_fk_membership(
-        domains["billing"]["chargebacks"], "invoice_id", invoice_ids
-    )
-    checks.append({
-        "name": "billing.dispute_links",
-        "status": "ok"
-        if not invalid_dispute_invoices and not invalid_failure_invoices and not invalid_chargeback_invoices
-        else "failed",
-        "details": {
-            "invalid_dispute_invoice_ids": invalid_dispute_invoices,
-            "invalid_failure_invoice_ids": invalid_failure_invoices,
-            "invalid_chargeback_invoice_ids": invalid_chargeback_invoices,
-        },
-    })
 
     invalid_domain_firms = []
     for domain_name, datasets in domains.items():
@@ -365,17 +344,21 @@ def _integrity_report(firm, domains):
             for record in records:
                 record_firm_id = record.get("firm_id")
                 if record_firm_id is not None and record_firm_id != firm_id:
-                    invalid_domain_firms.append({
-                        "domain": domain_name,
-                        "dataset": dataset_name,
-                        "id": record.get("id"),
-                        "firm_id": record_firm_id,
-                    })
-    checks.append({
-        "name": "tenant_isolation.firm_id_match",
-        "status": "ok" if not invalid_domain_firms else "failed",
-        "details": {"mismatched_firm_records": invalid_domain_firms},
-    })
+                    invalid_domain_firms.append(
+                        {
+                            "domain": domain_name,
+                            "dataset": dataset_name,
+                            "id": record.get("id"),
+                            "firm_id": record_firm_id,
+                        }
+                    )
+    checks.append(
+        {
+            "name": "tenant_isolation.firm_id_match",
+            "status": "ok" if not invalid_domain_firms else "failed",
+            "details": {"mismatched_firm_records": invalid_domain_firms},
+        }
+    )
 
     overall_status = "ok" if all(check["status"] == "ok" for check in checks) else "failed"
     return {"status": overall_status, "checks": checks}
