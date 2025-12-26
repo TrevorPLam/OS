@@ -14,7 +14,7 @@ from modules.finance.billing import (
     handle_payment_failure,
     should_generate_package_invoice,
 )
-from modules.finance.models import Invoice
+from modules.finance.models import Chargeback, Invoice, LedgerEntry, PaymentFailure
 from modules.crm.models import Contract
 from modules.firm.models import Firm
 
@@ -153,6 +153,16 @@ def test_payment_failure_and_retry_metadata(client):
     assert invoice.payment_retry_count == 1
     assert invoice.payment_failure_reason == 'card_declined'
 
+    failure_record = PaymentFailure.objects.get(invoice=invoice)
+    assert failure_record.failure_code == 'card_declined'
+    assert failure_record.amount_attempted == Decimal('200.00')
+
+    # Second attempt triggers escalation to inactive client
+    handle_payment_failure(invoice, failure_reason='insufficient_funds', failure_code='insufficient_funds')
+    invoice.refresh_from_db()
+    client.refresh_from_db()
+    assert client.status == 'inactive'
+
 
 @pytest.mark.django_db
 def test_dispute_open_and_close_workflow(client):
@@ -189,3 +199,13 @@ def test_dispute_open_and_close_workflow(client):
     invoice.refresh_from_db()
     assert invoice.status == 'charged_back'
     assert invoice.amount_paid == Decimal('0.00')
+
+    # Ledger reversals and client portal messaging recorded
+    ledger_entries = LedgerEntry.objects.filter(invoice=invoice)
+    assert ledger_entries.count() == 2
+    accounts = set(ledger_entries.values_list('account', flat=True))
+    assert accounts == {'cash', 'accounts_receivable'}
+
+    chargeback = Chargeback.objects.get(invoice=invoice)
+    assert chargeback.funds_reversed
+    assert 'paused' in invoice.notes

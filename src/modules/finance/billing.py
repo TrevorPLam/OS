@@ -12,7 +12,15 @@ from django.db import transaction
 from django.utils import timezone
 
 from modules.clients.models import ClientEngagement
-from modules.finance.models import Invoice, PaymentDispute
+import uuid
+
+from modules.finance.models import (
+    Chargeback,
+    Invoice,
+    LedgerEntry,
+    PaymentDispute,
+    PaymentFailure,
+)
 from modules.firm.audit import audit
 
 
@@ -182,8 +190,23 @@ def execute_autopay_for_invoice(invoice: Invoice):
     return invoice
 
 
-def handle_payment_failure(invoice: Invoice, failure_reason: str, failure_code: Optional[str] = None):
-    """Record payment failure metadata and schedule retry logic."""
+def _notify_client_portal(invoice: Invoice, message: str):
+    """Append a client-facing message to invoice notes for portal visibility."""
+    timestamped = f"[{timezone.now().isoformat()}] {message}"
+    invoice.notes = f"{invoice.notes}\n{timestamped}" if invoice.notes else timestamped
+    invoice.save(update_fields=['notes'])
+
+
+def handle_payment_failure(
+    invoice: Invoice,
+    failure_reason: str,
+    failure_code: Optional[str] = None,
+    *,
+    amount_attempted: Optional[Decimal] = None,
+    stripe_payment_intent_id: Optional[str] = None,
+    stripe_error_code: Optional[str] = None,
+):
+    """Record payment failure metadata, remediation, and retry logic."""
     now = timezone.now()
     invoice.status = 'failed'
     invoice.payment_failed_at = now
@@ -191,6 +214,7 @@ def handle_payment_failure(invoice: Invoice, failure_reason: str, failure_code: 
     invoice.payment_failure_code = failure_code or ''
     invoice.payment_retry_count += 1
     invoice.last_payment_retry_at = now
+    invoice.stripe_payment_intent_id = stripe_payment_intent_id or invoice.stripe_payment_intent_id
     invoice.save(
         update_fields=[
             'status',
@@ -199,7 +223,21 @@ def handle_payment_failure(invoice: Invoice, failure_reason: str, failure_code: 
             'payment_failure_code',
             'payment_retry_count',
             'last_payment_retry_at',
+            'stripe_payment_intent_id',
         ]
+    )
+
+    failure = PaymentFailure.objects.create(
+        firm=invoice.firm,
+        invoice=invoice,
+        client=invoice.client,
+        amount_attempted=amount_attempted or invoice.total_amount,
+        currency=invoice.currency,
+        failure_code=failure_code or 'other',
+        failure_message=failure_reason,
+        stripe_payment_intent_id=stripe_payment_intent_id or invoice.stripe_payment_intent_id,
+        stripe_error_code=stripe_error_code or '',
+        retry_count=invoice.payment_retry_count,
     )
 
     audit.log_billing_event(
@@ -214,11 +252,26 @@ def handle_payment_failure(invoice: Invoice, failure_reason: str, failure_code: 
             'failure_code': failure_code,
             'retry_count': invoice.payment_retry_count,
             'stripe_payment_intent_id': invoice.stripe_payment_intent_id,
+            'payment_failure_id': failure.id,
         },
         severity='WARNING',
     )
 
-    schedule_payment_retry(invoice)
+    retry_at = schedule_payment_retry(invoice)
+    failure.next_retry_at = retry_at
+    failure.customer_notified = True
+    failure.notified_at = now
+    failure.save(update_fields=['next_retry_at', 'customer_notified', 'notified_at'])
+
+    _notify_client_portal(
+        invoice,
+        "Payment attempt failed. We will retry automatically and will reach out if action is needed.",
+    )
+
+    if invoice.payment_retry_count >= 2:
+        invoice.client.status = 'inactive'
+        invoice.client.save(update_fields=['status'])
+
     return invoice
 
 
@@ -255,16 +308,24 @@ def schedule_payment_retry(invoice: Invoice):
             severity='WARNING',
         )
 
+    return retry_at
+
 
 def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
     """Create a dispute record and flag invoice as disputed."""
-    invoice = Invoice.objects.get(stripe_invoice_id=stripe_dispute_data['invoice_id'])
+    invoice_ref = stripe_dispute_data.get('invoice_id') or stripe_dispute_data.get('invoice')
+    invoice = Invoice.objects.get(stripe_invoice_id=invoice_ref)
+
+    reason = stripe_dispute_data.get('reason', 'general')
+    valid_reasons = [choice[0] for choice in PaymentDispute.DISPUTE_REASON_CHOICES]
+    if reason not in valid_reasons:
+        reason = 'general'
 
     dispute = PaymentDispute.objects.create(
         firm=invoice.firm,
         invoice=invoice,
         status='opened',
-        reason=stripe_dispute_data.get('reason', 'general'),
+        reason=reason,
         amount=Decimal(str(stripe_dispute_data['amount'])),
         stripe_dispute_id=stripe_dispute_data['id'],
         stripe_charge_id=stripe_dispute_data.get('charge_id', ''),
@@ -274,6 +335,11 @@ def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
 
     invoice.status = 'disputed'
     invoice.save(update_fields=['status'])
+
+    _notify_client_portal(
+        invoice,
+        "A payment dispute was opened by your bank. Our team is reviewing and will share updates here.",
+    )
 
     audit.log_billing_event(
         firm=invoice.firm,
@@ -296,21 +362,39 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
     """Close dispute and update invoice status accordingly."""
     dispute = PaymentDispute.objects.get(stripe_dispute_id=stripe_dispute_data['id'])
 
+    reason = stripe_dispute_data.get('reason', 'general')
+    valid_reasons = [choice[0] for choice in PaymentDispute.DISPUTE_REASON_CHOICES]
+    if reason not in valid_reasons:
+        reason = 'general'
+
     dispute.status = 'closed'
     dispute.resolution = stripe_dispute_data.get('status', '')
-    dispute.resolution_reason = stripe_dispute_data.get('reason', '')
+    dispute.resolution_reason = reason
     dispute.closed_at = timezone.now()
     dispute.save(update_fields=['status', 'resolution', 'resolution_reason', 'closed_at'])
 
     if dispute.resolution == 'won':
         dispute.invoice.status = 'paid'
+        dispute.invoice.save(update_fields=['status'])
+        _notify_client_portal(
+            dispute.invoice,
+            "Dispute resolved in our favor. Service will continue uninterrupted.",
+        )
     else:
+        stripe_dispute_data['reason'] = reason
+        _record_chargeback(dispute.invoice, stripe_dispute_data)
+        _reverse_ledger_for_chargeback(dispute.invoice, dispute.amount, dispute.resolution or 'lost')
         dispute.invoice.status = 'charged_back'
         dispute.invoice.amount_paid = max(
             Decimal('0.00'), dispute.invoice.amount_paid - dispute.amount
         )
-
-    dispute.invoice.save(update_fields=['status', 'amount_paid'])
+        dispute.invoice.save(update_fields=['status', 'amount_paid'])
+        _notify_client_portal(
+            dispute.invoice,
+            "We were unable to defend a dispute. Services are paused while we rebill the outstanding balance.",
+        )
+        dispute.invoice.client.status = 'inactive'
+        dispute.invoice.client.save(update_fields=['status'])
 
     audit.log_billing_event(
         firm=dispute.firm,
@@ -326,3 +410,52 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
     )
 
     return dispute
+
+
+def _reverse_ledger_for_chargeback(invoice: Invoice, amount: Decimal, reason: str):
+    """Create double-entry reversal to reflect a chargeback."""
+    group_id = uuid.uuid4().hex
+    description = f"Chargeback reversal ({reason}) for invoice {invoice.invoice_number}"
+    LedgerEntry.objects.create(
+        firm=invoice.firm,
+        entry_type='debit',
+        account='accounts_receivable',
+        amount=amount,
+        transaction_date=timezone.now().date(),
+        description=description,
+        invoice=invoice,
+        transaction_group_id=group_id,
+    )
+    LedgerEntry.objects.create(
+        firm=invoice.firm,
+        entry_type='credit',
+        account='cash',
+        amount=amount,
+        transaction_date=timezone.now().date(),
+        description=description,
+        invoice=invoice,
+        transaction_group_id=group_id,
+    )
+
+
+def _record_chargeback(invoice: Invoice, stripe_dispute_data: dict) -> Chargeback:
+    """Persist chargeback metadata from a closed dispute."""
+    chargeback, _ = Chargeback.objects.get_or_create(
+        stripe_chargeback_id=stripe_dispute_data.get('id'),
+        defaults={
+            'firm': invoice.firm,
+            'invoice': invoice,
+            'client': invoice.client,
+            'amount': Decimal(str(stripe_dispute_data.get('amount') or invoice.total_amount)),
+            'currency': invoice.currency,
+            'status': 'lost',
+            'reason': stripe_dispute_data.get('reason', 'general'),
+            'stripe_charge_id': stripe_dispute_data.get('charge', ''),
+            'initiated_at': timezone.now(),
+            'respond_by': None,
+        },
+    )
+    chargeback.resolved_at = timezone.now()
+    chargeback.funds_reversed = True
+    chargeback.save(update_fields=['resolved_at', 'funds_reversed'])
+    return chargeback
