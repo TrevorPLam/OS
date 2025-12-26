@@ -6,17 +6,17 @@
 
 ## 🎯 Current Focus: Tier 4 - Billing & Monetization
 
-**Progress:** 63% Complete (5/8 complete, 1/8 partial, 2/8 documented)
+**Progress:** 75% Complete (6/8 complete, 1/8 partial, 1/8 documented)
 
 ### Active Tasks
 
-- [ ] **4.2** Package fee invoicing (Documented - Implementation in progress)
 - [ ] **4.6** Recurring payments/autopay workflow (Partial - Models ready)
 - [ ] **4.7** Handle payment failures, disputes, and chargebacks
 
 ### Recently Completed
 
 - [x] **4.1** Enforce billing invariants ✅
+- [x] **4.2** Package fee invoicing (Complete - see docs/tier4/PACKAGE_INVOICE_DEPLOYMENT.md) ✅
 - [x] **4.3** Hourly billing with approval gates ✅
 - [x] **4.4** Mixed billing reporting ✅
 - [x] **4.5** Credit ledger ✅
