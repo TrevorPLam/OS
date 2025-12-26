@@ -261,6 +261,18 @@ class Document(models.Model):
         return f"{self.folder} / {self.name}"
 
     def save(self, *args, **kwargs):
+        # Set retention_start_date to created_at date if not provided
+        if not self.retention_start_date and not self.pk:
+            # For new documents, set to today
+            from django.utils import timezone
+            self.retention_start_date = timezone.now().date()
+        
+        # Calculate scheduled_deletion_date if retention period is set
+        if self.retention_period_years and self.retention_start_date and not self.scheduled_deletion_date:
+            from datetime import timedelta
+            days = self.retention_period_years * 365  # Approximate
+            self.scheduled_deletion_date = self.retention_start_date + timedelta(days=days)
+        
         self._encrypt_content_fields()
         super().save(*args, **kwargs)
 
