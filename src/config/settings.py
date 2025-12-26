@@ -61,6 +61,8 @@ MIDDLEWARE = [
     "modules.core.middleware.TelemetryRequestMiddleware",
     # TIER 0: Firm context resolution (must come after AuthenticationMiddleware)
     "modules.firm.middleware.FirmContextMiddleware",
+    # Sentry context middleware (must come after FirmContextMiddleware to capture firm context)
+    "config.sentry_middleware.SentryContextMiddleware",
     # TIER 0: Portal containment (must come after FirmContextMiddleware)
     "modules.clients.middleware.PortalContainmentMiddleware",
     # TIER 0.6: Break-glass awareness for impersonation banners + auditing
@@ -167,7 +169,7 @@ REST_FRAMEWORK = {
         "payment": "10/minute",
         "upload": "30/hour",
     },
-    "EXCEPTION_HANDLER": "config.exceptions.custom_exception_handler",
+    "EXCEPTION_HANDLER": "config.error_handlers.custom_exception_handler",
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -323,6 +325,15 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+# =============================================================================
+# Error Tracking & Monitoring (Sentry)
+# =============================================================================
+# Initialize Sentry for error tracking and performance monitoring
+# Only active if SENTRY_DSN environment variable is set
+from config.sentry import init_sentry  # noqa
+
+init_sentry()
 
 # =============================================================================
 # Environment Validation (runs on startup)
