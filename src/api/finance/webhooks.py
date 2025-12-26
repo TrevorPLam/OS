@@ -245,7 +245,7 @@ def handle_charge_dispute_closed(dispute):
             {
                 'id': dispute['id'],
                 'status': dispute.get('status', ''),
-                'reason': dispute.get('reason', ''),
+                'reason': dispute.get('reason', 'general'),
                 'amount': Decimal(str(dispute.get('amount', 0))) / 100,
                 'charge': dispute.get('charge'),
                 'invoice_id': dispute.get('invoice') or dispute.get('invoice_id'),
