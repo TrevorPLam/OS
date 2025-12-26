@@ -84,6 +84,10 @@ class ClientSerializer(serializers.ModelSerializer):
             'assigned_team',
             'assigned_team_names',
             'portal_enabled',
+            'autopay_enabled',
+            'autopay_payment_method_id',
+            'autopay_activated_at',
+            'autopay_activated_by',
             'total_lifetime_value',
             'active_projects_count',
             'client_since',
@@ -99,6 +103,8 @@ class ClientSerializer(serializers.ModelSerializer):
             'active_projects_count',
             'created_at',
             'updated_at',
+            'autopay_activated_at',
+            'autopay_activated_by',
         ]
 
     def get_account_manager_name(self, obj):

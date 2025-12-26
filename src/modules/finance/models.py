@@ -209,6 +209,35 @@ class Invoice(models.Model):
         blank=True,
         help_text="Stripe Invoice ID if using Stripe billing"
     )
+    autopay_opt_in = models.BooleanField(
+        default=False,
+        help_text="Whether this invoice should be automatically charged"
+    )
+    autopay_cadence = models.CharField(
+        max_length=20,
+        default='due_date',
+        help_text="Cadence for recurring autopay (monthly/quarterly/due_date)"
+    )
+    autopay_payment_method_id = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Payment method to use for autopay (defaults to client setting)"
+    )
+    autopay_next_charge_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the next autopay attempt is scheduled"
+    )
+    autopay_last_attempt_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When autopay was last attempted"
+    )
+    autopay_status = models.CharField(
+        max_length=20,
+        default='idle',
+        help_text="Autopay lifecycle status (idle, scheduled, processing, succeeded, failed, cancelled)"
+    )
 
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
