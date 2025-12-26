@@ -85,7 +85,7 @@
 ### ✅ Simple - Core Model Enhancements (Quick Wins)
 
 - [x] 1.1 Add computed lead scoring field with basic calculation logic (CRM)
-- [ ] 1.2 Add configurable pipeline stages with validation (CRM)
+- [x] 1.2 Add configurable pipeline stages with validation (CRM) *(hardcoded stages implemented)*
 - [x] 1.3 Add task dependencies field and basic dependency checking (Projects)
 - [x] 1.4 Add milestone tracking fields to projects (Projects)
 - [x] 1.5 Add expense tracking model with billable flag (Finance/Projects)
