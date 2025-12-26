@@ -92,7 +92,8 @@ class StripeService:
         amount: Decimal,
         currency: str = 'usd',
         customer_id: Optional[str] = None,
-        metadata: Optional[Dict] = None
+        metadata: Optional[Dict] = None,
+        payment_method: Optional[str] = None,
     ) -> stripe.PaymentIntent:
         """
         Create a payment intent for one-time payments.
@@ -110,13 +111,20 @@ class StripeService:
             # Convert amount to cents
             amount_cents = int(amount * 100)
 
-            payment_intent = stripe.PaymentIntent.create(
-                amount=amount_cents,
-                currency=currency,
-                customer=customer_id,
-                metadata=metadata or {},
-                automatic_payment_methods={'enabled': True}
-            )
+            kwargs: Dict[str, Any] = {
+                'amount': amount_cents,
+                'currency': currency,
+                'customer': customer_id,
+                'metadata': metadata or {},
+                'automatic_payment_methods': {'enabled': True},
+            }
+
+            if payment_method:
+                kwargs['payment_method'] = payment_method
+                kwargs['confirm'] = True
+                kwargs['off_session'] = True
+
+            payment_intent = stripe.PaymentIntent.create(**kwargs)
 
             return payment_intent
         except stripe.error.StripeError as e:

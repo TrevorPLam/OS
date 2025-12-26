@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.utils import timezone
 from modules.clients.permissions import IsPortalUserOrFirmUser, DenyPortalAccess
 from modules.clients.models import (
     Organization,
@@ -133,6 +134,37 @@ class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         client.portal_enabled = False
         client.save()
         return Response({'status': 'portal disabled', 'client': ClientSerializer(client).data})
+
+    @action(detail=True, methods=['post'])
+    def enable_autopay(self, request, pk=None):
+        """Enable autopay for a client and store the payment method id."""
+        client = self.get_object()
+        payment_method_id = request.data.get('payment_method_id')
+
+        if not payment_method_id:
+            return Response({'detail': 'payment_method_id is required'}, status=400)
+
+        client.autopay_enabled = True
+        client.autopay_payment_method_id = payment_method_id
+        client.autopay_activated_at = timezone.now()
+        client.autopay_activated_by = request.user
+        client.save(update_fields=['autopay_enabled', 'autopay_payment_method_id', 'autopay_activated_at', 'autopay_activated_by'])
+
+        return Response({'status': 'autopay enabled', 'client': ClientSerializer(client).data})
+
+    @action(detail=True, methods=['post'])
+    def disable_autopay(self, request, pk=None):
+        """Disable autopay and clear payment method reference."""
+        client = self.get_object()
+        client.autopay_enabled = False
+        client.autopay_payment_method_id = ''
+        client.autopay_activated_at = None
+        client.autopay_activated_by = None
+        client.save(update_fields=['autopay_enabled', 'autopay_payment_method_id', 'autopay_activated_at', 'autopay_activated_by'])
+
+        client.invoices.update(autopay_opt_in=False, autopay_status='cancelled')
+
+        return Response({'status': 'autopay disabled', 'client': ClientSerializer(client).data})
 
 
 class ClientPortalUserViewSet(viewsets.ModelViewSet):
