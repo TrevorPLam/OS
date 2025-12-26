@@ -4,6 +4,8 @@ Firm Module API Views.
 Provides endpoints for firm-level operations and break-glass session management.
 """
 
+import logging
+
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -19,6 +21,8 @@ from modules.firm.export import (
 from modules.firm.models import FirmOffboardingRecord
 from modules.firm.permissions import IsFirmOwnerOrAdmin
 from modules.firm.utils import get_active_break_glass_session, get_firm_or_403
+
+logger = logging.getLogger(__name__)
 
 
 class BreakGlassStatusViewSet(viewsets.ViewSet):
@@ -249,9 +253,6 @@ class FirmOffboardingViewSet(viewsets.ViewSet):
                 metadata={"offboarding_record_id": record.id},
             )
         except Exception as e:
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.warning(f"Failed to log export completion: {e}")
 
         return Response(

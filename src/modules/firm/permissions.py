@@ -15,10 +15,14 @@ Meta-commentary:
 - Content access requires active break-glass session (Tier 0.6)
 """
 
+import logging
+
 from django.core.exceptions import PermissionDenied
 from rest_framework import permissions
 
 from modules.firm.models import BreakGlassSession, FirmMembership
+
+logger = logging.getLogger(__name__)
 
 
 class IsPlatformOperator(permissions.BasePermission):
@@ -191,9 +195,6 @@ class DenyContentAccessByDefault(permissions.BasePermission):
             )
         except Exception as e:
             # Don't block access if audit logging fails
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.warning(f"Failed to log break glass access: {e}")
 
 
@@ -354,9 +355,4 @@ class IsFirmOwnerOrAdmin(permissions.BasePermission):
             )
         except Exception as e:
             # Don't block access if audit logging fails
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.warning(f"Failed to log break glass access: {e}")
-            # Don't block access if audit logging fails
-            pass
