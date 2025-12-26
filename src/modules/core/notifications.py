@@ -10,6 +10,7 @@ Email templates are rendered using Django's template system.
 """
 
 import logging
+from typing import Any
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -36,34 +37,34 @@ class EmailNotification:
 
     @staticmethod
     def send(
-        to,
-        subject,
-        template=None,
-        context=None,
-        html_content=None,
-        text_content=None,
-        from_email=None,
-        cc=None,
-        bcc=None,
-        reply_to=None,
-    ):
+        to: list[str] | str,
+        subject: str,
+        template: str | None = None,
+        context: dict[str, Any] | None = None,
+        html_content: str | None = None,
+        text_content: str | None = None,
+        from_email: str | None = None,
+        cc: list[str] | None = None,
+        bcc: list[str] | None = None,
+        reply_to: list[str] | None = None,
+    ) -> bool:
         """
         Send email notification.
 
         Args:
-            to (list): List of recipient email addresses
-            subject (str): Email subject line
-            template (str, optional): Path to HTML template (e.g., 'emails/proposal_accepted.html')
-            context (dict, optional): Template context variables
-            html_content (str, optional): Direct HTML content (if not using template)
-            text_content (str, optional): Plain text content (auto-generated from HTML if not provided)
-            from_email (str, optional): Sender email (defaults to settings.DEFAULT_FROM_EMAIL)
-            cc (list, optional): CC recipients
-            bcc (list, optional): BCC recipients
-            reply_to (list, optional): Reply-To addresses
+            to: List of recipient email addresses or single email string
+            subject: Email subject line
+            template: Path to HTML template (e.g., 'emails/proposal_accepted.html')
+            context: Template context variables
+            html_content: Direct HTML content (if not using template)
+            text_content: Plain text content (auto-generated from HTML if not provided)
+            from_email: Sender email (defaults to settings.DEFAULT_FROM_EMAIL)
+            cc: CC recipients
+            bcc: BCC recipients
+            reply_to: Reply-To addresses
 
         Returns:
-            bool: True if email sent successfully, False otherwise
+            True if email sent successfully, False otherwise
         """
         try:
             with track_duration("notification_email_send", channel="email"):
@@ -120,17 +121,21 @@ class EmailNotification:
                 "notification_email_failed",
                 channel="email",
                 error_class=e.__class__.__name__,
+                error_message=str(e),
             )
-            logger.error("Failed to send email")
+            logger.error(f"Failed to send email to {to}: {e.__class__.__name__}: {e}")
             return False
 
     @staticmethod
-    def send_proposal_accepted(proposal):
+    def send_proposal_accepted(proposal: Any) -> bool:
         """
         Send notification when a proposal is accepted.
 
         Args:
             proposal: Proposal model instance
+
+        Returns:
+            True if email sent successfully, False otherwise
         """
 
         # Determine recipient email
@@ -139,8 +144,8 @@ class EmailNotification:
             recipient_email = proposal.created_by.email
 
         if not recipient_email:
-            logger.warning("No recipient email for proposal")
-            log_event("notification_missing_recipient", channel="email")
+            logger.warning(f"No recipient email for proposal {getattr(proposal, 'proposal_number', 'unknown')}")
+            log_event("notification_missing_recipient", channel="email", context="proposal_accepted")
             return False
 
         # Prepare email context
@@ -179,20 +184,23 @@ class EmailNotification:
         )
 
     @staticmethod
-    def send_proposal_sent(proposal):
+    def send_proposal_sent(proposal: Any) -> bool:
         """
         Send notification when a proposal is sent to client.
 
         Args:
             proposal: Proposal model instance
+
+        Returns:
+            True if email sent successfully, False otherwise
         """
         recipient_email = None
         if hasattr(proposal, "created_by") and proposal.created_by:
             recipient_email = proposal.created_by.email
 
         if not recipient_email:
-            logger.warning("No recipient email for proposal")
-            log_event("notification_missing_recipient", channel="email")
+            logger.warning(f"No recipient email for proposal {getattr(proposal, 'proposal_number', 'unknown')}")
+            log_event("notification_missing_recipient", channel="email", context="proposal_sent")
             return False
 
         context = {
@@ -227,12 +235,15 @@ class EmailNotification:
         )
 
     @staticmethod
-    def send_contract_activated(contract):
+    def send_contract_activated(contract: Any) -> bool:
         """
         Send notification when a contract is activated.
 
         Args:
             contract: Contract model instance
+
+        Returns:
+            True if email sent successfully, False otherwise
         """
         # Send to project managers and account manager
         recipients = []
@@ -243,8 +254,8 @@ class EmailNotification:
                 recipients.append(contract.client.account_manager.email)
 
         if not recipients:
-            logger.warning("No recipients for contract")
-            log_event("notification_missing_recipient", channel="email")
+            logger.warning(f"No recipients for contract {getattr(contract, 'contract_number', 'unknown')}")
+            log_event("notification_missing_recipient", channel="email", context="contract_activated")
             return False
 
         context = {
@@ -279,16 +290,19 @@ class EmailNotification:
         )
 
     @staticmethod
-    def send_task_assignment(task):
+    def send_task_assignment(task: Any) -> bool:
         """
         Send notification when a task is assigned.
 
         Args:
             task: Task model instance
+
+        Returns:
+            True if email sent successfully, False otherwise
         """
         if not task.assigned_to or not task.assigned_to.email:
-            logger.warning("Task has no assigned user with email")
-            log_event("notification_missing_recipient", channel="email")
+            logger.warning(f"Task '{getattr(task, 'title', 'unknown')}' has no assigned user with email")
+            log_event("notification_missing_recipient", channel="email", context="task_assignment")
             return False
 
         context = {
@@ -321,12 +335,15 @@ class EmailNotification:
         )
 
     @staticmethod
-    def send_project_completed(project):
+    def send_project_completed(project: Any) -> bool:
         """
         Send notification when a project is completed.
 
         Args:
             project: Project model instance
+
+        Returns:
+            True if email sent successfully, False otherwise
         """
         # Send to project manager, client account manager, and project team
         recipients = []
@@ -339,8 +356,8 @@ class EmailNotification:
                 recipients.append(project.client.account_manager.email)
 
         if not recipients:
-            logger.warning("No recipients for project")
-            log_event("notification_missing_recipient", channel="email")
+            logger.warning(f"No recipients for project '{getattr(project, 'name', 'unknown')}'")
+            log_event("notification_missing_recipient", channel="email", context="project_completed")
             return False
 
         # Remove duplicates
@@ -397,14 +414,17 @@ class SlackNotification:
     """
 
     @staticmethod
-    def send(_channel, _message, _attachments=None):
+    def send(_channel: str, _message: str, _attachments: list[dict[str, Any]] | None = None) -> bool:
         """
         Send Slack notification (placeholder).
 
         Args:
-            _channel (str): Slack channel name or ID
-            _message (str): Message text
-            _attachments (list, optional): Slack attachments
+            _channel: Slack channel name or ID
+            _message: Message text
+            _attachments: Slack attachments
+
+        Returns:
+            False (not yet implemented)
         """
         logger.info("Slack notification dispatch attempted")
         log_event("notification_slack_attempted", channel="slack")
@@ -421,7 +441,7 @@ class SMSNotification:
     """
 
     @staticmethod
-    def send(to, message):
+    def send(to: str, message: str) -> bool:
         """
         Send SMS notification (placeholder).
 

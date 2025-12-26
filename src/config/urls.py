@@ -4,12 +4,13 @@ URL Configuration for ConsultantPro.
 Organized by business domain modules.
 """
 
-from api.finance.webhooks import stripe_webhook
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
+from api.finance.webhooks import stripe_webhook
 
 urlpatterns = [
     # Django Admin

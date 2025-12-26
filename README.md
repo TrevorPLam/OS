@@ -27,6 +27,7 @@ ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The
 - **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md) - Production deployment
 - **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow
 - **Security:** [`SECURITY.md`](SECURITY.md) - Security policy and reporting
+- **Code Quality Assessment:** [`CODE_QUALITY_ASSESSMENT.md`](CODE_QUALITY_ASSESSMENT.md) - Latest code quality review and metrics
 
 ---
 
