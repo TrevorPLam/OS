@@ -82,7 +82,15 @@ export const Communications: React.FC = () => {
     setConnectionStatus('connecting');
     setConnectionError(null);
 
-    const socket = new WebSocket(wsUrl);
+    let socket: WebSocket;
+
+    try {
+      socket = new WebSocket(wsUrl);
+    } catch (error) {
+      setConnectionStatus('error');
+      setConnectionError('Unable to connect to messaging service.');
+      return;
+    }
     socketRef.current = socket;
 
     socket.onopen = () => {
