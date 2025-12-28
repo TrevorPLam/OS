@@ -10,6 +10,7 @@ TIER 0: All CRM entities MUST belong to exactly one Firm for tenant isolation.
 """
 
 from decimal import Decimal
+from typing import Any
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -656,6 +657,24 @@ class Proposal(models.Model):
             if self.prospect:
                 raise ValidationError(f"{self.get_proposal_type_display()} proposals cannot have a prospect.")
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Enforce immutability for accepted proposals.
+
+        Once a proposal is accepted, core financial terms should not change.
+        """
+        from django.core.exceptions import ValidationError
+
+        if self.pk:
+            old_instance = Proposal.objects.filter(pk=self.pk).first()
+            if old_instance and (old_instance.status == "accepted" or old_instance.accepted_at):
+                if old_instance.total_value != self.total_value:
+                    raise ValidationError("Cannot change total value after proposal acceptance.")
+                if old_instance.currency != self.currency:
+                    raise ValidationError("Cannot change currency after proposal acceptance.")
+
+        super().save(*args, **kwargs)
+
 
 class Contract(models.Model):
     """
@@ -757,3 +776,52 @@ class Contract(models.Model):
 
     def __str__(self) -> str:
         return f"{self.contract_number} - {self.client.company_name}"
+
+    def clean(self) -> None:
+        """Validate signature requirements for active contracts."""
+        from django.core.exceptions import ValidationError
+
+        statuses_requiring_signature = {"active", "completed", "terminated", "on_hold"}
+
+        if self.status in statuses_requiring_signature:
+            if not self.signed_by:
+                raise ValidationError("Signed contracts require signed_by.")
+            if not self.signed_date and self.status != "active":
+                raise ValidationError("Signed contracts require signed_date.")
+
+        if self.signed_date and not self.signed_by:
+            raise ValidationError("signed_by is required when signed_date is set.")
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Prevent mutation of signed contract terms.
+
+        Core terms become immutable once the contract is signed.
+        """
+        from django.core.exceptions import ValidationError
+
+        self.clean()
+
+        if self.pk:
+            old_instance = Contract.objects.filter(pk=self.pk).first()
+            if old_instance and old_instance.signed_date:
+                immutable_fields = {
+                    "contract_number": old_instance.contract_number,
+                    "title": old_instance.title,
+                    "description": old_instance.description,
+                    "client_id": old_instance.client_id,
+                    "total_value": old_instance.total_value,
+                    "currency": old_instance.currency,
+                    "payment_terms": old_instance.payment_terms,
+                    "start_date": old_instance.start_date,
+                    "end_date": old_instance.end_date,
+                    "signed_date": old_instance.signed_date,
+                    "signed_by_id": old_instance.signed_by_id,
+                }
+
+                for field_name, old_value in immutable_fields.items():
+                    new_value = getattr(self, field_name)
+                    if new_value != old_value:
+                        raise ValidationError(f"Cannot change {field_name} after contract is signed.")
+
+        super().save(*args, **kwargs)

@@ -458,11 +458,16 @@ class TimeEntry(models.Model):
         TIER 4 Billing Invariants:
         - Time entries cannot be invoiced unless approved
         - Approval cannot be revoked if already invoiced
+        - Approved entries must capture approver metadata
+        - Invoiced entries are immutable
         """
         from django.core.exceptions import ValidationError
 
         # Calculate billed amount
         self.billed_amount = self.hours * self.hourly_rate
+
+        if self.approved and (not self.approved_by or not self.approved_at):
+            raise ValidationError("Approved time entries must include approved_by and approved_at.")
 
         # TIER 4: Enforce approval gate
         if self.invoiced and not self.approved:
@@ -476,6 +481,23 @@ class TimeEntry(models.Model):
                     "Cannot revoke approval for time entry that has been invoiced. "
                     "Approval is immutable after billing."
                 )
+            if old_instance and old_instance.invoiced:
+                immutable_fields = {
+                    "project_id": old_instance.project_id,
+                    "task_id": old_instance.task_id,
+                    "user_id": old_instance.user_id,
+                    "date": old_instance.date,
+                    "hours": old_instance.hours,
+                    "description": old_instance.description,
+                    "is_billable": old_instance.is_billable,
+                    "hourly_rate": old_instance.hourly_rate,
+                    "billed_amount": old_instance.billed_amount,
+                }
+
+                for field_name, old_value in immutable_fields.items():
+                    new_value = getattr(self, field_name)
+                    if new_value != old_value:
+                        raise ValidationError(f"Cannot change {field_name} after time entry is invoiced.")
 
         super().save(*args, **kwargs)
 
@@ -730,4 +752,3 @@ class TaskTemplate(models.Model):
         )
 
         return task
-

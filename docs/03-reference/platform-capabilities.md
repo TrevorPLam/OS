@@ -401,10 +401,9 @@ Professional services-oriented customer relationship management.
   - Meeting scheduling and tracking
 
 - **CRM → Project Handoff:**
-  - Explicitly marked as TODO in `src/modules/crm/signals.py`:
-    - "TODO: create initial project skeleton"
-    - "TODO: set up billing schedule"
-  - No automated onboarding workflow
+  - Contract activation auto-creates a project skeleton
+  - Client portal auto-enables on activation
+  - Billing schedule setup remains manual
 
 - **E-Sign Integration:**
   - Send proposals/contracts for signature
@@ -1022,9 +1021,8 @@ How the platform supports a complete client lifecycle.
 **Implemented Connections:**
 - ✅ **CRM → Contract Creation:**
   - Proposals can activate Contracts
-  - Signals acknowledge next steps (but don't implement them)
+  - Contract activation auto-creates a project skeleton and enables the client portal
   - Location: `src/modules/crm/signals.py`
-  - Note: TODOs exist for project skeleton and billing schedule
 
 - ✅ **Portal Exposure:**
   - Portal endpoints expose projects, invoices, messages
@@ -1034,11 +1032,12 @@ How the platform supports a complete client lifecycle.
 ### Missing to Meet End-to-End Flow
 
 #### 1. Closed Won → Engagement Creation
-**Status:** ⚠️ Partially Wired (TODOs in code)
+**Status:** ⚠️ Partially Wired (project kickoff automated; engagement model missing)
 
 **Present:**
 - Contract model exists
-- Signals acknowledge intent
+- Contract activation auto-creates a project skeleton
+- Client portal enablement on activation
 
 **Missing:**
 - **Onboarding Project (Templated):**
