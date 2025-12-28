@@ -119,7 +119,10 @@ export const Communications: React.FC = () => {
     };
 
     return () => {
-      socket.close();
+      socket.onopen = null;
+      socket.onerror = null;
+      socket.onclose = null;
+      socket.onmessage = null;
     };
   }, [wsUrl]);
 
