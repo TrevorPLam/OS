@@ -2,7 +2,8 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_URL: string
-  // Add more env variables as needed
+  readonly VITE_SENTRY_DSN?: string
+  readonly VITE_SENTRY_TRACES_SAMPLE_RATE?: string
 }
 
 interface ImportMeta {

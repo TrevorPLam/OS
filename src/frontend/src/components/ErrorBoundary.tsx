@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
+import * as Sentry from '@sentry/react'
 import './ErrorBoundary.css'
 
 interface Props {
@@ -34,8 +35,15 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     })
 
-    // TODO: Send to error tracking service (Sentry, LogRocket, etc.)
-    // logErrorToService(error, errorInfo)
+    if (!import.meta.env.VITE_SENTRY_DSN) {
+      return
+    }
+
+    Sentry.withScope((scope) => {
+      scope.setExtra('componentStack', errorInfo.componentStack)
+      scope.setTag('errorBoundary', 'ErrorBoundary')
+      Sentry.captureException(error)
+    })
   }
 
   handleReset = () => {

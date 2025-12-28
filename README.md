@@ -81,6 +81,17 @@ export POSTGRES_PORT=5432
 export CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
+### Frontend Error Tracking (Sentry)
+
+The frontend uses Sentry for error tracking. Configure the following Vite environment variables when running the frontend build or dev server:
+
+```bash
+export VITE_SENTRY_DSN="https://examplePublicKey@o0.ingest.sentry.io/0"
+export VITE_SENTRY_TRACES_SAMPLE_RATE="0.1"
+```
+
+If `VITE_SENTRY_DSN` is omitted, Sentry is disabled in the frontend.
+
 ### Run the App
 
 ```bash
