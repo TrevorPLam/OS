@@ -1,7 +1,7 @@
 /**
  * Communications Hub - Internal team chat, client messages, and email triage
  */
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './Communications.css';
 
 interface Message {
@@ -15,53 +15,136 @@ interface Message {
   type: 'team' | 'client' | 'email';
 }
 
+type WebSocketStatus = 'connecting' | 'open' | 'closed' | 'error';
+
+const initialMessages: Message[] = [
+  {
+    id: 1,
+    from: 'Sarah Johnson',
+    to: 'Team',
+    subject: 'Project Update',
+    message: 'Hey team, just finished the client presentation. It went really well!',
+    timestamp: '2025-01-20T14:30:00',
+    read: true,
+    type: 'team'
+  },
+  {
+    id: 2,
+    from: 'Michael Torres',
+    to: 'Team',
+    subject: 'Sprint Planning',
+    message: 'Can we schedule sprint planning for tomorrow morning?',
+    timestamp: '2025-01-20T15:45:00',
+    read: false,
+    type: 'team'
+  },
+  {
+    id: 3,
+    from: 'client@acmecorp.com',
+    to: 'You',
+    subject: 'Question about deliverables',
+    message: 'When can we expect the final report?',
+    timestamp: '2025-01-20T16:00:00',
+    read: false,
+    type: 'client'
+  }
+];
+
+const buildWebSocketUrl = () => {
+  const envUrl = import.meta.env.VITE_WS_URL;
+  if (envUrl) {
+    return envUrl;
+  }
+
+  if (typeof window === 'undefined') {
+    return 'ws://localhost:8000/ws/communications';
+  }
+
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/ws/communications`;
+};
+
 export const Communications: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'team' | 'client' | 'email'>('team');
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [messageText, setMessageText] = useState('');
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [connectionStatus, setConnectionStatus] = useState<WebSocketStatus>('connecting');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
 
-  // Mock data - replace with WebSocket/API integration
-  const [messages] = useState<Message[]>([
-    {
-      id: 1,
-      from: 'Sarah Johnson',
-      to: 'Team',
-      subject: 'Project Update',
-      message: 'Hey team, just finished the client presentation. It went really well!',
-      timestamp: '2025-01-20T14:30:00',
-      read: true,
-      type: 'team'
-    },
-    {
-      id: 2,
-      from: 'Michael Torres',
-      to: 'Team',
-      subject: 'Sprint Planning',
-      message: 'Can we schedule sprint planning for tomorrow morning?',
-      timestamp: '2025-01-20T15:45:00',
-      read: false,
-      type: 'team'
-    },
-    {
-      id: 3,
-      from: 'client@acmecorp.com',
-      to: 'You',
-      subject: 'Question about deliverables',
-      message: 'When can we expect the final report?',
-      timestamp: '2025-01-20T16:00:00',
-      read: false,
-      type: 'client'
-    }
-  ]);
+  const wsUrl = useMemo(() => buildWebSocketUrl(), []);
 
   const filteredMessages = messages.filter(m => m.type === activeTab);
   const unreadCount = (type: string) => messages.filter(m => m.type === type && !m.read).length;
 
+  useEffect(() => {
+    setConnectionStatus('connecting');
+    setConnectionError(null);
+
+    const socket = new WebSocket(wsUrl);
+    socketRef.current = socket;
+
+    socket.onopen = () => {
+      setConnectionStatus('open');
+      setConnectionError(null);
+    };
+
+    socket.onerror = () => {
+      setConnectionStatus('error');
+      setConnectionError('Unable to connect to messaging service.');
+    };
+
+    socket.onclose = () => {
+      setConnectionStatus('closed');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as Message;
+        if (payload && payload.message && payload.type) {
+          setMessages((prev) => [...prev, payload]);
+        }
+      } catch (error) {
+        setConnectionError('Received malformed message payload.');
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [wsUrl]);
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement WebSocket message sending
-    console.log('Sending message:', messageText);
-    setMessageText('');
+    if (!messageText.trim()) {
+      return;
+    }
+
+    if (connectionStatus !== 'open' || !socketRef.current) {
+      setConnectionError('Messaging service is not connected yet.');
+      return;
+    }
+
+    const outgoingMessage: Message = {
+      id: Date.now(),
+      from: 'You',
+      to: activeTab === 'team' ? 'Team' : activeTab === 'client' ? 'Client' : 'Inbox',
+      subject: activeTab === 'team' ? 'Team Chat' : activeTab === 'client' ? 'Client Message' : 'Email',
+      message: messageText.trim(),
+      timestamp: new Date().toISOString(),
+      read: true,
+      type: activeTab
+    };
+
+    try {
+      socketRef.current.send(JSON.stringify(outgoingMessage));
+      setMessages((prev) => [...prev, outgoingMessage]);
+      setMessageText('');
+      setConnectionError(null);
+    } catch (error) {
+      setConnectionError('Failed to send message. Please try again.');
+    }
   };
 
   return (
@@ -186,11 +269,17 @@ export const Communications: React.FC = () => {
                   placeholder="Type a message..."
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
+                  disabled={connectionStatus === 'connecting'}
                 />
-                <button type="submit" disabled={!messageText.trim()}>
+                <button type="submit" disabled={!messageText.trim() || connectionStatus !== 'open'}>
                   Send
                 </button>
               </form>
+              <div className={`connection-status ${connectionStatus}`}>
+                {connectionStatus === 'connecting' && <span>Connecting to messaging service...</span>}
+                {connectionStatus === 'error' && <span>{connectionError ?? 'Connection error.'}</span>}
+                {connectionStatus === 'closed' && <span>Connection closed.</span>}
+              </div>
             </>
           )}
 

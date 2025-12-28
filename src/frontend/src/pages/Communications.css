@@ -256,6 +256,20 @@
   cursor: not-allowed;
 }
 
+.connection-status {
+  padding: 0 1.5rem 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.connection-status.error {
+  color: #a94442;
+}
+
+.connection-status.closed {
+  color: #999;
+}
+
 /* Feature Placeholder */
 .feature-placeholder {
   display: flex;
