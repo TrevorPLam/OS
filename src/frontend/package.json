@@ -4,6 +4,7 @@
   "private": true,
   "description": "ConsultantPro React Frontend - Phase 1 of USP",
   "dependencies": {
+    "@sentry/react": "^10.32.1",
     "@tanstack/react-query": "^5.14.0",
     "axios": "^1.6.2",
     "react": "^18.2.0",
