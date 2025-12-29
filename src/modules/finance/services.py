@@ -173,3 +173,72 @@ class StripeService:
             return stripe.Refund.create(**refund_params)
         except stripe.error.StripeError as e:
             raise Exception(f"Failed to refund payment: {str(e)}") from e
+
+    @staticmethod
+    def create_checkout_session(
+        amount: Decimal,
+        currency: str = "usd",
+        success_url: str = None,
+        cancel_url: str = None,
+        metadata: dict | None = None,
+        customer_email: str | None = None,
+        invoice_number: str | None = None,
+    ) -> stripe.checkout.Session:
+        """
+        Create a Stripe Checkout session for invoice payment.
+
+        This creates a hosted payment page that clients can use to pay invoices.
+        The session URL should be returned to the client for redirect.
+
+        Args:
+            amount: Payment amount in dollars
+            currency: Currency code (default: 'usd')
+            success_url: URL to redirect to after successful payment
+            cancel_url: URL to redirect to if payment is cancelled
+            metadata: Additional metadata (should include invoice_id)
+            customer_email: Pre-fill customer email
+            invoice_number: Invoice number for display
+
+        Returns:
+            stripe.checkout.Session: Created checkout session
+
+        Raises:
+            Exception: If checkout session creation fails
+        """
+        try:
+            # Convert amount to cents
+            amount_cents = int(amount * 100)
+
+            # Build session parameters
+            session_params = {
+                "payment_method_types": ["card"],
+                "line_items": [
+                    {
+                        "price_data": {
+                            "currency": currency,
+                            "unit_amount": amount_cents,
+                            "product_data": {
+                                "name": f"Invoice {invoice_number}" if invoice_number else "Invoice Payment",
+                                "description": f"Payment for invoice {invoice_number}" if invoice_number else "Invoice payment",
+                            },
+                        },
+                        "quantity": 1,
+                    }
+                ],
+                "mode": "payment",
+                "success_url": success_url or settings.STRIPE_CHECKOUT_SUCCESS_URL,
+                "cancel_url": cancel_url or settings.STRIPE_CHECKOUT_CANCEL_URL,
+                "metadata": metadata or {},
+            }
+
+            # Optionally pre-fill customer email
+            if customer_email:
+                session_params["customer_email"] = customer_email
+
+            # Create the checkout session
+            session = stripe.checkout.Session.create(**session_params)
+
+            return session
+
+        except stripe.error.StripeError as e:
+            raise Exception(f"Failed to create checkout session: {str(e)}") from e

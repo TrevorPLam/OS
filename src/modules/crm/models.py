@@ -744,6 +744,27 @@ class Contract(models.Model):
     objects = models.Manager()  # Default manager
     firm_scoped = FirmScopedManager()  # Firm-scoped queries
 
+    def clean(self):
+        """
+        Validate contract data before saving.
+
+        Ensures that active contracts have required signature information.
+        """
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+
+        # Active contracts must have signature details
+        if self.status == "active":
+            if not self.signed_date:
+                raise ValidationError({
+                    "signed_date": "Active contracts must have a signed date."
+                })
+            if not self.signed_by:
+                raise ValidationError({
+                    "signed_by": "Active contracts must have a signer."
+                })
+
     class Meta:
         db_table = "crm_contracts"
         ordering = ["-created_at"]

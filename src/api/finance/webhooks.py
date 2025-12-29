@@ -78,7 +78,9 @@ def stripe_webhook(request):
             provider="stripe",
             webhook_type=event_type,
         ):
-            if event_type == "payment_intent.succeeded":
+            if event_type == "checkout.session.completed":
+                handle_checkout_session_completed(event_data)
+            elif event_type == "payment_intent.succeeded":
                 handle_payment_intent_succeeded(event_data)
             elif event_type == "payment_intent.payment_failed":
                 handle_payment_intent_failed(event_data)
@@ -320,4 +322,65 @@ def handle_charge_refunded(charge):
             "stripe_refund_invoice_missing",
             provider="stripe",
             webhook_type="charge.refunded",
+        )
+
+
+def handle_checkout_session_completed(session):
+    """
+    Handle completed Stripe Checkout session.
+
+    This is triggered when a customer successfully completes payment
+    through the Stripe Checkout hosted page.
+    """
+    metadata = session.get("metadata", {})
+    invoice_id = metadata.get("invoice_id")
+
+    if not invoice_id:
+        logger.warning("Checkout session missing invoice metadata")
+        log_event(
+            "stripe_checkout_session_missing_invoice_id",
+            provider="stripe",
+            webhook_type="checkout.session.completed",
+        )
+        return
+
+    try:
+        invoice = Invoice.objects.get(id=invoice_id)
+
+        # Get payment amount (in cents, convert to dollars)
+        amount_paid = session["amount_total"] / 100
+
+        # Update invoice
+        invoice.amount_paid += amount_paid
+
+        if invoice.amount_paid >= invoice.total_amount:
+            invoice.status = "paid"
+            invoice.paid_date = timezone.now().date()
+        else:
+            invoice.status = "partial"
+
+        invoice.save(update_fields=["amount_paid", "status", "paid_date"])
+
+        logger.info("Invoice updated from checkout session")
+        log_metric(
+            "stripe_checkout_session_completed",
+            provider="stripe",
+            webhook_type="checkout.session.completed",
+            status="success",
+        )
+
+    except Invoice.DoesNotExist:
+        logger.error("Invoice not found for checkout session")
+        log_event(
+            "stripe_checkout_session_invoice_missing",
+            provider="stripe",
+            webhook_type="checkout.session.completed",
+        )
+    except Exception as e:
+        logger.error("Error updating invoice from checkout session")
+        log_event(
+            "stripe_checkout_session_update_failed",
+            provider="stripe",
+            webhook_type="checkout.session.completed",
+            error_class=e.__class__.__name__,
         )
