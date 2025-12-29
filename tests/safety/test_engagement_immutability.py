@@ -45,18 +45,25 @@ def signed_contract(firm_and_client):
 
     proposal = Proposal.objects.create(
         firm=firm_and_client["firm"],
-        prospect=None,  # Can be null for existing clients
+        proposal_type="update_client",
+        client=firm_and_client["client"],
+        proposal_number="PROP-001",
         title="Test Proposal",
+        description="Test proposal scope",
         status="accepted",
-        amount=Decimal("10000.00")
+        total_value=Decimal("10000.00"),
+        valid_until=date.today() + timedelta(days=30),
     )
 
     contract = Contract.objects.create(
         firm=firm_and_client["firm"],
         proposal=proposal,
         client=firm_and_client["client"],
+        contract_number="CON-001",
         title="Test Contract",
-        signed_at=date.today(),
+        description="Test contract scope",
+        total_value=proposal.total_value,
+        signed_date=date.today(),
         signed_by=user,
         status="active",
         start_date=date.today(),
@@ -93,7 +100,7 @@ class TestEngagementImmutability:
 
     def test_signed_contract_exists(self, signed_contract):
         """Verify signed contract is created correctly."""
-        assert signed_contract.signed_at is not None
+        assert signed_contract.signed_date is not None
         assert signed_contract.signed_by is not None
         assert signed_contract.status == "active"
 
@@ -104,9 +111,14 @@ class TestEngagementImmutability:
 
         proposal = Proposal.objects.create(
             firm=firm_and_client["firm"],
+            proposal_type="update_client",
+            client=firm_and_client["client"],
+            proposal_number="PROP-002",
             title="Test Proposal 2",
+            description="Test proposal scope",
             status="draft",
-            amount=Decimal("5000.00")
+            total_value=Decimal("5000.00"),
+            valid_until=date.today() + timedelta(days=30),
         )
 
         # Attempt to create active contract without signature fields
@@ -116,6 +128,7 @@ class TestEngagementImmutability:
             client=firm_and_client["client"],
             contract_number="TEST-002",
             title="Unsigned Contract",
+            description="Unsigned contract scope",
             status="active",  # Active but not signed
             total_value=Decimal("5000.00"),
             start_date=date.today(),
@@ -176,40 +189,36 @@ class TestEngagementImmutability:
 
     def test_contract_signed_timestamp_immutable(self, signed_contract):
         """
-        Once a contract is signed, the signed_at timestamp should not change.
+        Once a contract is signed, the signed_date timestamp should not change.
         This is critical for legal evidence.
         """
-        original_signed_at = signed_contract.signed_at
+        original_signed_date = signed_contract.signed_date
         original_signed_by = signed_contract.signed_by
 
-        # Attempt to modify signed_at
-        signed_contract.signed_at = date.today() + timedelta(days=1)
-        signed_contract.save()
+        # Attempt to modify signed_date
+        signed_contract.signed_date = date.today() + timedelta(days=1)
+        with pytest.raises(ValidationError, match="Signed date is immutable"):
+            signed_contract.save()
 
-        # In production, this should be prevented
-        # TODO: Add model-level validation in Tier 3 to prevent this
-        # For now, document the requirement
         signed_contract.refresh_from_db()
 
-        # Document: This SHOULD fail in production
-        assert True, "Signed timestamp mutation should be prevented (add in Tier 3)"
+        assert signed_contract.signed_date == original_signed_date
+        assert signed_contract.signed_by == original_signed_by
 
     def test_contract_amount_changes_require_new_contract(self, signed_contract):
         """
         Changing contract amount should require a new contract/amendment.
         Original signed contract should remain unchanged.
         """
-        original_proposal_amount = signed_contract.proposal.amount
+        original_proposal_amount = signed_contract.proposal.total_value
 
         # Attempting to modify proposal amount after signing
-        # This should be prevented in production
-        signed_contract.proposal.amount = Decimal("20000.00")
-        signed_contract.proposal.save()
+        signed_contract.proposal.total_value = Decimal("20000.00")
+        with pytest.raises(ValidationError, match="Cannot modify total value"):
+            signed_contract.proposal.save()
 
-        # In production, signed proposals should be immutable
-        # TODO: Add model-level protection in Tier 3
-
-        assert True, "Signed proposal amounts should be immutable (add in Tier 3)"
+        signed_contract.proposal.refresh_from_db()
+        assert signed_contract.proposal.total_value == original_proposal_amount
 
     def test_engagement_status_lifecycle(self, engagement):
         """

@@ -2,7 +2,7 @@
 
 **Analysis Date:** December 29, 2025
 **Branch:** claude/prioritize-todo-tasks-Y6fWz
-**Last Updated:** December 29, 2025 (Easy Wins Completed)
+**Last Updated:** December 29, 2025 (Immutability Checks + Test Alignment)
 
 ---
 
@@ -28,6 +28,20 @@
 
 ---
 
+## ✅ Update: Additional Quick Wins Executed (December 29, 2025)
+
+1. ✅ **Signed Contract Immutability** - Enforced immutability for `signed_date` and `signed_by` once set
+2. ✅ **Signed Proposal Amount Freeze** - Prevent changes to `total_value` when a signed contract exists
+3. ✅ **Invoiced Time Entry Immutability** - Block edits to invoiced time entries (core fields)
+4. ✅ **Safety Test Alignment** - Updated Tier 1 safety tests to match current model fields (`signed_date`, `total_value`, `invoiced`)
+
+**Impact:**
+- Legal evidence preserved for signed contracts and proposal values
+- Billing integrity tightened by locking invoiced records
+- Safety tests now reflect current schema and invariants
+
+---
+
 ## 🎯 Executive Summary
 
 This analysis categorizes all TODO items across the codebase by effort and impact, identifying quick wins that can be completed with minimal risk and high value.
@@ -35,7 +49,7 @@ This analysis categorizes all TODO items across the codebase by effort and impac
 **Total TODOs Identified:**
 - **Doc-Driven Items:** 18 prioritized + 28 backlog = 46 canonical items
 - **Legacy Checklist:** 31 items (4 Medium + 10 Complex + 10 Advanced + 7 Strategic)
-- **Inline Code TODOs:** 7 implementation placeholders (5 completed, 2 remaining)
+- **Inline Code TODOs:** 6 implementation placeholders (2 integrations + 2 product features + 2 misc)
 
 ---
 

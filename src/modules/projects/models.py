@@ -520,11 +520,37 @@ class TimeEntry(models.Model):
         # TIER 4: Prevent approval revocation after invoicing
         if self.pk:  # Existing record
             old_instance = TimeEntry.objects.filter(pk=self.pk).first()
-            if old_instance and old_instance.invoiced and old_instance.approved and not self.approved:
-                raise ValidationError(
-                    "Cannot revoke approval for time entry that has been invoiced. "
-                    "Approval is immutable after billing."
-                )
+            if old_instance:
+                if old_instance.invoiced:
+                    immutable_fields = {
+                        "project_id": (old_instance.project_id, self.project_id),
+                        "task_id": (old_instance.task_id, self.task_id),
+                        "user_id": (old_instance.user_id, self.user_id),
+                        "date": (old_instance.date, self.date),
+                        "hours": (old_instance.hours, self.hours),
+                        "description": (old_instance.description, self.description),
+                        "is_billable": (old_instance.is_billable, self.is_billable),
+                        "hourly_rate": (old_instance.hourly_rate, self.hourly_rate),
+                        "approved": (old_instance.approved, self.approved),
+                        "approved_by_id": (old_instance.approved_by_id, self.approved_by_id),
+                        "approved_at": (old_instance.approved_at, self.approved_at),
+                        "invoice_id": (old_instance.invoice_id, self.invoice_id),
+                        "invoiced": (old_instance.invoiced, self.invoiced),
+                    }
+                    changed_fields = [
+                        field for field, (old_value, new_value) in immutable_fields.items() if old_value != new_value
+                    ]
+                    if changed_fields:
+                        raise ValidationError(
+                            "Cannot modify invoiced time entries "
+                            f"(immutable fields changed: {', '.join(changed_fields)})."
+                        )
+
+                if old_instance.invoiced and old_instance.approved and not self.approved:
+                    raise ValidationError(
+                        "Cannot revoke approval for time entry that has been invoiced. "
+                        "Approval is immutable after billing."
+                    )
 
         super().save(*args, **kwargs)
 
