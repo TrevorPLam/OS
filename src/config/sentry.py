@@ -156,10 +156,7 @@ def before_send_transaction_filter(event: dict, hint: dict) -> dict | None:
 
 
 def capture_exception_with_context(
-    exception: Exception,
-    context: dict | None = None,
-    level: str = "error",
-    **extra_tags
+    exception: Exception, context: dict | None = None, level: str = "error", **extra_tags
 ) -> str | None:
     """
     Capture an exception with additional context.
@@ -202,10 +199,7 @@ def capture_exception_with_context(
 
 
 def capture_message_with_context(
-    message: str,
-    level: str = "info",
-    context: dict | None = None,
-    **extra_tags
+    message: str, level: str = "info", context: dict | None = None, **extra_tags
 ) -> str | None:
     """
     Capture a message with additional context.

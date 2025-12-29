@@ -1,8 +1,8 @@
 """Background job handlers with explicit tenant guards."""
 
 from django.utils import timezone
-
 from job_guards import require_client_for_job, require_firm_for_job
+
 from modules.firm.export import export_firm_data, resolve_requested_by
 from modules.firm.models import FirmOffboardingRecord
 from modules.firm.utils import expire_overdue_break_glass_sessions

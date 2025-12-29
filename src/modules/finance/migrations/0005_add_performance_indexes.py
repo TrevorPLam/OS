@@ -51,17 +51,8 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='creditledgerentry',
             index=models.Index(
-                fields=['firm', 'credit_type', '-created_at'],
+                fields=['firm', 'entry_type', '-created_at'],
                 name='finance_credit_type_idx'
-            ),
-        ),
-
-        # PaymentFailure performance indexes
-        migrations.AddIndex(
-            model_name='paymentfailure',
-            index=models.Index(
-                fields=['client', 'resolved', '-failed_at'],
-                name='finance_failure_client_idx'
             ),
         ),
 
@@ -76,7 +67,7 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='bill',
             index=models.Index(
-                fields=['firm', 'status', '-issue_date'],
+                fields=['firm', 'status', '-bill_date'],
                 name='finance_bill_status_idx'
             ),
         ),

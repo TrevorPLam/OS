@@ -12,11 +12,20 @@ from pathlib import Path
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-CHANGE-THIS-IN-PRODUCTION-xk7m9n8b5v4c3x2z1")
+# SECURITY: Secret key MUST be set via environment variable - no fallback
+# Application will fail to start if DJANGO_SECRET_KEY is not configured
+_secret_key = os.environ.get("DJANGO_SECRET_KEY")
+if not _secret_key:
+    raise ValueError(
+        "DJANGO_SECRET_KEY environment variable is required. "
+        "Generate one with: python -c "
+        "'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'"
+    )
+SECRET_KEY = _secret_key
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
+# SECURITY: DEBUG defaults to False for production safety
+# Explicitly set DJANGO_DEBUG=True for development
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -111,12 +120,16 @@ if os.environ.get("USE_SQLITE_FOR_TESTS") == "True":
     }
 
 # Password validation
+# SECURITY: Minimum 12 characters recommended for stronger security
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 12,
+        },
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",

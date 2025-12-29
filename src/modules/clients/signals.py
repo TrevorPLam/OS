@@ -7,6 +7,8 @@ Key workflows when Proposal is accepted:
 3. renewal_client: Create new Contract/Engagement version (renewal)
 """
 
+import logging
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -15,6 +17,8 @@ from modules.clients.models import Client, ClientEngagement
 from modules.crm.models import Contract, Proposal
 from modules.documents.models import Folder
 from modules.projects.models import Project
+
+logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender=Proposal)
@@ -174,7 +178,7 @@ def _handle_new_client(proposal):
     proposal.converted_to_engagement = True
     proposal.save()
 
-    print(f"✅ New Client: {client.company_name} (Proposal {proposal.proposal_number})")
+    logger.info(f"New Client created: {client.company_name} (Proposal {proposal.proposal_number})")
 
 
 def _handle_client_engagement(proposal):
@@ -268,4 +272,6 @@ def _handle_client_engagement(proposal):
     proposal.save()
 
     engagement_type = "Renewal" if proposal.proposal_type == "renewal_client" else "Expansion"
-    print(f"✅ {engagement_type} for {client.company_name} - v{version} (Proposal {proposal.proposal_number})")
+    logger.info(
+        f"{engagement_type} engagement for {client.company_name} - v{version} (Proposal {proposal.proposal_number})"
+    )

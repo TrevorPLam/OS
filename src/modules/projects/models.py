@@ -143,8 +143,30 @@ class Expense(models.Model):
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Calculate billable amount before saving."""
+        self.full_clean()  # Run validation before save
         self.billable_amount = self.calculate_billable_amount()
         super().save(*args, **kwargs)
+
+    def clean(self) -> None:
+        """Validate expense data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Validate approval workflow
+        if self.status == "approved" and not self.approved_by_id:
+            errors["status"] = "Cannot set status to 'approved' without an approver."
+        if self.status == "rejected" and not self.rejected_by_id:
+            errors["status"] = "Cannot set status to 'rejected' without specifying who rejected."
+        if self.status == "rejected" and not self.rejection_reason:
+            errors["rejection_reason"] = "Rejection reason is required when rejecting an expense."
+
+        # Cannot invoice unapproved expenses
+        if self.invoiced and self.status != "approved":
+            errors["invoiced"] = "Only approved expenses can be invoiced."
+
+        if errors:
+            raise ValidationError(errors)
 
     def calculate_billable_amount(self) -> Decimal:
         """Calculate billable amount with markup."""
@@ -287,6 +309,29 @@ class Project(models.Model):
 
     def __str__(self) -> str:
         return f"{self.project_code} - {self.name}"
+
+    def clean(self) -> None:
+        """Validate project data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Validate date range
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            errors["end_date"] = "End date must be after start date."
+
+        # Validate actual completion date
+        if self.actual_completion_date and self.start_date:
+            if self.actual_completion_date < self.start_date:
+                errors["actual_completion_date"] = "Actual completion date cannot be before start date."
+
+        # Validate client belongs to same firm
+        if self.client_id and self.firm_id:
+            if hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["client"] = "Client must belong to the same firm as the project."
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class Task(models.Model):
@@ -445,6 +490,10 @@ class TimeEntry(models.Model):
         indexes = [
             models.Index(fields=["project", "user", "date"]),
             models.Index(fields=["invoiced"]),
+            # Composite indexes for common filtering patterns
+            models.Index(fields=["project", "approved", "invoiced"]),  # Unbilled approved entries
+            models.Index(fields=["project", "-date"]),  # Time entries by project sorted by date
+            models.Index(fields=["user", "-date"]),  # User's recent time entries
         ]
         verbose_name_plural = "Time Entries"
 
@@ -730,4 +779,3 @@ class TaskTemplate(models.Model):
         )
 
         return task
-

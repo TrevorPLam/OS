@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
 
@@ -150,7 +151,7 @@ class Client(models.Model):
     country = models.CharField(max_length=100, default="USA")
 
     # Business Metadata
-    website = models.URLField(blank=True)
+    website = models.URLField(blank=True, validators=[validate_safe_url])
     employee_count = models.IntegerField(null=True, blank=True)
 
     # Client Status (Post-Sale Only)
@@ -240,6 +241,42 @@ class Client(models.Model):
 
     def __str__(self):
         return f"{self.company_name} ({self.firm.name})"
+
+    def clean(self):
+        """
+        Validate Client data integrity.
+
+        Validates:
+        - Organization firm consistency: organization.firm == self.firm
+        - Numeric constraints: employee_count >= 0
+        - Autopay consistency: autopay_enabled requires payment_method_id
+        - Retainer balance non-negative
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Organization firm consistency
+        if self.organization_id and self.firm_id:
+            if hasattr(self, "organization") and self.organization.firm_id != self.firm_id:
+                errors["organization"] = "Client's organization must belong to the same firm."
+
+        # Employee count validation
+        if self.employee_count is not None and self.employee_count < 0:
+            errors["employee_count"] = "Employee count cannot be negative."
+
+        # Autopay consistency
+        if self.autopay_enabled and not self.autopay_payment_method_id:
+            errors["autopay_payment_method_id"] = "Payment method is required when autopay is enabled."
+
+        # Retainer balance non-negative
+        if self.retainer_balance < 0:
+            errors["retainer_balance"] = "Retainer balance cannot be negative."
+        if self.retainer_hours_balance < 0:
+            errors["retainer_hours_balance"] = "Retainer hours balance cannot be negative."
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class ClientPortalUser(models.Model):
@@ -503,6 +540,43 @@ class ClientEngagement(models.Model):
             self.allow_hourly_billing = True
 
         super().save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Validate ClientEngagement data integrity.
+
+        Validates:
+        - Date range: start_date < end_date
+        - Actual end date: actual_end_date >= start_date (if set)
+        - Firm consistency: client.firm == self.firm (if firm manually set)
+        - Pricing mode invariants (from save method)
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Date range validation
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            errors["end_date"] = "End date must be after start date."
+
+        # Actual end date validation
+        if self.actual_end_date and self.start_date and self.actual_end_date < self.start_date:
+            errors["actual_end_date"] = "Actual end date cannot be before start date."
+
+        # Firm consistency (if manually set)
+        if self.firm_id and self.client_id:
+            if hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["firm"] = "Engagement firm must match client's firm."
+
+        # Validate pricing mode requirements (duplicated validation, also in save)
+        if self.pricing_mode in ["package", "mixed"] and not self.package_fee:
+            errors["package_fee"] = f"Package fee is required for pricing mode '{self.pricing_mode}'."
+
+        if self.pricing_mode in ["hourly", "mixed"] and not self.hourly_rate_default:
+            errors["hourly_rate_default"] = f"Hourly rate is required for pricing mode '{self.pricing_mode}'."
+
+        if errors:
+            raise ValidationError(errors)
 
     def renew(
         self,

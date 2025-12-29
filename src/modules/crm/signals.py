@@ -76,7 +76,8 @@ def proposal_accepted_notification(sender, instance, created, **kwargs):
     """
     if not created and instance.status == "accepted":
         logger.info(
-            f"🎉 Proposal {instance.proposal_number} accepted! " f"Value: {instance.estimated_value} {instance.currency}"
+            f"🎉 Proposal {instance.proposal_number} accepted! "
+            f"Value: {instance.estimated_value} {instance.currency}"
         )
         # Send email notification
         from modules.core.notifications import EmailNotification

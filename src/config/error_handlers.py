@@ -83,9 +83,7 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
         # Log non-500 errors to Sentry as messages (not exceptions)
         if response.status_code >= 400 and response.status_code < 500:
             # Client errors - log as info/warning
-            logger.warning(
-                f"Client error {response.status_code}: {exc.__class__.__name__} - {str(exc)}"
-            )
+            logger.warning(f"Client error {response.status_code}: {exc.__class__.__name__} - {str(exc)}")
         elif response.status_code >= 500:
             # Server errors - capture as exception
             view = context.get("view")

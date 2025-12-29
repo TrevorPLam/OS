@@ -37,14 +37,14 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='prospect',
             index=models.Index(
-                fields=['firm', 'stage', '-created_at'],
+                fields=['firm', 'pipeline_stage', '-created_at'],
                 name='crm_prospect_stage_idx'
             ),
         ),
         migrations.AddIndex(
             model_name='prospect',
             index=models.Index(
-                fields=['firm', '-last_contact_date'],
+                fields=['firm', '-last_activity_date'],
                 name='crm_prospect_contact_idx'
             ),
         ),
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='proposal',
             index=models.Index(
-                fields=['firm', 'status', '-sent_date'],
+                fields=['firm', 'status', '-sent_at'],
                 name='crm_proposal_status_idx'
             ),
         ),
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='proposal',
             index=models.Index(
-                fields=['-expires_date'],
+                fields=['-valid_until'],
                 name='crm_proposal_expires_idx'
             ),
         ),

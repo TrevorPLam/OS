@@ -103,6 +103,42 @@ class Folder(models.Model):
             return f"{self.parent} / {self.name}"
         return f"{self.client.company_name} / {self.name}"
 
+    def clean(self) -> None:
+        """
+        Validate Folder data integrity.
+
+        Validates:
+        - Firm consistency: client.firm == self.firm
+        - Hierarchy validation: parent folder must belong to same firm and client
+        - Prevents circular parent references
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency with client
+        if self.client_id and self.firm_id:
+            if hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["client"] = "Folder firm must match client's firm."
+
+        # Parent folder validation
+        if self.parent_id:
+            if hasattr(self, "parent"):
+                # Parent must belong to same firm
+                if self.firm_id and self.parent.firm_id != self.firm_id:
+                    errors["parent"] = "Parent folder must belong to the same firm."
+                # Parent must belong to same client
+                if self.client_id and self.parent.client_id != self.client_id:
+                    errors["parent"] = "Parent folder must belong to the same client."
+
+        # Prevent circular reference
+        if self.pk and self.parent_id:
+            if self.parent_id == self.pk:
+                errors["parent"] = "Folder cannot be its own parent."
+
+        if errors:
+            raise ValidationError(errors)
+
 
 class Document(models.Model):
     """
@@ -248,6 +284,50 @@ class Document(models.Model):
 
         self._encrypt_content_fields()
         super().save(*args, **kwargs)
+
+    def clean(self) -> None:
+        """
+        Validate Document data integrity.
+
+        Validates:
+        - Firm consistency: folder.firm == client.firm == self.firm
+        - Legal hold consistency: legal_hold requires reason and applied_by
+        - Retention validation: retention_period requires retention_start_date
+        - Legal hold prevents scheduled deletion
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency with folder
+        if self.folder_id and self.firm_id:
+            if hasattr(self, "folder") and self.folder.firm_id != self.firm_id:
+                errors["folder"] = "Document firm must match folder's firm."
+
+        # Firm consistency with client
+        if self.client_id and self.firm_id:
+            if hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["client"] = "Document firm must match client's firm."
+
+        # Legal hold consistency
+        if self.legal_hold:
+            if not self.legal_hold_reason:
+                errors["legal_hold_reason"] = "Legal hold reason is required when document is under legal hold."
+            if not self.legal_hold_applied_by_id:
+                errors["legal_hold_applied_by"] = "Legal hold applied by is required when document is under legal hold."
+
+        # Retention validation
+        if self.retention_period_years and not self.retention_start_date:
+            errors["retention_start_date"] = "Retention start date is required when retention period is set."
+
+        # Legal hold prevents scheduled deletion
+        if self.legal_hold and self.scheduled_deletion_date:
+            errors["scheduled_deletion_date"] = (
+                "Scheduled deletion date should be cleared when document is under legal hold."
+            )
+
+        if errors:
+            raise ValidationError(errors)
 
     def decrypted_s3_key(self) -> str:
         return field_encryption_service.decrypt_for_firm(self.firm_id, self.s3_key)

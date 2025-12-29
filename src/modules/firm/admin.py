@@ -96,7 +96,10 @@ class PlatformUserProfileAdmin(admin.ModelAdmin):
             "Permissions",
             {
                 "fields": ("can_activate_break_glass",),
-                "description": "Explicit permission to activate break-glass sessions (required for break-glass operators)",
+                "description": (
+                    "Explicit permission to activate break-glass sessions "
+                    "(required for break-glass operators)"
+                ),
             },
         ),
         ("Audit", {"fields": ("granted_by", "granted_at", "revoked_by", "revoked_at", "notes")}),

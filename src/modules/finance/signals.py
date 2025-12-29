@@ -196,7 +196,10 @@ def bill_workflow_notification(sender, instance, created, **kwargs):
                 EmailNotification.send_bill_validated(instance)
 
             elif instance.status == "approved":
-                logger.info(f"✅ Bill approved: {instance.reference_number} " f"for payment of ${instance.total_amount}")
+                logger.info(
+                    f"✅ Bill approved: {instance.reference_number} "
+                    f"for payment of ${instance.total_amount}"
+                )
                 # Send notification to AP team
                 EmailNotification.send_bill_approved(instance)
 

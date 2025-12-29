@@ -270,6 +270,49 @@ class Invoice(models.Model):
 
         super().save(*args, **kwargs)
 
+    def clean(self) -> None:
+        """
+        Validate Invoice data integrity.
+
+        Validates:
+        - Date ordering: issue_date <= due_date
+        - Period dates: period_start < period_end (if set)
+        - Amount constraints: amount_paid <= total_amount
+        - Dunning level bounds: 0-4
+        - Firm consistency: client.firm == self.firm
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Date validation: issue_date <= due_date
+        if self.issue_date and self.due_date and self.issue_date > self.due_date:
+            errors["due_date"] = "Due date must be on or after issue date."
+
+        # Period date validation (for package invoices)
+        if self.period_start and self.period_end and self.period_start >= self.period_end:
+            errors["period_end"] = "Period end date must be after period start date."
+
+        # Amount validation: can't pay more than total
+        if self.amount_paid > self.total_amount:
+            errors["amount_paid"] = f"Amount paid (${self.amount_paid}) cannot exceed total amount (${self.total_amount})."
+
+        # Dunning level bounds
+        if self.dunning_level < 0 or self.dunning_level > 4:
+            errors["dunning_level"] = "Dunning level must be between 0 and 4."
+
+        # Retry count validation
+        if self.payment_retry_count < 0:
+            errors["payment_retry_count"] = "Payment retry count cannot be negative."
+
+        # Firm consistency: client must belong to same firm
+        if self.client_id and self.firm_id:
+            if hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["firm"] = "Invoice firm must match client's firm."
+
+        if errors:
+            raise ValidationError(errors)
+
     @property
     def balance_due(self) -> Decimal:
         """Calculate remaining balance."""
@@ -415,6 +458,44 @@ class PaymentDispute(models.Model):
     def __str__(self) -> str:
         return f"Dispute {self.stripe_dispute_id} - {self.invoice.invoice_number} (${self.amount})"
 
+    def clean(self) -> None:
+        """
+        Validate PaymentDispute data integrity.
+
+        Validates:
+        - Date ordering: opened_at < respond_by < closed_at (when set)
+        - Resolution consistency: won/lost status requires closed_at
+        - Evidence consistency: evidence_submitted requires evidence_submitted_at
+        - Firm consistency: invoice.firm == self.firm
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Date validation: respond_by after opened
+        if self.opened_at and self.respond_by and self.respond_by <= self.opened_at:
+            errors["respond_by"] = "Response deadline must be after dispute opened date."
+
+        # Date validation: closed_at after opened
+        if self.opened_at and self.closed_at and self.closed_at <= self.opened_at:
+            errors["closed_at"] = "Closed date must be after dispute opened date."
+
+        # Resolution requires closed status
+        if self.status in ["won", "lost"] and not self.closed_at:
+            errors["closed_at"] = f"Closed date is required when status is '{self.status}'."
+
+        # Evidence submission consistency
+        if self.evidence_submitted and not self.evidence_submitted_at:
+            errors["evidence_submitted_at"] = "Evidence submission date is required when evidence is submitted."
+
+        # Firm consistency
+        if self.invoice_id and self.firm_id:
+            if hasattr(self, "invoice") and self.invoice.firm_id != self.firm_id:
+                errors["firm"] = "Dispute firm must match invoice's firm."
+
+        if errors:
+            raise ValidationError(errors)
+
 
 class PaymentFailure(models.Model):
     """
@@ -502,6 +583,42 @@ class PaymentFailure(models.Model):
 
     def __str__(self) -> str:
         return f"Payment Failure - {self.invoice.invoice_number} (${self.amount_attempted}) - {self.failure_code}"
+
+    def clean(self) -> None:
+        """
+        Validate PaymentFailure data integrity.
+
+        Validates:
+        - Notification consistency: customer_notified requires notified_at
+        - Resolution consistency: resolved requires resolved_at
+        - Retry count bounds
+        - Firm consistency across relations
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Notification consistency
+        if self.customer_notified and not self.notified_at:
+            errors["notified_at"] = "Notification date is required when customer was notified."
+
+        # Resolution consistency
+        if self.resolved and not self.resolved_at:
+            errors["resolved_at"] = "Resolution date is required when payment is resolved."
+
+        # Retry count bounds
+        if self.retry_count < 0:
+            errors["retry_count"] = "Retry count cannot be negative."
+
+        # Firm consistency: invoice and client must match firm
+        if self.firm_id:
+            if self.invoice_id and hasattr(self, "invoice") and self.invoice.firm_id != self.firm_id:
+                errors["firm"] = "Payment failure firm must match invoice's firm."
+            if self.client_id and hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["client"] = "Payment failure firm must match client's firm."
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class Chargeback(models.Model):
@@ -593,6 +710,46 @@ class Chargeback(models.Model):
 
     def __str__(self) -> str:
         return f"Chargeback {self.stripe_chargeback_id} - {self.invoice.invoice_number} (${self.amount})"
+
+    def clean(self) -> None:
+        """
+        Validate Chargeback data integrity.
+
+        Validates:
+        - Date ordering: initiated_at < respond_by < resolved_at
+        - Evidence consistency: evidence_submitted requires evidence_submitted_at
+        - Resolution consistency: won/lost requires resolved_at
+        - Firm consistency
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Date validation: respond_by after initiated
+        if self.initiated_at and self.respond_by and self.respond_by <= self.initiated_at:
+            errors["respond_by"] = "Response deadline must be after chargeback initiated date."
+
+        # Date validation: resolved_at after initiated
+        if self.initiated_at and self.resolved_at and self.resolved_at < self.initiated_at:
+            errors["resolved_at"] = "Resolved date must be on or after initiated date."
+
+        # Evidence submission consistency
+        if self.evidence_submitted and not self.evidence_submitted_at:
+            errors["evidence_submitted_at"] = "Evidence submission date is required when evidence is submitted."
+
+        # Resolution requires resolved_at
+        if self.status in ["won", "lost"] and not self.resolved_at:
+            errors["resolved_at"] = f"Resolved date is required when status is '{self.status}'."
+
+        # Firm consistency
+        if self.firm_id:
+            if self.invoice_id and hasattr(self, "invoice") and self.invoice.firm_id != self.firm_id:
+                errors["firm"] = "Chargeback firm must match invoice's firm."
+            if self.client_id and hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["client"] = "Chargeback firm must match client's firm."
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class Bill(models.Model):
@@ -731,6 +888,49 @@ class Bill(models.Model):
 
     def __str__(self) -> str:
         return f"{self.reference_number} - {self.vendor_name} (${self.total_amount})"
+
+    def clean(self) -> None:
+        """
+        Validate Bill data integrity.
+
+        Validates:
+        - Date ordering: bill_date <= due_date
+        - Amount constraints: amount_paid <= total_amount
+        - Status workflow consistency
+        - Rejection requires reason
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Date validation: bill_date <= due_date
+        if self.bill_date and self.due_date and self.bill_date > self.due_date:
+            errors["due_date"] = "Due date must be on or after bill date."
+
+        # Amount validation: can't pay more than total
+        if self.amount_paid > self.total_amount:
+            errors["amount_paid"] = f"Amount paid (${self.amount_paid}) cannot exceed total amount (${self.total_amount})."
+
+        # Status workflow validation
+        if self.status == "rejected":
+            if not self.rejection_reason:
+                errors["rejection_reason"] = "Rejection reason is required when status is 'rejected'."
+            if not self.rejected_by_id:
+                errors["rejected_by"] = "Rejected by user is required when status is 'rejected'."
+
+        if self.status == "validated":
+            if not self.validated_by_id:
+                errors["validated_by"] = "Validated by user is required when status is 'validated'."
+
+        if self.status == "approved":
+            if not self.approved_by_id:
+                errors["approved_by"] = "Approved by user is required when status is 'approved'."
+
+        if self.status == "scheduled" and not self.scheduled_payment_date:
+            errors["scheduled_payment_date"] = "Scheduled payment date is required when status is 'scheduled'."
+
+        if errors:
+            raise ValidationError(errors)
 
     @property
     def balance_due(self) -> Decimal:

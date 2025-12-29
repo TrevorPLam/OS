@@ -4,15 +4,19 @@ URL Configuration for ConsultantPro.
 Organized by business domain modules.
 """
 
+from api.finance.webhooks import stripe_webhook
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
-from api.finance.webhooks import stripe_webhook
+from .health import health_check, readiness_check
 
 urlpatterns = [
+    # Health check endpoints (for load balancers and Kubernetes probes)
+    path("health/", health_check, name="health_check"),
+    path("health/ready/", readiness_check, name="readiness_check"),
     # Django Admin
     path("admin/", admin.site.urls),
     # API Documentation

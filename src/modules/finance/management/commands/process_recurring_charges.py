@@ -30,7 +30,8 @@ class Command(BaseCommand):
                 if invoice.autopay_next_charge_at and invoice.autopay_next_charge_at > now:
                     continue
                 self.stdout.write(
-                    f"Invoice {invoice.invoice_number} for client {invoice.client_id} would be charged ${invoice.total_amount}"
+                    f"Invoice {invoice.invoice_number} for client {invoice.client_id} "
+                    f"would be charged ${invoice.total_amount}"
                 )
             return
 

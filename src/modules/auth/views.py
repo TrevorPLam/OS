@@ -1,8 +1,12 @@
 """
 Authentication Views.
+
+SECURITY: All public authentication endpoints are rate-limited to prevent
+brute force attacks. See django-ratelimit documentation for configuration.
 """
 
 from django.contrib.auth import authenticate, get_user_model
+from django_ratelimit.decorators import ratelimit
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -17,6 +21,8 @@ User = get_user_model()
 class RegisterView(generics.CreateAPIView):
     """
     User registration endpoint.
+
+    Rate limited to 5 requests per minute per IP to prevent abuse.
 
     POST /api/auth/register/
     {
@@ -33,6 +39,7 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
 
+    @ratelimit(key="ip", rate="5/m", method="POST", block=True)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -54,9 +61,12 @@ class RegisterView(generics.CreateAPIView):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@ratelimit(key="ip", rate="10/m", method="POST", block=True)
 def login_view(request):
     """
     User login endpoint.
+
+    Rate limited to 10 requests per minute per IP to prevent brute force attacks.
 
     POST /api/auth/login/
     {

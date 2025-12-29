@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 
+from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
 
@@ -198,7 +199,7 @@ class Lead(models.Model):
     # Company Information
     company_name = models.CharField(max_length=255)
     industry = models.CharField(max_length=100, blank=True)
-    website = models.URLField(blank=True)
+    website = models.URLField(blank=True, validators=[validate_safe_url])
 
     # Contact Information
     contact_name = models.CharField(max_length=255)
@@ -348,7 +349,7 @@ class Prospect(models.Model):
     # Company Information
     company_name = models.CharField(max_length=255)
     industry = models.CharField(max_length=100, blank=True)
-    website = models.URLField(blank=True)
+    website = models.URLField(blank=True, validators=[validate_safe_url])
     employee_count = models.IntegerField(null=True, blank=True)
     annual_revenue = models.DecimalField(
         max_digits=15, decimal_places=2, null=True, blank=True, help_text="Estimated annual revenue"
