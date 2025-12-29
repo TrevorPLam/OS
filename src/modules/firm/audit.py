@@ -41,7 +41,7 @@ class AuditEvent(models.Model):
     - Suitable for break-glass review without exposing sensitive data
     """
 
-    # Event Categories (as per TODO requirements)
+    # Event Categories (as per Tier 3 requirements)
     CATEGORY_AUTH = "AUTH"
     CATEGORY_PERMISSIONS = "PERMISSIONS"
     CATEGORY_BREAK_GLASS = "BREAK_GLASS"

@@ -428,7 +428,8 @@ class SlackNotification:
         """
         logger.info("Slack notification dispatch attempted")
         log_event("notification_slack_attempted", channel="slack")
-        # TODO: Implement Slack API integration
+        # DEFERRED: Slack API integration - See TODO_ANALYSIS.md #10
+        # Requires: Slack app credentials and webhook setup
         return False
 
 
@@ -451,5 +452,6 @@ class SMSNotification:
         """
         logger.info("SMS notification dispatch attempted")
         log_event("notification_sms_attempted", channel="sms")
-        # TODO: Implement SMS service integration
+        # DEFERRED: SMS service integration - See TODO_ANALYSIS.md #11
+        # Requires: Twilio or similar SMS service credentials
         return False

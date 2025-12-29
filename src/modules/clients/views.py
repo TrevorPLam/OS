@@ -795,7 +795,8 @@ class ClientProposalViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
         if proposal.status not in ["sent", "under_review"]:
             return Response({"error": "Proposal cannot be accepted. Status must be sent or under review."}, status=400)
 
-        # TODO: Implement e-signature workflow
+        # DEFERRED: E-signature workflow - See TODO_ANALYSIS.md #12
+        # Requires: DocuSign/HelloSign API integration
         # For now, return placeholder response
         return Response(
             {
