@@ -1,0 +1,53 @@
+# Monorepo Structure (MONOREPO_STRUCTURE)
+
+Defines intended apps/packages responsibilities and dependency boundaries.
+Blueprint. If conflicts with SYSTEM_SPEC.md, SYSTEM_SPEC governs invariants; this document governs repo organization.
+
+---
+
+## 1) Top-level layout (intended)
+
+- apps/
+  - staff/   (Staff App UI)
+  - portal/  (Client Portal UI)
+  - api/     (API service; optional if separated)
+- packages/
+  - domain-core/ (entities, state machines, invariants; no DB calls)
+  - permissions/ (authz evaluator, registries)
+  - pricing-engine/
+  - recurrence-engine/
+  - orchestration-engine/
+  - delivery-templates/
+  - documents/
+  - integrations/ (email/calendar)
+  - billing-ledger/
+  - shared/ (types, utilities)
+- infrastructure/
+  - db/ migrations, provisioning tools
+  - queues/ worker configs
+  - deploy/ env templates
+- docs/
+
+---
+
+## 2) Boundary rules (MUST)
+1. domain-core MUST NOT depend on:
+   - DB clients/ORMs
+   - network calls
+   - UI frameworks
+2. API layer MAY depend on domain-core and persistence adapters.
+3. UI apps MUST NOT bypass API permission enforcement.
+4. Engines (pricing/recurrence/orchestration) MUST be callable as pure services (with explicit IO).
+
+---
+
+## 3) Ownership map (starter)
+- docs/spec/*: Platform owners
+- packages/domain-core: Platform owners
+- apps/staff: Product + Frontend owners
+- apps/portal: Product + Frontend owners
+- billing: Billing domain owner + Platform
+
+(Refine in CODEOWNERS)
+
+---

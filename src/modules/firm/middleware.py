@@ -36,16 +36,21 @@ class FirmContextMiddleware(MiddlewareMixin):
     """
 
     # Public endpoints that don't require firm context
-    PUBLIC_PATHS = [
-        "/api/auth/login/",
-        "/api/auth/register/",
-        "/api/auth/token/",
-        "/api/auth/token/refresh/",
+    # NOTE: Keep exact matches separate from prefixes so we don't accidentally
+    # make the entire site public (e.g., treating '/' as a prefix would match everything).
+    PUBLIC_EXACT_PATHS = [
+        "/",
+        "/favicon.ico",
+    ]
+
+    PUBLIC_PATH_PREFIXES = [
+        "/api/auth/",  # /api/auth/*
         "/api/health/",
         "/health/",
         "/api/docs/",
         "/api/schema/",
-        "/admin/login/",
+        "/api/redoc/",
+        "/admin/",
     ]
 
     # Platform operator endpoints (require platform role, not firm context)
@@ -105,7 +110,9 @@ class FirmContextMiddleware(MiddlewareMixin):
 
     def _is_public_path(self, path: str) -> bool:
         """Check if path is a public endpoint."""
-        return any(path.startswith(public_path) for public_path in self.PUBLIC_PATHS)
+        if path in self.PUBLIC_EXACT_PATHS:
+            return True
+        return any(path.startswith(prefix) for prefix in self.PUBLIC_PATH_PREFIXES)
 
     def _is_platform_path(self, path: str) -> bool:
         """Check if path is a platform operator endpoint."""

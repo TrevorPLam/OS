@@ -1,0 +1,167 @@
+# Architecture Overview
+
+This document explains the platform’s high-level architecture and mental model. It is explanatory, not the canonical normative spec. Normative invariants and “must/should/may” requirements live in SYSTEM_SPEC.md.
+
+## Mental model: two apps + one brain
+
+The platform consists of:
+
+1) Staff App (firm-side)
+- Internal UI for staff to manage pipeline, clients, engagements, work execution, documents, communications, calendar, knowledge, and billing/ledger.
+
+2) Client Portal (client-side)
+- External UI for clients/contacts to message, upload, book appointments, pay invoices, and view authorized artifacts.
+
+3) The Brain (shared platform services)
+- Shared domain model and policies:
+  - core object graph
+  - permissions evaluation
+  - pricing rules evaluation + quote snapshotting
+  - recurrence generation + dedupe/idempotency
+  - orchestration execution engine
+  - documents/storage semantics (versioning/locking/logging)
+  - integrations (email ingestion, calendar sync)
+  - background workers and eventing
+
+The two apps are “thin” relative to the brain: UI should not become the authority for permissions, billing correctness, or state transitions.
+
+## Tenancy model: schema-per-tenant
+
+Each firm (tenant) is isolated using a separate database schema.
+
+High-level consequences:
+- Stronger isolation for regulated workflows and simpler “blast radius” control.
+- Migrations must handle provisioning new schemas and applying schema changes consistently.
+- Shared system data (if any) must be explicitly separated and treated carefully (e.g., platform admin tables vs tenant tables).
+
+Tenant provisioning conceptually includes:
+- creating the tenant record (platform/global)
+- creating a tenant schema
+- running tenant migrations
+- seeding required baseline configuration (roles, default templates, etc.)
+
+## Core object graph (canonical)
+
+The platform’s core business graph is designed to unify CRM, intake, pricing, delivery, and billing around a small set of stable entities:
+
+- Account
+  - a client organization (or household/individual, depending on usage)
+- Contact
+  - people associated with an Account (can be portal users)
+- Engagement
+  - the “container” for a service relationship / agreement / project space
+- EngagementLine
+  - service line(s) within an engagement (often maps to pricing scope, service tier, or deliverable stream)
+- WorkItem
+  - the unit of execution (task/work packet) derived from templates or manual creation, assigned and tracked
+
+Related but important supporting entities commonly referenced by the core:
+- Quote / QuoteVersion (pricing snapshots)
+- Appointment (booking)
+- Document / DocumentVersion (governed artifacts)
+- Conversation / Message (communications)
+- Invoice / Payment / LedgerEntry (billing/ledger)
+- OrchestrationExecution / StepExecution (automation governance)
+- RecurrenceGeneration (dedupe + idempotent generation)
+
+Canonical relationships (conceptual):
+- Account 1—N Contact
+- Account 1—N Engagement
+- Engagement 1—N EngagementLine
+- Engagement/EngagementLine 1—N WorkItem
+- Engagement and Account link to Documents, Conversations, Appointments, and Billing artifacts through explicit associations.
+
+## Cross-domain flow: how objects move through the system
+
+The platform is designed so “intake/pricing/delivery/billing” are not isolated modules; they are connected transitions on the same object graph.
+
+Typical lifecycle:
+1) CRM intake creates/updates Account + Contacts.
+2) Qualification produces an Engagement draft (or pre-engagement record) with risk/requirements captured.
+3) Pricing evaluates rules against context and produces QuoteVersion (immutable snapshot once accepted).
+4) Accepting a quote activates an Engagement with one or more EngagementLines.
+5) EngagementLines instantiate DeliveryTemplates into WorkItems (execution plan).
+6) WorkItems move through state transitions; orchestration can enforce sequencing, approvals, retries.
+7) Documents and communications attach to the relevant objects (Account/Engagement/WorkItem) under permissions rules.
+8) Billing/ledger records invoices, payments, retainers, and allocations with auditability.
+
+## Eventing and background jobs (high level)
+
+The platform uses events and workers for:
+- ingestion and sync (email/calendar)
+- recurrence generation (idempotent creation of periodic work)
+- orchestration execution (step-based automation with retries/DLQ)
+- notification fan-out (in-app, email, portal)
+- document processing (malware scan, OCR/indexing hooks, classification)
+
+Guiding principles:
+- Background jobs must be idempotent.
+- External integrations must have stable identifiers and sync attempt logs.
+- Any operation that can be retried must be safe to retry (or explicitly compensated).
+
+Event sources (examples):
+- state transitions (Engagement activated, WorkItem completed)
+- integration updates (email ingested, calendar event updated)
+- billing events (invoice issued, payment posted, retainer applied)
+- document events (version uploaded, lock acquired/released)
+
+## Permissions and identity (high level)
+
+The system separates:
+- staff identity and RBAC (internal users)
+- portal identity and scopes (external contacts linked to Accounts)
+
+Permissions are evaluated server-side using:
+- role-based permissions for staff
+- scope-based permissions for portal contacts, typically constrained to their Account(s) and allowed object types
+- document permissions with explicit evaluation rules (hierarchical and/or association-based)
+
+The UI must not be relied upon for enforcement; it should only reflect the server’s authorization decisions.
+
+## Documents and storage (high level)
+
+Documents are governed artifacts with:
+- versioning
+- locking semantics (where required)
+- signed URL access policies
+- access logging (who accessed what, when)
+- optional processing hooks (malware scan, indexing, classification)
+
+Document visibility and download are permission-gated.
+
+## Pricing, recurrence, and orchestration (the “engines”)
+
+Pricing engine
+- Evaluates versioned JSON rules against an evaluation context.
+- Produces outputs and a trace.
+- Accepted pricing snapshots become immutable QuoteVersions tied to an Engagement/EngagementLine.
+
+Recurrence engine
+- Defines period rules and timezone handling.
+- Generates work deterministically into a RecurrenceGeneration table with uniqueness constraints.
+- Supports pause/resume/cancel semantics without duplicating work.
+
+Orchestration engine
+- Runs step-based workflows with retries and DLQ handling.
+- Uses idempotency keys to avoid duplicative side effects.
+- Defines error classification and safe retry boundaries.
+
+## What this doc is not
+
+- Not a replacement for SYSTEM_SPEC.md.
+- Not the definitive data model (see DOMAIN_MODEL.md).
+- Not the permissions registry (see PERMISSIONS_MODEL.md).
+- Not the implementation plan (see MONOREPO_STRUCTURE.md and the blueprint docs).
+
+## Pointers
+
+- Canonical spec: SYSTEM_SPEC.md
+- Domain entities + state machines: DOMAIN_MODEL.md
+- Permissions: PERMISSIONS_MODEL.md
+- Governance: DATA_GOVERNANCE.md
+- Documents/storage: DOCUMENTS_AND_STORAGE_SPEC.md
+- Pricing: PRICING_ENGINE_SPEC.md
+- Recurrence: RECURRENCE_ENGINE_SPEC.md
+- Orchestration: ORCHESTRATION_ENGINE_SPEC.md
+- Billing/ledger: BILLING_LEDGER_SPEC.md
+- Email/calendar integrations: EMAIL_INGESTION_SPEC.md, CALENDAR_SYNC_SPEC.md

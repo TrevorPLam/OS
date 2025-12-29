@@ -9,11 +9,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from .health import health_check, readiness_check
 
 urlpatterns = [
+    # Root: redirect to API docs for a friendly default landing
+    path("", RedirectView.as_view(url="/api/docs/", permanent=False), name="root"),
     # Health check endpoints (for load balancers and Kubernetes probes)
     path("health/", health_check, name="health_check"),
     path("health/ready/", readiness_check, name="readiness_check"),

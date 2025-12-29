@@ -1,0 +1,56 @@
+# DB Schema and Migrations (DB_SCHEMA_AND_MIGRATIONS)
+
+Blueprint for schema-per-tenant provisioning, migrations, indexes/constraints, and naming conventions.
+
+---
+
+## 1) Schema-per-tenant provisioning workflow
+MUST be idempotent:
+1. Create tenant record (platform scope)
+2. Create tenant schema
+3. Run tenant migrations
+4. Seed baseline config (roles, default stages, template stubs)
+
+Provisioning MUST record audit events and provisioning logs.
+
+---
+
+## 2) Migration runner design
+- Supports applying migrations to:
+  - a single tenant
+  - all tenants (batched)
+  - new tenant bootstrap
+- Records:
+  - migration version applied
+  - start/end time
+  - success/failure
+  - correlation id
+- Supports rollback only if explicitly designed; otherwise forward-fix only.
+
+---
+
+## 3) Standards
+
+Naming:
+- tables: snake_case plural
+- columns: snake_case
+- indexes: idx_<table>__<cols>
+- constraints: uq_ / fk_ / ck_ prefixes
+
+Constraints (examples):
+- recurrence_generation: unique(rule_id, period_key, discriminator)
+- email_artifact: unique(connection_id, external_message_id)
+- appointment: unique(connection_id, external_event_id)
+- ledger_entry: unique(idempotency_key, entry_type)
+
+Soft delete:
+- `deleted_at` present on most tables; avoid on immutable history tables (ledger entries, audit events), unless you implement tombstones.
+
+---
+
+## 4) Index/constraint expectations
+- All foreign keys indexed
+- State/status fields indexed for common list queries
+- Tenant isolation is schema-level, but high-cardinality indexes still required
+
+---

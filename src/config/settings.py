@@ -211,6 +211,11 @@ SIMPLE_JWT = {
 # CORS Settings (for React frontend)
 CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
 
+# In Codespaces/dev, allow all *.app.github.dev origins
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.app\.github\.dev$",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # S3 Configuration (for Documents module)
