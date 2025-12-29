@@ -161,7 +161,10 @@ class TestBillingApprovalGates:
         assert time_entry.approved_at is not None
 
     def test_unapproved_time_entries_cannot_be_billed(self, firm_with_users, project_and_task):
-        """Unapproved time entries should not be marked as billed."""
+        """Unapproved time entries should not be marked as invoiced."""
+        from django.core.exceptions import ValidationError
+        import pytest
+
         time_entry = TimeEntry.objects.create(
             firm=firm_with_users["firm"],
             project=project_and_task["project"],
@@ -172,22 +175,19 @@ class TestBillingApprovalGates:
             description="Unapproved work"
         )
 
-        # Attempt to mark as billed without approval
-        time_entry.billed = True
-        time_entry.save()
+        # Attempt to mark as invoiced without approval - should raise ValidationError
+        time_entry.invoiced = True
 
-        # In production, this should be prevented by validation
-        # TODO: Add model-level validation in Tier 4
-        # For now, document the requirement
+        with pytest.raises(ValidationError, match="Time entry cannot be invoiced unless approved"):
+            time_entry.save()
 
-        assert time_entry.approved is False, \
-            "Time entry billed without approval!"
-
-        # Document requirement
-        assert True, "Billing gate validation to be added in Tier 4"
+        # Verify the time entry was not saved with invoiced=True
+        time_entry.refresh_from_db()
+        assert time_entry.approved is False
+        assert time_entry.invoiced is False
 
     def test_approved_time_entries_can_be_billed(self, firm_with_users, project_and_task):
-        """Approved time entries can be marked as billed."""
+        """Approved time entries can be marked as invoiced."""
         time_entry = TimeEntry.objects.create(
             firm=firm_with_users["firm"],
             project=project_and_task["project"],
@@ -195,7 +195,7 @@ class TestBillingApprovalGates:
             user=firm_with_users["staff"],
             date=date.today(),
             hours=Decimal("8.0"),
-            description="Approved and billed work"
+            description="Approved and invoiced work"
         )
 
         # Approve first
@@ -204,14 +204,14 @@ class TestBillingApprovalGates:
         time_entry.approved_at = date.today()
         time_entry.save()
 
-        # Then bill
-        time_entry.billed = True
+        # Then mark as invoiced - should succeed since it's approved
+        time_entry.invoiced = True
         time_entry.save()
 
         # Verify
         time_entry.refresh_from_db()
         assert time_entry.approved is True
-        assert time_entry.billed is True
+        assert time_entry.invoiced is True
 
     def test_invoice_should_only_include_approved_entries(self, firm_with_users, project_and_task):
         """

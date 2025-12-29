@@ -98,7 +98,10 @@ class TestEngagementImmutability:
         assert signed_contract.status == "active"
 
     def test_contract_signature_fields_required(self, firm_and_client):
-        """Signed contracts must have signed_at and signed_by populated."""
+        """Active contracts must have signed_date and signed_by populated."""
+        from django.core.exceptions import ValidationError
+        import pytest
+
         proposal = Proposal.objects.create(
             firm=firm_and_client["firm"],
             title="Test Proposal 2",
@@ -106,21 +109,22 @@ class TestEngagementImmutability:
             amount=Decimal("5000.00")
         )
 
-        # Attempt to create contract without signature fields
+        # Attempt to create active contract without signature fields
         contract = Contract(
             firm=firm_and_client["firm"],
             proposal=proposal,
             client=firm_and_client["client"],
+            contract_number="TEST-002",
             title="Unsigned Contract",
             status="active",  # Active but not signed
+            total_value=Decimal("5000.00"),
             start_date=date.today(),
             end_date=date.today() + timedelta(days=30)
         )
 
-        # This documents the expected behavior
-        # In production, signed_at/signed_by should be required for active contracts
-        # TODO: Add model-level validation in Tier 3
-        contract.save()  # Currently allows, but shouldn't for active status
+        # Active contracts require signature details - should raise ValidationError
+        with pytest.raises(ValidationError):
+            contract.full_clean()  # Validate before save
 
     def test_engagement_links_to_contract(self, engagement, signed_contract):
         """Verify engagement is properly linked to signed contract."""

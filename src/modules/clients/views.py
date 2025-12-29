@@ -491,25 +491,54 @@ class ClientInvoiceViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOn
         if invoice.balance_due <= 0:
             return Response({"error": "Invoice has no outstanding balance."}, status=400)
 
-        # TODO: Implement Stripe Checkout session creation
-        # For now, return a placeholder response
-        # In production, this would create a Stripe Checkout session:
-        # 1. Create Stripe checkout session with invoice details
-        # 2. Return the session URL for redirect
-        # 3. Handle webhook for payment confirmation
+        # Create Stripe Checkout session
+        from modules.finance.services import StripeService
+        from django.conf import settings
+        import logging
 
-        payment_link = f"https://checkout.stripe.com/pay/placeholder_{invoice.invoice_number}"
+        logger = logging.getLogger(__name__)
 
-        return Response(
-            {
-                "status": "payment_link_generated",
-                "payment_url": payment_link,
-                "invoice_number": invoice.invoice_number,
-                "amount_due": str(invoice.balance_due),
-                "currency": invoice.currency,
-                "message": "Stripe integration pending - this is a placeholder URL",
-            }
-        )
+        try:
+            # Build success and cancel URLs
+            # These should redirect back to the client portal
+            base_url = settings.FRONTEND_URL if hasattr(settings, 'FRONTEND_URL') else request.build_absolute_uri('/')[:-1]
+            success_url = f"{base_url}/portal/invoices/{invoice.id}?payment=success"
+            cancel_url = f"{base_url}/portal/invoices/{invoice.id}?payment=cancelled"
+
+            # Get client email if available
+            customer_email = invoice.client.email if hasattr(invoice.client, 'email') else None
+
+            # Create Stripe Checkout session
+            session = StripeService.create_checkout_session(
+                amount=invoice.balance_due,
+                currency=invoice.currency.lower(),
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={"invoice_id": str(invoice.id)},
+                customer_email=customer_email,
+                invoice_number=invoice.invoice_number,
+            )
+
+            return Response(
+                {
+                    "status": "payment_link_generated",
+                    "payment_url": session.url,
+                    "session_id": session.id,
+                    "invoice_number": invoice.invoice_number,
+                    "amount_due": str(invoice.balance_due),
+                    "currency": invoice.currency,
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to create payment link: {str(e)}")
+            return Response(
+                {
+                    "error": "Failed to generate payment link",
+                    "details": str(e),
+                },
+                status=500,
+            )
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
