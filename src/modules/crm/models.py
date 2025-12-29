@@ -10,6 +10,7 @@ TIER 0: All CRM entities MUST belong to exactly one Firm for tenant isolation.
 """
 
 from decimal import Decimal
+from typing import Any
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
@@ -657,6 +658,20 @@ class Proposal(models.Model):
             if self.prospect:
                 raise ValidationError(f"{self.get_proposal_type_display()} proposals cannot have a prospect.")
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Prevent changing proposal value once a related contract is signed.
+        """
+        from django.core.exceptions import ValidationError
+
+        if self.pk:
+            previous_value = Proposal.objects.filter(pk=self.pk).values_list("total_value", flat=True).first()
+            if previous_value is not None and self.total_value != previous_value:
+                if self.contracts.filter(signed_date__isnull=False).exists():
+                    raise ValidationError("Cannot modify total value for proposals linked to signed contracts.")
+
+        super().save(*args, **kwargs)
+
 
 class Contract(models.Model):
     """
@@ -764,6 +779,22 @@ class Contract(models.Model):
                 raise ValidationError({
                     "signed_by": "Active contracts must have a signer."
                 })
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Enforce immutability for signature fields once set.
+        """
+        from django.core.exceptions import ValidationError
+
+        if self.pk:
+            previous = Contract.objects.filter(pk=self.pk).values("signed_date", "signed_by_id").first()
+            if previous:
+                if previous["signed_date"] and self.signed_date != previous["signed_date"]:
+                    raise ValidationError("Signed date is immutable once set.")
+                if previous["signed_by_id"] and self.signed_by_id != previous["signed_by_id"]:
+                    raise ValidationError("Signed by is immutable once set.")
+
+        super().save(*args, **kwargs)
 
     class Meta:
         db_table = "crm_contracts"
