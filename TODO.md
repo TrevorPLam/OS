@@ -4,6 +4,78 @@
 
 ---
 
+## ✅ Doc-Driven Roadmap (Canonical; docs/1–docs/35)
+
+Docs 1–35 are the source of truth for platform scope, invariants, and required subsystems.
+Any legacy roadmap/checklist items below are retained for history only and MUST NOT drive prioritization.
+
+### Prioritized Next Work (Top 18)
+
+- [ ] DOC-17.1 Resolve repo-structure delta vs docs/17 (document the intentional differences; keep boundaries explicit)
+- [ ] DOC-04.1 Resolve tenancy contradiction: docs require schema-per-tenant; code is firm-scoped row tenancy (choose + update invariants accordingly)
+- [ ] DOC-18.1 Map every API endpoint to canonical actions + enforce server-side authorization consistently (staff RBAC + portal scopes)
+- [ ] DOC-07.1 Implement governance classification registry + serializer/log/export redaction (no HR data in logs)
+- [ ] DOC-14.1 Documents: enforce governed artifact invariants (versioning is canonical; no unmanaged blob paths)
+- [ ] DOC-14.2 Documents: add access logging for URL issuance + downloads/uploads (auditable, metadata-only)
+- [ ] DOC-14.3 Documents: implement locking + admin override audit + portal download policy when scan is pending/flagged
+- [ ] DOC-33.1 Communications: Conversation/Participant/Message model with visibility rules + attachments as governed documents
+- [ ] DOC-09.1 Pricing engine MVP: versioned RuleSets + evaluator + deterministic outputs + trace
+- [ ] DOC-09.2 Quote snapshots: immutable QuoteVersion persistence + retrieval endpoints for audit
+- [ ] DOC-12.1 Delivery templates MVP: template DAG validation + deterministic instantiation into execution units
+- [ ] DOC-10.1 Recurrence engine MVP: RecurrenceRule + PeriodKey policy + RecurrenceGeneration dedupe ledger + DST correctness
+- [ ] DOC-11.1 Orchestration engine MVP: executions + step history + retry/DLQ model + per-step idempotency strategy
+- [ ] DOC-15.1 Email ingestion MVP: EmailArtifact + attachment storage as Documents + mapping suggestions + triage + audited remaps
+- [ ] DOC-34.1 Calendar domain MVP: appointment types + availability profiles + booking links + booking flow
+- [ ] DOC-16.1 Calendar sync MVP: stable external IDs + SyncAttemptLog + reconciliation rules + manual resync tooling
+- [ ] DOC-22.1 Add contract tests mandated by docs (pricing/permissions/recurrence/orchestration/billing/documents)
+- [ ] DOC-21.1 Observability baseline: correlation IDs end-to-end; tenant-safe metrics; DLQ + integration lag visibility
+
+### Doc-Driven Backlog (All Canonical Requirements)
+
+**Foundations**
+- [ ] DOC-05.1 Align system invariants in code with SYSTEM_SPEC (authority rules, idempotency expectations, auditability)
+- [ ] DOC-06.1 Implement canonical core object graph (Account/Contact/Engagement/EngagementLine/WorkItem) or explicitly map current models to it and close gaps
+- [ ] DOC-19.1 Provisioning + migrations per DB_SCHEMA_AND_MIGRATIONS (idempotent tenant provisioning workflow; migration runner logs)
+- [ ] DOC-24.1 Security model minimums: secrets handling, rate limiting for portal, IDOR hardening, input validation for external content
+
+**Billing (Ledger-First)**
+- [ ] DOC-13.1 Ledger entry immutability + idempotency keys for posting APIs (unique constraints per spec)
+- [ ] DOC-13.2 Implement allocations model + constraints (partial/over/under payments; retainer apply semantics; compensating entries)
+
+**Governed Artifacts**
+- [ ] DOC-14.4 Malware scan hook interface + recording scan status on versions + policy enforcement (portal vs staff)
+- [ ] DOC-07.2 Retention/anonymization/erasure workflows consistent with DATA_GOVERNANCE (and audited)
+
+**Engines**
+- [ ] DOC-09.3 Ruleset publishing immutability + checksum enforcement + compatibility checks for schema versions
+- [ ] DOC-12.2 Template publish immutability + instantiation audit trail + node traceability
+- [ ] DOC-10.2 Recurrence pause/resume/cancel semantics without duplicates; backfill windows; deterministic as_of time
+- [ ] DOC-11.2 Orchestration compensation boundaries + error classes aligned with retry matrix
+
+**Integrations**
+- [ ] DOC-15.2 IngestionAttempt logs + retry-safety + staleness heuristics; correction workflow is auditable
+- [ ] DOC-16.2 Admin-gated resync tooling endpoints + replay of failed attempts (audited)
+
+**Platform Blueprints / Quality**
+- [ ] DOC-20.1 Workers/queues payload rules (tenant_id/correlation_id/idempotency_key) + concurrency locks + DLQ reprocessing
+- [ ] DOC-21.2 No-content logging guarantees + PII minimization in telemetry
+- [ ] DOC-23.1 Implement edge-case coverage from EDGE_CASES_CATALOG (DST, idempotency collisions, portal multi-account)
+
+**Product Surface Maps**
+- [ ] DOC-25.1 Staff app IA alignment: ensure route/modules exist or explicitly defer; keep permissions consistent
+- [ ] DOC-26.1 Client portal IA alignment: account switcher behavior + scope gating; core flows (messages/uploads/booking/pay)
+- [ ] DOC-27.1 Role-based default visibility + least privilege defaults for staff roles + portal scopes
+
+**Additional Modules**
+- [ ] DOC-35.1 Knowledge system MVP: KnowledgeItem + publishing/deprecation workflow + access control + audit
+
+---
+
+## 🗃️ Legacy Roadmap (Superseded by docs/1–docs/35)
+
+The sections below are preserved for historical context only.
+Do not update or prioritize legacy Tier/checklist items; add new work above as DOC-* items.
+
 ## 🎯 Current Focus: Tier 5 - Durability, Scale & Exit
 
 **Tier 4 Status:** 100% Complete ✅
