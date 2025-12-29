@@ -187,7 +187,7 @@ def project_completion_notification(sender, instance, created, **kwargs):
         # Log project metrics for completion report
         _log_project_completion_metrics(instance)
 
-        # TODO: Future enhancements
+        # FUTURE ENHANCEMENTS (documented, not scheduled):
         # - Automatically generate project completion PDF report
         # - Calculate final budget vs. actual comparison
         # - Trigger client satisfaction survey

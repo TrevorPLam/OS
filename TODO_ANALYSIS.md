@@ -1,8 +1,8 @@
 # TODO Analysis & Easy Wins Prioritization
 
 **Analysis Date:** December 29, 2025
-**Branch:** claude/prioritize-todo-tasks-Y6fWz
-**Last Updated:** December 29, 2025 (Immutability Checks + Test Alignment)
+**Branch:** claude/quick-wins-docs-CGGCC
+**Last Updated:** December 29, 2025 (TODO Cleanup + Documentation)
 
 ---
 
@@ -39,6 +39,25 @@
 - Legal evidence preserved for signed contracts and proposal values
 - Billing integrity tightened by locking invoiced records
 - Safety tests now reflect current schema and invariants
+
+---
+
+## ✅ Update: TODO Cleanup and Documentation (December 29, 2025)
+
+5. ✅ **TODO Comment Cleanup** - Converted all remaining TODO comments to DEFERRED markers with proper references
+6. ✅ **Code Comment Clarity** - Updated misleading comments (e.g., audit.py "TODO requirements" → "Tier 3 requirements")
+
+**Files Updated:**
+- `src/modules/firm/audit.py` - Clarified event categories comment
+- `src/modules/core/notifications.py` - Marked Slack/SMS integrations as DEFERRED with context
+- `src/modules/clients/views.py` - Marked e-signature workflow as DEFERRED
+- `src/frontend/src/pages/Communications.tsx` - Marked WebSocket as DEFERRED pending DOC-33.1
+- `src/modules/projects/signals.py` - Changed TODO to FUTURE ENHANCEMENTS for clarity
+
+**Impact:**
+- Code comments now clearly distinguish between active work vs deferred features
+- Developers can easily find references to why work is deferred
+- Grep for "TODO" now returns only truly actionable items (none in code, only in docs)
 
 ---
 

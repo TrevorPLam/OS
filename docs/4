@@ -341,33 +341,84 @@ Spec impact
 ---
 
 ## ADR-0010: Communications include native chat plus email ingestion
-Status: Proposed  
-Date: 2025-12-28  
-Owners: Product + Platform  
+Status: Proposed
+Date: 2025-12-28
+Owners: Product + Platform
 Related: EMAIL_INGESTION_SPEC.md; (future) COMMUNICATIONS_SPEC.md; DOCUMENTS_AND_STORAGE_SPEC.md
 
-Context  
+Context
 - Firms need communication in context with work, and clients expect portal messaging.
 - Email remains a reality; attachments must become governed artifacts.
 
-Decision  
+Decision
 - Provide native conversation threads (staff↔staff, staff↔client) plus email ingestion that stores emails/attachments as artifacts with mapping suggestions and audit.
-- Email ingestion does not become the authoritative “conversation model”; it is an ingestion source feeding governed artifacts.
+- Email ingestion does not become the authoritative "conversation model"; it is an ingestion source feeding governed artifacts.
 
-Consequences  
+Consequences
 Positive:
 - Reduces shadow communication and scattered attachments.
 Negative / tradeoffs:
 - Requires strong threading/staleness heuristics and correction workflows.
 
-Alternatives considered  
-- “Email only” communications: rejected due to poor in-context collaboration and portal UX.
-- “Chat only” with no email integration: rejected as unrealistic for firm operations.
+Alternatives considered
+- "Email only" communications: rejected due to poor in-context collaboration and portal UX.
+- "Chat only" with no email integration: rejected as unrealistic for firm operations.
 
-Spec impact  
-- EMAIL_INGESTION_SPEC.md: mapping, staleness, correction and audit  
-- DOCUMENTS_AND_STORAGE_SPEC.md: attachment artifact handling  
+Spec impact
+- EMAIL_INGESTION_SPEC.md: mapping, staleness, correction and audit
+- DOCUMENTS_AND_STORAGE_SPEC.md: attachment artifact handling
 - COMMUNICATIONS_SPEC.md: thread model and permissions (to be created)
+
+---
+
+## ADR-0011: Immutability enforcement for legal and billing records
+Status: Accepted
+Date: 2025-12-29
+Owners: Platform
+Related: SYSTEM_SPEC.md; BILLING_LEDGER_SPEC.md; DOMAIN_MODEL.md
+
+Context
+- Signed contracts and invoiced time entries are legal evidence and billing sources of truth.
+- Post-signature modifications to contracts or post-invoicing edits to time entries create audit gaps and potential disputes.
+- Platform must prevent accidental or malicious tampering with finalized business records.
+
+Decision
+- Enforce model-level immutability constraints for critical business records:
+  1. **Signed Contracts**: Once `signed_date` and `signed_by` are set, they cannot be modified
+  2. **Proposal Amount Freeze**: Once a proposal has an associated signed contract, its `total_value` cannot be changed
+  3. **Invoiced Time Entries**: Once a time entry is marked as `invoiced=True`, core fields (hours, rate, date) are locked
+
+Consequences
+Positive:
+- Prevents data integrity violations that could undermine legal defensibility
+- Enforces business rules at the model layer (defense in depth)
+- Provides clear error messages when invalid modifications are attempted
+- Supports audit and compliance requirements (Tier 3)
+
+Negative / tradeoffs:
+- Requires corrections to be handled through compensating transactions (new records) rather than edits
+- May require admin override workflows for legitimate corrections (future enhancement)
+- Slightly more complex data model with validation overhead
+
+Risks:
+- Edge cases where legitimate corrections are needed must be handled through documented processes
+- Staff training required to understand immutability constraints
+
+Alternatives considered
+- Application-level validation only: rejected due to weaker guarantees (can be bypassed via shell, direct DB access)
+- No immutability enforcement: rejected due to audit and legal risk
+- Soft-lock with admin override: deferred to future implementation (would require break-glass audit logging)
+
+Implementation
+- `src/modules/crm/models.py`: Contract model `clean()` method validates signed field immutability
+- `src/modules/crm/models.py`: Proposal model `clean()` method prevents amount changes when contract exists
+- `src/modules/projects/models.py`: TimeEntry model `save()` method blocks edits to invoiced entries
+- Tests added/updated to validate immutability constraints
+
+Spec impact
+- SYSTEM_SPEC.md: Immutability invariants for legal and billing records
+- DOMAIN_MODEL.md: Contract, Proposal, and TimeEntry model constraints
+- BILLING_LEDGER_SPEC.md: Invoiced time entry immutability requirement
 
 ---
 

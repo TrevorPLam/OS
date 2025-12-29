@@ -59,7 +59,8 @@ export const Communications: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement WebSocket message sending
+    // DEFERRED: WebSocket message sending - See TODO_ANALYSIS.md #6
+    // Requires: Backend WebSocket server implementation (DOC-33.1)
     console.log('Sending message:', messageText);
     setMessageText('');
   };
