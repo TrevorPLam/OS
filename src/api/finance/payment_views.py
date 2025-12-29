@@ -1,5 +1,8 @@
 """
 Payment Processing Views using Stripe.
+
+TIER 2.5: Payments can be accessed by both firm users and portal users.
+Portal users can only pay invoices for their own client.
 """
 
 from rest_framework import status, viewsets
@@ -7,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from modules.clients.permissions import IsPortalUserOrFirmUser, PortalFirmAccessPermission
 from modules.finance.models import Invoice
 from modules.finance.services import StripeService
 
@@ -16,9 +20,12 @@ from .serializers import InvoiceSerializer
 class PaymentViewSet(viewsets.ViewSet):
     """
     ViewSet for payment processing with Stripe.
+
+    TIER 2.5: Both firm users and portal users can access payments.
+    Portal users are scoped to their own client's invoices only.
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPortalUserOrFirmUser, PortalFirmAccessPermission]
 
     @action(detail=False, methods=["post"])
     def create_payment_intent(self, request):

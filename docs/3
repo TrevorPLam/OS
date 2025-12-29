@@ -25,19 +25,21 @@ The platform consists of:
 
 The two apps are “thin” relative to the brain: UI should not become the authority for permissions, billing correctness, or state transitions.
 
-## Tenancy model: schema-per-tenant
+## Tenancy model: firm-scoped row-level isolation
 
-Each firm (tenant) is isolated using a separate database schema.
+Each firm (tenant) is isolated using row-level scoping. Every tenant-scoped model includes a `firm` ForeignKey, and isolation is enforced at the query layer via `FirmScopedQuerySet` and permission middleware.
+
+> **Note**: The original design considered schema-per-tenant isolation. After implementation, row-level isolation was chosen for operational simplicity and Django ecosystem fit. See ADR-0010 in docs/4 for the full decision record.
 
 High-level consequences:
-- Stronger isolation for regulated workflows and simpler “blast radius” control.
-- Migrations must handle provisioning new schemas and applying schema changes consistently.
-- Shared system data (if any) must be explicitly separated and treated carefully (e.g., platform admin tables vs tenant tables).
+- Single database schema with firm-scoped rows simplifies migrations, backups, and monitoring.
+- Query-layer enforcement (FirmScopedQuerySet) prevents cross-tenant data leakage.
+- Shared system data (users, platform config) is explicitly separated from tenant-scoped data.
+- Schema-per-tenant can be revisited for enterprise customers requiring physical isolation.
 
 Tenant provisioning conceptually includes:
-- creating the tenant record (platform/global)
-- creating a tenant schema
-- running tenant migrations
+- creating the Firm record
+- creating the firm admin user
 - seeding required baseline configuration (roles, default templates, etc.)
 
 ## Core object graph (canonical)

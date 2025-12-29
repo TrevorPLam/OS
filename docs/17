@@ -3,6 +3,11 @@
 Defines intended apps/packages responsibilities and dependency boundaries.
 Blueprint. If conflicts with SYSTEM_SPEC.md, SYSTEM_SPEC governs invariants; this document governs repo organization.
 
+> **⚠️ Current vs Intended Structure**
+> The repository currently uses a Django monolith structure, which intentionally differs from this blueprint.
+> See [repo-structure-delta.md](repo-structure-delta.md) for detailed analysis, rationale, and migration path.
+> This document remains the aspirational target for when the team scales or service extraction is required.
+
 ---
 
 ## 1) Top-level layout (intended)

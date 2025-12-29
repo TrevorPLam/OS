@@ -75,9 +75,11 @@ Related docs:
 ## 3) Tenancy and isolation
 
 ### 3.1 Tenancy model
-1. The platform MUST use schema-per-tenant isolation for tenant data.
-2. All tenant-scoped data MUST reside in the tenant schema unless explicitly defined as global/platform data.
+1. The platform MUST use firm-scoped row-level isolation for tenant data. Every tenant-scoped model MUST have a `firm` ForeignKey.
+2. All tenant-scoped queries MUST use `FirmScopedQuerySet` or equivalent enforcement to prevent cross-tenant data access.
 3. Global/platform data (if any) MUST NOT contain tenant PII unless explicitly justified and governed in DATA_GOVERNANCE.md.
+
+> **Note**: Schema-per-tenant was considered but row-level isolation was implemented for operational simplicity. See ADR-0010 in docs/4.
 
 ### 3.2 Tenant provisioning
 1. Tenant provisioning MUST be an explicit workflow with an auditable record.

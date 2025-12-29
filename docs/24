@@ -28,7 +28,7 @@ Integration risks:
 
 ## 2) Requirements (MUST)
 1. Server-side authz enforcement everywhere.
-2. Strong tenant isolation (schema-per-tenant).
+2. Strong tenant isolation (firm-scoped row-level isolation enforced via FirmScopedQuerySet). See ADR-0010.
 3. Secrets MUST be stored in a secrets manager, not repo/env files committed.
 4. Signed URLs short-lived; no public buckets.
 5. Audit logs append-only, protected.

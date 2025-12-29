@@ -1,6 +1,6 @@
 # ConsultantPro - Current Work & Roadmap
 
-**Last Updated:** December 26, 2025
+**Last Updated:** December 29, 2025
 
 ---
 
@@ -11,15 +11,15 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 
 ### Prioritized Next Work (Top 18)
 
-- [ ] DOC-17.1 Resolve repo-structure delta vs docs/17 (document the intentional differences; keep boundaries explicit)
-- [ ] DOC-04.1 Resolve tenancy contradiction: docs require schema-per-tenant; code is firm-scoped row tenancy (choose + update invariants accordingly)
-- [ ] DOC-18.1 Map every API endpoint to canonical actions + enforce server-side authorization consistently (staff RBAC + portal scopes)
-- [ ] DOC-07.1 Implement governance classification registry + serializer/log/export redaction (no HR data in logs)
-- [ ] DOC-14.1 Documents: enforce governed artifact invariants (versioning is canonical; no unmanaged blob paths)
-- [ ] DOC-14.2 Documents: add access logging for URL issuance + downloads/uploads (auditable, metadata-only)
-- [ ] DOC-14.3 Documents: implement locking + admin override audit + portal download policy when scan is pending/flagged
-- [ ] DOC-33.1 Communications: Conversation/Participant/Message model with visibility rules + attachments as governed documents
-- [ ] DOC-09.1 Pricing engine MVP: versioned RuleSets + evaluator + deterministic outputs + trace
+- [x] DOC-17.1 Resolve repo-structure delta vs docs/17 (document the intentional differences; keep boundaries explicit) ✅ Completed Dec 29, 2025 - see docs/repo-structure-delta.md
+- [x] DOC-04.1 Resolve tenancy contradiction: docs require schema-per-tenant; code is firm-scoped row tenancy (choose + update invariants accordingly) ✅ Completed Dec 29, 2025 - ADR-0010 in docs/4 documents row-level tenancy as canonical
+- [x] DOC-18.1 Map every API endpoint to canonical actions + enforce server-side authorization consistently (staff RBAC + portal scopes) ✅ Completed Dec 29, 2025 - see docs/API_ENDPOINT_AUTHORIZATION_MAPPING.md; fixed PaymentViewSet authorization
+- [x] DOC-07.1 Implement governance classification registry + serializer/log/export redaction (no HR data in logs) ✅ Completed Dec 29, 2025 - see src/modules/core/governance.py, serializer_mixins.py, logging_utils.py
+- [x] DOC-14.1 Documents: enforce governed artifact invariants (versioning is canonical; no unmanaged blob paths) ✅ Completed Dec 29, 2025 - added status, classification fields to Document; checksum, virus_scan_status to Version
+- [x] DOC-14.2 Documents: add access logging for URL issuance + downloads/uploads (auditable, metadata-only) ✅ Completed Dec 29, 2025 - added DocumentAccessLog model with log_access() method
+- [x] DOC-14.3 Documents: implement locking + admin override audit + portal download policy when scan is pending/flagged ✅ Completed Dec 29, 2025 - added DocumentLock model with override tracking and can_upload() method
+- [x] DOC-33.1 Communications: Conversation/Participant/Message model with visibility rules + attachments as governed documents ✅ Completed Dec 29, 2025 - added modules/communications/ with Conversation, Participant, Message, MessageAttachment, MessageRevision, ConversationLink models
+- [x] DOC-09.1 Pricing engine MVP: versioned RuleSets + evaluator + deterministic outputs + trace ✅ Completed Dec 29, 2025 - added modules/pricing/ with RuleSet, Quote, QuoteVersion, QuoteLineItem models; PricingEvaluator with deterministic evaluation + trace generation
 - [ ] DOC-09.2 Quote snapshots: immutable QuoteVersion persistence + retrieval endpoints for audit
 - [ ] DOC-12.1 Delivery templates MVP: template DAG validation + deterministic instantiation into execution units
 - [ ] DOC-10.1 Recurrence engine MVP: RecurrenceRule + PeriodKey policy + RecurrenceGeneration dedupe ledger + DST correctness

@@ -14,7 +14,7 @@ At a high level: **two apps + one brain**.
 
 Key architectural principles:
 
-- **Multi-tenancy**: schema-per-tenant (hard isolation per firm; shared app code).
+- **Multi-tenancy**: firm-scoped row-level isolation (every model has a `firm` ForeignKey; isolation enforced at query layer via FirmScopedQuerySet). See ADR-0010 in docs/4.
 - **Core object graph** (canonical): `Account / Contact / Engagement / EngagementLine / WorkItem`
 - **Eventing + background jobs**: async processing for ingestion, sync, recurrence generation, orchestration steps, and notifications.
 - **Auditability and governance**: explicit data classification, retention rules, soft delete semantics, and access logging.

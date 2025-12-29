@@ -1,10 +1,19 @@
 # DB Schema and Migrations (DB_SCHEMA_AND_MIGRATIONS)
 
-Blueprint for schema-per-tenant provisioning, migrations, indexes/constraints, and naming conventions.
+Blueprint for database provisioning, migrations, indexes/constraints, and naming conventions.
+
+> **Current Implementation**: The platform uses **firm-scoped row-level isolation** (single schema, ForeignKey-based tenancy). See ADR-0010 in docs/4. The schema-per-tenant workflow below is retained as a future enhancement option for enterprise customers requiring physical isolation.
 
 ---
 
-## 1) Schema-per-tenant provisioning workflow
+## 1) Current: Row-level tenant provisioning workflow
+MUST be idempotent:
+1. Create Firm record
+2. Create firm admin user
+3. Seed baseline config (roles, default stages, template stubs)
+4. Record audit events and provisioning logs
+
+## 1b) Future: Schema-per-tenant provisioning workflow (if needed)
 MUST be idempotent:
 1. Create tenant record (platform scope)
 2. Create tenant schema

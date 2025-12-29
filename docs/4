@@ -56,18 +56,21 @@ Spec impact
 ## Decisions
 
 ## ADR-0001: Tenancy model is schema-per-tenant
-Status: Accepted  
+Status: **Deprecated (Superseded by ADR-0010)**  
 Date: 2025-12-28  
 Owners: Platform  
 Related: ARCHITECTURE_OVERVIEW.md; SYSTEM_SPEC.md (Tenancy); DB_SCHEMA_AND_MIGRATIONS.md
+
+> **⚠️ SUPERSEDED**: This ADR has been superseded by ADR-0010. The actual tenancy model is firm-scoped row-level isolation, not schema-per-tenant. See ADR-0010 for the canonical decision.
 
 Context  
 - Regulated, audit-sensitive workflows require strong tenant isolation.
 - We want predictable data boundaries and reduced blast radius.
 
 Decision  
-- Each firm (tenant) is isolated using a dedicated database schema.
-- Shared/global tables (if any) are explicitly separated and minimized.
+- ~~Each firm (tenant) is isolated using a dedicated database schema.~~
+- **ACTUAL**: Each firm is isolated using row-level scoping with `firm` ForeignKey on all models.
+- ~~Shared/global tables (if any) are explicitly separated and minimized.~~
 
 Consequences  
 Positive:
@@ -422,3 +425,58 @@ Spec impact
 
 ---
 
+## ADR-0010: Tenancy model is firm-scoped row-level isolation (not schema-per-tenant)
+Status: Accepted  
+Date: 2025-12-29  
+Owners: Platform  
+Related: SYSTEM_SPEC.md (Tenancy); ARCHITECTURE_OVERVIEW.md; docs/1; docs/3; docs/5; docs/19; docs/24
+
+Context  
+- ADR-0001 stated "schema-per-tenant" as the tenancy model.
+- The actual codebase implementation uses **firm-scoped row-level isolation** (every model has a `firm` ForeignKey).
+- This contradiction exists across docs/1, docs/3, docs/5, docs/19, and docs/24.
+- The working code represents the actual, tested, production-ready tenancy model.
+
+Decision  
+- **The canonical tenancy model is firm-scoped row-level isolation**, not schema-per-tenant.
+- All relevant documentation must be updated to reflect this reality.
+- ADR-0001 is hereby **superseded** by this ADR.
+- Schema-per-tenant MAY be reconsidered in the future for enterprise/regulated customers requiring physical isolation, but is NOT the current implementation.
+
+Rationale for Row-Level Tenancy (as implemented):
+1. **Operational simplicity**: Single schema simplifies migrations, backups, queries, and monitoring.
+2. **Django ecosystem fit**: Row-level tenancy is idiomatic for Django ORM; schema switching adds complexity.
+3. **Query enforcement**: FirmScopedQuerySet and permission middleware enforce isolation at query layer.
+4. **Current scale**: SMB SaaS workloads do not require physical schema isolation.
+5. **Proven pattern**: All existing code, tests, and deployments use row-level isolation.
+
+When schema-per-tenant should be reconsidered:
+- Enterprise customers requiring compliance certifications (SOC2 Type II dedicated environment)
+- Regulated industries with contractual data residency requirements
+- Customers requiring dedicated encryption keys per schema
+
+Consequences  
+Positive:
+- Documentation now matches reality.
+- No migration required; current implementation is correct.
+- Simpler operational model for the current product stage.
+
+Negative / tradeoffs:
+- Row-level tenancy has higher blast radius for tenant leakage bugs (mitigated by FirmScopedQuerySet).
+- Cross-tenant analytics are easier but require explicit authorization.
+
+Migration path to schema-per-tenant (if needed later):
+1. Introduce django-tenants or custom schema routing middleware.
+2. Add schema provisioning workflow to onboarding.
+3. Migrate data per-firm to dedicated schemas.
+4. Update connection routing based on request context.
+
+Spec impact  
+- docs/1: Update "Multi-tenancy" description from "schema-per-tenant" to "firm-scoped row-level isolation"
+- docs/3: Update "Tenancy model" section
+- docs/5: Update tenancy invariant statement
+- docs/19: Reframe as optional future enhancement, not current blueprint
+- docs/24: Update security model tenancy description
+- ADR-0001: Mark as superseded by ADR-0010
+
+---
