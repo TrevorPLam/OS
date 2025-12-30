@@ -12,6 +12,9 @@ from modules.clients.models import (
     ClientMessage,
     ClientNote,
     ClientPortalUser,
+    Contact,
+    EngagementLine,
+    Organization,
 )
 
 
@@ -357,6 +360,234 @@ class ClientMessageAdmin(admin.ModelAdmin):
             "Audit",
             {
                 "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+
+@admin.register(Contact)
+class ContactAdmin(admin.ModelAdmin):
+    list_display = (
+        "full_name",
+        "client",
+        "email",
+        "phone",
+        "job_title",
+        "is_primary_contact",
+        "is_active",
+    )
+    list_filter = (
+        "is_active",
+        "is_primary_contact",
+        "can_approve_invoices",
+        "preferred_contact_method",
+    )
+    search_fields = (
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "mobile_phone",
+        "client__company_name",
+    )
+    readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("client", "portal_user", "created_by")
+
+    fieldsets = (
+        (
+            "Client",
+            {
+                "fields": ("client",),
+            },
+        ),
+        (
+            "Personal Information",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "email",
+                    "phone",
+                    "mobile_phone",
+                ),
+            },
+        ),
+        (
+            "Professional Information",
+            {
+                "fields": ("job_title", "department"),
+            },
+        ),
+        (
+            "Contact Preferences",
+            {
+                "fields": (
+                    "is_primary_contact",
+                    "can_approve_invoices",
+                    "receives_billing_emails",
+                    "receives_project_updates",
+                    "preferred_contact_method",
+                ),
+            },
+        ),
+        (
+            "Communication Opt-Outs",
+            {
+                "fields": ("opt_out_marketing", "opt_out_sms"),
+            },
+        ),
+        (
+            "Portal Access",
+            {
+                "fields": ("portal_user",),
+            },
+        ),
+        (
+            "Status",
+            {
+                "fields": ("is_active",),
+            },
+        ),
+        (
+            "Notes",
+            {
+                "fields": ("notes",),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Audit",
+            {
+                "fields": ("created_by", "created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+
+@admin.register(EngagementLine)
+class EngagementLineAdmin(admin.ModelAdmin):
+    list_display = (
+        "engagement",
+        "line_number",
+        "description",
+        "line_type",
+        "status",
+        "net_amount",
+        "completion_percentage",
+    )
+    list_filter = ("line_type", "status", "is_billable")
+    search_fields = (
+        "description",
+        "service_code",
+        "engagement__client__company_name",
+    )
+    readonly_fields = ("created_at", "updated_at", "total_price", "net_amount")
+    raw_id_fields = ("engagement",)
+
+    fieldsets = (
+        (
+            "Engagement",
+            {
+                "fields": ("engagement", "line_number"),
+            },
+        ),
+        (
+            "Line Details",
+            {
+                "fields": (
+                    "line_type",
+                    "description",
+                    "detailed_description",
+                    "service_code",
+                ),
+            },
+        ),
+        (
+            "Pricing",
+            {
+                "fields": (
+                    "quantity",
+                    "unit_price",
+                    "total_price",
+                    "discount_percent",
+                    "discount_amount",
+                    "net_amount",
+                ),
+            },
+        ),
+        (
+            "Timeline",
+            {
+                "fields": ("start_date", "end_date"),
+            },
+        ),
+        (
+            "Status & Progress",
+            {
+                "fields": ("status", "completion_percentage"),
+            },
+        ),
+        (
+            "Delivery",
+            {
+                "fields": ("delivery_template_code",),
+            },
+        ),
+        (
+            "Billing",
+            {
+                "fields": ("is_billable", "invoice_schedule"),
+            },
+        ),
+        (
+            "Notes",
+            {
+                "fields": ("notes",),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Audit",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "firm",
+        "enable_cross_client_visibility",
+        "created_at",
+    )
+    list_filter = ("firm", "enable_cross_client_visibility")
+    search_fields = ("name", "description", "firm__name")
+    readonly_fields = ("created_at", "updated_at")
+    raw_id_fields = ("created_by",)
+
+    fieldsets = (
+        (
+            "Organization",
+            {
+                "fields": ("firm", "name", "description"),
+            },
+        ),
+        (
+            "Settings",
+            {
+                "fields": ("enable_cross_client_visibility",),
+            },
+        ),
+        (
+            "Audit",
+            {
+                "fields": ("created_by", "created_at", "updated_at"),
                 "classes": ("collapse",),
             },
         ),

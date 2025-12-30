@@ -12,7 +12,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from modules.core.validators import validate_safe_url
@@ -851,3 +851,333 @@ class ClientMessage(models.Model):
             self.thread.last_message_at = self.created_at
             self.thread.last_message_by = self.sender
             self.thread.save()
+
+
+class Contact(models.Model):
+    """
+    Individual contact person associated with a client.
+
+    Represents a specific person at a client organization who
+    can interact with the firm (e.g., through SMS, portal, email).
+
+    TIER 0: Belongs to exactly one Firm (via client relationship).
+    """
+
+    # Client relationship
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="contacts",
+        help_text="Client this contact belongs to",
+    )
+
+    # Personal Information
+    first_name = models.CharField(max_length=100, help_text="Contact's first name")
+    last_name = models.CharField(max_length=100, help_text="Contact's last name")
+    email = models.EmailField(help_text="Contact's email address")
+    phone = models.CharField(max_length=50, blank=True, help_text="Contact's phone number")
+    mobile_phone = models.CharField(max_length=50, blank=True, help_text="Contact's mobile phone number")
+
+    # Professional Information
+    job_title = models.CharField(max_length=200, blank=True, help_text="Job title at the client organization")
+    department = models.CharField(max_length=100, blank=True, help_text="Department within the organization")
+
+    # Contact Preferences
+    is_primary_contact = models.BooleanField(
+        default=False, help_text="Whether this is the primary contact for the client"
+    )
+    can_approve_invoices = models.BooleanField(default=False, help_text="Can approve invoices on behalf of client")
+    receives_billing_emails = models.BooleanField(default=False, help_text="Receives billing-related emails")
+    receives_project_updates = models.BooleanField(default=True, help_text="Receives project update notifications")
+
+    # Portal Access
+    portal_user = models.ForeignKey(
+        ClientPortalUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_profile",
+        help_text="Associated portal user account (if any)",
+    )
+
+    # Communication Preferences
+    preferred_contact_method = models.CharField(
+        max_length=20,
+        choices=[
+            ("email", "Email"),
+            ("phone", "Phone"),
+            ("sms", "SMS"),
+            ("portal", "Portal"),
+        ],
+        default="email",
+        help_text="Preferred method of contact",
+    )
+    opt_out_marketing = models.BooleanField(default=False, help_text="Opted out of marketing communications")
+    opt_out_sms = models.BooleanField(default=False, help_text="Opted out of SMS communications")
+
+    # Status
+    is_active = models.BooleanField(default=True, help_text="Whether this contact is active")
+
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_contacts",
+        help_text="User who created this contact",
+    )
+    notes = models.TextField(blank=True, help_text="Internal notes about this contact")
+
+    class Meta:
+        db_table = "clients_contact"
+        ordering = ["last_name", "first_name"]
+        indexes = [
+            models.Index(fields=["client", "is_active"], name="clients_contact_cli_act_idx"),
+            models.Index(fields=["client", "is_primary_contact"], name="clients_contact_cli_pri_idx"),
+            models.Index(fields=["email"], name="clients_contact_email_idx"),
+            models.Index(fields=["phone"], name="clients_contact_phone_idx"),
+        ]
+        unique_together = [["client", "email"]]
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} ({self.client.company_name})"
+
+    @property
+    def full_name(self):
+        """Return contact's full name."""
+        return f"{self.first_name} {self.last_name}"
+
+    def clean(self):
+        """
+        Validate Contact data integrity.
+
+        Validates:
+        - Portal user consistency: portal_user.client == self.client
+        - Only one primary contact per client
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Portal user consistency
+        if self.portal_user_id and self.client_id:
+            if hasattr(self, "portal_user") and self.portal_user.client_id != self.client_id:
+                errors["portal_user"] = "Contact's portal user must belong to the same client."
+
+        # Ensure only one primary contact per client
+        if self.is_primary_contact and self.client_id:
+            existing_primary = (
+                Contact.objects.filter(client=self.client, is_primary_contact=True).exclude(pk=self.pk).first()
+            )
+            if existing_primary:
+                errors["is_primary_contact"] = (
+                    f"Client already has a primary contact: {existing_primary.full_name}"
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class EngagementLine(models.Model):
+    """
+    Line item within a client engagement.
+
+    Represents a specific service, deliverable, or product within an engagement.
+    Used for detailed billing, tracking, and delivery template instantiation.
+
+    TIER 0: Belongs to exactly one Firm (via engagement relationship).
+    """
+
+    LINE_TYPE_CHOICES = [
+        ("service", "Service"),
+        ("product", "Product"),
+        ("deliverable", "Deliverable"),
+        ("retainer", "Retainer"),
+        ("milestone", "Milestone"),
+        ("other", "Other"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("on_hold", "On Hold"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    # TIER 0: Firm tenancy (auto-populated from engagement)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="engagement_lines",
+        help_text="Firm this engagement line belongs to (auto-populated from engagement)",
+    )
+
+    # Engagement relationship
+    engagement = models.ForeignKey(
+        ClientEngagement,
+        on_delete=models.CASCADE,
+        related_name="lines",
+        help_text="Parent engagement this line belongs to",
+    )
+
+    # Line item details
+    line_number = models.IntegerField(help_text="Line number within the engagement (1, 2, 3...)")
+    line_type = models.CharField(max_length=20, choices=LINE_TYPE_CHOICES, default="service", help_text="Type of line")
+    description = models.CharField(max_length=500, help_text="Description of this line item")
+    detailed_description = models.TextField(blank=True, help_text="Detailed description or scope")
+
+    # Service/Product code (optional)
+    service_code = models.CharField(max_length=100, blank=True, help_text="Service or product code")
+
+    # Quantity and pricing
+    quantity = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("1.00"),
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Quantity (hours, units, etc.)",
+    )
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Price per unit",
+    )
+    total_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total price (quantity * unit_price)",
+    )
+
+    # Discount (optional)
+    discount_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Discount percentage (0-100)",
+    )
+    discount_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Discount amount (calculated from discount_percent or manual)",
+    )
+
+    # Final amount
+    net_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Net amount after discount (total_price - discount_amount)",
+    )
+
+    # Timeline
+    start_date = models.DateField(null=True, blank=True, help_text="When work on this line starts")
+    end_date = models.DateField(null=True, blank=True, help_text="When work on this line ends")
+
+    # Status tracking
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="pending", help_text="Current status of this line"
+    )
+    completion_percentage = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Completion percentage (0-100)",
+    )
+
+    # Delivery template linkage (optional)
+    delivery_template_code = models.CharField(
+        max_length=100, blank=True, help_text="Delivery template code (if applicable)"
+    )
+
+    # Billing
+    is_billable = models.BooleanField(default=True, help_text="Whether this line is billable to the client")
+    invoice_schedule = models.CharField(
+        max_length=50, blank=True, help_text="Invoice schedule (e.g., 'Monthly', 'Upon Completion', 'Milestone')"
+    )
+
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True, help_text="Internal notes about this line")
+
+    class Meta:
+        db_table = "clients_engagement_line"
+        ordering = ["engagement", "line_number"]
+        indexes = [
+            models.Index(fields=["firm", "engagement"], name="clients_engline_frm_eng_idx"),
+            models.Index(fields=["engagement", "line_number"], name="clients_engline_eng_lnum_idx"),
+            models.Index(fields=["engagement", "status"], name="clients_engline_eng_stat_idx"),
+            models.Index(fields=["service_code"], name="clients_engline_svc_idx"),
+            models.Index(fields=["delivery_template_code"], name="clients_engline_tpl_idx"),
+        ]
+        unique_together = [["engagement", "line_number"]]
+
+    def __str__(self):
+        return f"{self.engagement} - Line {self.line_number}: {self.description}"
+
+    def save(self, *args, **kwargs):
+        """
+        Auto-calculate derived fields and auto-populate firm.
+
+        Calculations:
+        - total_price = quantity * unit_price
+        - discount_amount = total_price * (discount_percent / 100)
+        - net_amount = total_price - discount_amount
+
+        Auto-population:
+        - firm is auto-populated from engagement.firm if not set
+        """
+        # Auto-populate firm from engagement
+        if not self.firm_id and self.engagement_id:
+            self.firm = self.engagement.firm
+
+        # Calculate total_price
+        self.total_price = self.quantity * self.unit_price
+
+        # Calculate discount_amount if discount_percent is set
+        if self.discount_percent > 0:
+            self.discount_amount = self.total_price * (self.discount_percent / Decimal("100"))
+
+        # Calculate net_amount
+        self.net_amount = self.total_price - self.discount_amount
+
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        """
+        Validate EngagementLine data integrity.
+
+        Validates:
+        - Date range: start_date <= end_date (if both set)
+        - Firm consistency: engagement.firm == self.firm (if firm manually set)
+        - Discount validation: discount_percent <= 100
+        - Completion percentage: 0 <= completion_percentage <= 100
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Date range validation
+        if self.start_date and self.end_date and self.start_date > self.end_date:
+            errors["end_date"] = "End date must be on or after start date."
+
+        # Firm consistency (if manually set)
+        if self.firm_id and self.engagement_id:
+            if hasattr(self, "engagement") and self.engagement.firm_id != self.firm_id:
+                errors["firm"] = "Engagement line firm must match engagement's firm."
+
+        # Discount validation
+        if self.discount_percent > 100:
+            errors["discount_percent"] = "Discount percentage cannot exceed 100%."
+
+        if errors:
+            raise ValidationError(errors)
