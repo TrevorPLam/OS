@@ -5,6 +5,7 @@ Processes Twilio webhooks for delivery status updates and inbound SMS messages.
 """
 
 import logging
+import os
 import re
 from django.db import transaction
 from django.http import HttpResponse
@@ -34,6 +35,54 @@ OPT_OUT_KEYWORDS = [
 ]
 
 
+def _verify_twilio_signature(request):
+    """
+    Verify Twilio webhook signature (CONST-3 compliance).
+    
+    Validates that the request is genuinely from Twilio by checking
+    the X-Twilio-Signature header against the expected signature.
+    
+    Args:
+        request: Django HttpRequest object
+        
+    Returns:
+        bool: True if signature is valid, False otherwise
+    """
+    auth_token = os.getenv('TWILIO_AUTH_TOKEN')
+    if not auth_token:
+        logger.warning("TWILIO_AUTH_TOKEN not configured, skipping signature verification")
+        return True  # Allow in development mode
+    
+    try:
+        from twilio.request_validator import RequestValidator
+        
+        validator = RequestValidator(auth_token)
+        
+        # Get the signature from headers
+        signature = request.META.get('HTTP_X_TWILIO_SIGNATURE', '')
+        
+        # Construct the full URL
+        url = request.build_absolute_uri()
+        
+        # Get POST parameters as dict
+        params = request.POST.dict()
+        
+        # Validate the signature
+        is_valid = validator.validate(url, params, signature)
+        
+        if not is_valid:
+            logger.warning(f"Invalid Twilio signature for URL: {url}")
+        
+        return is_valid
+        
+    except ImportError:
+        logger.error("Twilio library not installed, cannot verify signature")
+        return False
+    except Exception as e:
+        logger.error(f"Error verifying Twilio signature: {e}", exc_info=True)
+        return False
+
+
 @csrf_exempt
 @require_POST
 def twilio_status_webhook(request):
@@ -48,6 +97,11 @@ def twilio_status_webhook(request):
     - ErrorCode: Error code if failed (optional)
     - ErrorMessage: Error description if failed (optional)
     """
+    # CONST-3: Verify Twilio webhook signature
+    if not _verify_twilio_signature(request):
+        logger.error("Invalid Twilio signature for status webhook")
+        return HttpResponse("Forbidden - Invalid signature", status=403)
+    
     try:
         # Parse webhook data
         twilio_service = TwilioService()
@@ -129,6 +183,11 @@ def twilio_inbound_webhook(request):
     - NumMedia: Number of media attachments
     - MediaUrl0, MediaUrl1, ...: Media URLs (if MMS)
     """
+    # CONST-3: Verify Twilio webhook signature
+    if not _verify_twilio_signature(request):
+        logger.error("Invalid Twilio signature for inbound webhook")
+        return HttpResponse("Forbidden - Invalid signature", status=403)
+    
     try:
         # Parse webhook data
         twilio_service = TwilioService()
