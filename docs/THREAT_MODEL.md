@@ -146,7 +146,7 @@ See: `src/modules/core/governance.py` - Data classification implementation
 **Mitigations**:
 - `src/modules/clients/models.py:156-201` - ClientPortalUser with separate auth
 - `src/modules/clients/middleware.py:1-92` - Portal authentication middleware
-- `src/api/portal/throttling.py:1-41` - Strict rate limiting (10 req/min login)
+- `src/api/portal/throttling.py:1-41` - Strict portal API rate limiting
 - Account lockout after failed attempts
 
 **Tests**:
