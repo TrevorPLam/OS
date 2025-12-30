@@ -28,7 +28,6 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Webhooks
     path("webhooks/stripe/", stripe_webhook, name="stripe-webhook"),
-    path("webhooks/sms/", include("modules.sms.webhooks")),  # Twilio SMS webhooks (no auth)
     # API Endpoints (REST Framework)
     path("api/auth/", include("modules.auth.urls")),
     path("api/firm/", include("modules.firm.urls")),

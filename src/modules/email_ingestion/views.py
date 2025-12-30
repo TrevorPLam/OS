@@ -13,8 +13,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from modules.auth.role_permissions import IsStaffUser
-from modules.crm.models import Account, Engagement
-from modules.projects.models import WorkItem
+from modules.clients.models import Client as Account
+from modules.projects.models import Project as Engagement, Task as WorkItem
 from .models import EmailConnection, EmailArtifact, IngestionAttempt
 from .serializers import (
     EmailConnectionSerializer,

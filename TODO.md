@@ -75,19 +75,38 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 **Additional Modules**
 - [x] DOC-35.1 Knowledge system MVP ✅ Completed Dec 30, 2025 - (see line 41 above for full description)
 
-**Missing Features Implementation (MISSINGFEATURES.md Coverage)**
-- [x] MISSING-1 Support/Ticketing System ✅ Completed Dec 30, 2025 - implemented complete support module with 5 models (SLAPolicy, Ticket, TicketComment, Survey, SurveyResponse); SLA tracking with business hours support; NPS/CSAT/CES surveys; ticket workflow with assignment/resolution; customer satisfaction ratings; admin interfaces, ViewSets, serializers, and URL routing complete; see IMPLEMENTATION_SUMMARY.md for details
-- [x] MISSING-2 Meeting Polls ✅ Completed Dec 30, 2025 - extended calendar module with MeetingPoll and MeetingPollVote models; Calendly-style meeting polls for finding times; yes/no/maybe voting; automatic best slot selection; voting deadline enforcement; integration with Appointment creation
-- [x] MISSING-3 Meeting Workflow Automation ✅ Completed Dec 30, 2025 - extended calendar module with MeetingWorkflow and MeetingWorkflowExecution models; pre/post meeting automation; trigger options (created/confirmed/completed/cancelled); action types (email/SMS/task/survey/CRM update); configurable delays for "before" actions
-- [x] MISSING-4 Email Campaign Templates ✅ Completed Dec 30, 2025 - implemented marketing module EmailTemplate model; reusable templates with HTML/plain text; merge fields support; performance tracking (open rate, click rate); campaign execution tracking; A/B testing support
-- [x] MISSING-5 Tag-based Segmentation ✅ Completed Dec 30, 2025 - implemented marketing module Tag, Segment, and EntityTag models; flexible tagging with categories; dynamic segments with JSON criteria; auto-update membership; usage tracking; entity tagging for leads/prospects/clients/campaigns
-- [x] MISSING-6 Client Onboarding Workflows ✅ Completed Dec 30, 2025 - implemented onboarding module with 4 models (OnboardingTemplate, OnboardingProcess, OnboardingTask, OnboardingDocument); template-based processes; task dependencies; document collection workflow; progress tracking; kick-off meeting integration; admin interfaces, ViewSets, serializers, and URL routing complete
-- [x] MISSING-7 API Layer Completion ✅ Completed Dec 30, 2025 - created comprehensive ViewSets, serializers, and URL routing for all new modules (support, onboarding, marketing); 14+ ViewSets with 30+ custom actions; proper permission classes (IsStaff, IsManager); firm scoping enforced; portal access where appropriate; mounted at /api/support/, /api/onboarding/, /api/marketing/; see DEPLOYMENT_STEPS.md for API endpoint documentation
-- [x] MISSING-8 Snippets System ✅ Completed Dec 30, 2025 - implemented complete snippets module with 3 models (Snippet, SnippetUsageLog, SnippetFolder); HubSpot-style quick text insertion with # shortcuts; variable replacement system ({{contact_name}}, {{my_name}}, etc.); personal and team-shared snippets; context awareness (email/ticket/message/note); usage tracking and analytics; folder organization; complete API with render/use/search actions; see QUICK_WINS_IMPLEMENTATION.md for details
-- [x] MISSING-9 User Profile Customization ✅ Completed Dec 30, 2025 - extended FirmMembership with UserProfile model (1-to-1 relationship); profile photos with Gravatar fallback; email signatures (HTML/plain text) with auto-generation; personal meeting links and calendar booking links; contact info (phone/mobile/office); social links (LinkedIn/Twitter/website); timezone/language/notification preferences; visibility settings for team directory; team directory API endpoint; profile photo upload/delete actions
-- [x] MISSING-10 Lead Scoring Automation ✅ Completed Dec 30, 2025 - implemented lead scoring automation with 2 models (ScoringRule, ScoreAdjustment); 20+ trigger types (email opened/clicked, form submitted, meeting booked, etc.); conditions system with JSON configuration; point decay for time-sensitive scoring; max applications limit; priority-based execution; rule testing without applying; complete audit trail; score breakdown by rule; bulk recalculation; extended Lead model with recalculate_score(), add_score_points(), get_score_breakdown() methods
-- [x] MISSING-11 SMS Integration ✅ Completed Dec 30, 2025 - implemented complete SMS module with 6 models (SMSPhoneNumber, SMSTemplate, SMSMessage, SMSCampaign, SMSConversation, SMSOptOut); full Twilio integration with TwilioService; individual and bulk SMS sending; SMS campaigns with scheduling; two-way conversation threads; automatic opt-out detection (STOP/UNSUBSCRIBE); delivery status tracking via webhooks; SMS templates with variable substitution; analytics (delivery rate, reply rate); phone number management; complete API with send/schedule/reply actions
-- [x] MISSING-12 Calendar Sync (Google/Outlook) ✅ Completed Dec 30, 2025 - implemented bi-directional calendar sync with 2 models (OAuthConnection, OAuthAuthorizationCode); OAuth 2.0 integration for Google Calendar API v3 and Microsoft Graph API; GoogleCalendarService and MicrosoftCalendarService with authenticate/refresh/sync/CRUD methods; CalendarSyncService for sync orchestration with conflict resolution; delta sync support with sync tokens/delta links; automatic token refresh; idempotent sync with external_event_id tracking; manual and automatic sync triggers; OAuth flow with state tokens for CSRF protection; complete API with initiate_oauth/callback/disconnect/sync_now actions
+**Missing Features Implementation (MISSINGFEATURES.md Coverage) - ⚠️ NEEDS COMPLETION**
+
+**NOTE:** Previous session created code but features are **NON-FUNCTIONAL** due to missing migrations and broken model references. See [IMPLEMENTATION_ASSESSMENT.md](./IMPLEMENTATION_ASSESSMENT.md) for details.
+
+- [ ] MISSING-1 Support/Ticketing System **❌ INCOMPLETE** - Code exists (632 lines, 5 models) but NO migrations; admin references non-existent fields (account, contact, related_project, sla_breached); 9+ unnamed indexes
+- [ ] MISSING-2 Meeting Polls **❌ INCOMPLETE** - Code exists but admin references non-existent fields (organizer, created_appointment, require_all_responses)
+- [ ] MISSING-3 Meeting Workflow Automation **❌ INCOMPLETE** - Code exists but admin references non-existent field (is_active)
+- [ ] MISSING-4 Email Campaign Templates **⚠️ PARTIALLY COMPLETE** - Code exists (marketing module, 655 lines), 1 migration created; admin references non-existent fields (template, scheduled_at)
+- [ ] MISSING-5 Tag-based Segmentation **⚠️ PARTIALLY COMPLETE** - Code exists (marketing module), 1 migration created; admin references non-existent fields (auto_tagged, created_at)
+- [ ] MISSING-6 Client Onboarding Workflows **❌ INCOMPLETE** - Code exists (615 lines, 4 models) but NO migrations; admin references 8+ non-existent fields; unnamed indexes
+- [ ] MISSING-7 API Layer Completion **❌ NON-FUNCTIONAL** - ViewSets exist but all underlying models lack migrations
+- [ ] MISSING-8 Snippets System **❌ INCOMPLETE** - Code exists (345 lines, 3 models) but NO migrations; 10+ unnamed indexes; import error FIXED
+- [ ] MISSING-9 User Profile Customization **⚠️ CHECK STATUS** - May be functional if migration 0012_user_profiles.py exists in modules/firm/migrations (needs verification)
+- [ ] MISSING-10 Lead Scoring Automation **⚠️ CHECK STATUS** - Code exists in crm/lead_scoring.py; import error FIXED; needs migration verification
+- [ ] MISSING-11 SMS Integration **❌ INCOMPLETE** - Code exists (790 lines, 6 models) but NO migrations; references non-existent clients.Contact model; 20+ unnamed indexes; import error FIXED; URL config FIXED
+- [ ] MISSING-12 Calendar Sync (Google/Outlook) **❌ INCOMPLETE** - Code exists (OAuth models, services) but NO migrations for OAuth models; Appointment/BookingLink reference non-existent crm.Account, crm.Contact, crm.Engagement
+
+**CRITICAL ISSUES FIXED:**
+- ✅ Import errors: Changed `modules.firm.managers.FirmScopedManager` → `modules.firm.utils.FirmScopedManager` (4 files)
+- ✅ Import errors: Changed `modules.crm.models.Account/Engagement` → `modules.clients.models.Client`, `modules.projects.models.Project` (email_ingestion/views.py)
+- ✅ URL config: Removed duplicate SMS webhook include
+- ✅ URL config: Fixed SMS urls.py path nesting
+
+**REMAINING BLOCKERS:**
+- ❌ 8 modules missing migrations (cannot deploy)
+- ❌ 20+ foreign key references to non-existent models
+- ❌ 30+ unnamed indexes (required by Django)
+- ❌ 60+ admin configuration errors
+- ❌ No Contact model exists (referenced by 4+ models)
+- ❌ No EngagementLine model exists (referenced by 2+ models)
+
+**TO COMPLETE:** See IMPLEMENTATION_ASSESSMENT.md for full fix plan (16-24 hours estimated)
 
 ---
 
