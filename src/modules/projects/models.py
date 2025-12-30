@@ -394,10 +394,10 @@ class Project(models.Model):
             start_date: Optional start date filter
             end_date: Optional end date filter
         """
-        from django.db.models import Sum, Count, Q
+        from django.db.models import Sum, Count, Q, F
         
-        # Build queryset with date filters if provided
-        time_entries = self.time_entries.all()
+        # Build queryset with date filters and optimization
+        time_entries = self.time_entries.select_related('user').all()
         if start_date:
             time_entries = time_entries.filter(date__gte=start_date)
         if end_date:

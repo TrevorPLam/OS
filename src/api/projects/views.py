@@ -108,10 +108,22 @@ class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             start_date = request.query_params.get("start_date")
             end_date = request.query_params.get("end_date")
             
+            date_errors = []
             if start_date:
-                start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+                try:
+                    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+                except ValueError:
+                    date_errors.append("start_date")
             if end_date:
-                end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+                try:
+                    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+                except ValueError:
+                    date_errors.append("end_date")
+            
+            if date_errors:
+                return Response({
+                    "error": f"Invalid date format for {', '.join(date_errors)}. Use YYYY-MM-DD"
+                }, status=status.HTTP_400_BAD_REQUEST)
             
             metrics = project.calculate_utilization_metrics(start_date, end_date)
             
@@ -121,10 +133,6 @@ class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
                 "project_name": project.name,
                 "metrics": metrics,
             }, status=status.HTTP_200_OK)
-        except ValueError as e:
-            return Response({
-                "error": f"Invalid date format. Use YYYY-MM-DD: {str(e)}"
-            }, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     

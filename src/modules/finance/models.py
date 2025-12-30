@@ -1437,37 +1437,53 @@ class PaymentAllocation(models.Model):
             if hasattr(self, "invoice") and self.invoice.firm_id != self.firm_id:
                 errors["invoice"] = "Invoice must belong to same firm as allocation"
         
-        # Validate amount doesn't exceed unallocated
+        # Validate amount doesn't exceed unallocated (skip status check - allow pending payments)
         if self.payment_id and hasattr(self, "payment"):
-            can_allocate, reason = self.payment.can_allocate(self.amount)
-            if not can_allocate:
-                errors["amount"] = reason
+            if self.amount <= 0:
+                errors["amount"] = "Allocation amount must be positive"
+            elif self.amount > self.payment.amount_unallocated:
+                errors["amount"] = f"Allocation amount ${self.amount} exceeds unallocated ${self.payment.amount_unallocated}"
         
         if errors:
             raise ValidationError(errors)
     
     def save(self, *args: Any, **kwargs: Any) -> None:
-        """Update payment and invoice amounts on save."""
+        """Update payment and invoice amounts on save using atomic operations."""
+        from django.db import transaction
+        from django.db.models import F
+        
         self.full_clean()  # Run validation
         
         is_new = self.pk is None
         
-        super().save(*args, **kwargs)
-        
-        if is_new:
-            # Update payment allocated amount
-            self.payment.amount_allocated += self.amount
-            self.payment.save(update_fields=["amount_allocated", "amount_unallocated", "updated_at"])
+        # Use transaction to ensure atomicity
+        with transaction.atomic():
+            super().save(*args, **kwargs)
             
-            # Update invoice paid amount
-            self.invoice.amount_paid += self.amount
-            
-            # Update invoice status based on payment
-            if self.invoice.amount_paid >= self.invoice.total_amount:
-                self.invoice.status = "paid"
-                if not self.invoice.paid_date:
-                    self.invoice.paid_date = self.allocation_date
-            elif self.invoice.amount_paid > 0:
-                self.invoice.status = "partial"
-            
-            self.invoice.save(update_fields=["amount_paid", "status", "paid_date", "updated_at"])
+            if is_new:
+                # Update payment allocated amount atomically
+                Payment.objects.filter(pk=self.payment_id).update(
+                    amount_allocated=F('amount_allocated') + self.amount,
+                    amount_unallocated=F('amount_unallocated') - self.amount,
+                )
+                
+                # Refresh payment to get current state
+                self.payment.refresh_from_db()
+                
+                # Update invoice paid amount atomically
+                Invoice.objects.filter(pk=self.invoice_id).update(
+                    amount_paid=F('amount_paid') + self.amount,
+                )
+                
+                # Refresh invoice to get current state for status update
+                self.invoice.refresh_from_db()
+                
+                # Update invoice status based on payment
+                if self.invoice.amount_paid >= self.invoice.total_amount:
+                    self.invoice.status = "paid"
+                    if not self.invoice.paid_date:
+                        self.invoice.paid_date = self.allocation_date
+                elif self.invoice.amount_paid > 0:
+                    self.invoice.status = "partial"
+                
+                self.invoice.save(update_fields=["status", "paid_date", "updated_at"])
