@@ -484,6 +484,14 @@ class Appointment(models.Model):
     )
 
     # External sync reference (for docs/16 CALENDAR_SYNC_SPEC)
+    calendar_connection = models.ForeignKey(
+        "CalendarConnection",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="synced_appointments",
+        help_text="Calendar connection for external sync (if applicable)",
+    )
     external_event_id = models.CharField(
         max_length=512,
         blank=True,
@@ -512,7 +520,15 @@ class Appointment(models.Model):
             models.Index(fields=["firm", "staff_user", "start_time"]),
             models.Index(fields=["firm", "account"]),
             models.Index(fields=["firm", "status"]),
-            models.Index(fields=["external_event_id"]),
+            models.Index(fields=["calendar_connection", "external_event_id"]),
+        ]
+        constraints = [
+            # Per docs/16 section 2.2: (connection_id, external_event_id) must be unique
+            models.UniqueConstraint(
+                fields=["calendar_connection", "external_event_id"],
+                condition=models.Q(calendar_connection__isnull=False) & models.Q(external_event_id__gt=""),
+                name="unique_external_event_per_connection",
+            ),
         ]
 
     def __str__(self):
@@ -572,3 +588,182 @@ class AppointmentStatusHistory(models.Model):
 
     def __str__(self):
         return f"{self.appointment}: {self.from_status} → {self.to_status}"
+
+
+class CalendarConnection(models.Model):
+    """
+    CalendarConnection model (per docs/16 section 2.1).
+
+    Represents an authenticated connection to an external calendar provider.
+    """
+
+    PROVIDER_CHOICES = [
+        ("google", "Google Calendar"),
+        ("microsoft", "Microsoft Outlook"),
+    ]
+
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("revoked", "Revoked"),
+    ]
+
+    # Identity
+    connection_id = models.BigAutoField(primary_key=True)
+
+    # Tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="calendar_connections",
+        help_text="Firm this connection belongs to",
+    )
+
+    # Provider and owner (per docs/16 section 2.1)
+    provider = models.CharField(
+        max_length=20, choices=PROVIDER_CHOICES, help_text="Calendar provider"
+    )
+    owner_staff_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="calendar_connections",
+        help_text="Staff user who owns this connection",
+    )
+
+    # OAuth credentials (encrypted at rest)
+    credentials_encrypted = models.TextField(
+        blank=True, help_text="Encrypted OAuth credentials"
+    )
+    scopes_granted = models.TextField(
+        blank=True, help_text="Scopes granted by the provider"
+    )
+
+    # Sync state
+    last_sync_cursor = models.TextField(
+        blank=True, help_text="Last sync cursor/token from provider"
+    )
+    last_sync_at = models.DateTimeField(null=True, blank=True)
+
+    # Status
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="active", help_text="Connection status"
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "calendar_connections"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "owner_staff_user", "status"]),
+            models.Index(fields=["provider", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.provider} - {self.owner_staff_user.username}"
+
+
+class SyncAttemptLog(models.Model):
+    """
+    SyncAttemptLog model (per docs/16 section 2.3).
+
+    Records each sync attempt for retry-safety and observability.
+    """
+
+    DIRECTION_CHOICES = [
+        ("pull", "Pull (External → Internal)"),
+        ("push", "Push (Internal → External)"),
+    ]
+
+    OPERATION_CHOICES = [
+        ("list_changes", "List Changes"),
+        ("upsert", "Upsert"),
+        ("delete", "Delete"),
+        ("resync", "Manual Resync"),
+    ]
+
+    STATUS_CHOICES = [
+        ("success", "Success"),
+        ("fail", "Fail"),
+    ]
+
+    ERROR_CLASS_CHOICES = [
+        ("transient", "Transient (Retry)"),
+        ("non_retryable", "Non-Retryable"),
+        ("rate_limited", "Rate Limited"),
+    ]
+
+    # Identity
+    attempt_id = models.BigAutoField(primary_key=True)
+
+    # Context
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="sync_attempts",
+        help_text="Firm for this sync attempt",
+    )
+    connection = models.ForeignKey(
+        CalendarConnection,
+        on_delete=models.CASCADE,
+        related_name="sync_attempts",
+        help_text="Calendar connection for this attempt",
+    )
+    appointment = models.ForeignKey(
+        Appointment,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="sync_attempts",
+        help_text="Appointment being synced (nullable for list operations)",
+    )
+
+    # Attempt details (per docs/16 section 2.3)
+    direction = models.CharField(
+        max_length=10, choices=DIRECTION_CHOICES, help_text="Sync direction"
+    )
+    operation = models.CharField(
+        max_length=20, choices=OPERATION_CHOICES, help_text="Sync operation"
+    )
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, help_text="Attempt status"
+    )
+    error_class = models.CharField(
+        max_length=20,
+        choices=ERROR_CLASS_CHOICES,
+        blank=True,
+        help_text="Error classification (if failed)",
+    )
+    error_summary = models.TextField(
+        blank=True, help_text="Redacted error summary (no PII, no content)"
+    )
+
+    # Observability (per docs/16 section 6)
+    correlation_id = models.UUIDField(
+        null=True, blank=True, help_text="Correlation ID for tracing"
+    )
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    duration_ms = models.IntegerField(
+        null=True, blank=True, help_text="Operation duration in milliseconds"
+    )
+
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "calendar_sync_attempts"
+        ordering = ["-started_at"]
+        indexes = [
+            models.Index(fields=["firm", "connection", "started_at"]),
+            models.Index(fields=["status", "error_class"]),
+            models.Index(fields=["correlation_id"]),
+        ]
+
+    def __str__(self):
+        status_icon = "✓" if self.status == "success" else "✗"
+        return f"{status_icon} {self.direction} {self.operation} at {self.started_at}"

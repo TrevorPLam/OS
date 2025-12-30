@@ -7,6 +7,8 @@ from .models import (
     BookingLink,
     Appointment,
     AppointmentStatusHistory,
+    CalendarConnection,
+    SyncAttemptLog,
 )
 
 
@@ -93,3 +95,39 @@ class AppointmentStatusHistoryAdmin(admin.ModelAdmin):
     list_filter = ["from_status", "to_status", "changed_at"]
     search_fields = ["appointment__appointment_id", "reason"]
     readonly_fields = ["changed_at"]
+
+
+@admin.register(CalendarConnection)
+class CalendarConnectionAdmin(admin.ModelAdmin):
+    """Admin for CalendarConnection."""
+
+    list_display = [
+        "connection_id",
+        "provider",
+        "owner_staff_user",
+        "status",
+        "last_sync_at",
+        "firm",
+    ]
+    list_filter = ["provider", "status", "firm"]
+    search_fields = ["owner_staff_user__username"]
+    readonly_fields = ["connection_id", "last_sync_at", "created_at", "updated_at"]
+
+
+@admin.register(SyncAttemptLog)
+class SyncAttemptLogAdmin(admin.ModelAdmin):
+    """Admin for SyncAttemptLog."""
+
+    list_display = [
+        "attempt_id",
+        "direction",
+        "operation",
+        "status",
+        "error_class",
+        "connection",
+        "started_at",
+        "duration_ms",
+    ]
+    list_filter = ["direction", "operation", "status", "error_class", "started_at"]
+    search_fields = ["correlation_id", "error_summary"]
+    readonly_fields = ["attempt_id", "started_at", "finished_at", "duration_ms", "correlation_id"]
