@@ -1,0 +1,1539 @@
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Customer
+Experience
+Workbook
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+1
+
+Welcome to the Digital Study
+Hall ActiveCampaign
+Customer Experience
+Workbook!
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Coming at you from the comfort of your own easy chair, it’s Digital Study Hall! You want
+to create great experiences that speak to your contacts, prospects, and customers.
+You want to create journeys that make them feel like you know exactly what they want
+— and can provide them with what they need.
+You can craft those unique journeys with ActiveCampaign.
+This workbook will teach you how; from creating your first automation, to fine-tuning a
+successful multi-part sequence, you’ll learn concepts that will help you create the
+optimal journey for each contact. It’s all about creating the ideal Customer Experience
+Automation — CX Automation for short.
+No matter your experience or familiarity with CX Automation, this workbook hopes to
+spark your imagination. You’ll go through the process of considering all of the ways
+that contacts experience your company, organization, and brand.
+Let’s brainstorm!
+
+Excited to learn with you,
+
+The ActiveCampaign Education Team
+P.S. Don’t forget, the Customer Success team is here to help! Thinking through concepts,
+turning diagrams into automations — use this workbook to help you prepare for a call, or
+simply spark a new conversation.
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​2
+
+2
+
+Table of Contents
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Welcome
+
+2
+
+Table of Contents
+
+3
+
+Resources
+
+4
+
+Welcome Checklist
+
+5
+
+Start Week 1
+
+6
+
+The Customer Experience Map
+
+7
+
+Segmentation
+
+15
+
+Contact Management
+
+18
+
+Forms
+
+21
+
+Start Week 2
+
+23
+
+Campaigns
+
+24
+
+Automations
+
+28
+
+Customer Experience Automation
+
+31
+
+Integrations
+
+35
+
+Start Week 3
+
+36
+
+Deals CRM
+
+37
+
+Contact Scoring
+
+39
+
+CXA with Deals & Scoring
+
+40
+
+Notes
+
+45
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​3
+
+3
+
+Resources
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+This workbook is just one of the many resources you can use at ActiveCampaign; use
+this PDF to bookmark important links for your journey!
+
+Live Resources
+— Customer Success Team: The Success team is here to help you achieve just that
+— success with the ActiveCampaign platform. Book a free one-on-one, or reach
+out to your dedicated account manager, to talk through new ideas, build and
+edit automations, learn about features, and much more.
+‒ Online: ​https://www.activecampaign.com/training/
+‒ Email: ​success@activecampaign.com
+‒ Onboarding? Book here:
+https://calendly.com/ac-onboarding/onboarding/
+— Support Team: Having trouble? Looking for a particular setting, or things not
+running how you expected? The Support team is available via the in-app chat.
+‒ Online: ​https://www.activecampaign.com/support
+‒ Email: ​help@activecampaign.com
+
+Online Resources
+— Courses: Learn more about the platform, and our approach to marketing and
+sales automation with courses. Check out this amazing free resource!
+‒ Online: ​https://courses.activecampaign.com/
+— Education Center: ActiveCampaign tips, tricks, and use cases are available from
+the Education team. Go beyond the platform how-to’s, and learn about the
+many ways you can use the platform for your business.
+‒ Online: ​https://www.activecampaign.com/learn/
+— Help Center: Need to look up a particular setting? Want to learn the nitty gritty
+about a new feature? Our Help Center will answer your questions.
+‒ Online: ​https://help.activecampaign.com/
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​4
+
+4
+
+Welcome Checklist
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+If you’re new to ActiveCampaign, or even if you’ve been with us awhile, we want to be
+sure you’re on the right track. This checklist will help you ensure you have your
+account set up, and prepare you to build stellar automations, campaigns, and more!
+
+Getting Started
+Watch: ​Getting Started with ActiveCampaign in 6 Minutes
+⃞
+
+Add ​ActiveCampaign Users
+⃞
+
+Add your ​Physical Address
+⃞
+
+Set up and turn on ​Site Tracking
+⃞
+
+Create a ​primary list
+⃞
+
+Import ​your contacts
+⃞
+
+Education
+Brand new? Schedule a call with our ​Onboarding Team
+⃞
+
+Been using AC for a while and want some help? Schedule a ​One-on-One
+⃞
+
+Enroll in our ​ActiveCampaign Courses
+⃞
+
+Bookmark the ​Education Center​ to find guides and resources
+⃞
+
+Bookmark the ​Help Center​ to find support articles
+⃞
+
+Building Your Skills
+Create a ​Form
+⃞
+
+Build a ​Campaign
+⃞
+
+Craft an ​Automation
+⃞
+
+Build a pipeline for Sales (or other processes!) in the ​Deals CRM
+⃞
+
+Community
+Join the ​ActiveCampaign User Forum
+⃞
+
+Join the ​Official ActiveCampaign Facebook Group
+⃞
+
+Join the ​ActiveCampaign Slack Group
+⃞
+
+Follow us on ​Twitter
+⃞
+⃞
+
+Follow us on ​Instagram
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​5
+
+5
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Start of Week 1
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​6
+
+6
+
+The Customer Experience Map
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+People experience your company in different ways. They come from various locations:
+your website, social media, online search results, advertisements, trade shows,
+networking events… anywhere your brand lives is a potential entry point for new
+contacts.
+It’s critical to take some time to focus on creating the ideal Customer Experience for all
+of your contacts. Thinking holistically about the continuous journeys your contacts will
+experience with your business will help you better understand what the most relevant
+content is for each of your audiences, making it easier to create a natural relationship.
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​7
+
+7
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Awareness
+List the ways your prospects first hear about you below.
+●
+
+Do you run paid ads?​ Ex. - Facebook lead magnet ad, Google Adwords
+○
+○
+○
+○
+
+●
+
+Do you find leads in person? ​Ex. - conferences, workshops, networking events
+○
+○
+○
+○
+
+●
+
+Do you focus on SEO? List your top ranking pieces of content. ​Ex. - high-visibility
+blog posts
+○
+○
+○
+○
+
+●
+
+Other sources via which you advertise? ​Ex. - radio, print, walk-ins
+○
+○
+○
+○
+
+●
+
+Do you get referrals or reviews? ​Ex. - Yelp, Facebook reviews, referral program
+○
+○
+○
+○
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​8
+
+8
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Consideration
+Map out the content you have online and what it would mean if you learned a prospect
+looked at that asset.
+
+Assets
+
+What you learn
+
+Example: frequently asked questions
+page on website
+
+They probably have a question they want
+answered
+
+Example: podcast about real estate
+agents using email marketing
+
+They are probably a real estate agent or
+are interested in learning about email
+marketing
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+​#ACSTUDYHALL
+
+​9
+
+9
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Decision
+Let’s figure out your buying processes.
+●
+
+What distinct actions do you think a customer needs to take to know they’re
+potentially ready to buy?​ Ex. - schedule a call, look at enough content
+○
+○
+○
+○
+
+●
+
+What internal processes do you want to happen when you’ve identified
+someone is buyer ready? ​Ex. - notify my sales team, send more sales-driven
+emails, call these particular leads
+○
+○
+○
+○
+
+​#ACSTUDYHALL
+10
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+10
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Growth
+
+What assets can you create that help customers see the value of what they bought?
+What assets indicate a potential upsell opportunity?
+
+Assets
+
+What you learn
+
+Upsell?
+
+Example: product page
+about enterprise plan
+
+Customer may have interest in
+enterprise plan
+
+Yes
+
+Example: video about how
+to use email builder
+
+Customer is learning how the email
+builder works and is using it. Has a
+lower risk of canceling
+
+No
+
+​#ACSTUDYHALL
+11
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+11
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Advocacy
+
+From your existing customers, think about ways to build advocates for your brand.
+●
+
+How do you identify who to push to a referral and who to push to a review? ​Ex. positive net promoter score, high engagement, attended an event
+○
+○
+○
+○
+
+●
+
+What specific review sites will give you the most buyer ready leads? ​Ex. - G2 for
+SaaS companies, The Knot for wedding photography
+○
+○
+○
+
+○
+
+​#ACSTUDYHALL
+12
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+12
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+During the Awareness stage, you want to:
+-
+
+Identify your most effective channels for capturing leads
+Better understand and target different customer personas
+Understand SEO and how you fit into your leads’ research stage
+
+During the Consideration stage, you want to:
+-
+
+Track what educational content your leads engage with
+Understand your lead’s needs on a deeper level
+Create a strategy for re-engaging cold leads
+
+During the Decision stage, you want to:
+-
+
+Create a sales/marketing funnel to track leads
+Prioritize qualified leads for targeted follow up
+Understand when and why contacts convert or fall off in the customer experience map
+
+During the Growth stage, you want to:
+-
+
+Create a customer onboarding journey
+Track customer adoption through activity or defined milestones
+Upsell and cross-sell customers at the right time
+
+During the Advocacy stage, you want to:
+-
+
+Identify top customers and engage with them
+Track and increase customer satisfaction and loyalty
+Better understand the impact of brand advocacy efforts
+
+Review
+The Customer Experience Map can take many forms, and follow many paths. You are
+creating a marketing and sales system that will:
+●
+●
+●
+●
+●
+
+Introduce your brand to new prospects (Awareness)
+Tell them more about what you have available (Consideration)
+Encourage them to buy (Decision)
+Keep them engaged and wanting more (Growth)
+Turn them into Advocates
+
+The ​Advocates​ of your brand are then a new path of ​Awareness.​ The customer
+experience grows and changes, but creating a continuum is key.
+​#ACSTUDYHALL
+13
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+13
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Your Customer Experience Map
+Awareness
+
+Consideration
+
+Decision
+
+Growth
+
+Advocacy
+
+​#ACSTUDYHALL
+14
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+14
+
+Segmentation
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Segmentation means grouping your contacts by attributes or actions. In
+ActiveCampaign, segmentation uses a combination of lists, tags, and fields, as well as
+contact behaviors that can be tracked within emails or on your website.
+— Attributes:​ quality or feature of a contact
+‒ Examples: interests, budget, contact location
+— Actions:​ customer behavior you can track
+‒ Examples: opened campaign, clicked link, visited page
+Segmentation helps you send the right message, to the right person, at the right time.
+
+Segments as Diagrams
+Creating your perfect audience gets easier when you think about how to set up your
+system beforehand.
+Now that you’ve got it down, let’s make some diagrams of the types of audiences you
+can create.
+
+Example
+
+​#ACSTUDYHALL
+15
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+15
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Diagram Your Segments
+When you properly set up your software, it simplifies the creation of your perfect
+audience. The Segment Builder will help you find that target.
+Remember:​ segments are a combination of attributes and actions for your contacts.
+Now that you got it down, let’s diagram the types of audiences you can create.
+
+​#ACSTUDYHALL
+16
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+16
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Segment Builder
+The ​segment builder​ appears throughout the entire ActiveCampaign platform; any time
+you have to make a decision about your audience, or your process flow, you’ll end up
+working with the Segment Builder.
+If you collect data, you can use the Segment Builder to sort your contacts with that
+data. You can use the ​Segment Builder​ to create a dynamic, always-updating version
+of venn diagrams for your perfect audience.
+Think of some combinations of Lists, Tags, and Fields for your audience. Write them
+below, along with the type of message you’d send to that segment.
+
+Based on your plan level and integrations set up, you may see
+different options in the segment builder!
+
+​#ACSTUDYHALL
+17
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+17
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Contact Management
+You want your ActiveCampaign contacts to be as organized as possible.
+We recommend using a small number of ​lists​, as many ​tags​ as you need, and the
+custom fields​ that make sense for your business.
+Note:
+— A contact is represented by an email address.
+— An active contact is subscribed to at least one list.
+
+Contact Management Overview
+— Lists​ are the largest bucket of contacts. They should encompass different
+communication types or information. Many businesses only use one list, a
+Master​ or ​All Contacts​ list.
+‒ Example lists: Customers, Prospects, Vendors, Board Members
+— Tags​ are used to denote interests, engagement, or anything else you may want
+to act on in the future.
+‒ Example tags: Engaged, Disengaged, Interested in [Product Type],
+Member
+— Fields​ include the standard Name, Email, Phone Number. ​Custom Fields​ are
+pieces of information you’d like to collect for all contacts; they are also used to
+personalize Forms.
+‒ Example custom fields: Birthday, Business Address, Policy Number
+
+Lists
+Lists are the best way to organize broad groups of contacts.
+Common reasons for using multiple lists: Message frequency, supporting different
+languages, two different companies communicating from one account
+
+​#ACSTUDYHALL
+18
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+18
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Tags
+You can use Tags to denote interests, engagement, behaviors, promotional activity…
+the sky’s the limit! What types of tags are you using right now? What type might you
+want to use? How are they organized?
+
+Tag Name:​ Recent Activity
+Purpose of tag:​ Tag anyone who’s interacted with
+materials in the last 7 days
+(Optional) Tag Group:​ Engagement Group
+
+Fields & Custom Fields
+Custom fields let you personalize your ActiveCampaign Contacts on an individual level.
+If you need a piece of information that’s specific to each contact on your list, a custom
+field is the way to go.
+You can also use custom fields in Forms, and they are particularly useful when asking
+questions and gauging interests.
+
+Custom Field Types
+Text input:​ A short text field
+
+Text area:​ A longer text box, good for
+comments/feedback
+
+Drop-down menu:​ Create options to select
+from a list; best used for 10+ choices
+
+Multi-selection list:​ Select as many options
+from the list as needed
+
+Radio button:​ Select one option from a list
+
+Check boxes: ​Select one-or-many options
+from a list
+
+Hidden fields:​ Invisible to contacts, and used to assign information to a contact
+
+​#ACSTUDYHALL
+19
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+19
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Platform Activity: Create Yourself as a Contact
+Lists. Tags. Fields and Custom Fields. They all come together on the Contact Record.
+Jump into your platform, and create (or update!) yourself as a contact in your
+database.
+1. From the ActiveCampaign platform homescreen, click on ​Contacts​ in the left
+hand navigation.
+2. If you have already added yourself to your ActiveCampaign database, search for
+yourself in the ​Search Contacts​ field in the upper right, and open your record.
+a. If you do not exist in your ActiveCampaign database, add yourself:
+i.
+Click the blue ​Add a Contact​ button in the upper right.
+ii.
+Add your ​Email​, and ​First Name​ and ​Last Name.
+iii.
+Optional: Add a ​Phone Number​ and ​Organization
+iv.
+Click the blue ​Add​ button
+v.
+A new screen will pop up, and give you the option to add your
+contact to lists, add a deal, add to automations, and more. ​Click
+Skip to complete creating your contact.
+vi.
+After you’ve completed this step, you’ll return to the contact
+screen. Search for yourself in the ​Search Contacts​ field in the
+upper right, and open your record.
+3. Take a look at your contact profile. ​What information would you need to add
+about yourself in order to effectively market to you?
+a. What ​lists​ would you want to subscribe to, in order to send a message?
+b. Fields​ and ​Custom Fields​ display on their own line of every contact
+profile. What Custom Fields deserve a full line on your profile?
+i.
+Birthday? Interests?
+ii.
+Think about what form questions could make a good custom field
+c. What tags should you have? Interests? Engagement levels?
+
+Summary
+Think about what an ideal contact profile would look like for you. What do you need to
+know to market most effectively?
+Think about the information you need to collect, and work towards building a system
+that collects that information for you.
+
+​#ACSTUDYHALL
+20
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+20
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Forms
+Forms​ are a great way to collect information about your contacts. How? You ask them
+for what you need!
+Using a combination of Fields and Custom Fields, you can ask your contacts for any
+important information you’d like to collect, including their interests and preferences.
+The key is to create a form that clearly asks for needed information, explains why that
+information is necessary, and sets expectations about how frequently you’ll be
+reaching out in the future.
+
+Form Best Practices
+● Form Actions are one of the first things you should select. What happens when a
+contact submits your form? You can choose to subscribe contacts to a list, add a
+tag, and other actions.
+● By default, all forms have double opt-in turned on. Double opt-in sends an email
+confirmation when someone completes your form, asking them to click to
+confirm their subscription. Before changing this setting, ​carefully consider the
+way you’re using your form.
+● Don’t forget to say thank you! Everyone who submits your form will see a default
+thank you, but ​you can configure it​ to redirect to a URL.
+
+Form Use Cases
+Forms are great for more than just a newsletter! Use cases include:
+● Downloadable resource — Use forms as a gate for a white paper or other free
+download
+● Consultation request
+● Software Demo
+● Quizzes
+● Contact preferences
+
+People using your form are actively engaging with you.
+Make the most out of the moment!
+​#ACSTUDYHALL
+21
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+21
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Planning Your Forms
+Forms should fit into your customer experience seamlessly. Use this worksheet to
+clarify the goals of your existing forms, or forms you’d like to create.
+Don’t forget — forms are your opportunity to create Custom Fields and ask for input.
+Are your contacts interested in a particular product line? Do they want to know about
+live events, or product updates?
+
+Examples
+Name of Form:​ Newsletter Opt-In
+Part of customer experience map:​ Awareness
+Location of Form:​ Banner across the bottom of entire site
+Information requested:​ Full Name, Email Address
+Form Action:​ Subscribe to primary list, add Newsletter tag
+Thank You Page:​ Send to a thank you URL on main site with additional contact information
+Double Opt-In?:​ Yes
+Name of Form:
+Part of customer experience map:
+Location of Form:
+Information requested:
+Form Action:
+Thank You Page:
+Double Opt-In?:
+Name of Form:
+Part of customer experience map:
+Location of Form:
+Information requested:
+Form Action:
+Thank You Page:
+Double Opt-In?:
+
+​#ACSTUDYHALL
+22
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+22
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Start of Week 2
+
+​#ACSTUDYHALL
+23
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+23
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Campaigns
+Campaigns are emails, and they’re a vital part of your marketing strategy. Email still
+boasts the highest Return on Investment (ROI) of any digital marketing channel.
+Campaigns can be sent from the Campaign section of the platform, or from within
+Automations. (That’s coming up next!)
+
+Campaign Best Practices
+Marketing has grown up past the days of sending all of your emails to your entire list.
+This is where you start using your segmentation power to send the right message to
+the right people.
+There are ​several types of campaigns​ that you can send.
+— Standard:​ Simple broadcast email, sent immediately or scheduled
+— Automated:​ Redirects you to the Automation builder, so you can create an
+automation
+— Auto Responder:​ Sends a message immediately after someone joins your list
+— Split Testing:​ Send multiple versions of your campaigns to see which performs
+best
+— RSS Triggered:​ Triggered by an update to your RSS feed
+— Date Based:​ Sent based on a date field on your contact’s record - for example, a
+birthday or customer anniversary
+After you select the type of campaign you would like to send, you can choose who to
+send it to (a list and/or segment). Check out the ​campaign walkthrough​ for the entire
+process.
+
+Content Blocks
+The ​Email Designer​ has several types of drag-and-drop content blocks that you can
+use to create your emails.
+— Text:​ add copy
+— Image:​ add images
+— Button:​ use buttons to create a prominent call to action (CTA)
+— Video:​ link to a video on YouTube or Vimeo
+— Line break:​ design element, line between content
+— Spacer:​ design element, space between content
+— Social:​ add your social media follow pages
+— HTML:​ add custom HTML code
+​#ACSTUDYHALL
+24
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+24
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Diagram of a Good Email Campaign
+We send a lot of emails at ActiveCampaign, and we want to help you send good emails,
+too. Let’s take a look at the anatomy of a good email, and then you can sketch your
+own.
+
+​#ACSTUDYHALL
+25
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+25
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Split Test Proposal
+In marketing, you should always be testing. In email marketing specifically, you should be doing
+this through split testing. In this sheet you’re going to come up with a split test for your business
+that you can create in campaigns!
+
+1. Pull up your customer experience map homework and pick a place in your map where
+you will be sending an email with a specific goal in mind. Mark down your email and
+goal below.
+What is the internal name of the email?​ _________________________________
+Ex. - Sign up for free trial email
+
+What is the goal of the email?: ​_______________________________________
+Ex. - to get more newsletter prospects to sign up for a trial
+
+2. Identify the most important key performance indicator (primary KPI) for this test.
+What’s the primary KPI? : ​__________________________________________
+Ex. - % of leads that start a trial
+
+How long will you give them to do the goal after the email has been sent? : ​________
+Ex. - 7 days from the email being sent
+
+3. Please identify your KPIs that you categorize as secondary in importance for this test.
+Secondary KPIs: ​________________________________________________
+________________________________________________
+Ex. - email open rate, email click-through rate, average days to trial
+
+​#ACSTUDYHALL
+26
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+26
+
+12/30/25,
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+Now that you have established your goal, it’s time to use split testing to achieve
+it. The3 08 AM
+
+testable aspects of email are limitless! You can test different subject lines, content,
+calls to action, ect. ​The most important element to remember is to only change one
+variable per email in a split test.​ ​This way you’ll know exactly why one change
+worked over another.
+NOTE: Split tests are not limited to two emails per test, you can send out up to five
+emails with one variable changed in each one.
+What element do you want to change? ​_________________________________
+Ex. - subject line, text block wording, images, featured products, call to action
+
+List what specifically will change about each email below. You need to test at least two
+emails and can go up to five.
+1. _______________________________________________________
+2. _______________________________________________________
+3. _______________________________________________________
+4. _______________________________________________________
+5. _______________________________________________________
+Ex. - if you are testing different calls to action after a particular purchase, you could suggest a
+different product across 5 different versions
+
+When are you planning on sending this test? ​_____________________________
+Great work! Now you can go into campaigns and start building this out!
+
+​#ACSTUDYHALL
+27
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+27
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Automations
+You made it! Automations!
+Automation is the engine that drives your marketing and sales processes within
+ActiveCampaign, and we can’t wait to dig in.
+The goal of automations is to create paths, processes, and journeys — both internal
+and external. Think about your business processes. How can they translate to an
+automation? Here are some scenarios you may already be thinking about.
+— When someone signs up for your newsletter, they enter a drip nurture sequence
+where you tell them more about your business and the latest news. You will
+follow up based on what they open and what they click on. You want to stop
+sending them emails if they aren’t opening them, or if they become a customer.
+— When someone purchases something from your ecommerce store, you want to
+send them a thank you and direct them to a site to submit a product review. You
+will ask them for a review a few times, perhaps with a coupon code for future
+purchases. If they submit a review, you want to stop asking them for reviews.
+— Think outside the email! You want to direct prospects to a Facebook custom
+audience until they purchase. Also, you want to leverage site messages to
+collect additional information from contacts with form links, and more.
+
+Anatomy of an Automation
+Automations are made up of two basic parts:
+— Start Triggers​: ​The “front door” to your automation, start triggers determine the
+action that starts a contact down a path.
+— Actions​:​ Actions make up everything else! You can send campaigns to contacts,
+send internal emails to your team, use conditional statements to create multiple
+paths based on behaviors such as email opens and link clicks. You can also add
+wait steps, create Deals in the CRM, and take other actions that help you truly
+create a personalized journey for every contact that flows through your
+automations.
+
+​#ACSTUDYHALL
+28
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+28
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Automation Best Practices
+1. Like any good story, every automation path should have a beginning, a middle,
+and an end.
+2. Break your automations up into smaller, more manageable pieces. (Hot tip: you
+can send contacts to new automations as they complete their current journey!)
+3. Automate the repetitive, so you can focus on the impactful.
+4. Find the right blend of automation and human touch for your business, to find
+success with your automation journeys.
+
+​#ACSTUDYHALL
+29
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+29
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Automation Basics
+Welcome Series:​ Send a small welcome series to new contacts as soon as they are
+added to your list. After a few days, check to see if they opened the welcome email. If
+so, send them a follow-up message with a little more depth. If not, send them a
+reworking of the welcome email with a new subject line and slightly different
+messaging.
+
+​#ACSTUDYHALL
+30
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+30
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CX Automation
+Now, let’s bring all of this together and really dig into Customer Experience Automation
+— also known as CX Automation. You want to use automation to market smarter;
+automation has become the norm in the industry, and it’s time to take a different
+approach.
+CX Automation is all about sending the right message, to the right person, at the right
+time.
+
+The 6 Principles of CX Automation
+1. Every person should get a unique experience.​ People are different, and
+automation should give each person exactly what they need.
+2. Don’t start with a blank slate.​ Automations should build themselves, so you
+don’t need to build them one at a time.
+3. The perfect experience changes over time.​ Automations should update
+themselves, to save you the work of maintaining complex, powerful
+automations.
+4. You know your business—you should still be in control.​ Your business is
+yours. Even as automation gets smarter, you still need to be the one who holds
+the reins.
+5. Ideal experiences change from business to business.​ As your business
+changes, so should your automations, based on the metrics that matter to
+you—not just generic clicks and opens.
+6. It’s not just messaging—it’s everything that affects your customers.
+Automation controls more than messages—it manages everything (including
+your own team) that will affect the customer experience.
+
+The Pillars of CX Automation
+— CXA Marketing
+— CXA Support
+— CXA Operations
+— CXA Sales ​(we’ll talk about this one next week!)
+
+​#ACSTUDYHALL
+31
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+31
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CX Automations to Import
+CXA Marketing
+Webinar Reminder Series:​ Run a lead-in campaign to your upcoming event, as well as
+a follow-up when the event is done. This is great for letting your contacts know more
+about the event they are attending and then allows them to leave testimonials and
+reviews based on their experience. Before importing, build a date based custom field
+for the event date.
+Note before you import!​ You need a Date-Based Custom Field for this automation.
+
+​#ACSTUDYHALL
+32
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+32
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CXA Support
+Customer Service Follow-up:​ If a contact is given the tag "Customer service follow-up," a
+follow-up email is sent after one day. If the customer clicks the "not resolved" link, it will tell
+your support team to reach out to them, and redirect the contact to a form to collect more
+information. If they click the "resolved" link, it will remove the tag. You could apply the
+"Customer service follow-up" tag using ActiveCampaign’s Conversations tool or by integrating
+with your help desk app.
+
+​#ACSTUDYHALL
+33
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+33
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CXA Operations
+Part 1 - Engagement Tagging/Part 2 - Engagement Tagging: ​Many of your marketing
+decisions can be made based on the last time your contacts engaged with your
+marketing materials. You have access to three recipes that will help you track when
+people engage, reach out to re-engage, and try to save contacts one final time before
+unsubscribing them to your list.
+
+​#ACSTUDYHALL
+34
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+34
+
+Integrations
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+ActiveCampaign is committed to being the powerful marketing & sales automation hub
+of your business. We believe in a technology stack — you should use the best software
+tools for your business. To that end, we have an Open API, or Application Programming
+Interface, which allows our software to talk to your other favorite pieces of software.
+While we can’t dive into integrating a piece of software that you could connect to
+ActiveCampaign, we can help you think about what you should be sure to connect to
+your account. Also, check out our Help Center for helpful articles:
+— What are Integrations?
+— Getting started with the API
+
+Getting Started with Integrations
+Consider all of the tools your company uses, and the types of information each tool
+stores. Ask yourself the following questions:
+— What other tools are you currently using in your business?
+— What data do they have that you would like to sync to ActiveCampaign?
+— How can you use that data in ActiveCampaign?
+
+Software / Tool
+
+Data
+
+Use data for:
+
+Shopify
+
+Purchase data, total revenue,
+abandoned carts
+
+Abandoned cart automation,
+VIP shopper program, etc.
+
+​#ACSTUDYHALL
+35
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+35
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Start of Week 3
+
+​#ACSTUDYHALL
+36
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+36
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Deals CRM
+What’s a CRM?
+A CRM is a Customer Relationship Manager; the ActiveCampaign CRM is named Deals.
+A CRM is a tool for:
+● Helping your teams stay on top of what’s next for each lead and customer along
+every step of their journeys
+● Managing interactions with your prospects and customers
+● Tracking a prospect/customer’s progress through a particular process, or story
+they qualified for
+● Measuring the success of your various team’s performance
+Note: The Deals CRM is available on the Plus Plan and above.
+Sure, you can track sales funnels and opportunities. But, you can also use Deals to
+create a visualization of any process that has steps. Examples include:
+— New customer onboarding
+— Internal employee onboarding
+— Hiring funnels
+— Shipping and order fulfillment
+— Any process you’d like to keep track of, that has stages!
+The Deals CRM looks like this:
+
+Learn more about pipelines, stages, deals, and tasks.
+​#ACSTUDYHALL
+37
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+37
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Pipelines
+A pipeline is a defined set of stages for tracking a process. You may have one sales
+process for selling ads, one for selling a subscription service, or one for following up
+with existing customers to try to upsell them. You may also have processes for
+managing your relationships post-sale that you can track with pipelines.
+
+Stages
+Stages represent the steps included in your pipeline. In the Deals CRM, stages are
+presented in columns and move from left to right. Any deal you create should start in
+the left column and can be dragged and automated to other columns as it progresses.
+
+Deals
+A deal in a pipeline contains information pertaining to a potential sale or
+opportunity—it is where you develop your sales process and get your leads to take
+action. Deals move from one stage to the next either manually or via automation and
+can be assigned a particular owner depending on the stage/pipeline.
+
+Tasks
+A task is a to-do item for your deal. This can include lunch, a call, an email, or a
+meeting. A deal owner can view their deals by stage or by task due date. You can also
+export tasks to a deal owner’s calendar in settings.
+
+​#ACSTUDYHALL
+38
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+38
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Scoring
+Why is lead scoring valuable?
+All leads and customers were not created equally. Oftentimes, you need to get a good
+gauge on the different thresholds of engagement our contacts have with each other.
+These thresholds can be created through lead scoring.
+
+What is lead scoring?
+Scores, like in any game, only make sense if you have rules and goals; lead scoring is
+no different. ActiveCampaign’s lead scoring capabilities are incredibly flexible,
+empowering marketers to add and subtract points to their contacts based on actions or
+inaction. But before you get started assigning points, you have to determine what’s
+most important to you.
+The purpose of lead scoring is to track contacts’ engagements, creating a temperature
+gauge by which to plan future messaging and outreach. Think of lead scoring as a
+gamification of your marketing process. The points don’t matter until you create the
+rules and objectives; you can’t win without a plan!
+
+​#ACSTUDYHALL
+39
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+39
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CXA with Deals & Scoring
+As is the theme across this whole course, Customer Experience Automation applies to
+everything you do — including the relationships you manage though Deals and scoring.
+Let's dive into some recipes you might use with these features!
+CXA Marketing
+Scoring Based Facebook Audience Flow:​ Move your contacts through different
+Facebook Custom Audiences based on a score, such as engagement or total
+purchases. ​Before importing, connect your Facebook integration in Settings.
+
+​#ACSTUDYHALL
+40
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+40
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CXA Sales
+Travel - Private Tour Booking:​ This example is designed with travel companies in
+mind but makes sense for any relationship-based businesses that need to notify a
+sales representative when a new lead comes in. This workflow sends a message to
+your team in their inbox and creates a task for them to call in our CRM. If the call
+doesn’t happen in three days, they will be reminded to call via task again.
+Before importing, build a stage in your pipeline for contacts for new leads!
+
+​#ACSTUDYHALL
+41
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+41
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+CXA Operations
+
+Adjust Expected Close Date:​ Circumstances change and expectations should change
+accordingly. Adjust your expected close date on a deal when they move between
+stages using the Math action. Specifically, when they regress in stages, you can add
+more days. You can take the inverse approach as well by subtracting days based on
+high engagement. Feel free to make this as general or specific as you want to.
+Before importing, build a custom date deal field for “Expected Close Date.”
+
+​#ACSTUDYHALL
+42
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+42
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Diagram Your CRM Pipeline
+Now that you know the power in the flexibility of the Deals CRM, diagram out a process
+that make sense for your business
+
+Triggers — ​what action must be taken to move from one stage to another?
+
+→
+
+→
+
+→
+
+→
+
+Stages & Tasks
+Stage
+name
+
+Stage
+name
+
+Stage
+name
+
+Stage
+name
+
+Stage
+name
+
+Relevant task
+
+Relevant task
+
+Relevant task
+
+Relevant task
+
+Relevant task
+
+​#ACSTUDYHALL
+43
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+43
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+What does winning a deal mean for you in this pipeline?
+
+What does losing a deal mean for you in this pipeline?
+
+What does an open deal mean for you in this pipeline?
+
+Extra Credit: ​Is this process part of the Customer Experience Map? Label it!
+(Awareness, Consideration, Decision, Growth, Advocacy)
+
+Snap a photo and share your process with us on social! @ActiveCampaign #ACSTUDYHALL
+
+​#ACSTUDYHALL
+44
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+44
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+Notes
+
+​#ACSTUDYHALL
+45
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+45
+
+12/30/25, 3 08 AM
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+​#ACSTUDYHALL
+46
+
+:
+
+https://central.kiwischools.co.nz/assets/newsletter/kiwischools.co.nz-1599086952275.pdf
+
+46
+
+
