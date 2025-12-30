@@ -204,9 +204,76 @@ class Segment(models.Model):
         This is a placeholder - actual implementation would query
         leads/prospects/clients based on criteria.
         """
-        # TODO: Implement actual segmentation logic
+        from modules.clients.models import Client
+        from modules.crm.models import Lead, Prospect
+
+        criteria = self.criteria or {}
+        entity_types = criteria.get("entity_types") or ["lead", "prospect", "client"]
+        tag_slugs = criteria.get("tags") or []
+
+        def apply_tag_filter(queryset, entity_type: str):
+            """Filter queryset by tag slugs for the given entity type."""
+            if not tag_slugs:
+                return queryset
+
+            tagged_ids = (
+                EntityTag.objects.filter(
+                    entity_type=entity_type,
+                    tag__firm=self.firm,
+                    tag__slug__in=tag_slugs,
+                )
+                .values_list("entity_id", flat=True)
+                .distinct()
+            )
+            return queryset.filter(pk__in=tagged_ids)
+
+        def score_range(config: dict):
+            """Normalize min/max score filters."""
+            if not isinstance(config, dict):
+                return None, None
+            return config.get("min"), config.get("max")
+
+        total_members = 0
+
+        if "lead" in entity_types:
+            lead_qs = Lead.objects.filter(firm=self.firm)
+
+            lead_status = criteria.get("lead_status") or criteria.get("lead_statuses")
+            if lead_status:
+                lead_qs = lead_qs.filter(status__in=lead_status)
+
+            min_score, max_score = score_range(criteria.get("lead_score", {}))
+            if min_score is not None:
+                lead_qs = lead_qs.filter(lead_score__gte=min_score)
+            if max_score is not None:
+                lead_qs = lead_qs.filter(lead_score__lte=max_score)
+
+            lead_qs = apply_tag_filter(lead_qs, "lead")
+            total_members += lead_qs.distinct().count()
+
+        if "prospect" in entity_types:
+            prospect_qs = Prospect.objects.filter(firm=self.firm)
+
+            stages = criteria.get("prospect_stages") or criteria.get("pipeline_stages")
+            if stages:
+                prospect_qs = prospect_qs.filter(pipeline_stage__in=stages)
+
+            prospect_qs = apply_tag_filter(prospect_qs, "prospect")
+            total_members += prospect_qs.distinct().count()
+
+        if "client" in entity_types:
+            client_qs = Client.objects.filter(firm=self.firm)
+
+            client_status = criteria.get("client_status") or criteria.get("client_statuses")
+            if client_status:
+                client_qs = client_qs.filter(status__in=client_status)
+
+            client_qs = apply_tag_filter(client_qs, "client")
+            total_members += client_qs.distinct().count()
+
+        self.member_count = total_members
         self.last_refreshed_at = timezone.now()
-        self.save(update_fields=["last_refreshed_at"])
+        self.save(update_fields=["member_count", "last_refreshed_at"])
 
 
 class EmailTemplate(models.Model):
