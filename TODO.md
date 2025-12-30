@@ -4,6 +4,22 @@
 
 ---
 
+## 📊 Strategic Implementation Plan
+
+**NEW:** See [STRATEGIC_IMPLEMENTATION_PLAN.md](./STRATEGIC_IMPLEMENTATION_PLAN.md) for comprehensive 10-week execution plan covering:
+- **Phase 1 (Week 1-2):** Critical Fixes - Data model issues, security vulnerabilities, test infrastructure
+- **Phase 2 (Week 3):** Constitution Completion - Threat model, boundary rules enforcement
+- **Phase 3 (Week 4-5):** API & Data Quality - Versioning, pagination, error model
+- **Phase 4 (Week 6-8):** Compliance & Privacy - GDPR, reconciliation, retention
+- **Phase 5 (Week 9-10):** Documentation & Process - Feature alignment, definition of done
+
+**Recommended Next Steps:**
+1. Fix ASSESS-C3.1: Prospect.stage field (CRITICAL - blocks 12+ tests)
+2. Fix ASSESS-C3.1b: Float to Decimal for currency (CRITICAL - data integrity)
+3. Fix ASSESS-S6.2: Async/signals firm isolation audit (CRITICAL - IDOR risk)
+
+---
+
 ## 🚨 PRIORITY #1: Coding Constitution Compliance
 
 **Status**: ✅ **COMPLETE** (Dec 30, 2025)  
@@ -39,6 +55,16 @@ The codebase has been analyzed against the Coding Constitution. All **12 deviati
 **Total Effort**: 75-107 hours (2-3 sprint cycles)  
 **Progress**: 12/12 tasks completed (100%) 🎉  
 **Constitution Status**: ✅ **FULLY COMPLIANT**  
+- [x] **CONST-5** Develop threat model (Section 6.7) - Created `docs/THREAT_MODEL.md` with comprehensive STRIDE analysis (18 threats), mitigation mapping, residual risks, and review schedule ✅ Completed Dec 30, 2025
+- [x] **CONST-10** Add boundary rules enforcement (Section 15) - Added `import-linter` to CI with 5 architectural contracts, created `docs/BOUNDARY_RULES.md` with enforcement guide ✅ Completed Dec 30, 2025
+
+### Phase 4: Quality of Life (1-2 days) 🔧
+
+- [x] **CONST-11** Verify/fix pagination on ViewSets (Section 7.5) - Verified pagination is globally enabled via `BoundedPageNumberPagination` in `src/config/settings.py` with page_size=50, max_page_size=200 ✅ Completed Dec 30, 2025
+- [x] **CONST-12** Document feature flag cleanup plans (Section 11.6) - No feature flags found in codebase; ChatGPT assessment confirms clean state ✅ Completed Dec 30, 2025
+
+**Total Effort**: 75-107 hours (2-3 sprint cycles)
+**Progress**: 12/12 tasks completed (100%) ✅ **CONSTITUTION COMPLIANCE COMPLETE**
 **Next Review**: March 30, 2026 (quarterly)
 
 ### In-Code TODOs Identified (22 instances)
@@ -72,6 +98,90 @@ These TODOs should be addressed as part of constitution compliance or feature co
 - [ ] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events
 
 **Note**: 22 TODOs found. Focus on High Priority items after Phase 1 constitution compliance.
+
+---
+
+## 🔍 PRIORITY #2: ChatGPT Codebase Assessment Remediation
+
+**Status**: Assessment Complete (Dec 30, 2025)
+**Reference**: [docs/ChatGPT_CODEBASE_ASSESMENT](./docs/ChatGPT_CODEBASE_ASSESMENT)
+**Overall Finding**: ~80% Complete, Needs Stabilization
+
+The codebase underwent comprehensive external audit identifying **22 FAIL findings** across 7 domains. Most failures are medium-severity with several critical/high priority issues requiring immediate attention.
+
+### Phase 1: Critical Fixes (IMMEDIATE - 2-3 days) 🔥
+
+**Code Quality & Data Model (Blocking Tests)**
+- [ ] **ASSESS-C3.1** Fix missing Prospect.stage field - Add model field, create migration, update forms/serializers/API (blocks 12+ tests)
+- [ ] **ASSESS-D4.1** Fix schema design gap - Add Prospect.stage with proper choices (e.g., 'lead', 'qualified', 'proposal', 'negotiation', 'closed_won', 'closed_lost')
+- [ ] **ASSESS-D4.7** Create missing migration - Generate and apply migration for Prospect.stage field
+- [ ] **ASSESS-C3.1b** Replace float with Decimal for currency - Audit finance module for float usage in money calculations, convert to Decimal (precision bugs)
+
+**Security (High Risk)**
+- [ ] **ASSESS-S6.2** Fix multi-tenancy gaps in async/signals - Audit async tasks and Django signals for firm isolation enforcement (IDOR risk)
+- [ ] **ASSESS-G18.4** ~~Add Twilio webhook signature verification~~ ✅ Already completed in CONST-3 (Dec 30, 2025)
+- [ ] **ASSESS-I5.6** Fix SSRF validation gaps - Apply InputValidator.validate_url() to all URL inputs; block internal IPs/localhost
+- [ ] **ASSESS-D4.4** Fix idempotency gaps - Add idempotency_key to Stripe PaymentIntent calls; store webhook event IDs to prevent duplicate processing
+
+**Data Integrity**
+- [ ] **ASSESS-D4.4b** Fix company_name uniqueness scope - Change from globally unique to unique per firm: unique_together('firm', 'company_name')
+- [ ] **ASSESS-C3.10** Eliminate test non-determinism - Standardize tests to use Postgres (not SQLite); enable SQLite foreign keys if SQLite used
+
+### Phase 2: API & Infrastructure (HIGH - 1 week) ⚙️
+
+**API Design**
+- [ ] **ASSESS-I5.1** Implement API versioning - Add /api/v1/ prefix; establish version support policy
+- [ ] **ASSESS-I5.5** Add pagination to all list endpoints - Enable DRF PageNumberPagination (page_size=50); update frontend
+- [ ] **ASSESS-I5.4** Improve error model - Create structured error responses with codes; map known errors (Stripe card_declined, etc.)
+- [ ] **ASSESS-I5.9** Establish deprecation policy - Document API change process; support deprecated fields for 1 version cycle
+
+**Data & Testing**
+- [ ] **ASSESS-D4.6** Align test/prod environments - Use Postgres for local tests (via Docker); eliminate SQLite vs Postgres drift
+- [ ] **ASSESS-C3.9** Refactor complexity hotspots - Split large files (finance/models.py ~1489 lines, calendar/models.py ~1000+ lines) into submodules
+
+### Phase 3: Compliance & Privacy (MEDIUM - 1-2 weeks) 📋
+
+**GDPR/Privacy Requirements**
+- [ ] **ASSESS-L19.2** Implement consent tracking - Add Contact.marketing_opt_in, consent_timestamp, consent_source fields; track ToS acceptance
+- [ ] **ASSESS-L19.3** Build right-to-delete/export - Create admin tools for data export (all user data as JSON/CSV); anonymization scripts for deletion requests
+- [ ] **ASSESS-L19.4** Define retention policies - Establish data retention schedule; implement auto-purge for old data (configurable per firm)
+
+**Integration Resilience**
+- [ ] **ASSESS-G18.5** Add reconciliation for Stripe - Create daily cron to cross-check Invoice status vs Stripe API; flag mismatches
+- [ ] **ASSESS-G18.5b** Add reconciliation for S3 - Verify document Version records match S3 objects; detect missing files
+
+### Phase 4: Requirements & Documentation (LOW - 1 week) 🔧
+
+**Feature Alignment**
+- [ ] **ASSESS-R1.2** Implement or document missing features - Either implement Slack/e-signature/E2EE or mark as "Coming Soon" in UI/docs
+- [ ] **ASSESS-R1.4** Align spec with reality - Audit docs/marketing for advertised features; remove claims for non-implemented features (E2EE, etc.)
+- [ ] **ASSESS-R1.7** Establish definition of done - Create PR checklist: all tests pass, docs updated, no TODOs, acceptance criteria met
+- [ ] **ASSESS-R1.3** Document hidden assumptions - Clarify: company_name uniqueness scope, SQLite vs Postgres usage, data volume limits
+
+**Process Improvements**
+- [ ] **ASSESS-R1.8** Review for scope creep - Audit recent features against design docs; implement change control for significant additions
+
+**Total Issues**: 22 FAIL findings
+**Progress**: 1/22 completed (Twilio webhook verification via CONST-3)
+**Estimated Effort**: 60-100 hours (2-3 sprint cycles)
+**Next Review**: January 15, 2026
+
+### Assessment Summary by Domain
+
+| Domain | PASS | FAIL | Key Issues |
+|--------|------|------|------------|
+| Requirements & Intent (R) | 4 | 4 | Missing features, spec misalignment, hidden assumptions |
+| Architecture & Design (A) | 10 | 0 | ✅ Solid modular architecture, good layering |
+| Code Quality (C) | 7 | 3 | Missing field (Prospect.stage), complexity hotspots, test non-determinism |
+| Data Modeling (D) | 3 | 4 | Schema gaps, missing migrations, uniqueness constraints |
+| API Design (I) | 5 | 5 | No versioning, no pagination, poor error model |
+| Security (S) | 9 | 1 | Multi-tenancy gaps in async/signals |
+| Testing (T) | 5 | 0 | ✅ Good coverage (33.8%), edge cases documented |
+| Operations (O) | 10 | 0 | ✅ Deployment docs, monitoring, CI/CD in place |
+| Integrations (G) | 6 | 2 | Webhook verification, reconciliation gaps |
+| Compliance/Privacy (L) | 1 | 3 | GDPR gaps (consent, deletion, retention) |
+| Documentation (D) | 10 | 0 | ✅ Excellent documentation, troubleshooting guides |
+| **TOTAL** | **70** | **22** | **76% PASS rate** |
 
 ---
 
