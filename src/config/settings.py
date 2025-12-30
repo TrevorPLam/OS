@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "modules.orchestration",  # DOC-11.1: Orchestration engine
     "modules.communications",  # DOC-33.1: Communications (messages, conversations)
     "modules.email_ingestion",  # DOC-15.1: Email ingestion MVP
+    "modules.calendar",  # DOC-34.1: Calendar domain MVP
 ]
 
 MIDDLEWARE = [
