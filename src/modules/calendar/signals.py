@@ -27,10 +27,6 @@ def trigger_appointment_workflows(sender, instance, created, **kwargs):
     - appointment_completed: When status changes to 'completed'
     - appointment_cancelled: When status changes to 'cancelled'
     """
-    # Only process if we're in a transaction (avoid running during migrations)
-    if not transaction.get_connection().in_atomic_block:
-        return
-    
     appointment = instance
     engine = WorkflowExecutionEngine()
     

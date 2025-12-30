@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import models, transaction
 from django.template import Template, Context
 from django.utils import timezone
 
@@ -23,7 +23,6 @@ from .models import (
     MeetingWorkflowExecution,
     AppointmentType,
 )
-from modules.core.notifications import NotificationService
 from modules.projects.models import Task
 from modules.firm.audit import AuditEvent
 
@@ -42,7 +41,7 @@ class WorkflowExecutionEngine:
     """
     
     def __init__(self):
-        self.notification_service = NotificationService()
+        pass  # No notification service needed
     
     def trigger_workflows(
         self,
@@ -400,6 +399,9 @@ class WorkflowExecutionEngine:
             'assigned_to': 'user_id or {{field}}',
             'due_days': number of days from now
         }
+        
+        NOTE: Task creation requires a Project. If no project is available,
+        logs a warning and returns a stub result.
         """
         config = workflow.action_config
         
@@ -417,22 +419,20 @@ class WorkflowExecutionEngine:
         due_days = config.get('due_days', 1)
         due_date = timezone.now() + timedelta(days=due_days)
         
-        # Create task
-        task = Task.objects.create(
-            firm=appointment.firm,
-            name=title,
-            description=description,
-            due_date=due_date.date(),
-            # Link to engagement if available
-            project_id=getattr(appointment, 'engagement_id', None),
-            created_by=None  # System-created task
+        # NOTE: Task model requires a project. For now, we log a warning
+        # since appointments may not always have an associated project.
+        # Future enhancement: Create a default "System Tasks" project or
+        # make project optional in Task model.
+        logger.warning(
+            f"Task creation skipped for appointment {appointment.appointment_id}: "
+            f"Task model requires a project which is not available from appointment"
         )
         
         return {
-            'summary': 'task_created',
-            'task_id': task.task_id,
+            'summary': 'task_creation_skipped',
             'title': title,
-            'due_date': due_date.isoformat()
+            'due_date': due_date.isoformat(),
+            'note': 'Task creation skipped - requires project association'
         }
     
     def _execute_send_survey(
@@ -573,6 +573,3 @@ class WorkflowExecutionEngine:
         # Otherwise return as-is
         return email_field
 
-
-# Import models here to avoid circular imports at the top
-from django.db import models
