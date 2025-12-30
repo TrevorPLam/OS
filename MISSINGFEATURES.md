@@ -894,13 +894,34 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
 
 **Sales Hub:**
 - Email templates & tracking with open notifications
-- Document management and sharing
-- Contact & customer profiles with history
-- Meeting scheduler with Google/Office 365 sync
-- Sales automation sequences
+- Email open/click notifications in real-time
+- Document management and sharing with tracking
+- Contact & customer profiles with complete history
+- Meeting scheduler with Google/Office 365 two-way sync
+- Meeting creation from contact dashboard
+- Meeting invitations sent automatically
+- Meetings logged automatically to CRM and calendar
+- Sales automation sequences (multi-step email campaigns)
 - Live chat on landing pages
-- Pipeline management
+- Pipeline management with drag-and-drop
+- Deal tracking through pipeline stages
+- Deal dashboard with associations
 - Sales analytics and forecasting
+- **HubSpot Calling Tool:**
+  - Browser-based calling directly from CRM
+  - Phone-based calling (desk phone/cell phone)
+  - Phone number registration and verification
+  - International calling with country code support
+  - Call recording with compliance controls
+  - One-party consent state handling
+  - Call notes during call
+  - Call outcome selection and categorization
+  - Call type categorization (e.g., coaching, assessment)
+  - Automatic call logging to contact timeline
+  - Keypad for extensions
+  - Call timeline history
+  - Edit/delete call records
+  - Pin important calls to top of timeline
 
 **Marketing Hub:**
 - SEO tools and content optimization
@@ -926,14 +947,25 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
 - SLA management
 
 **CRM Platform:**
-- Unified contact database
-- Activity timeline
+- Unified contact database with search
+- Activity timeline with rich history
+- Pin activities to top of timeline
+- Edit/delete activities from timeline
 - Company records
-- Deal tracking
+- Deal tracking with stages
+- Deal dashboard with full context
+- Deal associations (contacts, companies, activities)
+- Drag-and-drop deal stage changes
 - Task management
+- Activity logging (calls, emails, meetings, notes)
+- Rich text formatting for notes
+- Snippets system for quick text insertion
+- Snippet shortcuts (e.g., #logassessment, #logcoaching)
 - Workflow automation
 - Custom properties
 - Integration hub
+- Search across all records
+- Navigation between related records (deal → contact → company)
 
 **CMS Hub:**
 - Drag-and-drop website editor
@@ -947,13 +979,57 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
 - CDN
 
 **Mobile App:**
-- iOS and Android apps
+- iOS app (iOS 11+) and Android app (Android 5.0+)
 - Push notifications
 - Mobile CRM access
-- Activity logging
+- Activity logging on mobile (calls, emails, meetings, notes)
 - Task management on mobile
+- Contact and company access
+- Deal access and management
+- Timeline view on mobile
+- Log activities from mobile
+- Add notes, activities, or tasks from mobile
+- Same feature parity as desktop where applicable
 
 #### Key Capabilities
+
+**User Profile Management:**
+- Profile photo upload and management
+- First name and last name customization
+- Email signature with rich formatting
+- HTML email signature editor
+- Meeting link embedding in signature
+- Profile preferences management
+
+**Calendar Integration:**
+- **Google Calendar two-way sync:**
+  - Simultaneously log meetings in CRM and create calendar events
+  - Send calendar invitations to meeting guests
+  - Meetings created in Google Calendar appear on contact timeline
+  - Automatic bidirectional updates
+- **Outlook Calendar two-way sync (alternative):**
+  - Same features as Google Calendar
+  - Cannot run both Google and Outlook simultaneously
+- Meeting scheduler accessible from multiple entry points
+- Meeting creation from contact dashboard, deal dashboard
+- Quick meeting icon access
+
+**Activity Management:**
+- Log calls with outcome and type
+- Log emails
+- Log meetings
+- Log notes with rich text formatting
+- Categorize activities by type (assessment, coaching, etc.)
+- Categorize by outcome
+- Date and time customization
+- Snippet insertion using # symbol
+- Pre-built snippet library
+- Timeline view of all activities
+- Edit activities after creation
+- Delete activities from timeline
+- Pin important activities to top
+- View activity details dropdown
+- Associate activities with multiple records
 
 **Flywheel Methodology:**
 - Attract phase (content marketing, SEO)
@@ -967,6 +1043,22 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
 - Enterprise (full capabilities, advanced reporting)
 - Growth Stack (25% discount for all Hubs)
 
+**Integrations:**
+- Google Calendar (two-way sync)
+- Outlook/Office 365 Calendar (two-way sync)
+- Zoom (video conferencing for calls/meetings)
+- Third-party integrations via integration hub
+- One calendar integration active at a time (Google OR Outlook)
+
+**Workflow & Pipeline Features:**
+- Visual pipeline boards
+- Multiple pipelines for different processes
+- Drag-and-drop deal management
+- Pipeline stage customization
+- Search across pipelines
+- Deal associations across records
+- Automatic saves when moving deals
+
 ### What's Missing in the Codebase:
 
 **Critical Missing Features:**
@@ -976,8 +1068,61 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
    - No webhook handlers for HubSpot events
    - No bi-directional data sync
    - No HubSpot workflow triggers
+   - No ability to connect ConsultantPro to HubSpot CRM
 
-2. **No Marketing Hub Equivalent**
+2. **No Integrated Calling System**
+   - ❌ No browser-based calling tool
+   - ❌ No phone-based calling with CRM logging
+   - ❌ No phone number registration/verification
+   - ❌ No call recording with compliance controls
+   - ❌ No call outcome tracking
+   - ❌ No call type categorization
+   - ❌ No automatic call logging to timelines
+   - ❌ No international calling support
+   - ❌ No keypad for extensions
+   - ❌ No one-party consent state handling
+   - ❌ No call editing/deletion on timeline
+   - ❌ No ability to pin calls to timeline top
+   - ⚠️ Basic communication module exists but no calling infrastructure
+
+3. **Limited Calendar Integration**
+   - ❌ No two-way Google Calendar sync
+   - ❌ No two-way Outlook/Office 365 Calendar sync
+   - ❌ No automatic meeting creation in external calendars
+   - ❌ No calendar event sync from external calendars to CRM timeline
+   - ❌ No meeting invitations sent automatically
+   - ❌ No bidirectional calendar updates
+   - ⚠️ Calendar/appointments module exists but lacks deep integration
+   - ⚠️ No Zoom integration for video calls
+
+4. **No Snippets System**
+   - ❌ No quick text insertion system
+   - ❌ No snippet shortcuts (e.g., #logassessment)
+   - ❌ No pre-built snippet library
+   - ❌ No snippet management interface
+   - ❌ No snippet sharing across team
+   - ❌ No snippet categories or organization
+   - Completely missing from codebase
+
+5. **Limited Activity Management**
+   - ❌ No unified activity logging interface (call/email/meeting/note in one place)
+   - ❌ No activity outcome selection
+   - ❌ No activity type categorization beyond basic types
+   - ❌ No ability to pin activities to top of timeline
+   - ❌ No rich text formatting for notes
+   - ❌ No activity associations across multiple records
+   - ❌ No activity detail dropdowns
+   - ⚠️ Activity tracking exists but very basic
+
+6. **No User Profile Management**
+   - ❌ No profile photo upload/management
+   - ❌ No customizable email signatures
+   - ❌ No HTML email signature editor
+   - ❌ No meeting link embedding in signatures
+   - ❌ No profile preferences interface
+   - ⚠️ Basic user profiles exist but limited customization
+
+7. **No Marketing Hub Equivalent**
    - No SEO tools or content optimization
    - No blog management system
    - No ad tracking or management
@@ -986,7 +1131,7 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
    - No CTA management
    - No marketing attribution
 
-3. **Limited Service/Support Features**
+8. **Limited Service/Support Features**
    - No ticketing system
    - No knowledge base management
    - No SLA tracking
@@ -994,34 +1139,59 @@ HubSpot is a comprehensive inbound marketing, sales, and service platform with m
    - No NPS tracking
    - Basic conversation support but not full help desk
 
-4. **No CMS Capabilities**
+9. **No CMS Capabilities**
    - No website builder or editor
    - No theme management
    - No public-facing website hosting
    - No content personalization engine
    - Limited to internal application only
 
-5. **Missing Sales Tools**
-   - No email template library with performance tracking
-   - No document sharing/tracking
-   - No meeting link embedding in emails
-   - No sales sequences (multi-step email campaigns)
-   - No quote generation and e-signature
-   - No sales forecasting
+10. **Missing Sales Tools**
+    - No email template library with performance tracking
+    - No document sharing/tracking (who opened, when)
+    - No meeting link embedding in emails
+    - No sales sequences (multi-step email campaigns)
+    - No quote generation and e-signature
+    - No sales forecasting
 
-6. **No Integrated Reporting Across Functions**
-   - HubSpot provides unified reporting across marketing, sales, and service
-   - ConsultantPro has module-specific features but lacks cross-functional analytics
+11. **No Drag-and-Drop Pipeline Management**
+    - ❌ No visual Kanban-style deal boards
+    - ❌ No drag-and-drop deal stage changes
+    - ❌ No multiple pipeline support with easy switching
+    - ❌ No pipeline-specific deal searches
+    - ⚠️ Basic CRM exists but no visual pipeline interface
 
-7. **No Website Visitor Tracking**
-   - No anonymous visitor identification
-   - No behavioral tracking on websites
-   - No lead intelligence from browsing behavior
+12. **Limited Mobile Experience**
+    - ❌ No native iOS app
+    - ❌ No native Android app
+    - ❌ No mobile push notifications
+    - ❌ No mobile-specific activity logging interface
+    - ❌ No mobile timeline view
+    - ❌ No mobile deal management
+    - ⚠️ Responsive web design may exist but not native mobile apps
 
-8. **No Social Media Integration**
-   - No social publishing
-   - No social listening
-   - No social inbox
+13. **No Integrated Reporting Across Functions**
+    - HubSpot provides unified reporting across marketing, sales, and service
+    - ConsultantPro has module-specific features but lacks cross-functional analytics
+    - No executive dashboards combining all modules
+    - No cross-module KPI tracking
+
+14. **No Website Visitor Tracking**
+    - No anonymous visitor identification
+    - No behavioral tracking on websites
+    - No lead intelligence from browsing behavior
+
+15. **No Social Media Integration**
+    - No social publishing
+    - No social listening
+    - No social inbox
+
+16. **Missing Workflow Automation Features**
+    - ❌ No visual workflow builder
+    - ❌ No trigger-based automation (e.g., when deal moves stage)
+    - ❌ No automated actions on pipeline changes
+    - ❌ No conditional workflow logic
+    - ⚠️ Basic job queue exists but not workflow automation engine
 
 ---
 
@@ -1471,6 +1641,10 @@ Limited to email and internal messaging:
 - No social media management
 - No chatbots or AI assistants
 - No voice/phone integration
+- **No integrated calling system (HubSpot calling tool equivalent)**
+- **No browser-based calling**
+- **No phone-based calling with CRM integration**
+- **No call recording with compliance**
 
 ### 4. Service/Support Gap
 No dedicated customer support ticketing system:
@@ -1495,6 +1669,10 @@ Basic appointment scheduling exists but lacks:
 - Workflow automation around meetings
 - Payment integration at booking
 - Advanced routing and qualification
+- **Two-way calendar sync (Google Calendar, Outlook)**
+- **Automatic meeting invitations**
+- **Meeting link embedding in email signatures**
+- **Quick meeting creation from contact/deal dashboards**
 
 ### 7. Deep E-commerce Integration Gap
 No e-commerce platform integrations:
@@ -1511,6 +1689,26 @@ Module-specific reporting exists but missing:
 - Customer health scores
 - Predictive analytics
 
+### 9. HubSpot-Specific Operational Gaps (from HS2.pdf)
+Detailed operational features missing that HubSpot provides:
+- **No snippets system** for quick text insertion
+- **No user profile customization** (photos, signatures, meeting links)
+- **No activity pinning** to timeline top
+- **No call recording** with compliance controls
+- **No phone number registration** for calling
+- **No international calling** support
+- **No call outcome/type categorization**
+- **No rich activity editing** after creation
+- **No drag-and-drop deal management**
+- **No deal associations** across multiple records
+- **No navigation between related records** (deal → contact → company)
+- **No mobile apps** (iOS/Android native)
+- **No push notifications** for mobile
+- **No timeline view** with full activity history
+- **No meeting creation** from multiple entry points
+- **No automatic calendar invitations** sent to guests
+- **No bidirectional calendar sync** with external providers
+
 ---
 
 ## Recommendations
@@ -1524,32 +1722,46 @@ If users need to connect ConsultantPro with these platforms:
 
 ### Priority 2: Fill Internal Feature Gaps
 Rather than relying on integrations, consider building native features:
+
 1. **Enhanced Scheduling Automation** (Calendly-like features)
    - Team round-robin
    - Pre/post meeting workflows
    - Meeting polls
 
-2. **Marketing Automation** (ActiveCampaign-like features)
+2. **HubSpot-Style CRM Enhancements** (from HS2.pdf analysis)
+   - **Two-way calendar sync** (Google Calendar, Outlook)
+   - **Integrated calling system** (browser and phone-based)
+   - **Call recording with compliance**
+   - **Snippets system** for quick text insertion
+   - **Activity pinning** and rich editing
+   - **Drag-and-drop deal boards**
+   - **User profile customization** (photos, signatures, meeting links)
+
+3. **Marketing Automation** (ActiveCampaign-like features)
    - Visual automation builder
    - Multi-step campaigns
    - Lead scoring
 
-3. **Support/Ticketing** (HubSpot Service Hub features)
+4. **Support/Ticketing** (HubSpot Service Hub features)
    - Ticketing system
    - Knowledge base
    - SLA tracking
 
-4. **Advanced Workflow Templates** (Karbon-like features)
+5. **Advanced Workflow Templates** (Karbon-like features)
    - Industry-specific process templates
    - Automated client onboarding
    - Work-in-progress tracking
 
 ### Priority 3: Multi-Channel Expansion
 Consider adding:
-1. SMS integration (via Twilio)
-2. Social media inbox
-3. Chatbot capabilities
-4. Voice call integration
+1. **Voice/Phone Integration** (HubSpot calling equivalent)
+   - Browser-based calling
+   - Phone-based calling with CRM logging
+   - Call recording
+   - International calling support
+2. SMS integration (via Twilio)
+3. Social media inbox
+4. Chatbot capabilities
 
 ### Priority 4: Analytics & Intelligence
 Enhance reporting with:
@@ -1557,6 +1769,32 @@ Enhance reporting with:
 2. Predictive analytics
 3. Customer health scoring
 4. Revenue attribution
+
+### Priority 5: HubSpot Operational Feature Parity (Quick Wins)
+Build frequently-used operational features from HS2.pdf:
+1. **Snippets System**
+   - Quick text insertion with # shortcuts
+   - Pre-built snippet library
+   - Team-wide snippet sharing
+   - Impact: High | Effort: Low | Priority: HIGH
+
+2. **Profile Customization**
+   - Profile photo upload
+   - Email signature builder (HTML)
+   - Meeting link embedding
+   - Impact: Medium | Effort: Low | Priority: MEDIUM
+
+3. **Activity Management Enhancements**
+   - Pin activities to timeline top
+   - Rich activity editing post-creation
+   - Activity outcome/type categorization
+   - Impact: Medium | Effort: Medium | Priority: MEDIUM
+
+4. **Mobile Native Apps**
+   - iOS and Android native apps
+   - Push notifications
+   - Mobile timeline view
+   - Impact: Medium | Effort: Very High | Priority: LOW
 
 ---
 
@@ -1614,6 +1852,13 @@ The ConsultantPro platform has strong foundational features for consulting firm 
    - No executive-level insights
    - Impacts data-driven decision making
 
+9. **HubSpot Operational Features (from HS2.pdf)**
+   - **Severity: MEDIUM-HIGH** - Missing many day-to-day operational tools
+   - Missing: Integrated calling system, two-way calendar sync, snippets, activity pinning
+   - No user profile customization, no drag-and-drop deal management
+   - No mobile native apps with push notifications
+   - Impacts user productivity and experience quality
+
 ### ActiveCampaign-Specific Analysis:
 
 **Feature Coverage: ~10-15%**
@@ -1636,6 +1881,37 @@ The ConsultantPro platform has strong foundational features for consulting firm 
 - Limited lead nurturing capabilities
 - No marketing ROI visibility
 - Professional consultants expect these features in modern platforms
+
+### HubSpot-Specific Analysis:
+
+**Feature Coverage: ~20-25%**
+- ✅ Basic CRM, contacts, deals, appointments exist
+- ✅ Activity tracking foundation exists
+- ❌ Missing 75-80% of HubSpot's operational features
+- ❌ No integrated calling system (browser or phone-based)
+- ❌ No two-way calendar sync (Google/Outlook)
+- ❌ No snippets system for productivity
+- ❌ No drag-and-drop deal management
+- ❌ No mobile native apps
+- ❌ No Service Hub equivalent (ticketing, knowledge base)
+- ❌ No Marketing Hub equivalent (SEO, blogs, landing pages)
+- ❌ No CMS Hub capabilities
+
+**Gap Assessment (from HS2.pdf operational guide):**
+- **Foundation**: Basic CRM exists but missing the **operational tooling** that makes HubSpot productive daily
+- **User Experience**: No profile customization, no activity pinning, no rich editing
+- **Communication**: No integrated calling, no calendar sync, no meeting automation
+- **Productivity**: No snippets, no quick-access features, no mobile apps
+- **Integration**: No connection to HubSpot or ability to replicate its multi-hub ecosystem
+
+**Business Impact:**
+- Users accustomed to HubSpot will find ConsultantPro less productive
+- Manual calling outside CRM breaks workflow
+- Calendar disconnection causes double-entry and errors
+- No mobile apps limits field/remote work effectiveness
+- Missing snippets slows communication and documentation
+- Cannot market consulting services effectively (no Marketing Hub)
+- Cannot provide client support at scale (no Service Hub)
 
 ### Strategic Decision Required:
 
@@ -1695,5 +1971,33 @@ The organization must decide whether to:
 *Analysis Date: December 30, 2025*
 *Platform PDFs Analyzed: AC.pdf, AC2.pdf, HS.pdf, HS2.pdf, K.pdf, K2.pdf, C.pdf, C2.pdf*
 *Codebase Version: Tiers 0-4 Complete*
-*ActiveCampaign Feature Coverage: ~10-15% (Basic models exist, automation engine missing)*
-*Estimated Development to Match ActiveCampaign: 12-24 months, $1.5M-2.5M*
+
+**Feature Coverage Summary:**
+- *ActiveCampaign Feature Coverage: ~10-15%* (Basic models exist, automation engine missing)
+- *HubSpot Feature Coverage: ~20-25%* (Basic CRM exists, operational features and multi-hub ecosystem missing)
+- *Karbon Feature Coverage: ~40-50%* (Strong project/client management, missing email integration and templates)
+- *Calendly Feature Coverage: ~30-40%* (Basic scheduling exists, missing advanced features and workflows)
+
+**Estimated Development Costs:**
+- *To Match ActiveCampaign: 12-24 months, $1.5M-2.5M*
+- *To Match HubSpot CRM + Sales Hub Only: 9-18 months, $800K-1.5M*
+- *To Match Full HubSpot (All Hubs): 24-36 months, $3M-5M*
+- *To Match Karbon: 6-12 months, $400K-800K*
+- *To Match Calendly: 6-9 months, $300K-600K*
+
+**Key Findings from HS2.pdf Analysis:**
+- HS2.pdf revealed detailed operational features not captured in HS.pdf
+- Integrated calling system is a major differentiator (browser + phone calling with CRM logging)
+- Two-way calendar sync is critical for daily operations
+- Snippets system provides significant productivity gains
+- Activity pinning and rich editing improves user experience
+- Mobile apps (native iOS/Android) are expected by modern users
+- Profile customization (photos, signatures, meeting links) enhances professional appearance
+
+**Most Critical HubSpot Gaps (from HS2.pdf):**
+1. No integrated calling system (browser/phone with recording and logging)
+2. No two-way calendar sync (Google Calendar, Outlook)
+3. No snippets system for quick text insertion
+4. No mobile native apps with push notifications
+5. No drag-and-drop deal board management
+6. No user profile customization (photos, signatures, meeting links)
