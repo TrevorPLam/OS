@@ -281,7 +281,7 @@ See: `src/modules/core/governance.py` - Data classification implementation
 **Likelihood**: LOW
 
 **Mitigations**:
-- `src/modules/documents/models.py:81-106` - DocumentAccessLog model
+- `src/modules/documents/models.py:821-989` - DocumentAccessLog model
 - All document URL generations logged
 - Portal access tracked per client
 - API request logging (via Django middleware)
