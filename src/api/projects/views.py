@@ -85,6 +85,112 @@ class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=True, methods=["get"])
+    def utilization(self, request, pk=None):
+        """
+        Get project utilization metrics (Medium Feature 2.9).
+        
+        GET /api/projects/projects/{id}/utilization/
+        Query params:
+        - start_date: Optional YYYY-MM-DD format
+        - end_date: Optional YYYY-MM-DD format
+        
+        Returns utilization metrics for the project including billable hours,
+        utilization rate, team size, and hours vs budget.
+        """
+        from datetime import datetime
+        
+        try:
+            project = self.get_object()
+            
+            # Parse date filters from query params
+            start_date = request.query_params.get("start_date")
+            end_date = request.query_params.get("end_date")
+            
+            if start_date:
+                start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+            if end_date:
+                end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+            
+            metrics = project.calculate_utilization_metrics(start_date, end_date)
+            
+            return Response({
+                "project_id": project.id,
+                "project_code": project.project_code,
+                "project_name": project.name,
+                "metrics": metrics,
+            }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({
+                "error": f"Invalid date format. Use YYYY-MM-DD: {str(e)}"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=["get"])
+    def team_utilization(self, request):
+        """
+        Get team utilization metrics (Medium Feature 2.9).
+        
+        GET /api/projects/projects/team_utilization/
+        Query params (required):
+        - start_date: YYYY-MM-DD format
+        - end_date: YYYY-MM-DD format
+        - user_id: Optional - specific user ID to calculate for
+        
+        Returns utilization metrics for team members across all projects.
+        """
+        from datetime import datetime
+        from modules.firm.models import FirmMembership
+        
+        try:
+            # Required date range
+            start_date_str = request.query_params.get("start_date")
+            end_date_str = request.query_params.get("end_date")
+            
+            if not start_date_str or not end_date_str:
+                return Response({
+                    "error": "start_date and end_date query parameters are required (YYYY-MM-DD)"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+            
+            firm = get_request_firm(request)
+            user_id = request.query_params.get("user_id")
+            
+            results = []
+            
+            if user_id:
+                # Single user
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                try:
+                    user = User.objects.get(id=user_id)
+                    metrics = Project.calculate_user_utilization(firm, user, start_date, end_date)
+                    results.append(metrics)
+                except User.DoesNotExist:
+                    return Response({"error": f"User {user_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                # All team members
+                memberships = FirmMembership.objects.filter(firm=firm, is_active=True)
+                for membership in memberships:
+                    metrics = Project.calculate_user_utilization(firm, membership.user, start_date, end_date)
+                    results.append(metrics)
+            
+            return Response({
+                "period_start": start_date.isoformat(),
+                "period_end": end_date.isoformat(),
+                "team_members": len(results),
+                "utilization_data": results,
+            }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({
+                "error": f"Invalid date format. Use YYYY-MM-DD: {str(e)}"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
