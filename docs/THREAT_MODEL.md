@@ -240,8 +240,8 @@ See: `src/modules/core/governance.py` - Data classification implementation
 **Likelihood**: LOW
 
 **Mitigations**:
-- `src/modules/documents/models.py:1-151` - Document versioning (immutable versions)
-- `src/modules/documents/models.py:33-72` - Version model with checksum
+- `src/modules/documents/models.py:143-697` - Document versioning (immutable versions)
+- `src/modules/documents/models.py:698-820` - Version model with checksum
 - S3 bucket policy prevents public access
 - Document locking prevents unauthorized changes
 
