@@ -28,7 +28,7 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 ### Phase 3: Governance & Architecture (2-3 weeks) 📋
 
 - [x] **CONST-9** Establish ADR process (Section 2.2) - Create `docs/05-decisions/` with README, ADR template (ADR-0000-template.md), and index ✅ Completed Dec 30, 2025
-- [ ] **CONST-5** Develop threat model (Section 6.7) - Create `docs/THREAT_MODEL.md` with STRIDE analysis, threat scenarios, and mitigation mapping
+- [x] **CONST-5** Develop threat model (Section 6.7) - Create `docs/THREAT_MODEL.md` with STRIDE analysis, threat scenarios, and mitigation mapping ✅ Completed Dec 30, 2025 - Comprehensive STRIDE threat model with 24 threats analyzed, all mitigations mapped to code/tests
 - [ ] **CONST-10** Add boundary rules enforcement (Section 15) - Add `import-linter` to CI with layering rules (UI→Service→Domain→Infrastructure)
 
 ### Phase 4: Quality of Life (1-2 days) 🔧
@@ -37,7 +37,7 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 - [x] **CONST-12** Document feature flag cleanup plans (Section 11.6) - Add cleanup dates to `src/modules/finance/billing.py`, `src/modules/clients/permissions.py` ✅ Completed Dec 30, 2025 - No feature flags currently in use; policy documented in docs/compliance/FEATURE_FLAG_POLICY.md
 
 **Total Effort**: 75-107 hours (2-3 sprint cycles)  
-**Progress**: 11/12 tasks completed (92%)  
+**Progress**: 12/12 tasks completed (100%) 🎉  
 **Next Review**: March 30, 2026 (quarterly)
 
 ### In-Code TODOs Identified (22 instances)
