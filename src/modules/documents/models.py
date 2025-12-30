@@ -92,8 +92,8 @@ class Folder(models.Model):
         db_table = "documents_folders"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["firm", "client", "parent"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "visibility"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "client", "parent"]),  # TIER 0: Firm scoping, name="documents_fir_cli_par_idx")
+            models.Index(fields=["firm", "visibility"]),  # TIER 0: Firm scoping, name="documents_fir_vis_idx")
         ]
         # TIER 0: Folder names must be unique within firm+client+parent (not globally)
         unique_together = [["firm", "client", "parent", "name"]]
@@ -358,10 +358,10 @@ class Document(models.Model):
         db_table = "documents_documents"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "client", "folder"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "visibility"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "s3_fingerprint"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "client", "folder"]),  # TIER 0: Firm scoping, name="documents_fir_cli_fol_idx")
+            models.Index(fields=["firm", "visibility"]),  # TIER 0: Firm scoping, name="documents_fir_vis_idx")
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="documents_fir_cre_idx")
+            models.Index(fields=["firm", "s3_fingerprint"]),  # TIER 0: Firm scoping, name="documents_fir_s3__idx")
         ]
         # TIER 0: S3 keys must be unique within a firm (not globally)
         unique_together = [["firm", "s3_fingerprint"]]
@@ -641,9 +641,9 @@ class DocumentLock(models.Model):
     class Meta:
         db_table = "documents_locks"
         indexes = [
-            models.Index(fields=["firm", "document"]),
-            models.Index(fields=["firm", "locked_by"]),
-            models.Index(fields=["firm", "expires_at"]),
+            models.Index(fields=["firm", "document"], name="documents_fir_doc_idx"),
+            models.Index(fields=["firm", "locked_by"], name="documents_fir_loc_idx"),
+            models.Index(fields=["firm", "expires_at"], name="documents_fir_exp_idx"),
         ]
 
     def __str__(self) -> str:
@@ -786,8 +786,8 @@ class Version(models.Model):
         db_table = "documents_versions"
         ordering = ["-version_number"]
         indexes = [
-            models.Index(fields=["firm", "document", "version_number"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "s3_fingerprint"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "document", "version_number"]),  # TIER 0: Firm scoping, name="documents_fir_doc_ver_idx")
+            models.Index(fields=["firm", "s3_fingerprint"]),  # TIER 0: Firm scoping, name="documents_fir_s3__idx")
         ]
         # TIER 0: Version numbers unique within firm+document, S3 keys unique within firm
         unique_together = [["firm", "document", "version_number"], ["firm", "s3_fingerprint"]]
@@ -936,10 +936,10 @@ class DocumentAccessLog(models.Model):
         db_table = "documents_access_logs"
         ordering = ["-timestamp"]
         indexes = [
-            models.Index(fields=["firm", "document", "-timestamp"]),
-            models.Index(fields=["firm", "actor_user", "-timestamp"]),
-            models.Index(fields=["firm", "action", "-timestamp"]),
-            models.Index(fields=["correlation_id"]),
+            models.Index(fields=["firm", "document", "-timestamp"], name="documents_fir_doc_tim_idx"),
+            models.Index(fields=["firm", "actor_user", "-timestamp"], name="documents_fir_act_tim_idx"),
+            models.Index(fields=["firm", "action", "-timestamp"], name="documents_fir_act_tim_idx"),
+            models.Index(fields=["correlation_id"], name="documents_cor_idx"),
         ]
 
     def __str__(self) -> str:

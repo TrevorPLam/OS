@@ -73,7 +73,7 @@ class Organization(models.Model):
         db_table = "clients_organization"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["firm", "name"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "name"]),  # TIER 0: Firm scoping, name="clients_fir_nam_idx")
         ]
         # TIER 2.6: Organization names must be unique within a firm
         unique_together = [["firm", "name"]]
@@ -230,11 +230,11 @@ class Client(models.Model):
         db_table = "clients_client"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
-            models.Index(fields=["organization"]),  # TIER 2.6: Org scoping
-            models.Index(fields=["account_manager"]),
-            models.Index(fields=["company_name"]),
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="clients_fir_sta_idx")
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="clients_fir_cre_idx")
+            models.Index(fields=["organization"]),  # TIER 2.6: Org scoping, name="clients_org_idx")
+            models.Index(fields=["account_manager"], name="clients_acc_idx"),
+            models.Index(fields=["company_name"], name="clients_com_idx"),
         ]
         # TIER 0: Company names must be unique within a firm (not globally)
         unique_together = [["firm", "company_name"]]
@@ -343,7 +343,7 @@ class ClientNote(models.Model):
         db_table = "clients_note"
         ordering = ["-is_pinned", "-created_at"]
         indexes = [
-            models.Index(fields=["client", "-created_at"]),
+            models.Index(fields=["client", "-created_at"], name="clients_cli_cre_idx"),
         ]
 
     def __str__(self):
@@ -454,10 +454,10 @@ class ClientEngagement(models.Model):
         db_table = "clients_engagement"
         ordering = ["-start_date"]
         indexes = [
-            models.Index(fields=["client", "-start_date"]),
-            models.Index(fields=["status"]),
-            models.Index(fields=["firm", "status"]),  # TIER 4: Firm scoping
-            models.Index(fields=["firm", "-start_date"]),  # TIER 4: Firm scoping
+            models.Index(fields=["client", "-start_date"], name="clients_cli_sta_idx"),
+            models.Index(fields=["status"], name="clients_sta_idx"),
+            models.Index(fields=["firm", "status"]),  # TIER 4: Firm scoping, name="clients_fir_sta_idx")
+            models.Index(fields=["firm", "-start_date"]),  # TIER 4: Firm scoping, name="clients_fir_sta_idx")
         ]
         unique_together = [["client", "version"]]
 
@@ -723,9 +723,9 @@ class ClientComment(models.Model):
         db_table = "clients_comment"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["task", "-created_at"]),
-            models.Index(fields=["client", "-created_at"]),
-            models.Index(fields=["is_read_by_firm"]),
+            models.Index(fields=["task", "-created_at"], name="clients_tas_cre_idx"),
+            models.Index(fields=["client", "-created_at"], name="clients_cli_cre_idx"),
+            models.Index(fields=["is_read_by_firm"], name="clients_is__idx"),
         ]
 
     def __str__(self):
@@ -767,9 +767,9 @@ class ClientChatThread(models.Model):
         db_table = "clients_chat_thread"
         ordering = ["-date"]
         indexes = [
-            models.Index(fields=["client", "-date"]),
-            models.Index(fields=["is_active"]),
-            models.Index(fields=["-last_message_at"]),
+            models.Index(fields=["client", "-date"], name="clients_cli_dat_idx"),
+            models.Index(fields=["is_active"], name="clients_is__idx"),
+            models.Index(fields=["-last_message_at"], name="clients_las_idx"),
         ]
         unique_together = [["client", "date"]]
 
@@ -831,9 +831,9 @@ class ClientMessage(models.Model):
         db_table = "clients_message"
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["thread", "created_at"]),
-            models.Index(fields=["sender", "-created_at"]),
-            models.Index(fields=["is_read"]),
+            models.Index(fields=["thread", "created_at"], name="clients_thr_cre_idx"),
+            models.Index(fields=["sender", "-created_at"], name="clients_sen_cre_idx"),
+            models.Index(fields=["is_read"], name="clients_is__idx"),
         ]
 
     def __str__(self):

@@ -117,8 +117,8 @@ class OrchestrationDefinition(models.Model):
         db_table = "orchestration_definition"
         ordering = ["-version"]
         indexes = [
-            models.Index(fields=["firm", "code", "-version"]),
-            models.Index(fields=["firm", "status"]),
+            models.Index(fields=["firm", "code", "-version"], name="orchestrat_fir_cod_ver_idx"),
+            models.Index(fields=["firm", "status"], name="orchestrat_fir_sta_idx"),
         ]
         unique_together = [["firm", "code", "version"]]
 
@@ -270,11 +270,11 @@ class OrchestrationExecution(models.Model):
         db_table = "orchestration_execution"
         ordering = ["-started_at"]
         indexes = [
-            models.Index(fields=["firm", "status", "-started_at"]),
-            models.Index(fields=["firm", "definition", "-started_at"]),
-            models.Index(fields=["idempotency_key"]),
-            models.Index(fields=["correlation_id"]),
-            models.Index(fields=["target_object_type", "target_object_id"]),
+            models.Index(fields=["firm", "status", "-started_at"], name="orchestrat_fir_sta_sta_idx"),
+            models.Index(fields=["firm", "definition", "-started_at"], name="orchestrat_fir_def_sta_idx"),
+            models.Index(fields=["idempotency_key"], name="orchestrat_ide_idx"),
+            models.Index(fields=["correlation_id"], name="orchestrat_cor_idx"),
+            models.Index(fields=["target_object_type", "target_object_id"], name="orchestrat_tar_tar_idx"),
         ]
 
     def __str__(self) -> str:
@@ -433,10 +433,10 @@ class StepExecution(models.Model):
         db_table = "orchestration_step_execution"
         ordering = ["execution", "step_id", "attempt_number"]
         indexes = [
-            models.Index(fields=["firm", "execution", "step_id"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["idempotency_key"]),
-            models.Index(fields=["retry_after_at"]),
+            models.Index(fields=["firm", "execution", "step_id"], name="orchestrat_fir_exe_ste_idx"),
+            models.Index(fields=["firm", "status"], name="orchestrat_fir_sta_idx"),
+            models.Index(fields=["idempotency_key"], name="orchestrat_ide_idx"),
+            models.Index(fields=["retry_after_at"], name="orchestrat_ret_idx"),
         ]
 
     def __str__(self) -> str:
@@ -554,8 +554,8 @@ class OrchestrationDLQ(models.Model):
         db_table = "orchestration_dlq"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "resolved", "-created_at"]),
-            models.Index(fields=["execution"]),
+            models.Index(fields=["firm", "resolved", "-created_at"], name="orchestrat_fir_res_cre_idx"),
+            models.Index(fields=["execution"], name="orchestrat_exe_idx"),
         ]
 
     def __str__(self) -> str:

@@ -153,10 +153,10 @@ class KnowledgeItem(models.Model):
         db_table = "knowledge_items"
         ordering = ["-updated_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "type"]),
-            models.Index(fields=["firm", "owner"]),
-            models.Index(fields=["status", "published_at"]),
+            models.Index(fields=["firm", "status"], name="knowledge_fir_sta_idx"),
+            models.Index(fields=["firm", "type"], name="knowledge_fir_typ_idx"),
+            models.Index(fields=["firm", "owner"], name="knowledge_fir_own_idx"),
+            models.Index(fields=["status", "published_at"], name="knowledge_sta_pub_idx"),
         ]
         unique_together = [["firm", "title", "version_number"]]  # Prevent duplicate titles in same version
 
@@ -364,8 +364,8 @@ class KnowledgeVersion(models.Model):
         db_table = "knowledge_versions"
         ordering = ["-version_number"]
         indexes = [
-            models.Index(fields=["firm", "knowledge_item"]),
-            models.Index(fields=["knowledge_item", "-version_number"]),
+            models.Index(fields=["firm", "knowledge_item"], name="knowledge_fir_kno_idx"),
+            models.Index(fields=["knowledge_item", "-version_number"], name="knowledge_kno_ver_idx"),
         ]
         unique_together = [["knowledge_item", "version_number"]]
 
@@ -417,8 +417,8 @@ class KnowledgeReview(models.Model):
         db_table = "knowledge_reviews"
         ordering = ["-requested_at"]
         indexes = [
-            models.Index(fields=["firm", "knowledge_item"]),
-            models.Index(fields=["reviewer", "decision"]),
+            models.Index(fields=["firm", "knowledge_item"], name="knowledge_fir_kno_idx"),
+            models.Index(fields=["reviewer", "decision"], name="knowledge_rev_dec_idx"),
         ]
         unique_together = [["knowledge_item", "reviewer"]]  # One review per reviewer per item
 
@@ -537,8 +537,8 @@ class KnowledgeAttachment(models.Model):
         db_table = "knowledge_attachments"
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["firm", "knowledge_item"]),
-            models.Index(fields=["attachment_type"]),
+            models.Index(fields=["firm", "knowledge_item"], name="knowledge_fir_kno_idx"),
+            models.Index(fields=["attachment_type"], name="knowledge_att_idx"),
         ]
 
     def __str__(self):

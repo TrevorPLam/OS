@@ -105,9 +105,9 @@ class Firm(models.Model):
         db_table = "firm_firm"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["status"]),
-            models.Index(fields=["slug"]),
-            models.Index(fields=["subscription_tier"]),
+            models.Index(fields=["status"], name="firm_sta_idx"),
+            models.Index(fields=["slug"], name="firm_slu_idx"),
+            models.Index(fields=["subscription_tier"], name="firm_sub_idx"),
         ]
 
     def __str__(self) -> str:
@@ -349,9 +349,9 @@ class FirmMembership(models.Model):
         unique_together = [["firm", "user"]]
         ordering = ["-invited_at"]
         indexes = [
-            models.Index(fields=["firm", "is_active"]),
-            models.Index(fields=["user", "is_active"]),
-            models.Index(fields=["role"]),
+            models.Index(fields=["firm", "is_active"], name="firm_fir_is__idx"),
+            models.Index(fields=["user", "is_active"], name="firm_use_is__idx"),
+            models.Index(fields=["role"], name="firm_rol_idx"),
         ]
 
     def __str__(self) -> str:
@@ -708,8 +708,8 @@ class FirmOffboardingRecord(models.Model):
         db_table = "firm_offboarding_record"
         ordering = ["-export_started_at"]
         indexes = [
-            models.Index(fields=["firm", "-export_started_at"]),
-            models.Index(fields=["status", "-export_started_at"]),
+            models.Index(fields=["firm", "-export_started_at"], name="firm_fir_exp_idx"),
+            models.Index(fields=["status", "-export_started_at"], name="firm_sta_exp_idx"),
         ]
 
     def __str__(self) -> str:

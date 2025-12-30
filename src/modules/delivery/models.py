@@ -132,9 +132,9 @@ class DeliveryTemplate(models.Model):
         db_table = "delivery_template"
         ordering = ["-version"]
         indexes = [
-            models.Index(fields=["firm", "code", "-version"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "applies_to"]),
+            models.Index(fields=["firm", "code", "-version"], name="delivery_fir_cod_ver_idx"),
+            models.Index(fields=["firm", "status"], name="delivery_fir_sta_idx"),
+            models.Index(fields=["firm", "applies_to"], name="delivery_fir_app_idx"),
         ]
         unique_together = [["firm", "code", "version"]]
 
@@ -445,8 +445,8 @@ class DeliveryNode(models.Model):
         db_table = "delivery_node"
         ordering = ["node_id"]
         indexes = [
-            models.Index(fields=["firm", "template"]),
-            models.Index(fields=["type"]),
+            models.Index(fields=["firm", "template"], name="delivery_fir_tem_idx"),
+            models.Index(fields=["type"], name="delivery_typ_idx"),
         ]
         unique_together = [["template", "node_id"]]
 
@@ -541,9 +541,9 @@ class DeliveryEdge(models.Model):
         db_table = "delivery_edge"
         ordering = ["from_node_id", "to_node_id"]
         indexes = [
-            models.Index(fields=["firm", "template"]),
-            models.Index(fields=["from_node_id"]),
-            models.Index(fields=["to_node_id"]),
+            models.Index(fields=["firm", "template"], name="delivery_fir_tem_idx"),
+            models.Index(fields=["from_node_id"], name="delivery_fro_idx"),
+            models.Index(fields=["to_node_id"], name="delivery_to__idx"),
         ]
         unique_together = [["template", "from_node_id", "to_node_id"]]
 
@@ -680,11 +680,11 @@ class TemplateInstantiation(models.Model):
         db_table = "delivery_template_instantiation"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "-created_at"]),
-            models.Index(fields=["template", "-created_at"]),
-            models.Index(fields=["target_engagement"]),
-            models.Index(fields=["target_engagement_line"]),
-            models.Index(fields=["correlation_id"]),
+            models.Index(fields=["firm", "-created_at"], name="delivery_fir_cre_idx"),
+            models.Index(fields=["template", "-created_at"], name="delivery_tem_cre_idx"),
+            models.Index(fields=["target_engagement"], name="delivery_tar_idx"),
+            models.Index(fields=["target_engagement_line"], name="delivery_tar_idx"),
+            models.Index(fields=["correlation_id"], name="delivery_cor_idx"),
         ]
 
     def __str__(self) -> str:

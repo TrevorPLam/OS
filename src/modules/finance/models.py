@@ -205,12 +205,12 @@ class Invoice(models.Model):
         db_table = "finance_invoices"
         ordering = ["-issue_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "invoice_number"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "due_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-issue_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["engagement", "period_start"]),
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="finance_fir_sta_idx")
+            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping, name="finance_fir_cli_sta_idx")
+            models.Index(fields=["firm", "invoice_number"]),  # TIER 0: Firm scoping, name="finance_fir_inv_idx")
+            models.Index(fields=["firm", "due_date"]),  # TIER 0: Firm scoping, name="finance_fir_due_idx")
+            models.Index(fields=["firm", "-issue_date"]),  # TIER 0: Firm scoping, name="finance_fir_iss_idx")
+            models.Index(fields=["engagement", "period_start"], name="finance_eng_per_idx"),
         ]
         # TIER 0: Invoice numbers must be unique within a firm (not globally)
         unique_together = [["firm", "invoice_number"], ["engagement", "period_start"]]
@@ -450,9 +450,9 @@ class PaymentDispute(models.Model):
         db_table = "finance_payment_dispute"
         ordering = ["-opened_at"]
         indexes = [
-            models.Index(fields=["firm", "status", "-opened_at"]),
-            models.Index(fields=["invoice", "-opened_at"]),
-            models.Index(fields=["stripe_dispute_id"]),
+            models.Index(fields=["firm", "status", "-opened_at"], name="finance_fir_sta_ope_idx"),
+            models.Index(fields=["invoice", "-opened_at"], name="finance_inv_ope_idx"),
+            models.Index(fields=["stripe_dispute_id"], name="finance_str_idx"),
         ]
 
     def __str__(self) -> str:
@@ -574,11 +574,11 @@ class PaymentFailure(models.Model):
         db_table = "finance_payment_failure"
         ordering = ["-failed_at"]
         indexes = [
-            models.Index(fields=["firm", "resolved", "-failed_at"]),
-            models.Index(fields=["invoice", "-failed_at"]),
-            models.Index(fields=["client", "-failed_at"]),
-            models.Index(fields=["stripe_payment_intent_id"]),
-            models.Index(fields=["next_retry_at"]),
+            models.Index(fields=["firm", "resolved", "-failed_at"], name="finance_fir_res_fai_idx"),
+            models.Index(fields=["invoice", "-failed_at"], name="finance_inv_fai_idx"),
+            models.Index(fields=["client", "-failed_at"], name="finance_cli_fai_idx"),
+            models.Index(fields=["stripe_payment_intent_id"], name="finance_str_idx"),
+            models.Index(fields=["next_retry_at"], name="finance_nex_idx"),
         ]
 
     def __str__(self) -> str:
@@ -702,10 +702,10 @@ class Chargeback(models.Model):
         db_table = "finance_chargeback"
         ordering = ["-initiated_at"]
         indexes = [
-            models.Index(fields=["firm", "status", "-initiated_at"]),
-            models.Index(fields=["invoice", "-initiated_at"]),
-            models.Index(fields=["client", "-initiated_at"]),
-            models.Index(fields=["stripe_chargeback_id"]),
+            models.Index(fields=["firm", "status", "-initiated_at"], name="finance_fir_sta_ini_idx"),
+            models.Index(fields=["invoice", "-initiated_at"], name="finance_inv_ini_idx"),
+            models.Index(fields=["client", "-initiated_at"], name="finance_cli_ini_idx"),
+            models.Index(fields=["stripe_chargeback_id"], name="finance_str_idx"),
         ]
 
     def __str__(self) -> str:
@@ -877,11 +877,11 @@ class Bill(models.Model):
         db_table = "finance_bills"
         ordering = ["-bill_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "vendor_name", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "reference_number"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "due_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-bill_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="finance_fir_sta_idx")
+            models.Index(fields=["firm", "vendor_name", "status"]),  # TIER 0: Firm scoping, name="finance_fir_ven_sta_idx")
+            models.Index(fields=["firm", "reference_number"]),  # TIER 0: Firm scoping, name="finance_fir_ref_idx")
+            models.Index(fields=["firm", "due_date"]),  # TIER 0: Firm scoping, name="finance_fir_due_idx")
+            models.Index(fields=["firm", "-bill_date"]),  # TIER 0: Firm scoping, name="finance_fir_bil_idx")
         ]
         # TIER 0: Reference numbers must be unique within a firm (not globally)
         unique_together = [["firm", "reference_number"]]
@@ -1020,10 +1020,10 @@ class LedgerEntry(models.Model):
         db_table = "finance_ledger_entries"
         ordering = ["-transaction_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "account", "transaction_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "transaction_group_id"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-transaction_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "entry_type"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "account", "transaction_date"]),  # TIER 0: Firm scoping, name="finance_fir_acc_tra_idx")
+            models.Index(fields=["firm", "transaction_group_id"]),  # TIER 0: Firm scoping, name="finance_fir_tra_idx")
+            models.Index(fields=["firm", "-transaction_date"]),  # TIER 0: Firm scoping, name="finance_fir_tra_idx")
+            models.Index(fields=["firm", "entry_type"]),  # TIER 0: Firm scoping, name="finance_fir_ent_idx")
         ]
         verbose_name_plural = "Ledger Entries"
 
@@ -1153,10 +1153,10 @@ class CreditLedgerEntry(models.Model):
         db_table = "finance_credit_ledger"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "client", "-created_at"]),
-            models.Index(fields=["client", "entry_type", "-created_at"]),
-            models.Index(fields=["source_invoice"]),
-            models.Index(fields=["applied_to_invoice"]),
+            models.Index(fields=["firm", "client", "-created_at"], name="finance_fir_cli_cre_idx"),
+            models.Index(fields=["client", "entry_type", "-created_at"], name="finance_cli_ent_cre_idx"),
+            models.Index(fields=["source_invoice"], name="finance_sou_idx"),
+            models.Index(fields=["applied_to_invoice"], name="finance_app_idx"),
         ]
         verbose_name_plural = "Credit Ledger Entries"
 
@@ -1310,9 +1310,9 @@ class Payment(models.Model):
         db_table = "finance_payments"
         ordering = ["-payment_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "client", "-payment_date"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "payment_number"]),
+            models.Index(fields=["firm", "client", "-payment_date"], name="finance_fir_cli_pay_idx"),
+            models.Index(fields=["firm", "status"], name="finance_fir_sta_idx"),
+            models.Index(fields=["firm", "payment_number"], name="finance_fir_pay_idx"),
         ]
         unique_together = [["firm", "payment_number"]]
     
@@ -1414,9 +1414,9 @@ class PaymentAllocation(models.Model):
         db_table = "finance_payment_allocations"
         ordering = ["-allocation_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "payment"]),
-            models.Index(fields=["firm", "invoice"]),
-            models.Index(fields=["allocation_date"]),
+            models.Index(fields=["firm", "payment"], name="finance_fir_pay_idx"),
+            models.Index(fields=["firm", "invoice"], name="finance_fir_inv_idx"),
+            models.Index(fields=["allocation_date"], name="finance_all_idx"),
         ]
     
     def __str__(self) -> str:

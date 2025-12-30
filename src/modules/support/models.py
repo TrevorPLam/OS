@@ -93,8 +93,8 @@ class SLAPolicy(models.Model):
         db_table = "support_sla_policies"
         ordering = ["priority", "name"]
         indexes = [
-            models.Index(fields=["firm", "priority"]),
-            models.Index(fields=["firm", "is_active"]),
+            models.Index(fields=["firm", "priority"], name="support_fir_pri_idx"),
+            models.Index(fields=["firm", "is_active"], name="support_fir_is__idx"),
         ]
         unique_together = [["firm", "priority"]]
         verbose_name_plural = "SLA Policies"
@@ -283,12 +283,12 @@ class Ticket(models.Model):
         db_table = "support_tickets"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "-created_at"]),
-            models.Index(fields=["firm", "priority", "status"]),
-            models.Index(fields=["client", "-created_at"]),
-            models.Index(fields=["assigned_to", "status"]),
-            models.Index(fields=["ticket_number"]),
+            models.Index(fields=["firm", "status"], name="support_fir_sta_idx"),
+            models.Index(fields=["firm", "-created_at"], name="support_fir_cre_idx"),
+            models.Index(fields=["firm", "priority", "status"], name="support_fir_pri_sta_idx"),
+            models.Index(fields=["client", "-created_at"], name="support_cli_cre_idx"),
+            models.Index(fields=["assigned_to", "status"], name="support_ass_sta_idx"),
+            models.Index(fields=["ticket_number"], name="support_tic_idx"),
         ]
 
     def __str__(self) -> str:
@@ -418,8 +418,8 @@ class TicketComment(models.Model):
         db_table = "support_ticket_comments"
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["ticket", "created_at"]),
-            models.Index(fields=["created_by", "-created_at"]),
+            models.Index(fields=["ticket", "created_at"], name="support_tic_cre_idx"),
+            models.Index(fields=["created_by", "-created_at"], name="support_cre_cre_idx"),
         ]
 
     def __str__(self) -> str:
@@ -526,8 +526,8 @@ class Survey(models.Model):
         db_table = "support_surveys"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "survey_type"]),
+            models.Index(fields=["firm", "status"], name="support_fir_sta_idx"),
+            models.Index(fields=["firm", "survey_type"], name="support_fir_sur_idx"),
         ]
 
     def __str__(self) -> str:
@@ -611,10 +611,10 @@ class SurveyResponse(models.Model):
         db_table = "support_survey_responses"
         ordering = ["-submitted_at"]
         indexes = [
-            models.Index(fields=["survey", "-submitted_at"]),
-            models.Index(fields=["client", "-submitted_at"]),
-            models.Index(fields=["nps_score"]),
-            models.Index(fields=["nps_category"]),
+            models.Index(fields=["survey", "-submitted_at"], name="support_sur_sub_idx"),
+            models.Index(fields=["client", "-submitted_at"], name="support_cli_sub_idx"),
+            models.Index(fields=["nps_score"], name="support_nps_idx"),
+            models.Index(fields=["nps_category"], name="support_nps_idx"),
         ]
 
     def __str__(self) -> str:

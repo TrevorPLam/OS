@@ -115,9 +115,9 @@ class Conversation(models.Model):
         db_table = "communications_conversation"
         ordering = ["-last_message_at", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "visibility", "-last_message_at"]),
-            models.Index(fields=["firm", "status", "-last_message_at"]),
-            models.Index(fields=["firm", "primary_object_type", "primary_object_id"]),
+            models.Index(fields=["firm", "visibility", "-last_message_at"], name="communicat_fir_vis_las_idx"),
+            models.Index(fields=["firm", "status", "-last_message_at"], name="communicat_fir_sta_las_idx"),
+            models.Index(fields=["firm", "primary_object_type", "primary_object_id"], name="communicat_fir_pri_pri_idx"),
         ]
 
     def __str__(self) -> str:
@@ -224,9 +224,9 @@ class Participant(models.Model):
     class Meta:
         db_table = "communications_participant"
         indexes = [
-            models.Index(fields=["firm", "conversation"]),
-            models.Index(fields=["firm", "staff_user"]),
-            models.Index(fields=["firm", "portal_user_id"]),
+            models.Index(fields=["firm", "conversation"], name="communicat_fir_con_idx"),
+            models.Index(fields=["firm", "staff_user"], name="communicat_fir_sta_idx"),
+            models.Index(fields=["firm", "portal_user_id"], name="communicat_fir_por_idx"),
         ]
         unique_together = [
             # A user can only be in a conversation once
@@ -375,10 +375,10 @@ class Message(models.Model):
         db_table = "communications_message"
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["firm", "conversation", "created_at"]),
-            models.Index(fields=["firm", "sender_user", "-created_at"]),
-            models.Index(fields=["firm", "sender_portal_user_id", "-created_at"]),
-            models.Index(fields=["correlation_id"]),
+            models.Index(fields=["firm", "conversation", "created_at"], name="communicat_fir_con_cre_idx"),
+            models.Index(fields=["firm", "sender_user", "-created_at"], name="communicat_fir_sen_cre_idx"),
+            models.Index(fields=["firm", "sender_portal_user_id", "-created_at"], name="communicat_fir_sen_cre_idx"),
+            models.Index(fields=["correlation_id"], name="communicat_cor_idx"),
         ]
 
     def __str__(self) -> str:
@@ -471,8 +471,8 @@ class MessageAttachment(models.Model):
     class Meta:
         db_table = "communications_message_attachment"
         indexes = [
-            models.Index(fields=["firm", "message"]),
-            models.Index(fields=["firm", "document"]),
+            models.Index(fields=["firm", "message"], name="communicat_fir_mes_idx"),
+            models.Index(fields=["firm", "document"], name="communicat_fir_doc_idx"),
         ]
         unique_together = [["message", "document"]]
 
@@ -539,7 +539,7 @@ class MessageRevision(models.Model):
         db_table = "communications_message_revision"
         ordering = ["-revision_number"]
         indexes = [
-            models.Index(fields=["firm", "message", "-revision_number"]),
+            models.Index(fields=["firm", "message", "-revision_number"], name="communicat_fir_mes_rev_idx"),
         ]
         unique_together = [["message", "revision_number"]]
 
@@ -607,8 +607,8 @@ class ConversationLink(models.Model):
     class Meta:
         db_table = "communications_conversation_link"
         indexes = [
-            models.Index(fields=["firm", "conversation"]),
-            models.Index(fields=["firm", "object_type", "object_id"]),
+            models.Index(fields=["firm", "conversation"], name="communicat_fir_con_idx"),
+            models.Index(fields=["firm", "object_type", "object_id"], name="communicat_fir_obj_obj_idx"),
         ]
         unique_together = [["conversation", "object_type", "object_id"]]
 

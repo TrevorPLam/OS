@@ -93,8 +93,8 @@ class Tag(models.Model):
         db_table = "marketing_tags"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["firm", "category"]),
-            models.Index(fields=["firm", "slug"]),
+            models.Index(fields=["firm", "category"], name="marketing_fir_cat_idx"),
+            models.Index(fields=["firm", "slug"], name="marketing_fir_slu_idx"),
         ]
         unique_together = [["firm", "slug"]]
 
@@ -190,8 +190,8 @@ class Segment(models.Model):
         db_table = "marketing_segments"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "-created_at"]),
+            models.Index(fields=["firm", "status"], name="marketing_fir_sta_idx"),
+            models.Index(fields=["firm", "-created_at"], name="marketing_fir_cre_idx"),
         ]
 
     def __str__(self):
@@ -403,8 +403,8 @@ class EmailTemplate(models.Model):
         db_table = "marketing_email_templates"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "template_type"]),
+            models.Index(fields=["firm", "status"], name="marketing_fir_sta_idx"),
+            models.Index(fields=["firm", "template_type"], name="marketing_fir_tem_idx"),
         ]
 
     def __str__(self):
@@ -552,9 +552,9 @@ class CampaignExecution(models.Model):
         db_table = "marketing_campaign_executions"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["campaign", "status"]),
-            models.Index(fields=["status", "scheduled_for"]),
-            models.Index(fields=["-created_at"]),
+            models.Index(fields=["campaign", "status"], name="marketing_cam_sta_idx"),
+            models.Index(fields=["status", "scheduled_for"], name="marketing_sta_sch_idx"),
+            models.Index(fields=["-created_at"], name="marketing_cre_idx"),
         ]
 
     def __str__(self):
@@ -631,9 +631,9 @@ class EntityTag(models.Model):
         db_table = "marketing_entity_tags"
         ordering = ["-applied_at"]
         indexes = [
-            models.Index(fields=["tag", "entity_type"]),
-            models.Index(fields=["entity_type", "entity_id"]),
-            models.Index(fields=["applied_by", "-applied_at"]),
+            models.Index(fields=["tag", "entity_type"], name="marketing_tag_ent_idx"),
+            models.Index(fields=["entity_type", "entity_id"], name="marketing_ent_ent_idx"),
+            models.Index(fields=["applied_by", "-applied_at"], name="marketing_app_app_idx"),
         ]
         # One tag per entity
         unique_together = [["tag", "entity_type", "entity_id"]]

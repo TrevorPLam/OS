@@ -165,12 +165,12 @@ class JobQueue(models.Model):
         db_table = "job_queue"
         ordering = ["priority", "scheduled_at"]
         indexes = [
-            models.Index(fields=["firm", "status", "scheduled_at"]),
-            models.Index(fields=["status", "priority", "scheduled_at"]),
-            models.Index(fields=["idempotency_key"]),
-            models.Index(fields=["correlation_id"]),
-            models.Index(fields=["category", "status"]),
-            models.Index(fields=["claimed_at"]),
+            models.Index(fields=["firm", "status", "scheduled_at"], name="jobs_fir_sta_sch_idx"),
+            models.Index(fields=["status", "priority", "scheduled_at"], name="jobs_sta_pri_sch_idx"),
+            models.Index(fields=["idempotency_key"], name="jobs_ide_idx"),
+            models.Index(fields=["correlation_id"], name="jobs_cor_idx"),
+            models.Index(fields=["category", "status"], name="jobs_cat_sta_idx"),
+            models.Index(fields=["claimed_at"], name="jobs_cla_idx"),
         ]
         # Uniqueness constraint for idempotency per docs/20 section 3
         constraints = [
@@ -395,11 +395,11 @@ class JobDLQ(models.Model):
         db_table = "job_dlq"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status", "created_at"]),
-            models.Index(fields=["category", "status"]),
-            models.Index(fields=["error_class"]),
-            models.Index(fields=["idempotency_key"]),
-            models.Index(fields=["correlation_id"]),
+            models.Index(fields=["firm", "status", "created_at"], name="jobs_fir_sta_cre_idx"),
+            models.Index(fields=["category", "status"], name="jobs_cat_sta_idx"),
+            models.Index(fields=["error_class"], name="jobs_err_idx"),
+            models.Index(fields=["idempotency_key"], name="jobs_ide_idx"),
+            models.Index(fields=["correlation_id"], name="jobs_cor_idx"),
         ]
 
     def __str__(self):
