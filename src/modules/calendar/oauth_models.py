@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from modules.firm.models import Firm
-from modules.firm.managers import FirmScopedManager
+from modules.firm.utils import FirmScopedManager
 
 
 class OAuthConnection(models.Model):

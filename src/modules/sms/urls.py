@@ -24,10 +24,11 @@ router.register(r'opt-outs', SMSOptOutViewSet, basename='sms-optout')
 
 # URL patterns
 urlpatterns = [
-    # API endpoints
-    path('api/', include(router.urls)),
+    # API endpoints (mounted at /api/sms/ in main urls.py)
+    path('', include(router.urls)),
 
     # Webhooks (no authentication required - Twilio callbacks)
-    path('webhooks/twilio/status/', twilio_status_webhook, name='twilio-status-webhook'),
-    path('webhooks/twilio/inbound/', twilio_inbound_webhook, name='twilio-inbound-webhook'),
+    # These will be at /api/sms/webhooks/...
+    path('webhooks/status/', twilio_status_webhook, name='twilio-status-webhook'),
+    path('webhooks/inbound/', twilio_inbound_webhook, name='twilio-inbound-webhook'),
 ]

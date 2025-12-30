@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 from modules.firm.models import Firm
-from modules.firm.managers import FirmScopedManager
+from modules.firm.utils import FirmScopedManager
 import re
 
 

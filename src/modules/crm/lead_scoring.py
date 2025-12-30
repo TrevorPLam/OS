@@ -10,7 +10,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from modules.firm.models import Firm
-from modules.firm.managers import FirmScopedManager
+from modules.firm.utils import FirmScopedManager
 from modules.crm.models import Lead
 import json
 
