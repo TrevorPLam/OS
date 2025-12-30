@@ -7,8 +7,10 @@ TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
@@ -41,6 +43,48 @@ class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
         return base_queryset.select_related("client", "contract", "project_manager")
+    
+    @action(detail=True, methods=["post"])
+    def mark_client_accepted(self, request, pk=None):
+        """
+        Mark project as client-accepted (Medium Feature 2.8).
+        
+        POST /api/projects/projects/{id}/mark_client_accepted/
+        Body: { "notes": "Optional acceptance notes" }
+        
+        This establishes a gate for invoice generation.
+        Projects must be client-accepted before final invoicing.
+        """
+        try:
+            project = self.get_object()
+            notes = request.data.get("notes", "")
+            project.mark_client_accepted(request.user, notes=notes)
+            serializer = self.get_serializer(project)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["get"])
+    def can_invoice(self, request, pk=None):
+        """
+        Check if project can generate invoices (Medium Feature 2.8).
+        
+        GET /api/projects/projects/{id}/can_invoice/
+        
+        Returns whether the project can be invoiced and why/why not.
+        """
+        try:
+            project = self.get_object()
+            can_invoice, reason = project.can_generate_invoice()
+            return Response({
+                "can_invoice": can_invoice,
+                "reason": reason,
+                "client_accepted": project.client_accepted,
+                "acceptance_date": project.acceptance_date,
+                "accepted_by": project.accepted_by.email if project.accepted_by else None,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):

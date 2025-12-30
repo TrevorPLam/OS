@@ -284,6 +284,29 @@ class Project(models.Model):
     )
     wip_last_calculated = models.DateTimeField(null=True, blank=True, help_text="When WIP was last calculated")
     last_billed_date = models.DateField(null=True, blank=True, help_text="Date of last invoice for this project")
+    
+    # Client Acceptance Gate (Medium Feature 2.8)
+    client_accepted = models.BooleanField(
+        default=False,
+        help_text="Whether the client has accepted the project deliverables",
+    )
+    acceptance_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when client accepted the project",
+    )
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accepted_projects",
+        help_text="User (client portal user or staff) who marked the project as accepted",
+    )
+    acceptance_notes = models.TextField(
+        blank=True,
+        help_text="Notes or feedback from client acceptance",
+    )
 
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
@@ -309,6 +332,50 @@ class Project(models.Model):
 
     def __str__(self) -> str:
         return f"{self.project_code} - {self.name}"
+    
+    def mark_client_accepted(self, user, notes: str = "") -> None:
+        """
+        Mark project as client-accepted (Medium Feature 2.8).
+        
+        This establishes a gate for invoice generation - projects must be
+        client-accepted before final invoicing.
+        
+        Args:
+            user: The user marking acceptance (staff or portal user)
+            notes: Optional acceptance notes or feedback
+        """
+        from django.utils import timezone
+        
+        if self.client_accepted:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Project has already been accepted by client.")
+        
+        self.client_accepted = True
+        self.acceptance_date = timezone.now().date()
+        self.accepted_by = user
+        self.acceptance_notes = notes
+        self.save(update_fields=["client_accepted", "acceptance_date", "accepted_by", "acceptance_notes", "updated_at"])
+    
+    def can_generate_invoice(self) -> tuple[bool, str]:
+        """
+        Check if project can generate invoices (Medium Feature 2.8).
+        
+        Returns:
+            Tuple of (can_invoice: bool, reason: str)
+            - can_invoice: True if project can be invoiced
+            - reason: Empty string if can invoice, otherwise explanation of why not
+        """
+        if self.status == "cancelled":
+            return False, "Cannot invoice cancelled project"
+        
+        if self.status == "planning":
+            return False, "Cannot invoice project still in planning phase"
+        
+        # Client acceptance gate (if project is completed)
+        if self.status == "completed" and not self.client_accepted:
+            return False, "Project must be client-accepted before final invoicing"
+        
+        return True, ""
 
     def clean(self) -> None:
         """Validate project data integrity."""
