@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 
-from modules.auth.permissions import IsStaffUser, IsManager
+from modules.auth.role_permissions import IsStaffUser, IsManager
 from .models import JobQueue, JobDLQ
 
 

@@ -72,6 +72,31 @@ def is_billing_or_above(user, request=None):
 # Module-specific permission classes
 
 
+class IsStaffUser(BasePermission):
+    """
+    Permission class: allows any authenticated staff user (any role).
+    
+    This is a general permission for staff-only endpoints.
+    Portal users are denied.
+    """
+    
+    def has_permission(self, request, view):
+        """Check if user is a staff user (has any firm role)."""
+        return get_user_role(request.user, request) is not None
+
+
+class IsManager(BasePermission):
+    """
+    Permission class: allows manager+ roles (manager, partner, firm_admin).
+    
+    This is for admin/management endpoints requiring elevated privileges.
+    """
+    
+    def has_permission(self, request, view):
+        """Check if user is manager or above."""
+        return is_manager_or_above(request.user, request)
+
+
 class CanAccessDashboard(BasePermission):
     """Dashboard: all staff."""
 

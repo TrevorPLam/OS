@@ -159,8 +159,14 @@ class Document(models.Model):
     ]
 
     # DOC-14.1: Document status (per docs/14 section 2.1)
+    # Extended with approval workflow (TODO 2.7)
     STATUS_CHOICES = [
-        ("active", "Active"),
+        ("draft", "Draft"),
+        ("review", "Under Review"),
+        ("approved", "Approved"),
+        ("published", "Published"),
+        ("active", "Active"),  # Legacy status - treated as published
+        ("deprecated", "Deprecated"),
         ("archived", "Archived"),
     ]
 
@@ -208,12 +214,74 @@ class Document(models.Model):
         help_text="Can clients see this document in the portal?",
     )
 
-    # DOC-14.1: Document status (active | archived per docs/14)
+    # DOC-14.1: Document status with approval workflow (TODO 2.7)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="active",
-        help_text="Document status (active or archived)",
+        default="draft",
+        help_text="Document status (draft → review → approved → published)",
+    )
+    
+    # Approval workflow fields (TODO 2.7)
+    submitted_for_review_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents_submitted_for_review",
+        help_text="User who submitted the document for review",
+    )
+    submitted_for_review_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the document was submitted for review",
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents_reviewed",
+        help_text="User who reviewed/approved the document",
+    )
+    reviewed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the document was reviewed/approved",
+    )
+    review_notes = models.TextField(
+        blank=True,
+        help_text="Reviewer notes/feedback",
+    )
+    published_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents_published",
+        help_text="User who published the document",
+    )
+    published_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the document was published",
+    )
+    deprecated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="documents_deprecated",
+        help_text="User who deprecated the document",
+    )
+    deprecated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the document was deprecated",
+    )
+    deprecation_reason = models.TextField(
+        blank=True,
+        help_text="Reason for deprecating the document",
     )
 
     # DOC-07.1: Data classification (per DATA_GOVERNANCE)
@@ -300,6 +368,121 @@ class Document(models.Model):
 
     def __str__(self) -> str:
         return f"{self.folder} / {self.name}"
+    
+    def submit_for_review(self, user) -> None:
+        """
+        Submit document for review (draft → review).
+        
+        Validates that document is in draft status and sets review tracking fields.
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        if self.status != "draft":
+            raise ValidationError(f"Cannot submit for review: document is in '{self.status}' status, must be 'draft'.")
+        
+        self.status = "review"
+        self.submitted_for_review_by = user
+        self.submitted_for_review_at = timezone.now()
+        self.save(update_fields=["status", "submitted_for_review_by", "submitted_for_review_at", "updated_at"])
+    
+    def approve(self, user, notes: str = "") -> None:
+        """
+        Approve document (review → approved).
+        
+        Validates that document is under review and sets approval tracking fields.
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        if self.status != "review":
+            raise ValidationError(f"Cannot approve: document is in '{self.status}' status, must be 'review'.")
+        
+        self.status = "approved"
+        self.reviewed_by = user
+        self.reviewed_at = timezone.now()
+        self.review_notes = notes
+        self.save(update_fields=["status", "reviewed_by", "reviewed_at", "review_notes", "updated_at"])
+    
+    def reject(self, user, notes: str) -> None:
+        """
+        Reject document and return to draft (review → draft).
+        
+        Validates that document is under review and records rejection notes.
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        if self.status != "review":
+            raise ValidationError(f"Cannot reject: document is in '{self.status}' status, must be 'review'.")
+        
+        if not notes:
+            raise ValidationError("Rejection notes are required.")
+        
+        self.status = "draft"
+        self.reviewed_by = user
+        self.reviewed_at = timezone.now()
+        self.review_notes = notes
+        # Clear submission fields to allow resubmission
+        self.submitted_for_review_by = None
+        self.submitted_for_review_at = None
+        self.save(update_fields=[
+            "status", "reviewed_by", "reviewed_at", "review_notes",
+            "submitted_for_review_by", "submitted_for_review_at", "updated_at"
+        ])
+    
+    def publish(self, user) -> None:
+        """
+        Publish document (approved → published).
+        
+        Validates that document is approved and sets publication tracking fields.
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        if self.status not in ["approved", "active"]:  # Support legacy "active" status
+            raise ValidationError(
+                f"Cannot publish: document is in '{self.status}' status, must be 'approved' or 'active'."
+            )
+        
+        self.status = "published"
+        self.published_by = user
+        self.published_at = timezone.now()
+        self.save(update_fields=["status", "published_by", "published_at", "updated_at"])
+    
+    def deprecate(self, user, reason: str) -> None:
+        """
+        Deprecate document (published → deprecated).
+        
+        Validates that document is published and records deprecation reason.
+        """
+        from django.core.exceptions import ValidationError
+        from django.utils import timezone
+        
+        if self.status not in ["published", "active"]:  # Support legacy "active" status
+            raise ValidationError(
+                f"Cannot deprecate: document is in '{self.status}' status, must be 'published' or 'active'."
+            )
+        
+        if not reason:
+            raise ValidationError("Deprecation reason is required.")
+        
+        self.status = "deprecated"
+        self.deprecated_by = user
+        self.deprecated_at = timezone.now()
+        self.deprecation_reason = reason
+        self.save(update_fields=["status", "deprecated_by", "deprecated_at", "deprecation_reason", "updated_at"])
+    
+    def archive(self) -> None:
+        """
+        Archive document (deprecated → archived or any status → archived).
+        
+        Archives can be performed from any status but typically from deprecated.
+        """
+        from django.utils import timezone
+        
+        self.status = "archived"
+        self.save(update_fields=["status", "updated_at"])
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         # Set retention_start_date to created_at date if not provided

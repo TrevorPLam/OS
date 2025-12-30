@@ -13,7 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from config.query_guards import QueryTimeoutMixin
-from modules.auth.permissions import IsStaffUser
+from modules.auth.role_permissions import IsStaffUser
 from modules.auth.role_permissions import CanAccessKnowledge, is_admin, is_manager_or_above, get_user_role
 from modules.firm.utils import FirmScopedMixin
 
