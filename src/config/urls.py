@@ -44,6 +44,7 @@ urlpatterns = [
     path("api/calendar/", include("modules.calendar.urls")),  # DOC-16.1, DOC-34.1: Calendar and booking
     path("api/email-ingestion/", include("modules.email_ingestion.urls")),  # DOC-15.1: Email ingestion admin
     path("api/communications/", include("modules.communications.urls")),  # DOC-33.1: Conversations and messages
+    path("api/knowledge/", include("modules.knowledge.urls")),  # DOC-35.1: Knowledge system
 ]
 
 # Serve media files in development

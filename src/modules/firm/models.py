@@ -300,13 +300,23 @@ class FirmMembership(models.Model):
 
     Implements the Firm ↔ User relationship required for tenant isolation.
     Each user can be a member of multiple firms (e.g., consultants, contractors).
+
+    DOC-27.1: Role-based views with least privilege defaults.
+    Defines 6 staff roles with module visibility and permission defaults.
     """
 
+    # DOC-27.1: Role definitions per docs/27
     ROLE_CHOICES = [
-        ("owner", "Firm Owner"),  # Master Admin - full control
-        ("admin", "Firm Admin"),  # Admin with granular permissions
-        ("staff", "Staff Member"),  # Standard user with limited permissions
-        ("contractor", "Contractor"),  # External contractor
+        ("firm_admin", "Firm Admin"),  # Everything including Admin + Audit + Integrations + Governance
+        ("partner", "Partner/Owner"),  # Most operational; limited admin depending on policy
+        ("manager", "Manager"),  # CRM/Engagements/Work/Documents/Comms/Calendar; limited billing
+        ("staff", "Staff"),  # Work/Documents/Comms/Calendar; limited CRM; no admin
+        ("billing", "Billing"),  # Billing + invoice/pay/retainer actions; limited work edits
+        ("readonly", "Read-Only"),  # Read-only across allowed objects
+        # Legacy roles (backward compatibility)
+        ("owner", "Legacy Owner"),  # Mapped to firm_admin
+        ("admin", "Legacy Admin"),  # Mapped to firm_admin
+        ("contractor", "Contractor"),  # Mapped to staff
     ]
 
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="memberships")
@@ -348,20 +358,61 @@ class FirmMembership(models.Model):
         return f"{self.user.get_full_name() or self.user.username} - {self.firm.name} ({self.role})"
 
     def save(self, *args: Any, **kwargs: Any) -> None:
-        """Auto-set permissions based on role."""
-        if self.role == "owner":
-            # Owner has all permissions
+        """
+        Auto-set permissions based on role (DOC-27.1).
+
+        Implements least privilege defaults per docs/27.
+        """
+        # Map legacy roles to new roles
+        role = self.role
+        if role in ("owner", "admin"):
+            role = "firm_admin"
+        elif role == "contractor":
+            role = "staff"
+
+        # DOC-27.1: Role-based permission defaults
+        if role == "firm_admin":
+            # FirmAdmin: everything, including Admin + Audit + Integrations + Governance
             self.can_manage_users = True
             self.can_manage_clients = True
             self.can_manage_billing = True
             self.can_manage_settings = True
             self.can_view_reports = True
-        elif self.role == "admin":
-            # Admin has most permissions (but not settings by default)
-            self.can_manage_users = True
+        elif role == "partner":
+            # Partner/Owner: most operational; limited admin depending on policy
+            self.can_manage_users = False  # Policy-dependent
             self.can_manage_clients = True
             self.can_manage_billing = True
+            self.can_manage_settings = False  # Limited admin
             self.can_view_reports = True
+        elif role == "manager":
+            # Manager: CRM/Engagements/Work/Documents/Comms/Calendar; limited billing
+            self.can_manage_users = False
+            self.can_manage_clients = True
+            self.can_manage_billing = False  # Limited: can view, not manage
+            self.can_manage_settings = False
+            self.can_view_reports = True  # Manager+ per docs/27
+        elif role == "staff":
+            # Staff: Work/Documents/Comms/Calendar; limited CRM; no admin
+            self.can_manage_users = False
+            self.can_manage_clients = False
+            self.can_manage_billing = False
+            self.can_manage_settings = False
+            self.can_view_reports = False
+        elif role == "billing":
+            # Billing: Billing + invoice/pay/retainer actions; limited work edits
+            self.can_manage_users = False
+            self.can_manage_clients = False
+            self.can_manage_billing = True
+            self.can_manage_settings = False
+            self.can_view_reports = False  # Limited to billing reports
+        elif role == "readonly":
+            # ReadOnly: read-only across allowed objects
+            self.can_manage_users = False
+            self.can_manage_clients = False
+            self.can_manage_billing = False
+            self.can_manage_settings = False
+            self.can_view_reports = False
 
         super().save(*args, **kwargs)
 
