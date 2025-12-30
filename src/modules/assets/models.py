@@ -108,10 +108,10 @@ class Asset(models.Model):
         db_table = "assets_assets"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "asset_tag"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "category", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "asset_tag"]),  # TIER 0: Firm scoping, name="assets_fir_ass_idx")
+            models.Index(fields=["firm", "category", "status"]),  # TIER 0: Firm scoping, name="assets_fir_cat_sta_idx")
+            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping, name="assets_fir_ass_idx")
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="assets_fir_sta_idx")
         ]
         # TIER 0: Asset tags must be unique within a firm (not globally)
         unique_together = [["firm", "asset_tag"]]
@@ -193,9 +193,9 @@ class MaintenanceLog(models.Model):
         db_table = "assets_maintenance_logs"
         ordering = ["-scheduled_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "asset", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "scheduled_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "asset", "status"]),  # TIER 0: Firm scoping, name="assets_fir_ass_sta_idx")
+            models.Index(fields=["firm", "scheduled_date"]),  # TIER 0: Firm scoping, name="assets_fir_sch_idx")
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="assets_fir_sta_idx")
         ]
 
     def __str__(self):

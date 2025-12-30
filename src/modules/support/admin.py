@@ -20,8 +20,8 @@ class SLAPolicyAdmin(admin.ModelAdmin):
         "name",
         "firm",
         "priority",
-        "response_time_hours",
-        "resolution_time_hours",
+        "first_response_minutes",
+        "resolution_minutes",
         "business_hours_only",
         "is_active",
     ]
@@ -34,8 +34,8 @@ class SLAPolicyAdmin(admin.ModelAdmin):
             "SLA Timings",
             {
                 "fields": (
-                    "response_time_hours",
-                    "resolution_time_hours",
+                    "first_response_minutes",
+                    "resolution_minutes",
                     "business_hours_only",
                 )
             },
@@ -54,7 +54,7 @@ class TicketAdmin(admin.ModelAdmin):
         "priority",
         "status",
         "assigned_to",
-        "sla_breached",
+        "first_response_sla_breached",
         "created_at",
     ]
     list_filter = [
@@ -62,10 +62,11 @@ class TicketAdmin(admin.ModelAdmin):
         "priority",
         "status",
         "channel",
-        "sla_breached",
+        "first_response_sla_breached",
+        "resolution_sla_breached",
         "created_at",
     ]
-    search_fields = ["ticket_number", "subject", "description", "requester_email"]
+    search_fields = ["ticket_number", "subject", "description", "contact_email"]
     readonly_fields = [
         "ticket_number",
         "created_at",
@@ -73,11 +74,8 @@ class TicketAdmin(admin.ModelAdmin):
         "first_response_at",
         "resolved_at",
         "closed_at",
-        "sla_response_deadline",
-        "sla_resolution_deadline",
     ]
-    raw_id_fields = ["client", "account", "contact", "related_project", "assigned_to", "created_by"]
-    filter_horizontal = ["tags"]
+    raw_id_fields = ["client", "assigned_to", "sla_policy", "related_conversation"]
     fieldsets = (
         (
             None,
@@ -95,10 +93,10 @@ class TicketAdmin(admin.ModelAdmin):
         ),
         (
             "Requester Info",
-            {"fields": ("requester_name", "requester_email", "client", "account", "contact")},
+            {"fields": ("contact_name", "contact_email", "client")},
         ),
-        ("Assignment", {"fields": ("assigned_to", "team")}),
-        ("SLA Tracking", {"fields": ("sla_policy", "sla_response_deadline", "sla_resolution_deadline", "sla_breached")}),
+        ("Assignment", {"fields": ("assigned_to", "assigned_team")}),
+        ("SLA Tracking", {"fields": ("sla_policy", "first_response_sla_breached", "resolution_sla_breached")}),
         (
             "Timeline",
             {
@@ -111,33 +109,54 @@ class TicketAdmin(admin.ModelAdmin):
                 )
             },
         ),
-        ("Related Records", {"fields": ("related_project", "tags")}),
+        ("Related Records", {"fields": ("related_conversation", "category", "tags")}),
         ("Feedback", {"fields": ("satisfaction_rating", "satisfaction_comment")}),
-        ("Metadata", {"fields": ("created_by",)}),
     )
 
 
 @admin.register(TicketComment)
 class TicketCommentAdmin(admin.ModelAdmin):
-    list_display = ["ticket", "created_by", "is_internal_note", "created_at"]
-    list_filter = ["is_internal_note", "created_at"]
-    search_fields = ["body", "ticket__ticket_number"]
+    list_display = ["ticket", "created_by", "is_internal", "created_at"]
+    list_filter = ["is_internal", "is_customer_reply", "created_at"]
+    search_fields = ["body", "ticket__ticket_number", "customer_name", "customer_email"]
     readonly_fields = ["created_at", "updated_at"]
     raw_id_fields = ["ticket", "created_by"]
+
+    fieldsets = (
+        (
+            "Comment",
+            {
+                "fields": ("ticket", "body", "is_internal", "is_customer_reply"),
+            },
+        ),
+        (
+            "Author",
+            {
+                "fields": ("created_by", "customer_name", "customer_email"),
+            },
+        ),
+        (
+            "Timestamps",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
 
 
 @admin.register(Survey)
 class SurveyAdmin(admin.ModelAdmin):
-    list_display = ["name", "firm", "survey_type", "is_active", "created_at"]
-    list_filter = ["firm", "survey_type", "is_active", "created_at"]
+    list_display = ["name", "firm", "survey_type", "status", "created_at"]
+    list_filter = ["firm", "survey_type", "status", "created_at"]
     search_fields = ["name", "description"]
     readonly_fields = ["created_at", "updated_at"]
     fieldsets = (
-        (None, {"fields": ("firm", "name", "description", "survey_type")}),
+        (None, {"fields": ("firm", "name", "description", "survey_type", "status")}),
         (
             "Questions",
             {
-                "fields": ("questions", "intro_text", "thank_you_text"),
+                "fields": ("introduction_text", "questions", "thank_you_text"),
                 "description": "Questions should be a JSON array of question objects",
             },
         ),
@@ -148,7 +167,6 @@ class SurveyAdmin(admin.ModelAdmin):
                 "description": "Automatically send survey when these events occur",
             },
         ),
-        ("Status", {"fields": ("is_active",)}),
         ("Metadata", {"fields": ("created_at", "updated_at", "created_by")}),
     )
     raw_id_fields = ["created_by"]
@@ -158,24 +176,20 @@ class SurveyAdmin(admin.ModelAdmin):
 class SurveyResponseAdmin(admin.ModelAdmin):
     list_display = [
         "survey",
-        "respondent_email",
+        "contact_email",
         "nps_score",
         "nps_category",
         "submitted_at",
     ]
     list_filter = ["survey", "nps_category", "submitted_at"]
-    search_fields = ["respondent_name", "respondent_email", "ticket__ticket_number"]
+    search_fields = ["contact_name", "contact_email"]
     readonly_fields = ["nps_category", "submitted_at"]
-    raw_id_fields = ["survey", "ticket", "project", "client", "contact"]
+    raw_id_fields = ["survey", "client"]
     fieldsets = (
         (None, {"fields": ("survey",)}),
         (
             "Respondent",
-            {"fields": ("respondent_name", "respondent_email", "client", "contact")},
-        ),
-        (
-            "Related Records",
-            {"fields": ("ticket", "project"), "description": "What triggered this survey"},
+            {"fields": ("contact_name", "contact_email", "client")},
         ),
         (
             "Responses",

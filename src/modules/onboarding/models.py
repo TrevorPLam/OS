@@ -101,8 +101,8 @@ class OnboardingTemplate(models.Model):
         db_table = "onboarding_templates"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "service_type"]),
+            models.Index(fields=["firm", "status"], name="onboarding_fir_sta_idx"),
+            models.Index(fields=["firm", "service_type"], name="onboarding_fir_ser_idx"),
         ]
 
     def __str__(self):
@@ -254,10 +254,10 @@ class OnboardingProcess(models.Model):
         db_table = "onboarding_processes"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "-created_at"]),
-            models.Index(fields=["client", "-created_at"]),
-            models.Index(fields=["assigned_to", "status"]),
+            models.Index(fields=["firm", "status"], name="onboarding_fir_sta_idx"),
+            models.Index(fields=["firm", "-created_at"], name="onboarding_fir_cre_idx"),
+            models.Index(fields=["client", "-created_at"], name="onboarding_cli_cre_idx"),
+            models.Index(fields=["assigned_to", "status"], name="onboarding_ass_sta_idx"),
         ]
 
     def __str__(self):
@@ -420,10 +420,10 @@ class OnboardingTask(models.Model):
         db_table = "onboarding_tasks"
         ordering = ["process", "step_number"]
         indexes = [
-            models.Index(fields=["process", "status"]),
-            models.Index(fields=["process", "step_number"]),
-            models.Index(fields=["status", "due_date"]),
-            models.Index(fields=["assigned_to_client", "status"]),
+            models.Index(fields=["process", "status"], name="onboarding_pro_sta_idx"),
+            models.Index(fields=["process", "step_number"], name="onboarding_pro_ste_idx"),
+            models.Index(fields=["status", "due_date"], name="onboarding_sta_due_idx"),
+            models.Index(fields=["assigned_to_client", "status"], name="onboarding_ass_sta_idx"),
         ]
 
     def __str__(self):
@@ -572,8 +572,8 @@ class OnboardingDocument(models.Model):
         db_table = "onboarding_documents"
         ordering = ["process", "document_name"]
         indexes = [
-            models.Index(fields=["process", "status"]),
-            models.Index(fields=["status", "is_required"]),
+            models.Index(fields=["process", "status"], name="onboarding_pro_sta_idx"),
+            models.Index(fields=["status", "is_required"], name="onboarding_sta_is__idx"),
         ]
 
     def __str__(self):

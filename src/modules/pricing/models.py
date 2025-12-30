@@ -119,9 +119,9 @@ class RuleSet(models.Model):
         db_table = "pricing_ruleset"
         ordering = ["-version"]
         indexes = [
-            models.Index(fields=["firm", "code", "-version"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["checksum"]),
+            models.Index(fields=["firm", "code", "-version"], name="pricing_fir_cod_ver_idx"),
+            models.Index(fields=["firm", "status"], name="pricing_fir_sta_idx"),
+            models.Index(fields=["checksum"], name="pricing_che_idx"),
         ]
         unique_together = [["firm", "code", "version"]]
 
@@ -317,9 +317,9 @@ class Quote(models.Model):
         db_table = "pricing_quote"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "client", "-created_at"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "quote_number"]),
+            models.Index(fields=["firm", "client", "-created_at"], name="pricing_fir_cli_cre_idx"),
+            models.Index(fields=["firm", "status"], name="pricing_fir_sta_idx"),
+            models.Index(fields=["firm", "quote_number"], name="pricing_fir_quo_idx"),
         ]
         unique_together = [["firm", "quote_number"]]
 
@@ -469,10 +469,10 @@ class QuoteVersion(models.Model):
         db_table = "pricing_quote_version"
         ordering = ["-version_number"]
         indexes = [
-            models.Index(fields=["firm", "quote", "-version_number"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "ruleset"]),
-            models.Index(fields=["correlation_id"]),
+            models.Index(fields=["firm", "quote", "-version_number"], name="pricing_fir_quo_ver_idx"),
+            models.Index(fields=["firm", "status"], name="pricing_fir_sta_idx"),
+            models.Index(fields=["firm", "ruleset"], name="pricing_fir_rul_idx"),
+            models.Index(fields=["correlation_id"], name="pricing_cor_idx"),
         ]
         unique_together = [["quote", "version_number"]]
 
@@ -610,8 +610,8 @@ class QuoteLineItem(models.Model):
         db_table = "pricing_quote_line_item"
         ordering = ["line_number"]
         indexes = [
-            models.Index(fields=["firm", "quote_version", "line_number"]),
-            models.Index(fields=["firm", "product_code"]),
+            models.Index(fields=["firm", "quote_version", "line_number"], name="pricing_fir_quo_lin_idx"),
+            models.Index(fields=["firm", "product_code"], name="pricing_fir_pro_idx"),
         ]
         unique_together = [["quote_version", "line_number"]]
 

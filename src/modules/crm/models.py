@@ -137,12 +137,12 @@ class Activity(models.Model):
         db_table = "crm_activities"
         ordering = ["-activity_date"]
         indexes = [
-            models.Index(fields=["firm", "-activity_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "activity_type"]),  # TIER 0: Firm scoping
-            models.Index(fields=["lead", "-activity_date"]),
-            models.Index(fields=["prospect", "-activity_date"]),
-            models.Index(fields=["client", "-activity_date"]),
-            models.Index(fields=["created_by", "-activity_date"]),
+            models.Index(fields=["firm", "-activity_date"]),  # TIER 0: Firm scoping, name="crm_fir_act_idx")
+            models.Index(fields=["firm", "activity_type"]),  # TIER 0: Firm scoping, name="crm_fir_act_idx")
+            models.Index(fields=["lead", "-activity_date"], name="crm_lea_act_idx"),
+            models.Index(fields=["prospect", "-activity_date"], name="crm_pro_act_idx"),
+            models.Index(fields=["client", "-activity_date"], name="crm_cli_act_idx"),
+            models.Index(fields=["created_by", "-activity_date"], name="crm_cre_act_idx"),
         ]
         verbose_name_plural = "Activities"
 
@@ -250,10 +250,10 @@ class Lead(models.Model):
         db_table = "crm_leads"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping
-            models.Index(fields=["campaign"]),
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="crm_fir_sta_idx")
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="crm_fir_cre_idx")
+            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping, name="crm_fir_ass_idx")
+            models.Index(fields=["campaign"], name="crm_cam_idx"),
         ]
 
     def __str__(self) -> str:
@@ -407,10 +407,10 @@ class Prospect(models.Model):
         db_table = "crm_prospects"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "pipeline_stage"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "close_date_estimate"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "pipeline_stage"]),  # TIER 0: Firm scoping, name="crm_fir_pip_idx")
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="crm_fir_cre_idx")
+            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping, name="crm_fir_ass_idx")
+            models.Index(fields=["firm", "close_date_estimate"]),  # TIER 0: Firm scoping, name="crm_fir_clo_idx")
         ]
 
     def __str__(self) -> str:
@@ -514,9 +514,9 @@ class Campaign(models.Model):
         db_table = "crm_campaigns"
         ordering = ["-start_date"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-start_date"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "type"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="crm_fir_sta_idx")
+            models.Index(fields=["firm", "-start_date"]),  # TIER 0: Firm scoping, name="crm_fir_sta_idx")
+            models.Index(fields=["firm", "type"]),  # TIER 0: Firm scoping, name="crm_fir_typ_idx")
         ]
 
     def __str__(self) -> str:
@@ -627,11 +627,11 @@ class Proposal(models.Model):
         db_table = "crm_proposals"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "proposal_type", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "prospect", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "proposal_number"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "proposal_type", "status"]),  # TIER 0: Firm scoping, name="crm_fir_pro_sta_idx")
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="crm_fir_cre_idx")
+            models.Index(fields=["firm", "prospect", "status"]),  # TIER 0: Firm scoping, name="crm_fir_pro_sta_idx")
+            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping, name="crm_fir_cli_sta_idx")
+            models.Index(fields=["firm", "proposal_number"]),  # TIER 0: Firm scoping, name="crm_fir_pro_idx")
         ]
         # TIER 0: Proposal numbers must be unique within a firm (not globally)
         unique_together = [["firm", "proposal_number"]]
@@ -800,10 +800,10 @@ class Contract(models.Model):
         db_table = "crm_contracts"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "contract_number"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "start_date", "end_date"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="crm_fir_sta_idx")
+            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping, name="crm_fir_cli_sta_idx")
+            models.Index(fields=["firm", "contract_number"]),  # TIER 0: Firm scoping, name="crm_fir_con_idx")
+            models.Index(fields=["firm", "start_date", "end_date"]),  # TIER 0: Firm scoping, name="crm_fir_sta_end_idx")
         ]
         # TIER 0: Contract numbers must be unique within a firm (not globally)
         unique_together = [["firm", "contract_number"]]

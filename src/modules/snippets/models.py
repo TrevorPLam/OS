@@ -104,10 +104,10 @@ class Snippet(models.Model):
         db_table = 'snippets'
         ordering = ['-usage_count', 'shortcut']
         indexes = [
-            models.Index(fields=['firm', 'shortcut']),
-            models.Index(fields=['firm', 'is_shared']),
-            models.Index(fields=['firm', 'created_by']),
-            models.Index(fields=['is_active']),
+            models.Index(fields=['firm', 'shortcut'], name="snippets_fir_sho_idx"),
+            models.Index(fields=['firm', 'is_shared'], name="snippets_fir_is__idx"),
+            models.Index(fields=['firm', 'created_by'], name="snippets_fir_cre_idx"),
+            models.Index(fields=['is_active'], name="snippets_is__idx"),
         ]
         unique_together = [('firm', 'shortcut', 'created_by')]
 
@@ -263,9 +263,9 @@ class SnippetUsageLog(models.Model):
         db_table = 'snippet_usage_logs'
         ordering = ['-used_at']
         indexes = [
-            models.Index(fields=['snippet', '-used_at']),
-            models.Index(fields=['used_by', '-used_at']),
-            models.Index(fields=['context', '-used_at']),
+            models.Index(fields=['snippet', '-used_at'], name="snippets_sni_use_idx"),
+            models.Index(fields=['used_by', '-used_at'], name="snippets_use_use_idx"),
+            models.Index(fields=['context', '-used_at'], name="snippets_con_use_idx"),
         ]
 
     def __str__(self):
@@ -319,7 +319,7 @@ class SnippetFolder(models.Model):
         db_table = 'snippet_folders'
         ordering = ['name']
         indexes = [
-            models.Index(fields=['firm', 'created_by']),
+            models.Index(fields=['firm', 'created_by'], name="snippets_fir_cre_idx"),
         ]
         unique_together = [('firm', 'name', 'created_by')]
 

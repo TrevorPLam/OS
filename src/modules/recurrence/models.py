@@ -218,13 +218,13 @@ class RecurrenceRule(models.Model):
         db_table = "recurrence_rule"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "scope"]),
-            models.Index(fields=["target_delivery_template"]),
-            models.Index(fields=["target_engagement"]),
-            models.Index(fields=["target_engagement_line"]),
-            models.Index(fields=["start_at"]),
-            models.Index(fields=["end_at"]),
+            models.Index(fields=["firm", "status"], name="recurrence_fir_sta_idx"),
+            models.Index(fields=["firm", "scope"], name="recurrence_fir_sco_idx"),
+            models.Index(fields=["target_delivery_template"], name="recurrence_tar_idx"),
+            models.Index(fields=["target_engagement"], name="recurrence_tar_idx"),
+            models.Index(fields=["target_engagement_line"], name="recurrence_tar_idx"),
+            models.Index(fields=["start_at"], name="recurrence_sta_idx"),
+            models.Index(fields=["end_at"], name="recurrence_end_idx"),
         ]
 
     def __str__(self) -> str:
@@ -454,11 +454,11 @@ class RecurrenceGeneration(models.Model):
         db_table = "recurrence_generation"
         ordering = ["-period_starts_at"]
         indexes = [
-            models.Index(fields=["firm", "recurrence_rule", "-period_starts_at"]),
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["idempotency_key"]),
-            models.Index(fields=["target_object_type", "target_object_id"]),
-            models.Index(fields=["correlation_id"]),
+            models.Index(fields=["firm", "recurrence_rule", "-period_starts_at"], name="recurrence_fir_rec_per_idx"),
+            models.Index(fields=["firm", "status"], name="recurrence_fir_sta_idx"),
+            models.Index(fields=["idempotency_key"], name="recurrence_ide_idx"),
+            models.Index(fields=["target_object_type", "target_object_id"], name="recurrence_tar_tar_idx"),
+            models.Index(fields=["correlation_id"], name="recurrence_cor_idx"),
         ]
         unique_together = [
             ["recurrence_rule", "period_key", "target_discriminator"]

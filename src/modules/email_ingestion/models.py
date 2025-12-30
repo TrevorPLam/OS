@@ -66,7 +66,7 @@ class EmailConnection(models.Model):
         db_table = "email_ingestion_connections"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "is_active"]),
+            models.Index(fields=["firm", "is_active"], name="emailinges_fir_is__idx"),
         ]
 
     def __str__(self):
@@ -152,15 +152,15 @@ class EmailArtifact(models.Model):
 
     # Mapping suggestions (nullable; populated by mapping engine)
     suggested_account = models.ForeignKey(
-        "crm.Account",
+        "clients.Client",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="suggested_emails",
-        help_text="Suggested Account mapping",
+        help_text="Suggested Client mapping",
     )
     suggested_engagement = models.ForeignKey(
-        "crm.Engagement",
+        "clients.ClientEngagement",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -168,12 +168,12 @@ class EmailArtifact(models.Model):
         help_text="Suggested Engagement mapping",
     )
     suggested_work_item = models.ForeignKey(
-        "projects.WorkItem",
+        "projects.Task",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="suggested_emails",
-        help_text="Suggested WorkItem mapping",
+        help_text="Suggested Task mapping",
     )
     mapping_confidence = models.DecimalField(
         max_digits=3,
@@ -188,15 +188,15 @@ class EmailArtifact(models.Model):
 
     # Confirmed mappings (set after review/approval)
     confirmed_account = models.ForeignKey(
-        "crm.Account",
+        "clients.Client",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="confirmed_emails",
-        help_text="Confirmed Account mapping (after review)",
+        help_text="Confirmed Client mapping (after review)",
     )
     confirmed_engagement = models.ForeignKey(
-        "crm.Engagement",
+        "clients.ClientEngagement",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -204,12 +204,12 @@ class EmailArtifact(models.Model):
         help_text="Confirmed Engagement mapping (after review)",
     )
     confirmed_work_item = models.ForeignKey(
-        "projects.WorkItem",
+        "projects.Task",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="confirmed_emails",
-        help_text="Confirmed WorkItem mapping (after review)",
+        help_text="Confirmed Task mapping (after review)",
     )
 
     # Ignored reason (if status = ignored)
@@ -235,11 +235,11 @@ class EmailArtifact(models.Model):
         db_table = "email_ingestion_artifacts"
         ordering = ["-sent_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),
-            models.Index(fields=["firm", "sent_at"]),
-            models.Index(fields=["connection", "external_message_id"]),
-            models.Index(fields=["suggested_account"]),
-            models.Index(fields=["confirmed_account"]),
+            models.Index(fields=["firm", "status"], name="emailinges_fir_sta_idx"),
+            models.Index(fields=["firm", "sent_at"], name="emailinges_fir_sen_idx"),
+            models.Index(fields=["connection", "external_message_id"], name="emailinges_con_ext_idx"),
+            models.Index(fields=["suggested_account"], name="emailinges_sug_idx"),
+            models.Index(fields=["confirmed_account"], name="emailinges_con_idx"),
         ]
         # Uniqueness constraint per docs/15 section 2.1
         unique_together = [["connection", "external_message_id"]]
@@ -373,8 +373,8 @@ class EmailAttachment(models.Model):
         db_table = "email_ingestion_attachments"
         ordering = ["email_artifact", "attachment_index"]
         indexes = [
-            models.Index(fields=["email_artifact"]),
-            models.Index(fields=["document"]),
+            models.Index(fields=["email_artifact"], name="emailinges_ema_idx"),
+            models.Index(fields=["document"], name="emailinges_doc_idx"),
         ]
         unique_together = [["email_artifact", "attachment_index"]]
 
@@ -480,13 +480,13 @@ class IngestionAttempt(models.Model):
         db_table = "email_ingestion_attempts"
         ordering = ["-occurred_at"]
         indexes = [
-            models.Index(fields=["firm", "occurred_at"]),
-            models.Index(fields=["connection", "status"]),
-            models.Index(fields=["email_artifact"]),
-            models.Index(fields=["correlation_id"]),
-            models.Index(fields=["status", "error_class"]),
-            models.Index(fields=["next_retry_at"]),
-            models.Index(fields=["max_retries_reached"]),
+            models.Index(fields=["firm", "occurred_at"], name="emailinges_fir_occ_idx"),
+            models.Index(fields=["connection", "status"], name="emailinges_con_sta_idx"),
+            models.Index(fields=["email_artifact"], name="emailinges_ema_idx"),
+            models.Index(fields=["correlation_id"], name="emailinges_cor_idx"),
+            models.Index(fields=["status", "error_class"], name="emailinges_sta_err_idx"),
+            models.Index(fields=["next_retry_at"], name="emailinges_nex_idx"),
+            models.Index(fields=["max_retries_reached"], name="emailinges_max_idx"),
         ]
 
     def __str__(self):

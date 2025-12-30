@@ -132,9 +132,9 @@ class Expense(models.Model):
         db_table = "projects_expenses"
         ordering = ["-date", "-created_at"]
         indexes = [
-            models.Index(fields=["project", "status"]),
-            models.Index(fields=["submitted_by", "status"]),
-            models.Index(fields=["date"]),
+            models.Index(fields=["project", "status"], name="projects_pro_sta_idx"),
+            models.Index(fields=["submitted_by", "status"], name="projects_sub_sta_idx"),
+            models.Index(fields=["date"], name="projects_dat_idx"),
         ]
         verbose_name_plural = "Expenses"
 
@@ -321,11 +321,11 @@ class Project(models.Model):
         db_table = "projects_projects"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "project_manager"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "project_code"]),  # TIER 0: Firm scoping
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "status"]),  # TIER 0: Firm scoping, name="projects_fir_sta_idx")
+            models.Index(fields=["firm", "client", "status"]),  # TIER 0: Firm scoping, name="projects_fir_cli_sta_idx")
+            models.Index(fields=["firm", "project_manager"]),  # TIER 0: Firm scoping, name="projects_fir_pro_idx")
+            models.Index(fields=["firm", "project_code"]),  # TIER 0: Firm scoping, name="projects_fir_pro_idx")
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="projects_fir_cre_idx")
         ]
         # TIER 0: Project codes must be unique within a firm (not globally)
         unique_together = [["firm", "project_code"]]
@@ -638,8 +638,8 @@ class Task(models.Model):
         db_table = "projects_tasks"
         ordering = ["position", "-created_at"]
         indexes = [
-            models.Index(fields=["project", "status"]),
-            models.Index(fields=["assigned_to"]),
+            models.Index(fields=["project", "status"], name="projects_pro_sta_idx"),
+            models.Index(fields=["assigned_to"], name="projects_ass_idx"),
         ]
 
     def __str__(self) -> str:
@@ -726,12 +726,12 @@ class TimeEntry(models.Model):
         db_table = "projects_time_entries"
         ordering = ["-date", "-created_at"]
         indexes = [
-            models.Index(fields=["project", "user", "date"]),
-            models.Index(fields=["invoiced"]),
+            models.Index(fields=["project", "user", "date"], name="projects_pro_use_dat_idx"),
+            models.Index(fields=["invoiced"], name="projects_inv_idx"),
             # Composite indexes for common filtering patterns
-            models.Index(fields=["project", "approved", "invoiced"]),  # Unbilled approved entries
-            models.Index(fields=["project", "-date"]),  # Time entries by project sorted by date
-            models.Index(fields=["user", "-date"]),  # User's recent time entries
+            models.Index(fields=["project", "approved", "invoiced"]),  # Unbilled approved entries, name="projects_pro_app_inv_idx")
+            models.Index(fields=["project", "-date"]),  # Time entries by project sorted by date, name="projects_pro_dat_idx")
+            models.Index(fields=["user", "-date"]),  # User's recent time entries, name="projects_use_dat_idx")
         ]
         verbose_name_plural = "Time Entries"
 
@@ -862,8 +862,8 @@ class ProjectTemplate(models.Model):
         db_table = "projects_templates"
         ordering = ["category", "template_name"]
         indexes = [
-            models.Index(fields=["firm", "is_active"]),
-            models.Index(fields=["firm", "category"]),
+            models.Index(fields=["firm", "is_active"], name="projects_fir_is__idx"),
+            models.Index(fields=["firm", "category"], name="projects_fir_cat_idx"),
         ]
         unique_together = [["firm", "template_code"]]
 
@@ -1009,7 +1009,7 @@ class TaskTemplate(models.Model):
         db_table = "projects_task_templates"
         ordering = ["project_template", "position"]
         indexes = [
-            models.Index(fields=["project_template", "position"]),
+            models.Index(fields=["project_template", "position"], name="projects_pro_pos_idx"),
         ]
 
     def __str__(self) -> str:
