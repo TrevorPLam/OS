@@ -1,0 +1,554 @@
+
+=== PAGE 1 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Scheduling automation
+for sales, marketing, and
+customer success teams
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1
+
+=== PAGE 2 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Meetings with customers — and the activities surrounding scheduling —
+are the lifeblood of revenue teams.
+When we say “revenue teams,” we’re talking about sales, marketing and
+customer success departments who attract sales leads, turn those leads
+into meetings with prospective customers, and then close and retain
+those customers.
+And like every other task used to increase revenue, the scheduling of
+those meetings deserves automation.
+Everything else
+is automated —
+why not scheduling?
+Today, nearly everything in a revenue team’s day-to-day work is
+automated. Enriching a customer relationship management (CRM)
+database with contacts, looking up phone numbers for cold outreach,
+emailing prospects, and more — all automated. Except for scheduling
+the meetings where customer relationships are solidified. The meeting
+lifecycle still suffers from too much manual effort.
+Revenue-generating activities happen before and after a salesperson
+meets with a prospect: to move a deal along, to close, and to onboard
+with customer success. And your scheduling automation platform
+needs to automate and support those activities.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 22
+
+=== PAGE 3 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Why now is the time
+to automate your
+meeting lifecycle
+Automating meeting scheduling has become crucial for revenue
+teams to enable faster connections and cut the time between
+meeting milestones in half.
+Let’s stop and think about the revenue lifecycle.
+The first step occurs when a prospect fills out a form — often
+deployed by a marketing department’s demand generation
+team — or responds to an email and is routed to a sales
+development representative (SDR) for a discovery call.
+Then, often, the SDR sends the lead to the account executive
+to schedule a demo.
+The third meeting sometimes includes additional stakeholders
+and influencers.
+The fourth may include the client’s IT team to ensure the
+product fits within their enterprise software stack.
+Subsequent calls may involve procurement and legal until
+the contract is signed.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 33
+
+=== PAGE 4 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Once a deal is closed, the salesperson schedules a kick-off between their
+colleague in customer success and the customer. Then, customer success
+leads the customer through the implementation process and schedules
+quarterly touchpoints with both the customer success manager (CSM)
+and account executive (AE) for expansion opportunities.
+Throughout the revenue lifecycle, meeting reminders, follow-ups,
+and emails are exchanged.
+Without scheduling automation, a manual process would severely
+affect team productivity, the customer experience, and ultimately
+revenue generation.
+So why has it taken so long to automate such an important aspect
+of the revenue meeting lifecycle?
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 44
+
+=== PAGE 5 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+The focus on outbound
+Prior to 2010, revenue teams wasted
+their time on the back and forth: “Does
+2 p.m. work? No, what about 4:30 p.m.?”
+After 2010, sharing a scheduling link that
+showed your available times became
+the de facto process for prospects and
+customers to schedule meetings with
+revenue teams.
+Today, with more than 10 million users
+and 50,000 corporate customers,
+Calendly is the undisputed category
+leader when it comes to outbound
+scheduling. When people less familiar
+with Calendly think of its core usage,
+outbound activity is where their mind
+often goes. After all, 93% of sales teams
+who report using Calendly for outbound
+achieve faster sales cycles, averaging
+a 2x increase in demos scheduled.
+But outbound-only scheduling
+automation won’t get you to your
+best pipeline performance.
+Savvy revenue teams use Calendly for inbound
+scheduling too. Calendly lets teams instantly qualify
+leads and schedule with prospects and customers
+— without the revenue professional having to lift
+another finger.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 55
+
+=== PAGE 6 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Two types of sales motions
+“
+Outbound Sales Hi, Susan. Would love to show you how our product
+can help meet your business needs. Feel free to
+share times you’re available, or find a time that
+works for you here.”
+“
+Inbound Sales Learn how our product can help your business.
+Schedule a free 30-minute demo by filling out
+this form.”
+The best revenue teams automate both outbound and inbound
+scheduling. The way to meet revenue goals, beat competitors, and
+reach more opportunities is speed to connection.
+For example: Prospects can click “Book a Demo” on your website, fill
+out a form, and immediately schedule a call with an SDR. Automating
+demo scheduling lets you respond to prospects first, giving you a
+competitive edge.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 66
+
+=== PAGE 7 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+How sales and demand
+gen teams can automate
+the revenue lifecycle to
+drive more pipeline
+and revenue
+Now that you’ve learned how both inbound and outbound scheduling
+play key roles in successful revenue generation, let’s dive deeper into
+how scheduling automation platforms play in both revenue motions
+to help 89% of sales teams close more deals.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 77
+
+=== PAGE 8 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Outbound sales
+Thousands of salespeople in companies of all sizes share scheduling links
+via email, social media, and more.
+Via email
+Salespeople often include their scheduling links when they
+email prospects.
+The pros take it to the next level by:
+• Inserting their scheduling link into their email signature —
+“Book Time With Me”
+• Adding their scheduling link to their automated email
+“drip” sequences in Outreach, Salesloft, and more
+• Adding meeting times to their email when responding to prospects
+in Gmail or Outlook (via Calendly for Chrome, Firefox, or Outlook)
+By adopting Calendly, Bitly’s outbound SDRs saw a 100% increase
+in the number of demos scheduled.
+Our outbound SDRs use Calendly scheduling links in their
+prospecting emails. Not only do the SDRs come in with a
+whole calendar of prospects to speak with but they have
+more prospects show up to their meetings.”
+Dave Rotholz, head of Bitly’s East coast sales team
+And it’s not just Bitly; 88% of Calendly users say meeting no-shows
+have decreased.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 88
+
+=== PAGE 9 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Via social media
+Another popular place to share your scheduling link as a salesperson is
+via social media, such as LinkedIn and Twitter.
+The pro move here:
+• Use the Calendly browser extension for LinkedIn Messaging to easily
+add your scheduling link to any LinkedIn message
+By adopting Calendly, Bitly’s outbound SDRs saw a 100% increase in
+the number of demos scheduled.
+The LinkedIn Integration with Calendly helps you save
+even more time when booking appointments. The handy
+little extension allows you to share your availability with
+ease and book meetings much faster, hand-pick times for
+VIP conversations with one-offs, and find time that works
+for the group you’re messaging with meeting polls.”
+Craig Dean, demand generation consultant
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 99
+
+=== PAGE 10 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Inbound sales
+What if your sales team could book meetings while they sleep?
+In other words, imagine allowing prospects to come to you via inbound
+sales — or demand generation — versus solely relying on outbound sales.
+Calendly customer Signpost used inbound scheduling to achieve a 50%
+increase in the time they have to focus on sales funnel engagement.
+A good tool is one that’s so simple, we can basically
+forget about it and let the meetings roll in. That’s
+what happened when we implemented Calendly.”
+Julia Pan, Sales Enablement, SignPost
+Team scheduling pages
+Setting up a team scheduling page is the easiest way to dip your sales
+team’s toes in inbound scheduling.
+Now, a prospect can select from several options to meet with your
+team. And you can easily support meetings with several members of
+your team because Calendly creates a “Venn diagram of availability”
+and only shows times when all required people are available.
+For example, the prospect can book a:
+• 30-minute meeting with Mary (the account executive
+handling discovery)
+• 40-minute meeting with Mary and Brian (the sales engineer
+leading the demo)
+• 20-minute follow-up meeting with Brian to ask technical questions
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1010
+
+=== PAGE 11 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Add scheduling automation to your website
+Many tech-forward sales teams work with their marketing teams —
+specifically demand gen — to embed Calendly in their company websites.
+For teams who want to take scheduling on their website to the next level,
+Calendly Routing lets them instantly qualify and schedule leads right from
+their marketing forms.
+By adding Calendly Routing to their website forms, Givebutter now sees
+70% of qualified leads book demos directly from their website.
+Our HubSpot form conversion rates have skyrocketed with
+Calendly Routing. Our entire team is thrilled.”
+Max Friedman, Givebutter CEO
+Crawl → Walk → Run
+If the above sounds intimidating, never fear: You can crawl, walk,
+and run your way to inbound sales with scheduling automation.
+CRAWL Work with your demand gen team to simply add
+scheduling automation to your website and allow anyone
+to book time with one salesperson.
+WALK Set up team scheduling event types such as collective
+events (e.g., an AE can join a sales engineer with a prospect)
+or Round Robin events (Calendly will automate which
+salesperson is chosen for a meeting based on their
+availability, equal distribution, or priorities you set).
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1111
+
+=== PAGE 12 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+RUN What if you don’t want to let everyone who comes to your
+website book a meeting?
+With Calendly Routing, show scheduling pages only to leads
+who meet your qualifications, like prospects from specific
+industries or companies of a certain size. That way, busy sales
+teams can focus on the deals that matter most.
+Qualify leads through marketing forms in Marketo or HubSpot,
+or build new forms in Calendly. Once visitors fill out the form,
+automatically route them to the right booking page based on
+their responses, so they can schedule immediately. (For leads
+who don’t book, existing routing rules and engines kick in as
+usual.)
+If you integrate with Salesforce, Calendly can match known
+leads or customers directly to their account owner’s booking
+page. A behind-the-scenes Salesforce ownership lookup
+means no one spends valuable time manually reassigning
+leads.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1212
+
+=== PAGE 13 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+How customer experience
+teams can quickly connect
+with customers for better
+onboarding, retention,
+support, and growth
+Just as meetings help move a sales deal along, meetings between
+customer experience (CX) teams and customers help onboard new users,
+upsell new products, and renew subscriptions.
+Calendly automates the scheduling of customer meetings to free up CX
+pros to focus on product education and retention.
+By using Calendly, AgriWebb saw a 75% reduction in wait time to schedule
+customer calls.
+Calendly has been a key driver in a lot of our growth.
+It’s really helped us drive our internal efficiency as a
+company, but also in a customer-facing sense from the first
+touchpoint all the way through their journey.”
+David O’Brien, Head of Success, AgriWebb
+When scheduling becomes easier, every aspect of customer experience,
+success, and support is improved.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1313
+
+=== PAGE 14 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Team scheduling pages
+One of the most impactful ways to empower your customer is to allow
+them to book a meeting when they need help, want to learn something
+new, or, ultimately, learn how you can help them reach their goals. Setting
+up a team scheduling page makes it easy
+Like the customer success team at Vonage did, organizations can save
+85 hours per month — time they’d been wasting on meeting scheduling
+— and instead focus on customer impacts, such as meeting prep and
+closing more support tickets.
+The time to book meetings is non-existent now. But the
+biggest benefit for our customers is having the CSMs be
+more prepared, more ready to give answers there and
+then.”
+Chris Williams, Head of Customer Success UK/EMEA, Vonage
+Now, your customer can select from several meeting options that fit
+their needs at that specific moment. For example:
+• Immediate tech assistance from Customer Support
+• Best practice discussions with Customer Success
+• Renewal questions with Account Management
+• Training with Product
+Add scheduling automation to your website
+Customer success and customer support teams gain numerous benefits
+from adding scheduling automation right to their website — especially
+on web pages dedicated to current customers or support hubs.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1414
+
+=== PAGE 15 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+This is why Ancestry.com sends 40% fewer scheduling emails to launch
+projects with clients.
+Calendly has transformed the way we interact with clients
+and deliver on projects. In our case, everyone wins.”
+A.C. Ivory, Senior Manager, Ancestry.com
+Crawl → Walk → Run
+Just as sales and marketing teams can take an incremental approach
+to use Calendly, so can CX teams:
+CRAWL Simply add scheduling automation to your website and
+allow customers to book time with a customer success
+manager or support rep.
+WALK Set up group scheduling event types such as collective
+(e.g., a CSM and product expert join a call to help a
+customer set up a new feature/integration) or Round Robin
+(Calendly automates which support rep is chosen to help
+with an incoming help request based on their availability,
+equal distribution of incoming requests, or priorities you set).
+RUN What if you could improve your customer health and net
+promoter scores by getting customers to the right CX team
+member as fast as possible?
+Calendly Routing lets you ask qualifying questions — “what
+do you need help with?” or “what are your language
+preferences?” — so your customer doesn’t get frustrated
+trying to connect with the right person.
+Based on a customer’s answers, send them to a specific team
+member’s booking page. For example, Justin is the expert for
+technical onboarding and speaks Korean, so he receives a
+customer who indicated they have a setup issue and prefer
+to speak in Korean.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1515
+
+=== PAGE 16 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Sales, marketing, or
+customer experience:
+Everyone can benefit
+from pre- and post-
+meeting automation
+Whether you’ve booked a meeting via an outbound email, you’ve
+accepted a meeting via your website, or a customer booked a meeting
+from your scheduling page, you still need to communicate before and
+after a meeting.
+Calendly offers Workflows — automation that triggers messages
+throughout the meeting lifecycle — from the time a meeting is scheduled
+all the way through your follow-up with attendees.
+Reduce no-shows and other mistakes
+Calendly helps eliminate human errors that detract from your buyer and
+customer experience so meetings aren’t missed, canceled, or forgotten.
+• Ensure everyone from your team shows up with an email or text
+message when a meeting is scheduled, canceled, changed,
+or upcoming.
+• Never forget to add important meeting details such as a Zoom link
+or business address, and don’t worry about time zone math.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1616
+
+=== PAGE 17 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+• Gather information ahead of time by having attendees answer
+questions as they book the meeting so you know what they need.
+• Remind your attendee(s) about the meeting with automated email or
+text reminders that you can send days, hours, or minutes beforehand.
+• Enable easy rescheduling so your attendees can find a new time,
+versus letting the meeting fall off their calendar.
+Nurture the prospect/customer
+before the meeting
+Engaging and impactful meetings with customers require more than
+just showing up. With Calendly Workflows, you can make the best first
+impression for any meeting to help build your relationship.
+• Automatically share customized notes with the meeting agenda
+and goals to ensure everyone is on the same page.
+• Automatically send event reminders so no one has to scramble last
+minute to join the meeting.
+• Automatically send informative content so your prospects or
+customers feel prepared and ready to engage and ask questions
+at the upcoming meeting.
+Keep the prospect or customer warm
+post-meeting
+Your meeting lifecycle isn’t over when the meeting ends. That’s the time
+to keep the conversation going so you can get the next meeting, share
+something new, or close a deal.
+• Send a quick “thank you” to make your attendees feel appreciated
+and ready for the next engagement.
+• Provide follow-up materials such as an ROI calculator or a customer
+survey to allow your prospect or customer to continue their journey
+to learn more about your business and share their feedback.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1717
+
+=== PAGE 18 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Eliminate admin tasks post-meeting
+Take scheduling automation a step further to alleviate the admin tasks
+that take up too much time after each meeting or the tasks your team
+might forget to do.
+• Automatically add the meeting to your CRM so you can properly
+track engagement and trust that your data is accurate.
+• Use further tech stack integrations to update other platforms/
+solutions that fit into your reporting or workflow needs.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1818
+
+=== PAGE 19 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+Don’t forget about security,
+user/data management,
+and IT policies
+Since everyone in an organization can benefit from scheduling
+automation, we often see instances where a bunch of individual users
+or small groups have their own Calendly accounts. When that’s the
+case, though, your company is missing out on the benefits of having
+one centralized account.
+Using Calendly as a team is where you’ll unlock the greatest value.
+Answer these important security, IT, and operational questions,
+and you’ll see what we mean:
+Are you meeting compliance requirements
+and overall security standards?
+Security consciousness is a growing need for companies of all sizes.
+With strict regulatory requirements, an organization might need to
+address internal policies they want to uphold to ensure their data,
+their users and customers, and the overall business are secure.
+• Use SAML-based Single Sign-On (SSO) and System for Cross-
+Domain Identity Management (SCIM) provisioning to centrally
+manage and authenticate users and securely onboard new users.
+• Easily de-provision users to ensure past employees are removed,
+or offboard users as their roles/needs change.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 1919
+
+=== PAGE 20 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+• Delete customer and user data in a few simple clicks to stay compliant
+with regulatory requirements, and embed Calendly’s data deletion
+mechanism within your existing data deletion practices.
+• Get support from Calendly experts with security and legal reviews,
+so you never have to wonder if you meet compliance or
+security requirements.
+Do you know who your users are?
+If you don’t know who in your organization is using Calendly because
+they’re all on different accounts, then you don’t have insights into
+success metrics, whether security is being maintained,
+or — and this is a big one — billing.
+When your whole team shares a Calendly account, you can:
+• Manage seats to ensure users who host or participate in external
+meetings have a Calendly seat, and spread any unused seats to
+other users that need them.
+• Check usage and pull reports in Calendly to verify users are active,
+and track the performance of meetings and campaigns in one place.
+• Control spending by having all users under one account and on the
+right plan with features that meet your needs.
+Should all users have permissions to do anything
+and everything?
+If you’re working in a regulated industry or your organization has clear
+communications policies, it makes sense to maintain tighter control over,
+and have visibility into, external messaging and meeting processes.
+• Avoid “over-granting” permissions for the sake of flexibility
+or convenience.
+• Ensure consistency and compliance by limiting some user capabilities,
+such as who can set up Round Robin and co-hosted Event Types,
+or who can create, edit, and delete Workflows (sending reminders,
+sharing content, follow-up notes, etc).
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 2020
+
+=== PAGE 21 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+• Update user roles/groups and control visibility into data to maintain
+customizations for certain departments and any necessary
+confidentiality between different teams.
+Are you integrating with other tools to increase
+efficiency and maintain accurate data?
+Get more ROI from your existing tech with integrations that keep reps
+working where you want them, and prevent inaccuracies between records
+so you can trust your data.
+For example: Directly integrate with Salesforce and easily customize for
+your needs with Calendly’s pre-built functionality, including:
+• Eliminate manual data entry: Any meeting booked with Calendly
+is logged in the right customer record, or a new lead and event is
+created. And you can capture canceled events.
+• Ensure records are accurate: The SFDC ID can be carried in a Calendly
+link and carried back across to SFDC to check records.
+• Customize to use at scale across your organization: Create filters to
+only process certain record types. For instance, if your HR/recruiting
+team uses Calendly, they don’t need a new SFDC record created for
+each candidate they interview.
+• Optimize marketing automation: When someone fills out a website
+form, they’re assigned to a rep based on your logic, and receive an
+automated email with the rep’s Calendly link.
+• Route known leads and customers: Send existing leads or customers
+directly to their account owner’s booking page. (This happens
+behind the scenes using a Salesforce ownership lookup — no manual
+reassignment needed.)
+Set up similar workflows with other CRM tools, as Calendly is easily
+customized for your needs.
+You can also leverage web browser and LinkedIn extensions so your users
+can embed suggested times in emails for one-click booking, or quickly
+share scheduling links anywhere they engage with prospects.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 2121
+
+=== PAGE 22 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+How is Calendly different?
+Calendly is the first platform to automate both inbound and outbound
+revenue generation for thousands of revenue teams — sales, marketing,
+and customer success — looking to increase revenue, accelerate pipeline,
+and improve customer retention all along the customer lifecycle.
+Calendly has literally increased the velocity of the
+conversations we are scheduling — how quickly we are able
+to get in contact with partners — because the scheduling
+aspect and the friction are completely resolved.”
+Winta Habteslassie, Partnerships Manager, Square
+Like Winta, millions of sales and customer success pros email and send
+LinkedIn messages with Calendly scheduling links to book appointments …
+but that’s only one step in the meeting lifecycle.
+Calendly is trusted by not only revenue teams, but also recruiting, product
+management, and executive teams. In other words, Calendly is likely used
+by every department in your company, which makes consolidating on one
+platform appealing and easy. In addition, Calendly is built with privacy
+and security features such as SSO and SCIM — features required by IT
+colleagues in companies of all sizes.
+Unlike conventional online calendar companies’ approaches to
+scheduling tools that focus on one-to-one booking, Calendly offers
+scheduling automation for your whole revenue team (from Round Robin
+distribution and collective scheduling to admin-powered standardization
+of how Calendly is used team-wide), messaging and notifications
+all along the customer lifecycle (Workflows), and security and
+privacy features for Enterprises.
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 2222
+
+=== PAGE 23 ===
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.p1d2f/30/25, 3:12 AM
+And while sales automation platforms focus on SDR email delivery,
+Calendly has a more complete offering for your entire revenue team,
+including scheduling tools for inbound demand generation (website
+scheduling and lead routing), team-based scheduling (collective events
+with coworkers, Meeting Polls), and email reminders and notification
+(Workflows).
+Calendly is the most complete scheduling automation platform on the
+market for revenue teams (and every team). Thousands of sales, marketing,
+and customer success professionals use Calendly today — some for
+inbound marketing, and many for outbound.
+By implementing Calendly in both your inbound and outbound marketing
+efforts, revenue teams can increase revenue, accelerate pipeline, and
+improve customer retention.
+Talk to a sales representative about how
+Calendly can help your organization
+earn more revenue.
+Set up a call
+https://pages.calendly.com/rs/482-NMZ-854/images/scheduling-automation-teams.pdf 2323
