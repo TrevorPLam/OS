@@ -406,7 +406,7 @@ See: `src/modules/core/governance.py` - Data classification implementation
 
 **Status**: ✅ Mitigated
 
-#### D2: Large File Upload DOS
+#### D2: Large File Upload DoS
 **Threat**: Uploading huge files to exhaust storage/bandwidth  
 **Attack Vector**: Document upload, profile picture  
 **Impact**: MEDIUM - Storage exhaustion  
