@@ -9,3 +9,7 @@ class CalendarConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "modules.calendar"
     verbose_name = "Calendar & Scheduling"
+    
+    def ready(self):
+        """Import signals when app is ready."""
+        import modules.calendar.signals  # noqa: F401
