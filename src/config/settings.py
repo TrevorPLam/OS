@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     "modules.delivery",  # DOC-12.1: Delivery templates
     "modules.recurrence",  # DOC-10.1: Recurrence engine
     "modules.orchestration",  # DOC-11.1: Orchestration engine
+    "modules.communications",  # DOC-33.1: Communications (messages, conversations)
+    "modules.email_ingestion",  # DOC-15.1: Email ingestion MVP
 ]
 
 MIDDLEWARE = [
