@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "modules.finance",
     "modules.documents",
     "modules.assets",
+    "modules.pricing",  # DOC-09.1: Pricing engine
 ]
 
 MIDDLEWARE = [

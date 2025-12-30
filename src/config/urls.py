@@ -40,6 +40,7 @@ urlpatterns = [
     path("api/finance/", include("api.finance.urls")),
     path("api/documents/", include("api.documents.urls")),
     path("api/assets/", include("api.assets.urls")),
+    path("api/pricing/", include("modules.pricing.urls")),  # DOC-09.2: Pricing engine endpoints
 ]
 
 # Serve media files in development
