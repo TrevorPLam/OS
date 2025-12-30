@@ -48,6 +48,7 @@ urlpatterns = [
     path("api/support/", include("modules.support.urls")),  # Support/ticketing system (SLA, surveys, NPS)
     path("api/onboarding/", include("modules.onboarding.urls")),  # Client onboarding workflows
     path("api/marketing/", include("modules.marketing.urls")),  # Marketing automation (tags, segments, templates)
+    path("api/snippets/", include("modules.snippets.urls")),  # Quick text insertion (HubSpot-style snippets)
 ]
 
 # Serve media files in development

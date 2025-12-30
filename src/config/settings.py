@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "modules.onboarding",  # Client onboarding workflows and templates
     "modules.knowledge",  # DOC-35.1: Knowledge system (SOPs, training, playbooks)
     "modules.jobs",  # DOC-20.1: Background job queue and DLQ
+    "modules.snippets",  # Quick text insertion system (HubSpot-style snippets)
 ]
 
 MIDDLEWARE = [
