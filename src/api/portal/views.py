@@ -22,11 +22,15 @@ from config.query_guards import QueryTimeoutMixin
 from permissions import PortalAccessMixin
 from modules.clients.models import Client, ClientPortalUser
 from modules.clients.permissions import IsPortalUser
-from modules.documents.models import Document, Folder
+from modules.documents.models import Document, Folder, DocumentAccessLog
 from modules.documents.services import S3Service
 from modules.calendar.models import Appointment, AppointmentType, BookingLink
 from modules.calendar.services import AvailabilityService, BookingService
 from modules.firm.utils import get_request_firm
+from modules.core.observability import get_correlation_id
+from modules.core.notifications import EmailNotification
+from modules.firm.audit import AuditEvent
+from modules.firm.models import FirmMembership
 
 from .serializers import (
     PortalDocumentSerializer,
@@ -311,6 +315,7 @@ class PortalDocumentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
         Validates portal user has access before generating URL.
         """
         document = self.get_object()  # Automatically validates queryset access
+        portal_user = self.get_validated_portal_user(request, enforce_permission=False)
 
         try:
             s3_service = S3Service()
@@ -320,7 +325,19 @@ class PortalDocumentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
                 expiration=3600,  # 1 hour
             )
 
-            # TODO: Log document access per DOC-14.2
+            # Log document access per DOC-14.2
+            DocumentAccessLog.log_access(
+                firm_id=document.firm_id,
+                document=document,
+                action="url_issued",
+                actor_type="portal",
+                actor_user=request.user,
+                actor_portal_user_id=portal_user.id,
+                correlation_id=get_correlation_id(request),
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                metadata={"expiration_seconds": 3600},
+            )
 
             return Response({"download_url": download_url})
         except Exception as e:
@@ -382,7 +399,63 @@ class PortalDocumentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
                 uploaded_by=request.user,
             )
 
-            # TODO: Notify staff of new portal upload
+            # Log document upload access
+            DocumentAccessLog.log_access(
+                firm_id=firm.id,
+                document=document,
+                action="upload",
+                actor_type="portal",
+                actor_user=request.user,
+                actor_portal_user_id=portal_user.id,
+                correlation_id=get_correlation_id(request),
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                metadata={
+                    "file_size": file_obj.size,
+                    "file_type": file_obj.content_type,
+                },
+            )
+
+            # Create audit event for portal upload
+            AuditEvent.objects.create(
+                firm=firm,
+                event_type="portal_document_upload",
+                severity="info",
+                actor=request.user,
+                resource_type="document",
+                resource_id=document.id,
+                details={
+                    "document_name": name,
+                    "client_id": portal_user.client_id,
+                    "portal_user_id": portal_user.id,
+                    "file_size": file_obj.size,
+                },
+            )
+
+            # Notify staff members of new portal upload
+            staff_emails = FirmMembership.objects.filter(
+                firm=firm,
+                is_active=True,
+            ).exclude(
+                user__email=""
+            ).values_list("user__email", flat=True)
+
+            if staff_emails:
+                client_name = portal_user.client.company_name or "Client"
+                EmailNotification.send(
+                    to=list(staff_emails),
+                    subject=f"New document uploaded by {client_name}",
+                    html_content=f"""
+                    <p>A new document has been uploaded to the client portal.</p>
+                    <ul>
+                        <li><strong>Client:</strong> {client_name}</li>
+                        <li><strong>Document:</strong> {name}</li>
+                        <li><strong>Size:</strong> {file_obj.size / 1024:.1f} KB</li>
+                        <li><strong>Uploaded by:</strong> {request.user.get_full_name() or request.user.email}</li>
+                    </ul>
+                    <p>Please review the document in the client portal.</p>
+                    """,
+                )
 
             serializer = self.get_serializer(document)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
