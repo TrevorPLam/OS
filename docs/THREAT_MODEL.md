@@ -636,7 +636,7 @@ All mitigations map to code/tests as required:
 | S1 (Staff Impersonation) | Django authentication | `src/config/settings.py:42-67` | Django auth tests | ✅ |
 | S2 (Portal Impersonation) | Portal middleware | `src/modules/clients/middleware.py:1-92` | `test_tenant_isolation.py:280-319` | ✅ |
 | T1 (Cross-tenant tampering) | FirmScopedQuerySet | `src/modules/firm/utils.py:41-89` | `test_tenant_isolation.py:47-151` | ✅ |
-| T2 (Ledger tampering) | Immutable ledger | `src/modules/finance/billing_ledger.py:45-56` | `test_contract_tests.py:205-242` | ✅ |
+| T2 (Ledger tampering) | Immutable ledger | `src/modules/finance/billing_ledger.py:165-193` | `test_contract_tests.py:205-242` | ✅ |
 | T3 (Audit tampering) | Append-only audit | `src/modules/firm/audit.py:1-95` | Audit tests | ⚠️ Partial |
 | R1 (Repudiation) | Audit logging | `src/modules/firm/audit.py:1-95` | Audit event tests | ✅ |
 | I1 (Cross-tenant disclosure) | Firm isolation | `src/modules/firm/utils.py:41-89` | `test_tenant_isolation.py:153-200` | ✅ |
