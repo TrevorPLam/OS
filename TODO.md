@@ -1,6 +1,6 @@
 # ConsultantPro - Current Work & Roadmap
 
-**Last Updated:** December 29, 2025
+**Last Updated:** December 30, 2025
 
 ---
 
@@ -20,10 +20,10 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 - [x] DOC-14.3 Documents: implement locking + admin override audit + portal download policy when scan is pending/flagged ✅ Completed Dec 29, 2025 - added DocumentLock model with override tracking and can_upload() method
 - [x] DOC-33.1 Communications: Conversation/Participant/Message model with visibility rules + attachments as governed documents ✅ Completed Dec 29, 2025 - added modules/communications/ with Conversation, Participant, Message, MessageAttachment, MessageRevision, ConversationLink models
 - [x] DOC-09.1 Pricing engine MVP: versioned RuleSets + evaluator + deterministic outputs + trace ✅ Completed Dec 29, 2025 - added modules/pricing/ with RuleSet, Quote, QuoteVersion, QuoteLineItem models; PricingEvaluator with deterministic evaluation + trace generation
-- [ ] DOC-09.2 Quote snapshots: immutable QuoteVersion persistence + retrieval endpoints for audit
-- [ ] DOC-12.1 Delivery templates MVP: template DAG validation + deterministic instantiation into execution units
-- [ ] DOC-10.1 Recurrence engine MVP: RecurrenceRule + PeriodKey policy + RecurrenceGeneration dedupe ledger + DST correctness
-- [ ] DOC-11.1 Orchestration engine MVP: executions + step history + retry/DLQ model + per-step idempotency strategy
+- [x] DOC-09.2 Quote snapshots: immutable QuoteVersion persistence + retrieval endpoints for audit ✅ Completed Dec 30, 2025 - added API endpoints with audit logging for quote version retrieval; enforced immutability for accepted quotes
+- [x] DOC-12.1 Delivery templates MVP: template DAG validation + deterministic instantiation into execution units ✅ Completed Dec 30, 2025 - added modules/delivery with DeliveryTemplate, DeliveryNode, DeliveryEdge models; DAG cycle detection; deterministic instantiation engine; template traceability in Task model
+- [x] DOC-10.1 Recurrence engine MVP: RecurrenceRule + PeriodKey policy + RecurrenceGeneration dedupe ledger + DST correctness ✅ Completed Dec 30, 2025 - added modules/recurrence with RecurrenceRule, RecurrenceGeneration models; RecurrenceGenerator with timezone-aware period computation; DST handling; idempotency keys; unique constraints for dedupe
+- [x] DOC-11.1 Orchestration engine MVP: executions + step history + retry/DLQ model + per-step idempotency strategy ✅ Completed Dec 30, 2025 - added modules/orchestration with OrchestrationDefinition, OrchestrationExecution, StepExecution, OrchestrationDLQ models; OrchestrationExecutor with error classification, retry logic, backoff strategies, DLQ routing
 - [ ] DOC-15.1 Email ingestion MVP: EmailArtifact + attachment storage as Documents + mapping suggestions + triage + audited remaps
 - [ ] DOC-34.1 Calendar domain MVP: appointment types + availability profiles + booking links + booking flow
 - [ ] DOC-16.1 Calendar sync MVP: stable external IDs + SyncAttemptLog + reconciliation rules + manual resync tooling
