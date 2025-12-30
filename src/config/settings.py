@@ -63,6 +63,10 @@ INSTALLED_APPS = [
     "modules.email_ingestion",  # DOC-15.1: Email ingestion MVP
     "modules.calendar",  # DOC-34.1: Calendar domain MVP
     "modules.marketing",  # Marketing automation primitives (tags, segments, templates)
+    "modules.support",  # Support/ticketing system (SLA, surveys, NPS)
+    "modules.onboarding",  # Client onboarding workflows and templates
+    "modules.knowledge",  # DOC-35.1: Knowledge system (SOPs, training, playbooks)
+    "modules.jobs",  # DOC-20.1: Background job queue and DLQ
 ]
 
 MIDDLEWARE = [

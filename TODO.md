@@ -75,6 +75,15 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 **Additional Modules**
 - [x] DOC-35.1 Knowledge system MVP ✅ Completed Dec 30, 2025 - (see line 41 above for full description)
 
+**Missing Features Implementation (MISSINGFEATURES.md Coverage)**
+- [x] MISSING-1 Support/Ticketing System ✅ Completed Dec 30, 2025 - implemented complete support module with 5 models (SLAPolicy, Ticket, TicketComment, Survey, SurveyResponse); SLA tracking with business hours support; NPS/CSAT/CES surveys; ticket workflow with assignment/resolution; customer satisfaction ratings; admin interfaces, ViewSets, serializers, and URL routing complete; see IMPLEMENTATION_SUMMARY.md for details
+- [x] MISSING-2 Meeting Polls ✅ Completed Dec 30, 2025 - extended calendar module with MeetingPoll and MeetingPollVote models; Calendly-style meeting polls for finding times; yes/no/maybe voting; automatic best slot selection; voting deadline enforcement; integration with Appointment creation
+- [x] MISSING-3 Meeting Workflow Automation ✅ Completed Dec 30, 2025 - extended calendar module with MeetingWorkflow and MeetingWorkflowExecution models; pre/post meeting automation; trigger options (created/confirmed/completed/cancelled); action types (email/SMS/task/survey/CRM update); configurable delays for "before" actions
+- [x] MISSING-4 Email Campaign Templates ✅ Completed Dec 30, 2025 - implemented marketing module EmailTemplate model; reusable templates with HTML/plain text; merge fields support; performance tracking (open rate, click rate); campaign execution tracking; A/B testing support
+- [x] MISSING-5 Tag-based Segmentation ✅ Completed Dec 30, 2025 - implemented marketing module Tag, Segment, and EntityTag models; flexible tagging with categories; dynamic segments with JSON criteria; auto-update membership; usage tracking; entity tagging for leads/prospects/clients/campaigns
+- [x] MISSING-6 Client Onboarding Workflows ✅ Completed Dec 30, 2025 - implemented onboarding module with 4 models (OnboardingTemplate, OnboardingProcess, OnboardingTask, OnboardingDocument); template-based processes; task dependencies; document collection workflow; progress tracking; kick-off meeting integration; admin interfaces, ViewSets, serializers, and URL routing complete
+- [x] MISSING-7 API Layer Completion ✅ Completed Dec 30, 2025 - created comprehensive ViewSets, serializers, and URL routing for all new modules (support, onboarding, marketing); 14+ ViewSets with 30+ custom actions; proper permission classes (IsStaff, IsManager); firm scoping enforced; portal access where appropriate; mounted at /api/support/, /api/onboarding/, /api/marketing/; see DEPLOYMENT_STEPS.md for API endpoint documentation
+
 ---
 
 ## 🗃️ Legacy Roadmap (Superseded by docs/1–docs/35)

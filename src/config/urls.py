@@ -45,6 +45,9 @@ urlpatterns = [
     path("api/email-ingestion/", include("modules.email_ingestion.urls")),  # DOC-15.1: Email ingestion admin
     path("api/communications/", include("modules.communications.urls")),  # DOC-33.1: Conversations and messages
     path("api/knowledge/", include("modules.knowledge.urls")),  # DOC-35.1: Knowledge system
+    path("api/support/", include("modules.support.urls")),  # Support/ticketing system (SLA, surveys, NPS)
+    path("api/onboarding/", include("modules.onboarding.urls")),  # Client onboarding workflows
+    path("api/marketing/", include("modules.marketing.urls")),  # Marketing automation (tags, segments, templates)
 ]
 
 # Serve media files in development

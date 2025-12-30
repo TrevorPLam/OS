@@ -1,8 +1,8 @@
 # Missing Features Implementation Summary
 
 **Date:** December 30, 2025
-**Branch:** `claude/implement-missing-features-trXGC`
-**Status:** ✅ Complete
+**Branch:** `claude/implement-missing-features-4s5bB`
+**Status:** ✅ Complete (API Layer Added)
 
 ## Overview
 
@@ -403,38 +403,51 @@ The following ViewSets should be created in future work:
 
 ---
 
-## Next Steps
+## Implementation Status Update (December 30, 2025)
 
-### Immediate (Required for Deployment)
+### ✅ Completed Tasks
 
-1. **Register modules in INSTALLED_APPS**
-   ```python
-   # src/config/settings.py
-   INSTALLED_APPS = [
-       # ... existing apps ...
-       'modules.support',
-       'modules.marketing',
-       'modules.onboarding',
-   ]
-   ```
+1. **✅ Modules registered in INSTALLED_APPS** (`src/config/settings.py`)
+   - ✅ `modules.support` - Support/ticketing system
+   - ✅ `modules.marketing` - Marketing automation
+   - ✅ `modules.onboarding` - Client onboarding
+   - ✅ `modules.knowledge` - Knowledge system (DOC-35.1)
+   - ✅ `modules.jobs` - Background job queue (DOC-20.1)
 
-2. **Create migrations**
+2. **✅ Admin interfaces created** for all modules:
+   - ✅ `src/modules/support/admin.py` - 5 admin classes (SLAPolicy, Ticket, TicketComment, Survey, SurveyResponse)
+   - ✅ `src/modules/marketing/admin.py` - 5 admin classes (Tag, Segment, EmailTemplate, CampaignExecution, EntityTag)
+   - ✅ `src/modules/onboarding/admin.py` - 4 admin classes (OnboardingTemplate, OnboardingProcess, OnboardingTask, OnboardingDocument)
+   - ✅ `src/modules/calendar/admin.py` - Extended with 4 new admin classes (MeetingPoll, MeetingPollVote, MeetingWorkflow, MeetingWorkflowExecution)
+
+3. **✅ ViewSets and serializers created** for all modules:
+   - ✅ `src/modules/support/serializers.py` + `views.py` + `urls.py` - 5 ViewSets with custom actions
+   - ✅ `src/modules/marketing/serializers.py` + `views.py` + `urls.py` - 5 ViewSets with custom actions
+   - ✅ `src/modules/onboarding/serializers.py` + `views.py` + `urls.py` - 4 ViewSets with custom actions
+
+4. **✅ URL routing configured** (`src/config/urls.py`)
+   - ✅ `/api/support/` - Support module endpoints
+   - ✅ `/api/marketing/` - Marketing module endpoints
+   - ✅ `/api/onboarding/` - Onboarding module endpoints
+
+5. **✅ Permission classes implemented** (leveraging DOC-27.1 role-based permissions)
+   - All ViewSets use proper permission classes (IsStaffUser, IsManager)
+   - Portal access configured where appropriate
+   - Firm scoping enforced on all querysets
+
+### ⏳ Next Steps (Required for Deployment)
+
+**IMPORTANT:** See `DEPLOYMENT_STEPS.md` for complete deployment guide.
+
+1. **Create migrations** (migrations directories created, need to run makemigrations)
    ```bash
    python manage.py makemigrations support
-   python manage.py makemigrations marketing
+   python manage.py makemigrations marketing  # already has migration
    python manage.py makemigrations onboarding
-   python manage.py makemigrations calendar  # for extensions
+   python manage.py makemigrations knowledge
+   python manage.py makemigrations calendar  # for meeting extensions
    python manage.py migrate
    ```
-
-3. **Create ViewSets and URLs** (see Integration Points above)
-
-4. **Create admin interfaces**
-   - `src/modules/support/admin.py`
-   - `src/modules/marketing/admin.py`
-   - `src/modules/onboarding/admin.py`
-
-5. **Add permission classes** (leverage existing DOC-27.1 role-based permissions)
 
 ### Short-term (Nice to Have)
 
