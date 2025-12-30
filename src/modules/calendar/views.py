@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
-from modules.auth.permissions import IsStaffUser
+from modules.auth.role_permissions import IsStaffUser
 from .models import AppointmentType, AvailabilityProfile, BookingLink, Appointment
 from .serializers import (
     AppointmentTypeSerializer,

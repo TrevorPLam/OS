@@ -1191,3 +1191,299 @@ class CreditLedgerEntry(models.Model):
         from django.core.exceptions import ValidationError
 
         raise ValidationError("Credit ledger entries cannot be deleted. " "Create a reversing entry instead.")
+
+
+class Payment(models.Model):
+    """
+    Payment entity - tracks customer payments received (Medium Feature 2.10).
+    
+    Represents money received from clients. Can be applied to one or
+    more invoices via PaymentAllocation model.
+    
+    TIER 0: Belongs to a Firm through Client relationship.
+    """
+    
+    PAYMENT_METHOD_CHOICES = [
+        ("credit_card", "Credit Card"),
+        ("bank_transfer", "Bank Transfer"),
+        ("check", "Check"),
+        ("cash", "Cash"),
+        ("stripe", "Stripe"),
+        ("other", "Other"),
+    ]
+    
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("cleared", "Cleared"),
+        ("failed", "Failed"),
+        ("refunded", "Refunded"),
+    ]
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="payments",
+        help_text="Firm (workspace) this payment belongs to",
+    )
+    
+    # Relationships
+    client = models.ForeignKey(
+        "clients.Client",
+        on_delete=models.CASCADE,
+        related_name="payments",
+        help_text="The client who made this payment",
+    )
+    
+    # Payment Details
+    payment_number = models.CharField(
+        max_length=50,
+        help_text="Unique payment reference number",
+    )
+    payment_date = models.DateField(help_text="Date payment was received")
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Total payment amount received",
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    
+    # Payment Method
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="stripe",
+    )
+    reference_number = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Check number, transaction ID, or other reference",
+    )
+    
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+    cleared_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when payment cleared/posted",
+    )
+    
+    # Allocation Tracking (Medium Feature 2.10)
+    amount_allocated = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total amount allocated to invoices",
+    )
+    amount_unallocated = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Remaining unallocated amount (for overpayments or credits)",
+    )
+    
+    # Notes
+    notes = models.TextField(blank=True, help_text="Internal notes about this payment")
+    
+    # Audit Fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="recorded_payments",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "finance_payments"
+        ordering = ["-payment_date", "-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "client", "-payment_date"]),
+            models.Index(fields=["firm", "status"]),
+            models.Index(fields=["firm", "payment_number"]),
+        ]
+        unique_together = [["firm", "payment_number"]]
+    
+    def __str__(self) -> str:
+        return f"Payment {self.payment_number} - ${self.amount} - {self.client.company_name}"
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Calculate unallocated amount before saving."""
+        self.amount_unallocated = self.amount - self.amount_allocated
+        super().save(*args, **kwargs)
+    
+    def can_allocate(self, amount: Decimal) -> tuple[bool, str]:
+        """
+        Check if payment can allocate specified amount (Medium Feature 2.10).
+        
+        Returns:
+            Tuple of (can_allocate: bool, reason: str)
+        """
+        if self.status != "cleared":
+            return False, "Payment must be cleared before allocation"
+        
+        if amount <= 0:
+            return False, "Allocation amount must be positive"
+        
+        if amount > self.amount_unallocated:
+            return False, f"Allocation amount ${amount} exceeds unallocated ${self.amount_unallocated}"
+        
+        return True, ""
+
+
+class PaymentAllocation(models.Model):
+    """
+    Payment Allocation - links payments to invoices (Medium Feature 2.10).
+    
+    Tracks how payments are applied to invoices, supporting:
+    - Partial payments (payment < invoice amount)
+    - Overpayments (payment > invoice amount, creates credit)
+    - Underpayments (payment partially pays invoice)
+    - Split payments (one payment to multiple invoices)
+    - Multiple payments per invoice
+    
+    TIER 0: Belongs to a Firm through Payment/Invoice relationships.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="payment_allocations",
+        help_text="Firm (workspace) this allocation belongs to",
+    )
+    
+    # Relationships
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+        help_text="The payment being allocated",
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name="payment_allocations",
+        help_text="The invoice receiving the allocation",
+    )
+    
+    # Allocation Details
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Amount allocated from payment to invoice",
+    )
+    allocation_date = models.DateField(
+        default=timezone.now,
+        help_text="Date when allocation was made",
+    )
+    
+    # Notes
+    notes = models.TextField(
+        blank=True,
+        help_text="Notes about this allocation (e.g., partial payment reason)",
+    )
+    
+    # Audit Fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_allocations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "finance_payment_allocations"
+        ordering = ["-allocation_date", "-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "payment"]),
+            models.Index(fields=["firm", "invoice"]),
+            models.Index(fields=["allocation_date"]),
+        ]
+    
+    def __str__(self) -> str:
+        return f"${self.amount} from Payment {self.payment.payment_number} to Invoice {self.invoice.invoice_number}"
+    
+    def clean(self) -> None:
+        """Validate allocation integrity."""
+        from django.core.exceptions import ValidationError
+        
+        errors = {}
+        
+        # Validate firms match
+        if self.payment_id and self.firm_id:
+            if hasattr(self, "payment") and self.payment.firm_id != self.firm_id:
+                errors["payment"] = "Payment must belong to same firm as allocation"
+        
+        if self.invoice_id and self.firm_id:
+            if hasattr(self, "invoice") and self.invoice.firm_id != self.firm_id:
+                errors["invoice"] = "Invoice must belong to same firm as allocation"
+        
+        # Validate amount doesn't exceed unallocated (skip status check - allow pending payments)
+        if self.payment_id and hasattr(self, "payment"):
+            if self.amount <= 0:
+                errors["amount"] = "Allocation amount must be positive"
+            elif self.amount > self.payment.amount_unallocated:
+                errors["amount"] = f"Allocation amount ${self.amount} exceeds unallocated ${self.payment.amount_unallocated}"
+        
+        if errors:
+            raise ValidationError(errors)
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Update payment and invoice amounts on save using atomic operations."""
+        from django.db import transaction
+        from django.db.models import F
+        
+        self.full_clean()  # Run validation
+        
+        is_new = self.pk is None
+        
+        # Use transaction to ensure atomicity
+        with transaction.atomic():
+            super().save(*args, **kwargs)
+            
+            if is_new:
+                # Update payment allocated amount atomically
+                Payment.objects.filter(pk=self.payment_id).update(
+                    amount_allocated=F('amount_allocated') + self.amount,
+                    amount_unallocated=F('amount_unallocated') - self.amount,
+                )
+                
+                # Refresh payment to get current state
+                self.payment.refresh_from_db()
+                
+                # Update invoice paid amount atomically
+                Invoice.objects.filter(pk=self.invoice_id).update(
+                    amount_paid=F('amount_paid') + self.amount,
+                )
+                
+                # Refresh invoice to get current state for status update
+                self.invoice.refresh_from_db()
+                
+                # Update invoice status based on payment
+                if self.invoice.amount_paid >= self.invoice.total_amount:
+                    self.invoice.status = "paid"
+                    if not self.invoice.paid_date:
+                        self.invoice.paid_date = self.allocation_date
+                elif self.invoice.amount_paid > 0:
+                    self.invoice.status = "partial"
+                
+                self.invoice.save(update_fields=["status", "paid_date", "updated_at"])

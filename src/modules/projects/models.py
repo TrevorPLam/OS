@@ -284,6 +284,29 @@ class Project(models.Model):
     )
     wip_last_calculated = models.DateTimeField(null=True, blank=True, help_text="When WIP was last calculated")
     last_billed_date = models.DateField(null=True, blank=True, help_text="Date of last invoice for this project")
+    
+    # Client Acceptance Gate (Medium Feature 2.8)
+    client_accepted = models.BooleanField(
+        default=False,
+        help_text="Whether the client has accepted the project deliverables",
+    )
+    acceptance_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date when client accepted the project",
+    )
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accepted_projects",
+        help_text="User (client portal user or staff) who marked the project as accepted",
+    )
+    acceptance_notes = models.TextField(
+        blank=True,
+        help_text="Notes or feedback from client acceptance",
+    )
 
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
@@ -309,6 +332,117 @@ class Project(models.Model):
 
     def __str__(self) -> str:
         return f"{self.project_code} - {self.name}"
+    
+    def mark_client_accepted(self, user, notes: str = "") -> None:
+        """
+        Mark project as client-accepted (Medium Feature 2.8).
+        
+        This establishes a gate for invoice generation - projects must be
+        client-accepted before final invoicing.
+        
+        Args:
+            user: The user marking acceptance (staff or portal user)
+            notes: Optional acceptance notes or feedback
+        """
+        from django.utils import timezone
+        
+        if self.client_accepted:
+            from django.core.exceptions import ValidationError
+            raise ValidationError("Project has already been accepted by client.")
+        
+        self.client_accepted = True
+        self.acceptance_date = timezone.now().date()
+        self.accepted_by = user
+        self.acceptance_notes = notes
+        self.save(update_fields=["client_accepted", "acceptance_date", "accepted_by", "acceptance_notes", "updated_at"])
+    
+    def can_generate_invoice(self) -> tuple[bool, str]:
+        """
+        Check if project can generate invoices (Medium Feature 2.8).
+        
+        Returns:
+            Tuple of (can_invoice: bool, reason: str)
+            - can_invoice: True if project can be invoiced
+            - reason: Empty string if can invoice, otherwise explanation of why not
+        """
+        if self.status == "cancelled":
+            return False, "Cannot invoice cancelled project"
+        
+        if self.status == "planning":
+            return False, "Cannot invoice project still in planning phase"
+        
+        # Client acceptance gate (if project is completed)
+        if self.status == "completed" and not self.client_accepted:
+            return False, "Project must be client-accepted before final invoicing"
+        
+        return True, ""
+    
+    def calculate_utilization_metrics(self, start_date=None, end_date=None):
+        """
+        Calculate project utilization metrics (Medium Feature 2.9).
+        
+        Returns dictionary with:
+        - total_hours: Total hours logged on project
+        - billable_hours: Billable hours logged
+        - non_billable_hours: Non-billable hours logged
+        - utilization_rate: Percentage of hours that are billable
+        - hours_vs_budget: Hours logged vs budgeted hours (if budget exists)
+        - team_members: Count of unique users with time entries
+        - avg_hours_per_user: Average hours per team member
+        
+        Args:
+            start_date: Optional start date filter
+            end_date: Optional end date filter
+        """
+        from django.db.models import Sum, Count, Q, F
+        
+        # Build queryset with date filters and optimization
+        time_entries = self.time_entries.select_related('user').all()
+        if start_date:
+            time_entries = time_entries.filter(date__gte=start_date)
+        if end_date:
+            time_entries = time_entries.filter(date__lte=end_date)
+        
+        # Calculate aggregates
+        stats = time_entries.aggregate(
+            total_hours=Sum("hours"),
+            billable_hours=Sum("hours", filter=Q(is_billable=True)),
+            non_billable_hours=Sum("hours", filter=Q(is_billable=False)),
+            team_members=Count("user", distinct=True),
+        )
+        
+        total_hours = stats["total_hours"] or Decimal("0.00")
+        billable_hours = stats["billable_hours"] or Decimal("0.00")
+        non_billable_hours = stats["non_billable_hours"] or Decimal("0.00")
+        team_members = stats["team_members"] or 0
+        
+        # Calculate utilization rate
+        utilization_rate = (
+            (billable_hours / total_hours * 100) if total_hours > 0 else Decimal("0.00")
+        )
+        
+        # Calculate hours vs budget
+        budgeted_hours = None
+        hours_variance = None
+        if self.budget and self.hourly_rate and self.hourly_rate > 0:
+            budgeted_hours = self.budget / self.hourly_rate
+            hours_variance = total_hours - budgeted_hours
+        
+        # Calculate avg hours per user
+        avg_hours_per_user = (
+            (total_hours / team_members) if team_members > 0 else Decimal("0.00")
+        )
+        
+        return {
+            "total_hours": float(total_hours),
+            "billable_hours": float(billable_hours),
+            "non_billable_hours": float(non_billable_hours),
+            "utilization_rate": float(utilization_rate),
+            "budgeted_hours": float(budgeted_hours) if budgeted_hours else None,
+            "hours_variance": float(hours_variance) if hours_variance else None,
+            "team_members": team_members,
+            "avg_hours_per_user": float(avg_hours_per_user),
+        }
 
     def clean(self) -> None:
         """Validate project data integrity."""
@@ -332,6 +466,81 @@ class Project(models.Model):
 
         if errors:
             raise ValidationError(errors)
+    
+    @classmethod
+    def calculate_user_utilization(cls, firm, user, start_date, end_date):
+        """
+        Calculate utilization metrics for a specific user (Medium Feature 2.9).
+        
+        Calculates across all projects for a user within a date range.
+        
+        Returns dictionary with:
+        - total_hours: Total hours logged by user
+        - billable_hours: Billable hours logged
+        - non_billable_hours: Non-billable hours  
+        - utilization_rate: Percentage billable
+        - projects_worked: Count of unique projects
+        - available_hours: Expected working hours in period (assumes 40hr/week)
+        - capacity_utilization: Percentage of available hours used
+        
+        Args:
+            firm: Firm to scope query
+            user: User to calculate metrics for
+            start_date: Period start date
+            end_date: Period end date
+        """
+        from django.db.models import Sum, Count, Q
+        from datetime import timedelta
+        
+        # Get all time entries for user in date range
+        time_entries = TimeEntry.objects.filter(
+            project__firm=firm,
+            user=user,
+            date__gte=start_date,
+            date__lte=end_date,
+        )
+        
+        # Calculate aggregates
+        stats = time_entries.aggregate(
+            total_hours=Sum("hours"),
+            billable_hours=Sum("hours", filter=Q(is_billable=True)),
+            non_billable_hours=Sum("hours", filter=Q(is_billable=False)),
+            projects_worked=Count("project", distinct=True),
+        )
+        
+        total_hours = stats["total_hours"] or Decimal("0.00")
+        billable_hours = stats["billable_hours"] or Decimal("0.00")
+        non_billable_hours = stats["non_billable_hours"] or Decimal("0.00")
+        projects_worked = stats["projects_worked"] or 0
+        
+        # Calculate utilization rate
+        utilization_rate = (
+            (billable_hours / total_hours * 100) if total_hours > 0 else Decimal("0.00")
+        )
+        
+        # Calculate available hours (assumes 40-hour work week, 5 days/week)
+        days_in_period = (end_date - start_date).days + 1
+        weeks_in_period = Decimal(str(days_in_period / 7))
+        available_hours = weeks_in_period * Decimal("40.00")
+        
+        # Calculate capacity utilization
+        capacity_utilization = (
+            (total_hours / available_hours * 100) if available_hours > 0 else Decimal("0.00")
+        )
+        
+        return {
+            "user_id": user.id,
+            "user_email": user.email,
+            "period_start": start_date.isoformat(),
+            "period_end": end_date.isoformat(),
+            "total_hours": float(total_hours),
+            "billable_hours": float(billable_hours),
+            "non_billable_hours": float(non_billable_hours),
+            "utilization_rate": float(utilization_rate),
+            "projects_worked": projects_worked,
+            "available_hours": float(available_hours),
+            "capacity_utilization": float(capacity_utilization),
+        }
 
 
 class Task(models.Model):

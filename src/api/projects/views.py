@@ -7,8 +7,10 @@ TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 """
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
@@ -41,6 +43,162 @@ class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
         return base_queryset.select_related("client", "contract", "project_manager")
+    
+    @action(detail=True, methods=["post"])
+    def mark_client_accepted(self, request, pk=None):
+        """
+        Mark project as client-accepted (Medium Feature 2.8).
+        
+        POST /api/projects/projects/{id}/mark_client_accepted/
+        Body: { "notes": "Optional acceptance notes" }
+        
+        This establishes a gate for invoice generation.
+        Projects must be client-accepted before final invoicing.
+        """
+        try:
+            project = self.get_object()
+            notes = request.data.get("notes", "")
+            project.mark_client_accepted(request.user, notes=notes)
+            serializer = self.get_serializer(project)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["get"])
+    def can_invoice(self, request, pk=None):
+        """
+        Check if project can generate invoices (Medium Feature 2.8).
+        
+        GET /api/projects/projects/{id}/can_invoice/
+        
+        Returns whether the project can be invoiced and why/why not.
+        """
+        try:
+            project = self.get_object()
+            can_invoice, reason = project.can_generate_invoice()
+            return Response({
+                "can_invoice": can_invoice,
+                "reason": reason,
+                "client_accepted": project.client_accepted,
+                "acceptance_date": project.acceptance_date,
+                "accepted_by": project.accepted_by.email if project.accepted_by else None,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=True, methods=["get"])
+    def utilization(self, request, pk=None):
+        """
+        Get project utilization metrics (Medium Feature 2.9).
+        
+        GET /api/projects/projects/{id}/utilization/
+        Query params:
+        - start_date: Optional YYYY-MM-DD format
+        - end_date: Optional YYYY-MM-DD format
+        
+        Returns utilization metrics for the project including billable hours,
+        utilization rate, team size, and hours vs budget.
+        """
+        from datetime import datetime
+        
+        try:
+            project = self.get_object()
+            
+            # Parse date filters from query params
+            start_date = request.query_params.get("start_date")
+            end_date = request.query_params.get("end_date")
+            
+            date_errors = []
+            if start_date:
+                try:
+                    start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+                except ValueError:
+                    date_errors.append("start_date")
+            if end_date:
+                try:
+                    end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+                except ValueError:
+                    date_errors.append("end_date")
+            
+            if date_errors:
+                return Response({
+                    "error": f"Invalid date format for {', '.join(date_errors)}. Use YYYY-MM-DD"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            metrics = project.calculate_utilization_metrics(start_date, end_date)
+            
+            return Response({
+                "project_id": project.id,
+                "project_code": project.project_code,
+                "project_name": project.name,
+                "metrics": metrics,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=["get"])
+    def team_utilization(self, request):
+        """
+        Get team utilization metrics (Medium Feature 2.9).
+        
+        GET /api/projects/projects/team_utilization/
+        Query params (required):
+        - start_date: YYYY-MM-DD format
+        - end_date: YYYY-MM-DD format
+        - user_id: Optional - specific user ID to calculate for
+        
+        Returns utilization metrics for team members across all projects.
+        """
+        from datetime import datetime
+        from modules.firm.models import FirmMembership
+        
+        try:
+            # Required date range
+            start_date_str = request.query_params.get("start_date")
+            end_date_str = request.query_params.get("end_date")
+            
+            if not start_date_str or not end_date_str:
+                return Response({
+                    "error": "start_date and end_date query parameters are required (YYYY-MM-DD)"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+            
+            firm = get_request_firm(request)
+            user_id = request.query_params.get("user_id")
+            
+            results = []
+            
+            if user_id:
+                # Single user
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                try:
+                    user = User.objects.get(id=user_id)
+                    metrics = Project.calculate_user_utilization(firm, user, start_date, end_date)
+                    results.append(metrics)
+                except User.DoesNotExist:
+                    return Response({"error": f"User {user_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                # All team members
+                memberships = FirmMembership.objects.filter(firm=firm, is_active=True)
+                for membership in memberships:
+                    metrics = Project.calculate_user_utilization(firm, membership.user, start_date, end_date)
+                    results.append(metrics)
+            
+            return Response({
+                "period_start": start_date.isoformat(),
+                "period_end": end_date.isoformat(),
+                "team_members": len(results),
+                "utilization_data": results,
+            }, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({
+                "error": f"Invalid date format. Use YYYY-MM-DD: {str(e)}"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):

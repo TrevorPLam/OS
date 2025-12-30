@@ -160,6 +160,124 @@ class DocumentViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=True, methods=["post"])
+    def submit_for_review(self, request, pk=None):
+        """
+        Submit document for review (draft → review).
+        
+        POST /api/documents/documents/{id}/submit_for_review/
+        
+        Workflow action: transitions document from draft to review status.
+        """
+        try:
+            document = self.get_object()
+            document.submit_for_review(request.user)
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["post"])
+    def approve(self, request, pk=None):
+        """
+        Approve document (review → approved).
+        
+        POST /api/documents/documents/{id}/approve/
+        Body: { "notes": "Optional review notes" }
+        
+        Workflow action: approves document under review.
+        """
+        try:
+            document = self.get_object()
+            notes = request.data.get("notes", "")
+            document.approve(request.user, notes=notes)
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["post"])
+    def reject(self, request, pk=None):
+        """
+        Reject document and return to draft (review → draft).
+        
+        POST /api/documents/documents/{id}/reject/
+        Body: { "notes": "Required rejection notes" }
+        
+        Workflow action: rejects document under review with notes.
+        """
+        try:
+            document = self.get_object()
+            notes = request.data.get("notes", "")
+            if not notes:
+                return Response(
+                    {"error": "Rejection notes are required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            document.reject(request.user, notes=notes)
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["post"])
+    def publish(self, request, pk=None):
+        """
+        Publish document (approved → published).
+        
+        POST /api/documents/documents/{id}/publish/
+        
+        Workflow action: publishes approved document.
+        """
+        try:
+            document = self.get_object()
+            document.publish(request.user)
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["post"])
+    def deprecate(self, request, pk=None):
+        """
+        Deprecate document (published → deprecated).
+        
+        POST /api/documents/documents/{id}/deprecate/
+        Body: { "reason": "Required deprecation reason" }
+        
+        Workflow action: deprecates published document with reason.
+        """
+        try:
+            document = self.get_object()
+            reason = request.data.get("reason", "")
+            if not reason:
+                return Response(
+                    {"error": "Deprecation reason is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            document.deprecate(request.user, reason=reason)
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["post"])
+    def archive(self, request, pk=None):
+        """
+        Archive document (any status → archived).
+        
+        POST /api/documents/documents/{id}/archive/
+        
+        Workflow action: archives document from any status.
+        """
+        try:
+            document = self.get_object()
+            document.archive()
+            serializer = self.get_serializer(document)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class VersionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
