@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "modules.assets",
     "modules.pricing",  # DOC-09.1: Pricing engine
     "modules.delivery",  # DOC-12.1: Delivery templates
+    "modules.recurrence",  # DOC-10.1: Recurrence engine
 ]
 
 MIDDLEWARE = [

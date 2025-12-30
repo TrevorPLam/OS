@@ -22,7 +22,7 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 - [x] DOC-09.1 Pricing engine MVP: versioned RuleSets + evaluator + deterministic outputs + trace ✅ Completed Dec 29, 2025 - added modules/pricing/ with RuleSet, Quote, QuoteVersion, QuoteLineItem models; PricingEvaluator with deterministic evaluation + trace generation
 - [x] DOC-09.2 Quote snapshots: immutable QuoteVersion persistence + retrieval endpoints for audit ✅ Completed Dec 30, 2025 - added API endpoints with audit logging for quote version retrieval; enforced immutability for accepted quotes
 - [x] DOC-12.1 Delivery templates MVP: template DAG validation + deterministic instantiation into execution units ✅ Completed Dec 30, 2025 - added modules/delivery with DeliveryTemplate, DeliveryNode, DeliveryEdge models; DAG cycle detection; deterministic instantiation engine; template traceability in Task model
-- [ ] DOC-10.1 Recurrence engine MVP: RecurrenceRule + PeriodKey policy + RecurrenceGeneration dedupe ledger + DST correctness
+- [x] DOC-10.1 Recurrence engine MVP: RecurrenceRule + PeriodKey policy + RecurrenceGeneration dedupe ledger + DST correctness ✅ Completed Dec 30, 2025 - added modules/recurrence with RecurrenceRule, RecurrenceGeneration models; RecurrenceGenerator with timezone-aware period computation; DST handling; idempotency keys; unique constraints for dedupe
 - [ ] DOC-11.1 Orchestration engine MVP: executions + step history + retry/DLQ model + per-step idempotency strategy
 - [ ] DOC-15.1 Email ingestion MVP: EmailArtifact + attachment storage as Documents + mapping suggestions + triage + audited remaps
 - [ ] DOC-34.1 Calendar domain MVP: appointment types + availability profiles + booking links + booking flow
