@@ -41,6 +41,9 @@ urlpatterns = [
     path("api/documents/", include("api.documents.urls")),
     path("api/assets/", include("api.assets.urls")),
     path("api/pricing/", include("modules.pricing.urls")),  # DOC-09.2: Pricing engine endpoints
+    path("api/calendar/", include("modules.calendar.urls")),  # DOC-16.1, DOC-34.1: Calendar and booking
+    path("api/email-ingestion/", include("modules.email_ingestion.urls")),  # DOC-15.1: Email ingestion admin
+    path("api/communications/", include("modules.communications.urls")),  # DOC-33.1: Conversations and messages
 ]
 
 # Serve media files in development
