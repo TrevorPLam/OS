@@ -176,14 +176,20 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install safety
-      run: pip install safety
+    - name: Install safety and bandit
+      run: pip install safety bandit
 
     - name: Check for security vulnerabilities
       run: |
         # TIER 1: Fail CI on security vulnerabilities (removed --continue-on-error)
         # Note: Will fail if requirements.txt doesn't exist - this is intentional
         safety check --file requirements.txt
+
+    - name: Run SAST with bandit
+      run: |
+        # CONST-1: Static Application Security Testing with bandit
+        bandit -r src/ -f json -o bandit-report.json || true
+        bandit -r src/ -ll -f screen
 
     - name: Scan for secrets
       uses: trufflesecurity/trufflehog@main
