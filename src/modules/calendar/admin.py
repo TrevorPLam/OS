@@ -14,6 +14,10 @@ from .models import (
     MeetingWorkflow,
     MeetingWorkflowExecution,
 )
+from .oauth_models import (
+    OAuthConnection,
+    OAuthAuthorizationCode,
+)
 
 
 @admin.register(AppointmentType)
@@ -242,3 +246,100 @@ class MeetingWorkflowExecutionAdmin(admin.ModelAdmin):
     search_fields = ["appointment__appointment_id", "workflow__name", "error_message"]
     readonly_fields = ["scheduled_for", "executed_at", "created_at"]
     raw_id_fields = ["workflow", "appointment"]
+
+
+@admin.register(OAuthConnection)
+class OAuthConnectionAdmin(admin.ModelAdmin):
+    """Admin for OAuthConnection."""
+
+    list_display = [
+        "connection_id",
+        "provider",
+        "user",
+        "provider_email",
+        "status",
+        "sync_enabled",
+        "last_sync_at",
+        "firm",
+        "created_at",
+    ]
+    list_filter = ["provider", "status", "sync_enabled", "firm"]
+    search_fields = ["user__username", "provider_email", "provider_user_id"]
+    readonly_fields = [
+        "connection_id",
+        "token_expires_at",
+        "last_sync_at",
+        "created_at",
+        "updated_at",
+    ]
+    raw_id_fields = ["firm", "user"]
+
+    fieldsets = (
+        (None, {
+            "fields": ("firm", "user", "provider", "status")
+        }),
+        ("Provider Details", {
+            "fields": ("provider_user_id", "provider_email", "provider_metadata")
+        }),
+        ("OAuth Tokens", {
+            "fields": ("access_token", "refresh_token", "token_expires_at", "scopes"),
+            "classes": ("collapse",),
+        }),
+        ("Sync Configuration", {
+            "fields": (
+                "sync_enabled",
+                "sync_window_days",
+                "last_sync_at",
+                "last_sync_cursor",
+            )
+        }),
+        ("Error Info", {
+            "fields": ("error_message",),
+            "classes": ("collapse",),
+        }),
+        ("Metadata", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
+
+
+@admin.register(OAuthAuthorizationCode)
+class OAuthAuthorizationCodeAdmin(admin.ModelAdmin):
+    """Admin for OAuthAuthorizationCode."""
+
+    list_display = [
+        "code_id",
+        "provider",
+        "user",
+        "state",
+        "state_token",
+        "expires_at",
+        "created_at",
+    ]
+    list_filter = ["provider", "state", "firm"]
+    search_fields = ["user__username", "state_token"]
+    readonly_fields = [
+        "code_id",
+        "state_token",
+        "created_at",
+        "exchanged_at",
+    ]
+    raw_id_fields = ["firm", "user", "connection"]
+
+    fieldsets = (
+        (None, {
+            "fields": ("firm", "user", "provider", "state", "state_token")
+        }),
+        ("Authorization Data", {
+            "fields": ("authorization_code", "redirect_uri")
+        }),
+        ("Result", {
+            "fields": ("connection", "error_message"),
+            "classes": ("collapse",),
+        }),
+        ("Timing", {
+            "fields": ("expires_at", "created_at", "exchanged_at"),
+            "classes": ("collapse",),
+        }),
+    )

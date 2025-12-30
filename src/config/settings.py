@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "modules.knowledge",  # DOC-35.1: Knowledge system (SOPs, training, playbooks)
     "modules.jobs",  # DOC-20.1: Background job queue and DLQ
     "modules.snippets",  # Quick text insertion system (HubSpot-style snippets)
+    "modules.sms",  # SMS messaging integration (Twilio, campaigns, two-way conversations)
 ]
 
 MIDDLEWARE = [

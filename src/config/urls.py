@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Webhooks
     path("webhooks/stripe/", stripe_webhook, name="stripe-webhook"),
+    path("webhooks/sms/", include("modules.sms.webhooks")),  # Twilio SMS webhooks (no auth)
     # API Endpoints (REST Framework)
     path("api/auth/", include("modules.auth.urls")),
     path("api/firm/", include("modules.firm.urls")),
@@ -49,6 +50,7 @@ urlpatterns = [
     path("api/onboarding/", include("modules.onboarding.urls")),  # Client onboarding workflows
     path("api/marketing/", include("modules.marketing.urls")),  # Marketing automation (tags, segments, templates)
     path("api/snippets/", include("modules.snippets.urls")),  # Quick text insertion (HubSpot-style snippets)
+    path("api/sms/", include("modules.sms.urls")),  # SMS messaging (Twilio integration, campaigns, conversations)
 ]
 
 # Serve media files in development
