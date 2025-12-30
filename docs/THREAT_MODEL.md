@@ -184,7 +184,7 @@ See: `src/modules/core/governance.py` - Data classification implementation
 **Likelihood**: LOW (defense-in-depth)
 
 **Mitigations**:
-- `src/modules/firm/utils.py:41-89` - FirmScopedQuerySet enforces tenant isolation
+- `src/modules/firm/utils.py:37-101` - FirmScopedQuerySet enforces tenant isolation
 - `src/modules/firm/utils.py:127-169` - FirmScopedMixin on all ViewSets
 - QuerySet filters applied at ORM level (bypass impossible)
 - No raw SQL queries without parameterization
