@@ -126,7 +126,7 @@ See: `src/modules/core/governance.py` - Data classification implementation
 
 **Mitigations**:
 - `src/config/settings.py:170-210` - Django authentication framework
-- `src/modules/firm/models.py:53-98` - User model with password hashing
+- Django `AUTH_USER_MODEL` with built-in password hashing (configured via `settings.AUTH_USER_MODEL`)
 - Session expiry configured (24 hour timeout)
 - CSRF protection enabled globally
 - Secure cookie flags (HTTPONLY, SECURE)
