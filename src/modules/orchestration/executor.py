@@ -317,7 +317,14 @@ class OrchestrationExecutor:
 
     def _redact_error(self, error_message: str) -> str:
         """
-        Redact sensitive information from error message.
+        Redact sensitive information from error message per docs/21 section 4.
+
+        Redacts common PII patterns:
+        - Email addresses
+        - Phone numbers
+        - SSN/EIN
+        - Credit card numbers
+        - API keys/tokens
 
         Args:
             error_message: Raw error message
@@ -325,12 +332,56 @@ class OrchestrationExecutor:
         Returns:
             Redacted error summary
         """
+        import re
+
         # Truncate to prevent unbounded storage
         max_length = 1000
         if len(error_message) > max_length:
             error_message = error_message[:max_length] + "... (truncated)"
 
-        # TODO: Add PII redaction logic
+        # Redact email addresses
+        error_message = re.sub(
+            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            '[EMAIL_REDACTED]',
+            error_message
+        )
+
+        # Redact phone numbers (various formats)
+        error_message = re.sub(
+            r'\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b',
+            '[PHONE_REDACTED]',
+            error_message
+        )
+
+        # Redact SSN/EIN patterns
+        error_message = re.sub(
+            r'\b\d{3}-\d{2}-\d{4}\b',
+            '[SSN_REDACTED]',
+            error_message
+        )
+
+        # Redact credit card numbers (13-16 digits)
+        error_message = re.sub(
+            r'\b\d{13,16}\b',
+            '[CARD_REDACTED]',
+            error_message
+        )
+
+        # Redact common API key patterns
+        error_message = re.sub(
+            r'(api[_-]?key|token|secret|password)[\s:=]+[\'"]?[\w\-\.]+[\'"]?',
+            r'\1=[REDACTED]',
+            error_message,
+            flags=re.IGNORECASE
+        )
+
+        # Redact AWS-style keys
+        error_message = re.sub(
+            r'AKIA[0-9A-Z]{16}',
+            '[AWS_KEY_REDACTED]',
+            error_message
+        )
+
         return error_message
 
     def _should_retry(

@@ -5,6 +5,7 @@ Provides API endpoints for SMS management, campaigns, and conversations.
 """
 
 import logging
+import uuid
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import viewsets, status
@@ -15,7 +16,9 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 from modules.auth.role_permissions import IsStaffUser, IsManager
-from modules.firm.utils import FirmScopedMixin
+from modules.firm.utils import FirmScopedMixin, get_request_firm
+from modules.jobs.models import JobQueue
+from modules.core.observability import get_correlation_id
 
 from .models import (
     SMSPhoneNumber,
@@ -322,7 +325,7 @@ class SMSCampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         """
         Send campaign immediately.
 
-        Queues campaign for immediate sending.
+        Queues campaign for immediate sending via background job queue.
         """
         campaign = self.get_object()
 
@@ -332,14 +335,39 @@ class SMSCampaignViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        firm = get_request_firm(request)
+        correlation_id = get_correlation_id(request) or uuid.uuid4()
+
         # Update campaign status
         campaign.status = 'sending'
         campaign.started_at = timezone.now()
         campaign.save(update_fields=['status', 'started_at'])
 
-        # TODO: Queue for background processing
-        # For now, return success
-        logger.info(f"Campaign {campaign.id} queued for sending")
+        # Queue for background processing per DOC-20.1
+        JobQueue.objects.create(
+            firm=firm,
+            category="notifications",
+            job_type="sms_campaign_send",
+            payload_version="1.0",
+            payload={
+                "tenant_id": firm.id,
+                "correlation_id": str(correlation_id),
+                "campaign_id": campaign.id,
+                "initiated_by": request.user.id,
+            },
+            idempotency_key=f"sms_campaign_{campaign.id}_{campaign.started_at.timestamp()}",
+            correlation_id=correlation_id,
+            priority=1,  # High priority
+        )
+
+        logger.info(
+            f"Campaign {campaign.id} queued for background sending",
+            extra={
+                "campaign_id": campaign.id,
+                "firm_id": firm.id,
+                "correlation_id": str(correlation_id),
+            }
+        )
 
         return Response({
             'message': 'Campaign queued for sending',

@@ -73,11 +73,11 @@ These TODOs should be addressed as part of constitution compliance or feature co
 
 **High Priority (Feature Completion)**
 - [ ] `src/api/portal/views.py` - Implement organization-based multi-account logic (DOC-26.1 account switcher)
-- [ ] `src/api/portal/views.py` - Add document access logging per DOC-14.2
-- [ ] `src/api/portal/views.py` - Implement staff notification on portal upload
-- [ ] `src/modules/sms/views.py` - Queue webhook processing for background execution
+- [x] `src/api/portal/views.py` - Add document access logging per DOC-14.2 ✅ Completed Dec 30, 2025
+- [x] `src/api/portal/views.py` - Implement staff notification on portal upload ✅ Completed Dec 30, 2025
+- [x] `src/modules/sms/views.py` - Queue SMS campaigns for background execution ✅ Completed Dec 30, 2025
 - [ ] `src/modules/orchestration/executor.py` - Implement actual step handler dispatch based on step type
-- [ ] `src/modules/orchestration/executor.py` - Add PII redaction logic to error messages
+- [x] `src/modules/orchestration/executor.py` - Add PII redaction logic to error messages ✅ Completed Dec 30, 2025
 
 **Medium Priority (Implementation Details)**
 - [ ] `src/api/portal/views.py` - Update session/token context with new client_id on account switch
@@ -97,7 +97,7 @@ These TODOs should be addressed as part of constitution compliance or feature co
 - [ ] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7)
 - [ ] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events
 
-**Note**: 22 TODOs found. Focus on High Priority items after Phase 1 constitution compliance.
+**Note**: 22 TODOs identified, 4 completed (Dec 30, 2025). 18 remaining. Focus on High Priority items after Phase 1 constitution compliance.
 
 ---
 
