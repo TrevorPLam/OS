@@ -5,8 +5,10 @@ Tests that cross-firm data access is completely blocked.
 CRITICAL: These tests validate Tier 0 isolation guarantees.
 """
 import pytest
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
+from django.utils import timezone
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from modules.firm.models import Firm, FirmMembership
@@ -223,27 +225,35 @@ class TestTenantIsolation:
         lead_a = Lead.objects.create(
             firm=firms["firm_a"],
             company_name="Lead A Company",
-            email="lead_a@example.com",
+            contact_name="Lead A Contact",
+            contact_email="lead_a@example.com",
             status="new"
         )
         lead_b = Lead.objects.create(
             firm=firms["firm_b"],
             company_name="Lead B Company",
-            email="lead_b@example.com",
+            contact_name="Lead B Contact",
+            contact_email="lead_b@example.com",
             status="new"
         )
 
         prospect_a = Prospect.objects.create(
             firm=firms["firm_a"],
             company_name="Prospect A",
-            email="prospect_a@example.com",
-            status="qualified"
+            primary_contact_name="Prospect A Contact",
+            primary_contact_email="prospect_a@example.com",
+            pipeline_stage="discovery",
+            estimated_value=Decimal("10000.00"),
+            close_date_estimate=timezone.now().date() + timezone.timedelta(days=30)
         )
         prospect_b = Prospect.objects.create(
             firm=firms["firm_b"],
             company_name="Prospect B",
-            email="prospect_b@example.com",
-            status="qualified"
+            primary_contact_name="Prospect B Contact",
+            primary_contact_email="prospect_b@example.com",
+            pipeline_stage="discovery",
+            estimated_value=Decimal("10000.00"),
+            close_date_estimate=timezone.now().date() + timezone.timedelta(days=30)
         )
 
         # Verify firm-scoped access

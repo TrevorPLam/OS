@@ -1,0 +1,52 @@
+[importlinter]
+root_package = src
+
+[importlinter:contract:1]
+name = API layer must not import infrastructure directly (async tasks, signals)
+type = forbidden
+source_modules =
+    src.api
+forbidden_modules =
+    src.modules.*.tasks
+    src.modules.*.signals
+    celery
+
+[importlinter:contract:2]
+name = Domain/service layer must not import Django ORM directly
+type = forbidden
+source_modules =
+    src.modules.*.services
+    src.modules.*.domain
+forbidden_modules =
+    django.db.models.query
+ignore_imports =
+    django.db.transaction -> *
+
+[importlinter:contract:3]
+name = No circular dependencies between core modules
+type = independence
+modules =
+    src.modules.crm
+    src.modules.finance
+    src.modules.projects
+    src.modules.documents
+    src.modules.clients
+    src.modules.calendar
+
+[importlinter:contract:4]
+name = Portal API must not import staff-only modules
+type = forbidden
+source_modules =
+    src.api.portal
+forbidden_modules =
+    src.modules.firm.provisioning
+    src.modules.firm.admin
+
+[importlinter:contract:5]
+name = Infrastructure must not import domain logic
+type = layers
+layers =
+    src.modules.*.views
+    src.modules.*.serializers
+    src.modules.*.services
+    src.modules.*.models
