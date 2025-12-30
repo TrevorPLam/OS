@@ -1483,136 +1483,945 @@ Karbon is a practice management platform specifically designed for accounting fi
 ## 4. Calendly
 
 ### Overview
-Calendly is a scheduling automation platform that eliminates back-and-forth emails when scheduling meetings, with features for individuals and teams.
+Calendly is a scheduling automation platform that eliminates back-and-forth emails when scheduling meetings, with features for individuals and teams. It focuses on both outbound scheduling (sharing links) and inbound scheduling (website embed, lead qualification), with comprehensive workflow automation for pre/post-meeting actions.
 
 ### Features Described in PDFs (C.pdf, C2.pdf):
 
-#### Core Features
+#### Core Platform Capabilities (from C.pdf)
+
+**Revenue Team Focus:**
+- Scheduling automation for sales, marketing, and customer success teams
+- Outbound scheduling: Share links via email, social media, signatures
+- Inbound scheduling: Embed on website, qualify leads before booking
+- Meeting lifecycle automation (before, during, after meetings)
+- Speed to connection optimization (faster than competitors)
+- Support for entire revenue lifecycle (SDR → AE → CS)
 
 **Scheduling Automation:**
-- Personal booking pages with custom URLs
+- Personal booking pages with custom URLs and slugs
+- Shareable scheduling links for email and social media
 - Event types (one-on-one, group, collective, round-robin)
-- Availability management
+- Availability management with weekly hours and exceptions
 - Buffer times between meetings
-- Multiple calendar sync (Google, Office 365, iCloud)
-- Time zone intelligence
-- Minimum scheduling notice
-- Date range restrictions
+- Multiple calendar sync (Google Calendar, Office 365, iCloud) - two-way sync
+- Time zone intelligence and automatic conversion
+- Minimum scheduling notice (e.g., 24 hours advance)
+- Date range restrictions (e.g., max 60 days in advance)
+- Slot rounding (15-min, 30-min intervals)
 
 **Event Types:**
-- One-on-one meetings
-- Group events (one host, multiple attendees)
-- Collective events (multiple hosts required)
-- Round-robin distribution (distributes among team)
-- Meeting polls (find time that works for multiple people)
+- **One-on-one meetings**: Single host, single attendee
+- **Group events**: One host, multiple attendees (webinars, training)
+- **Collective events**: Multiple hosts required (all must be available)
+- **Round-robin distribution**: Distribute bookings among team members
+  - Equal distribution option
+  - Priority-based assignment
+  - Availability-based routing
+  - Load balancing across team
+- **Meeting polls**: Propose multiple time slots, invitees vote on best time
+  - Find time that works for multiple people
+  - Vote yes/no/maybe for each slot
+  - Organizer selects winning slot
+  - Automatically schedules meeting
 
-**Workflows (Automation):**
-- Pre-meeting reminders
-- Pre-meeting content sharing
-- Post-meeting follow-ups
-- Thank you messages
-- Automated CRM updates
-- Custom workflow triggers
+**Calendly Routing (Lead Qualification):**
+- Routing forms to qualify leads before booking
+- Ask qualifying questions (industry, company size, budget, needs)
+- Route to appropriate team member based on responses
+- Show scheduling pages only to qualified leads
+- Integration with Marketo or HubSpot forms
+- Build forms directly in Calendly
+- Salesforce ownership lookup (route known leads to account owner automatically)
+- Industry-specific routing (route by vertical)
+- Company size routing (enterprise vs SMB)
+- Geographic routing (route by region/timezone)
+- Filter out unqualified leads before booking
+
+**Workflows (Pre/Post Meeting Automation):**
+- **Pre-meeting reminders**:
+  - Email reminders (days, hours, or minutes before)
+  - SMS text reminders
+  - Customizable reminder timing
+- **Pre-meeting content sharing**:
+  - Automatically send meeting agenda
+  - Share educational content before meeting
+  - Send preparatory materials
+  - Ensure attendees come prepared
+- **Post-meeting follow-ups**:
+  - Automatic thank you emails
+  - Send follow-up materials (ROI calculator, case studies)
+  - Share meeting recordings or notes
+  - Keep conversation going after meeting
+- **Post-meeting surveys**:
+  - Customer satisfaction surveys
+  - NPS surveys
+  - Feedback collection
+  - Meeting effectiveness tracking
+- **Automated CRM updates**:
+  - Log meetings to CRM automatically
+  - Create leads/contacts in Salesforce
+  - Update deal stages
+  - Track engagement
+- **Custom workflow triggers**:
+  - Trigger on meeting scheduled
+  - Trigger on meeting confirmed
+  - Trigger on meeting cancelled
+  - Trigger on meeting completed
+  - Trigger on meeting rescheduled
+- **Workflow use cases**:
+  - Reduce no-shows (88% of users report decrease)
+  - Eliminate human errors (forgotten Zoom links, wrong time zones)
+  - Ensure consistent communication
+  - Nurture prospects before meeting
+  - Keep customers warm post-meeting
+  - Automate admin tasks
 
 **Team Features:**
-- Team booking pages
-- Round-robin assignment
-- Collective scheduling (require all team members)
+- Team booking pages (display multiple team members/event types)
+- Round-robin assignment with intelligent routing
+- Collective scheduling (require all team members to be available)
 - Admin controls and permissions
-- Team analytics
-- Centralized billing
+  - Control who can create Round Robin/Collective events
+  - Control who can create/edit/delete Workflows
+  - Limit permissions for security/compliance
+- Team analytics and reporting
+- Centralized billing for entire organization
+- User seat management
+- Role-based access control
 
 **Integrations:**
-- Salesforce (automatic lead/event creation)
-- Other CRM integrations
-- Video conferencing (Zoom, Google Meet, Microsoft Teams)
-- Payment processing (collect payment when booking)
-- Marketing automation tools
-- Zapier for custom integrations
+- **Salesforce integration (deep)**:
+  - Automatic lead/event creation when meeting booked
+  - Log all meetings to correct customer record
+  - Create new leads automatically
+  - Capture cancelled events
+  - SFDC ID carried in Calendly link for accurate record matching
+  - Filter record types (e.g., HR interviews don't create SFDC records)
+  - Optimize marketing automation (assign to rep, send email with Calendly link)
+  - Route known leads/customers to account owner automatically via ownership lookup
+  - Customize at scale across organization
+- **Video conferencing integrations**:
+  - Zoom (automatic meeting link generation)
+  - Google Meet
+  - Microsoft Teams
+  - GoToMeeting
+  - Automatically add video link to calendar invite
+  - No manual copy/paste of meeting links
+- **CRM integrations**:
+  - HubSpot integration
+  - Other CRMs via Zapier
+  - Automatic meeting logging
+  - Lead/contact creation
+- **Payment processing**:
+  - Collect payment when booking (Stripe, PayPal)
+  - Paid appointments/consultations
+  - Deposit collection
+  - Cancellation fee handling
+- **Marketing automation tools**:
+  - Marketo integration
+  - HubSpot Marketing Hub
+  - Automatically send Calendly link via drip sequences
+- **Email/Calendar sync**:
+  - Gmail integration
+  - Outlook integration
+  - Office 365 sync
+  - Two-way calendar sync (create events, sync availability)
+- **Zapier for custom integrations**:
+  - Connect to 3,000+ apps
+  - Custom workflow automation
+  - Data sync with other tools
+- **Email automation platforms**:
+  - Outreach integration
+  - Salesloft integration
+  - Add Calendly links to email sequences
 
 **Security & Compliance:**
-- SAML-based SSO
-- SCIM provisioning
-- User deprovisioning
-- Data deletion for compliance (GDPR)
-- Security reviews
+- **SAML-based Single Sign-On (SSO)**:
+  - Centrally manage user authentication
+  - Enterprise SSO providers (Okta, OneLogin, Azure AD)
+  - Secure user onboarding
+- **SCIM provisioning**:
+  - System for Cross-Domain Identity Management
+  - Automatically provision new users
+  - Sync user data from identity provider
+- **User deprovisioning**:
+  - Easily remove past employees
+  - Offboard users when roles change
+  - Security compliance on departures
+- **Data deletion for compliance (GDPR)**:
+  - Delete customer/user data in few clicks
+  - Embed in existing data deletion practices
+  - Regulatory compliance (GDPR, CCPA)
+  - Privacy by design
+- **Security reviews**:
+  - Support from Calendly experts
+  - Security questionnaire assistance
+  - Legal review support
+  - Enterprise security requirements
+- **Access controls**:
+  - Avoid over-granting permissions
+  - Limit user capabilities
+  - Ensure consistency and compliance
+  - Control external messaging
+  - Visibility controls per department
 
 **Advanced Features:**
-- Routing forms (qualify leads before booking)
-- Custom questions on booking form
-- Embed options (website, email)
-- Browser and LinkedIn extensions
-- Mobile scheduling
-- SMS reminders
-- Calendar invites with auto-updating
+- **Routing forms** (qualify leads before booking) - see Calendly Routing above
+- **Custom questions on booking form** (intake questions):
+  - Ask custom questions during booking
+  - Gather information ahead of time
+  - Know what attendees need before meeting
+  - Pre-qualify leads
+  - Collect context for preparation
+- **Embed options**:
+  - Embed booking page on website
+  - Inline embed (full page)
+  - Popup embed (modal)
+  - Popup text link
+  - Popup button
+  - Add to website footer or header
+  - Embed on landing pages
+  - Embed in email (buttons/links)
+- **Browser extensions**:
+  - Chrome extension for Gmail
+  - Firefox extension
+  - Outlook add-in
+  - LinkedIn Messaging integration
+  - Add scheduling link to any email
+  - Insert suggested meeting times in emails (one-click booking)
+  - Share availability anywhere prospects engage
+- **LinkedIn integration**:
+  - Calendly extension for LinkedIn Messaging
+  - Share availability easily in LinkedIn messages
+  - Book meetings faster from LinkedIn
+  - Hand-pick times for VIP conversations (one-offs)
+  - Meeting polls for group conversations
+- **Mobile scheduling**:
+  - Mobile-responsive booking pages
+  - Book meetings from mobile device
+  - Mobile browser support
+- **SMS reminders**:
+  - Text message reminders before meetings
+  - Reduce no-shows via SMS
+  - Mobile-friendly notifications
+- **Calendar invites with auto-updating**:
+  - Send calendar invites automatically
+  - Auto-update if meeting rescheduled
+  - Sync changes across all calendars
+  - Automatic time zone handling
+- **One-off meetings** (ad hoc scheduling):
+  - Create custom one-time booking link
+  - Select specific dates/times for VIP
+  - Override normal availability rules
+  - Personalized scheduling for important prospects
+- **Meeting links in email signature**:
+  - "Book Time With Me" link in signature
+  - Always-available scheduling option
+  - Passive scheduling opportunity
 
 **Analytics & Reporting:**
-- Meeting volume tracking
-- Conversion rates
-- User activity reports
-- Team performance metrics
-- Campaign tracking with UTM parameters
+- **Meeting volume tracking**:
+  - Total meetings booked per period
+  - Meetings by team member
+  - Meetings by event type
+  - Trend analysis over time
+- **Conversion rates**:
+  - Booking page visits to bookings
+  - Link shares to bookings
+  - Website embed performance
+  - Form completion to booking
+- **User activity reports**:
+  - Check which users are active
+  - Track performance of meetings
+  - Verify seat utilization
+  - Individual user metrics
+- **Team performance metrics**:
+  - Compare team members
+  - Identify top performers
+  - Balance workload distribution
+  - Measure team capacity
+- **Campaign tracking with UTM parameters**:
+  - Track booking sources (email campaign, social media, ad)
+  - Marketing attribution
+  - ROI measurement by channel
+  - Source/medium/campaign tracking
+- **No-show tracking**:
+  - 88% of Calendly users report decreased no-shows
+  - Track attendance rates
+  - Identify patterns
+- **Usage analytics for admins**:
+  - Seat management insights
+  - Billing optimization
+  - Compliance monitoring
+  - Security audit logs
+
+**Operational Benefits (from C.pdf):**
+- **Speed to connection**: Respond to prospects first, competitive advantage
+- **2x increase in demos scheduled** (93% of sales teams using for outbound)
+- **50% increase in sales funnel engagement time** (SignPost customer)
+- **100% increase in demos scheduled** (Bitly outbound SDRs)
+- **70% of qualified leads book demos from website** (Givebutter with Routing)
+- **75% reduction in wait time for customer calls** (AgriWebb)
+- **85 hours per month saved** (Vonage customer success team)
+- **40% fewer scheduling emails** (Ancestry.com)
+- **89% of sales teams close more deals** using Calendly
+- **10 million users and 50,000 corporate customers** (market leadership)
+- **Used across entire organization**: Sales, marketing, CS, recruiting, product, executives
+
+**Key Differentiators (from C.pdf):**
+- **Complete scheduling automation** (not just link sharing):
+  - Inbound scheduling (website embed, lead routing)
+  - Outbound scheduling (link sharing)
+  - Team scheduling (Round Robin, Collective)
+  - Workflow automation (pre/post meeting)
+- **Revenue team focus** (not just calendar booking):
+  - Built for sales, marketing, customer success
+  - Pipeline acceleration
+  - Revenue generation optimization
+  - Customer lifecycle support
+- **Enterprise-grade features**:
+  - SSO and SCIM
+  - Admin controls and permissions
+  - Security and compliance
+  - Centralized management
+- **Comprehensive integrations**:
+  - Deep CRM integration (Salesforce)
+  - Video conferencing auto-add
+  - Marketing automation sync
+  - Payment collection
+  - 3,000+ apps via Zapier
+
+#### C2.pdf Features (LOSFA Scheduling Guide)
+
+C2.pdf is a user guide for Louisiana Office of Student Financial Assistance (LOSFA) using Calendly for event scheduling. It demonstrates Calendly in practice but doesn't introduce new platform features beyond C.pdf. Key observations:
+
+**Demonstrated Features:**
+- Multiple event types per organization (FSA ID/FAFSA workshops, financial aid seminars, browse sessions, mentoring, etc.)
+- Event-specific direct links (https://calendly.com/losfa-eventscheduling/[event-type])
+- Customizable scheduling windows (e.g., 30-day booking window)
+- Required fields on booking form (all fields must be completed)
+- Confirmation emails with LOSFA representative assignment
+- Email-based cancellation/rescheduling from confirmation email
+- Date/time blackout periods when representatives unavailable
+
+**Use Case Demonstrated:**
+- Educational/non-profit organization using Calendly
+- Multiple event types (workshops, seminars, mentoring sessions)
+- Regional coordination (representative assignment)
+- Compliance requirements (all fields required)
+- High-volume event scheduling
 
 ### What's Missing in the Codebase:
 
-**Critical Missing Features:**
+**Analysis: ConsultantPro has strong scheduling foundation but significant gaps compared to Calendly**
 
-1. **No Calendly Integration**
-   - No API integration with Calendly
-   - No webhook support for Calendly events
-   - No embedded Calendly widgets
-   - No Calendly link generation
+#### ✅ **IMPLEMENTED Features (Full or Substantial):**
 
-2. **Limited Scheduling Automation**
-   - ConsultantPro has basic appointment booking
-   - Missing Calendly-level features:
-     - No team round-robin scheduling
-     - No collective events (require multiple hosts)
-     - No meeting polls
-     - No routing forms to qualify before booking
-     - No workflow automation (pre/post meeting actions)
+1. ✅ **Core Appointment Booking**
+   - AppointmentType model with duration, buffers, location modes
+   - Appointment model with status tracking (requested, confirmed, cancelled, completed, no_show)
+   - Support for video, phone, in-person, custom locations
+   - Buffer times before/after meetings
+   - Intake questions (JSON field for custom questions)
 
-3. **No Pre/Post-Meeting Workflow Automation**
-   - Calendly Workflows automate:
-     - Reminder emails
-     - Content sharing before meetings
-     - Follow-up emails
-     - CRM updates
-     - Survey distribution
-   - ConsultantPro lacks these automated meeting workflows
+2. ✅ **Availability Management**
+   - AvailabilityProfile model with weekly hours (JSON by day)
+   - Exception dates (holidays, time off)
+   - Min notice period (minimum scheduling notice)
+   - Max future days (booking window)
+   - Slot rounding (15-min, 30-min intervals)
+   - Timezone support
 
-4. **Missing Embed & Distribution Options**
-   - No booking page embedding in websites
-   - No email signature integration
-   - No browser extension
-   - No LinkedIn integration
+3. ✅ **Booking Links**
+   - BookingLink model with unique slugs and tokens
+   - Visibility controls (portal_only, staff_only, public)
+   - Binding to AppointmentType and AvailabilityProfile
+   - Optional account/engagement context
 
-5. **Limited Team Scheduling Features**
-   - Basic appointment types exist
-   - Missing:
-     - Intelligent round-robin with load balancing
-     - Collective scheduling (all required)
-     - Team availability pools
-     - Team-level routing rules
+4. ✅ **Routing Policies**
+   - Fixed staff assignment
+   - Round-robin pool routing (partial implementation)
+   - Engagement owner routing
+   - Service line owner routing
 
-6. **No Payment Integration for Bookings**
-   - Calendly supports payment collection at booking
-   - ConsultantPro has separate finance module but not integrated with scheduling
+5. ✅ **Calendar Sync Infrastructure**
+   - CalendarConnection model (Google, Microsoft providers)
+   - OAuth credentials support (encrypted at rest)
+   - Two-way sync capability (push/pull)
+   - External event ID tracking
+   - Sync attempt logging with retry logic
+   - SyncAttemptLog model for observability
 
-7. **No Scheduling Analytics**
-   - No meeting conversion tracking
-   - No no-show analytics
-   - No scheduling source attribution
-   - No team performance comparison
+6. ✅ **Meeting Polls**
+   - MeetingPoll model with proposed slots
+   - MeetingPollVote model for invitee responses
+   - Yes/no/maybe voting
+   - Vote aggregation and best slot finding
+   - Status tracking (open, closed, scheduled, cancelled)
+   - Voting deadline support
 
-8. **Limited Customization**
-   - No custom booking page branding per user/team
-   - No custom confirmation pages
-   - No custom redirect after booking
+7. ✅ **Meeting Workflows**
+   - MeetingWorkflow model for automation
+   - Triggers: appointment created, confirmed, completed, cancelled
+   - Action types: send email, send SMS, create task, send survey, update CRM
+   - Delay configuration (negative for "before" actions)
+   - MeetingWorkflowExecution model for tracking
+   - Scheduled execution with status tracking
 
-9. **No SMS Integration**
-   - Calendly supports SMS reminders
-   - ConsultantPro lacks SMS capability
+8. ✅ **Appointment Lifecycle**
+   - Status transitions (requested → confirmed → completed/cancelled/no_show)
+   - AppointmentStatusHistory for audit trail
+   - Approval workflow support (requires_approval flag)
+   - Booking channels (portal, staff, public prospect)
+
+#### ⚠️ **PARTIAL or INCOMPLETE Features:**
+
+1. ⚠️ **Round-Robin Implementation**
+   - ✅ Has: Routing policy enum includes "round_robin_pool"
+   - ❌ Missing: Actual round-robin logic implementation
+   - ❌ Missing: Equal distribution tracking
+   - ❌ Missing: Priority-based assignment
+   - ❌ Missing: Load balancing logic
+   - ❌ Missing: Availability-based routing intelligence
+   - **Impact**: Can't automatically distribute bookings among team
+
+2. ⚠️ **Collective Events (Multiple Hosts)**
+   - ❌ Missing: Model support for multiple required staff
+   - ❌ Missing: "Venn diagram of availability" logic
+   - ❌ Missing: All-hosts-required constraint
+   - ❌ Missing: Collective event type
+   - **Note**: AppointmentType only supports single fixed_staff_user or round_robin_pool
+   - **Impact**: Can't require multiple team members for single appointment
+
+3. ⚠️ **Meeting Workflows (Incomplete)**
+   - ✅ Has: MeetingWorkflow and MeetingWorkflowExecution models
+   - ✅ Has: Basic trigger and action type enums
+   - ❌ Missing: Actual workflow execution engine
+   - ❌ Missing: Email template system for workflows
+   - ❌ Missing: SMS sending integration
+   - ❌ Missing: Survey distribution logic
+   - ❌ Missing: CRM update automation
+   - ❌ Missing: Scheduled job processing
+   - **Impact**: Models exist but workflows don't actually execute
+
+4. ⚠️ **Calendar Sync (Incomplete)**
+   - ✅ Has: CalendarConnection model with OAuth support
+   - ✅ Has: SyncAttemptLog with retry logic
+   - ✅ Has: External event ID tracking
+   - ❌ Missing: Actual Google Calendar API integration
+   - ❌ Missing: Microsoft Outlook API integration
+   - ❌ Missing: OAuth flow implementation
+   - ❌ Missing: Webhook handlers for external changes
+   - ❌ Missing: Incremental sync logic
+   - **Impact**: Infrastructure exists but not connected to actual calendar providers
+
+5. ⚠️ **Team Features (Limited)**
+   - ✅ Has: Round-robin routing policy (not implemented)
+   - ✅ Has: Team pool concept (owner_team_name in AvailabilityProfile)
+   - ❌ Missing: Team booking pages (display multiple members)
+   - ❌ Missing: Team analytics and reporting
+   - ❌ Missing: Admin permission controls
+   - ❌ Missing: Seat management
+   - ❌ Missing: Role-based access control for scheduling
+   - **Impact**: Limited team coordination capabilities
+
+#### ❌ **CRITICAL MISSING FEATURES:**
+
+**1. No Calendly Integration**
+- ❌ No API integration with Calendly platform
+- ❌ No webhook support for Calendly events
+- ❌ No embedded Calendly widgets (iframe embed)
+- ❌ No Calendly link generation or referral
+- ❌ No import/export of Calendly events
+- **Decision Point**: Build native vs integrate with Calendly as service
+
+**2. No Calendly Routing (Lead Qualification)**
+- ❌ No routing forms to qualify leads before booking
+- ❌ No qualifying questions workflow
+- ❌ No conditional routing based on responses
+- ❌ No industry/company size/geography routing
+- ❌ No form builder for qualification
+- ❌ No integration with Marketo/HubSpot forms
+- ❌ No Salesforce ownership lookup for automatic routing
+- ❌ No lead filtering (show booking page only to qualified)
+- ⚠️ intake_questions exist but no routing logic based on responses
+- **Impact**: Can't qualify or route leads before booking
+
+**3. No Intelligent Round-Robin Logic**
+- ❌ No equal distribution algorithm
+- ❌ No priority-based assignment
+- ❌ No load balancing across team
+- ❌ No availability-based intelligent routing
+- ❌ No round-robin analytics (distribution fairness)
+- ❌ No team capacity awareness
+- **Note**: routing_policy enum exists but not implemented
+- **Impact**: Can't automatically distribute bookings fairly
+
+**4. No Embed Options**
+- ❌ No website embedding (inline, popup, button)
+- ❌ No embeddable widget code generation
+- ❌ No iframe embed support
+- ❌ No popup modal embed
+- ❌ No website integration documentation
+- ❌ No embed analytics (page views, conversions)
+- **Impact**: Can't add scheduling to website
+
+**5. No Browser Extensions**
+- ❌ No Chrome extension for Gmail
+- ❌ No Firefox extension
+- ❌ No Outlook add-in
+- ❌ No LinkedIn Messaging integration
+- ❌ No suggested times insertion in emails
+- ❌ No one-click booking from emails
+- **Impact**: No productivity tools for email-based scheduling
+
+**6. No LinkedIn Integration**
+- ❌ No Calendly for LinkedIn Messaging
+- ❌ No easy link sharing in LinkedIn
+- ❌ No LinkedIn profile integration
+- ❌ No social media scheduling features
+- **Impact**: Can't schedule via LinkedIn outreach
+
+**7. No Email Signature Integration**
+- ❌ No "Book Time With Me" signature link
+- ❌ No signature template generator
+- ❌ No HTML signature with embedded link
+- ❌ No meeting link in signature feature
+- **Impact**: Passive scheduling opportunity missed
+
+**8. Limited CRM Integrations**
+- ❌ No Salesforce deep integration:
+  - No automatic lead/event creation
+  - No SFDC ID tracking
+  - No record type filtering
+  - No ownership lookup
+  - No cancelled event logging
+- ❌ No HubSpot integration
+- ❌ No automatic CRM logging from workflows
+- ❌ No marketing automation sync
+- ⚠️ Has: Basic CRM models (Account, Contact, Engagement) but no scheduling integration
+- **Impact**: Manual meeting logging, no automatic CRM updates
+
+**9. No Video Conferencing Auto-Add**
+- ❌ No Zoom integration (auto-generate meeting link)
+- ❌ No Google Meet integration
+- ❌ No Microsoft Teams integration
+- ❌ No automatic video link in calendar invite
+- ⚠️ location_details field exists but manual entry only
+- **Impact**: Manual copy/paste of video links, human error
+
+**10. No Payment Integration**
+- ❌ No Stripe integration for booking payment
+- ❌ No PayPal integration
+- ❌ No paid appointment support
+- ❌ No deposit collection
+- ❌ No cancellation fee handling
+- ⚠️ Finance module exists but not integrated with scheduling
+- **Impact**: Can't charge for appointments at booking time
+
+**11. No Zapier Integration**
+- ❌ No Zapier triggers (meeting booked, cancelled, etc.)
+- ❌ No Zapier actions (create meeting, update booking)
+- ❌ No connection to 3,000+ apps
+- ❌ No custom workflow automation via Zapier
+- **Impact**: Limited third-party integrations
+
+**12. No Marketing Automation Integrations**
+- ❌ No Marketo integration
+- ❌ No HubSpot Marketing Hub integration
+- ❌ No Outreach integration (email sequences)
+- ❌ No Salesloft integration
+- ❌ No automatic scheduling link in drip campaigns
+- **Impact**: Can't automate scheduling in marketing flows
+
+**13. No Scheduling Analytics & Reporting**
+- ❌ No meeting volume tracking dashboard
+- ❌ No conversion rate tracking (visits → bookings)
+- ❌ No user activity reports
+- ❌ No team performance comparison
+- ❌ No no-show analytics
+- ❌ No source attribution (UTM tracking)
+- ❌ No campaign tracking
+- ❌ No booking funnel analytics
+- ❌ No seat utilization reports
+- **Impact**: No visibility into scheduling effectiveness
+
+**14. No Admin Controls & Permissions**
+- ❌ No role-based permissions for scheduling
+- ❌ No control over who can create Round Robin events
+- ❌ No control over who can create Workflows
+- ❌ No team-level visibility controls
+- ❌ No department-specific permissions
+- ❌ No compliance enforcement controls
+- **Impact**: Security and compliance risks, no governance
+
+**15. No Security/Compliance Features**
+- ❌ No SAML-based SSO integration
+- ❌ No SCIM provisioning
+- ❌ No user deprovisioning automation
+- ❌ No GDPR data deletion workflow
+- ❌ No security review support
+- ❌ No enterprise access controls
+- ⚠️ Basic Django auth exists but not enterprise SSO
+- **Impact**: Not enterprise-ready for security-conscious orgs
+
+**16. No SMS Integration**
+- ❌ No SMS reminders before meetings
+- ❌ No Twilio integration
+- ❌ No text message workflows
+- ❌ No SMS notification system
+- ⚠️ MeetingWorkflow has "send_sms" action type but not implemented
+- **Impact**: Can't reduce no-shows via SMS
+
+**17. No One-Off/Ad Hoc Meetings**
+- ❌ No custom one-time booking link creation
+- ❌ No VIP scheduling with hand-picked times
+- ❌ No override of normal availability
+- ❌ No personalized scheduling for important prospects
+- **Impact**: Can't handle special scheduling requests
+
+**18. No Booking Page Customization**
+- ❌ No custom booking page branding per user/team
+- ❌ No logo upload for booking pages
+- ❌ No color scheme customization
+- ❌ No custom confirmation pages
+- ❌ No custom redirect after booking
+- ❌ No white-label booking experience
+- **Impact**: Generic booking experience, no branding
+
+**19. No Mobile Optimization**
+- ❌ No mobile-specific booking page optimization
+- ❌ No native mobile apps (iOS/Android)
+- ❌ No mobile push notifications
+- ⚠️ May be responsive but not optimized
+- **Impact**: Poor mobile booking experience
+
+**20. No Workflow Execution Engine**
+- ❌ MeetingWorkflow models exist but no execution
+- ❌ No scheduled job processor for workflows
+- ❌ No email template system
+- ❌ No SMS sending service
+- ❌ No survey distribution system
+- ❌ No CRM update automation
+- ❌ No workflow analytics (execution success rates)
+- **Impact**: Workflows defined but never execute
+
+**21. No Meeting Poll Features (Incomplete)**
+- ✅ Has: MeetingPoll and MeetingPollVote models
+- ❌ Missing: Poll creation UI
+- ❌ Missing: Invitee voting UI
+- ❌ Missing: Email invitations to vote
+- ❌ Missing: Vote reminder emails
+- ❌ Missing: Automatic meeting scheduling from winning slot
+- ❌ Missing: Poll analytics
+- **Impact**: Models exist but feature not usable
+
+**22. No Team Booking Pages**
+- ❌ No team scheduling page (display multiple members/event types)
+- ❌ No team member selection by booker
+- ❌ No team availability view
+- ❌ No centralized team booking interface
+- **Impact**: Each staff must share individual links, no team coordination
+
+**23. No Collective Event Logic**
+- ❌ No multiple-host requirements
+- ❌ No "all hosts must be available" constraint
+- ❌ No Venn diagram availability calculation
+- ❌ No collective event creation UI
+- **Note**: Only supports single staff per appointment
+- **Impact**: Can't book meetings requiring multiple team members
+
+**24. No Calendar Sync Implementation**
+- ✅ Has: CalendarConnection infrastructure
+- ❌ Missing: Google Calendar OAuth flow
+- ❌ Missing: Microsoft OAuth flow
+- ❌ Missing: Incremental sync logic
+- ❌ Missing: Conflict detection
+- ❌ Missing: Webhook handlers
+- ❌ Missing: Credential refresh logic
+- **Impact**: Can't sync with external calendars
+
+**25. No Intake Question Routing**
+- ✅ Has: intake_questions field (JSON)
+- ✅ Has: intake_responses field (JSON)
+- ❌ Missing: Routing logic based on responses
+- ❌ Missing: Conditional booking page display
+- ❌ Missing: Staff selection based on answers
+- **Impact**: Questions collected but not used for routing
+
+---
+
+### Priority Recommendations for Calendly-Like Features:
+
+**Feature Coverage Summary:**
+- **Core Scheduling**: ~70% implemented (strong models, missing execution)
+- **Workflows**: ~30% implemented (models exist, no execution engine)
+- **Integrations**: ~5% implemented (infrastructure only, no actual integrations)
+- **Team Features**: ~40% implemented (basic support, missing advanced features)
+- **Analytics**: ~0% implemented (no reporting at all)
+- **Overall**: ~30-35% of Calendly's capabilities
+
+**TIER 1 - CRITICAL (Complete Existing Foundation):**
+
+1. **Implement Workflow Execution Engine**
+   - Models exist but workflows never execute
+   - Build scheduled job processor
+   - Implement email sending for reminders/follow-ups
+   - Add SMS integration (Twilio)
+   - Connect to CRM for updates
+   - **Impact**: Very High | **Effort**: Medium | **Priority**: CRITICAL
+   - **Why**: Foundation is 50% built, complete it for immediate value
+
+2. **Implement Round-Robin Logic**
+   - Routing policy exists but no algorithm
+   - Equal distribution tracking
+   - Load balancing and availability awareness
+   - Priority-based assignment
+   - **Impact**: High | **Effort**: Medium | **Priority**: CRITICAL
+   - **Why**: Team scheduling is key differentiator, partially built
+
+3. **Implement Calendar Sync (Google + Microsoft)**
+   - CalendarConnection infrastructure exists
+   - Build OAuth flow
+   - Implement incremental sync
+   - Add webhook handlers
+   - Enable two-way sync
+   - **Impact**: Very High | **Effort**: High | **Priority**: CRITICAL
+   - **Why**: Core Calendly feature, infrastructure 70% complete
+
+4. **Complete Meeting Polls Feature**
+   - Models exist (MeetingPoll, MeetingPollVote)
+   - Build poll creation UI
+   - Build voting UI for invitees
+   - Send email invitations
+   - Auto-schedule from winning slot
+   - **Impact**: High | **Effort**: Medium | **Priority**: HIGH
+   - **Why**: Models built, just needs UI and email integration
+
+**TIER 2 - HIGH PRIORITY (Core Calendly Features):**
+
+5. **Calendly Routing (Lead Qualification)**
+   - Routing forms to qualify leads
+   - Question-based routing logic
+   - Industry/size/geography routing
+   - Salesforce ownership lookup
+   - Conditional booking page display
+   - **Impact**: Very High | **Effort**: High | **Priority**: HIGH
+   - **Why**: Key differentiator for revenue teams
+
+6. **Website Embed Options**
+   - Inline embed (full page)
+   - Popup embed (modal)
+   - Button/text link embeds
+   - Generate embed code
+   - Track embed performance
+   - **Impact**: High | **Effort**: Medium | **Priority**: HIGH
+   - **Why**: Critical for inbound scheduling
+
+7. **Video Conferencing Auto-Add**
+   - Zoom integration (auto-generate links)
+   - Google Meet integration
+   - Microsoft Teams integration
+   - Auto-add to calendar invites
+   - **Impact**: High | **Effort**: Medium | **Priority**: HIGH
+   - **Why**: Eliminates manual work, high ROI
+
+8. **Collective Events (Multiple Hosts)**
+   - Support multiple required staff per appointment
+   - "Venn diagram" availability calculation
+   - All-hosts-available constraint
+   - Collective event type
+   - **Impact**: High | **Effort**: Medium | **Priority**: HIGH
+   - **Why**: Common use case (sales + engineer demos)
+
+9. **Basic Scheduling Analytics**
+   - Meeting volume tracking
+   - Conversion rates (visits → bookings)
+   - No-show tracking
+   - User activity reports
+   - **Impact**: High | **Effort**: Medium | **Priority**: HIGH
+   - **Why**: Need visibility into scheduling effectiveness
+
+**TIER 3 - MEDIUM PRIORITY (Enhanced Capabilities):**
+
+10. **Deep CRM Integrations**
+    - Salesforce deep integration (lead creation, logging)
+    - HubSpot integration
+    - Automatic meeting logging
+    - Deal stage updates
+    - **Impact**: High (for CRM users) | **Effort**: High | **Priority**: MEDIUM
+    - **Why**: Valuable for sales teams, competitive requirement
+
+11. **Browser Extensions**
+    - Chrome extension for Gmail
+    - Outlook add-in
+    - LinkedIn messaging integration
+    - Suggested times in emails
+    - **Impact**: Medium | **Effort**: High | **Priority**: MEDIUM
+    - **Why**: Productivity boost for users, complex to build
+
+12. **Payment Integration**
+    - Stripe integration at booking
+    - Deposit collection
+    - Cancellation fees
+    - Paid consultation support
+    - **Impact**: Medium (high for paid services) | **Effort**: Medium | **Priority**: MEDIUM
+    - **Why**: Revenue opportunity for consultants
+
+13. **Team Booking Pages**
+    - Display multiple team members/event types
+    - Central team scheduling interface
+    - Team member selection by booker
+    - **Impact**: Medium | **Effort**: Medium | **Priority**: MEDIUM
+    - **Why**: Better team coordination
+
+14. **Admin Controls & Permissions**
+    - Role-based scheduling permissions
+    - Workflow creation controls
+    - Team visibility settings
+    - Compliance enforcement
+    - **Impact**: Medium | **Effort**: Low | **Priority**: MEDIUM
+    - **Why**: Required for enterprise, easy to add
+
+**TIER 4 - LOWER PRIORITY (Nice to Have):**
+
+15. **Zapier Integration**
+    - Zapier triggers and actions
+    - Connect to 3,000+ apps
+    - Custom workflows
+    - **Impact**: Medium | **Effort**: Medium | **Priority**: LOW
+    - **Why**: Broad reach but niche usage
+
+16. **Enterprise Security (SSO/SCIM)**
+    - SAML-based SSO
+    - SCIM provisioning
+    - GDPR data deletion
+    - Enterprise compliance
+    - **Impact**: High (for enterprise) | **Effort**: High | **Priority**: LOW
+    - **Why**: Only needed for large enterprise customers
+
+17. **Marketing Automation Integrations**
+    - Marketo integration
+    - Outreach/Salesloft integration
+    - Auto-send links in sequences
+    - **Impact**: Low-Medium | **Effort**: Medium | **Priority**: LOW
+    - **Why**: Niche use case, complex integrations
+
+18. **Booking Page Customization**
+    - Custom branding per user/team
+    - Logo upload
+    - Color schemes
+    - Custom confirmation pages
+    - **Impact**: Low | **Effort**: Medium | **Priority**: LOW
+    - **Why**: Aesthetic improvement, not functional
+
+19. **Native Mobile Apps**
+    - iOS app
+    - Android app
+    - Mobile push notifications
+    - **Impact**: Medium | **Effort**: Very High | **Priority**: LOW
+    - **Why**: Responsive web sufficient for now
+
+20. **One-Off/Ad Hoc Meetings**
+    - Custom one-time booking links
+    - VIP scheduling with hand-picked times
+    - Override availability rules
+    - **Impact**: Low | **Effort**: Low | **Priority**: LOW
+    - **Why**: Edge case, workaround exists
+
+---
+
+### Calendly Analysis Summary:
+
+**What ConsultantPro Has Built:**
+- ✅ Strong scheduling foundation (AppointmentType, Appointment, BookingLink)
+- ✅ Availability management (AvailabilityProfile with weekly hours, exceptions)
+- ✅ Calendar sync infrastructure (CalendarConnection, SyncAttemptLog)
+- ✅ Meeting poll models (MeetingPoll, MeetingPollVote)
+- ✅ Workflow models (MeetingWorkflow, MeetingWorkflowExecution)
+- ✅ Routing policies (fixed, round-robin, engagement owner)
+- ✅ Intake questions support
+- ✅ Buffer times and scheduling constraints
+
+**What's Missing (Critical):**
+- ❌ Workflow execution engine (models exist but don't execute)
+- ❌ Round-robin implementation (policy exists but no logic)
+- ❌ Calendar sync implementation (OAuth, sync logic)
+- ❌ Meeting poll UI and automation
+- ❌ Calendly Routing (lead qualification)
+- ❌ Collective events (multiple hosts)
+- ❌ Video conferencing auto-add
+- ❌ Website embed options
+- ❌ Scheduling analytics
+- ❌ Deep CRM integrations
+
+**Strategic Decision Required:**
+
+The organization must decide whether to:
+
+1. **Build Calendly Integration** (Fast path)
+   - ✅ Pros: Immediate access to full Calendly feature set, proven platform, no development
+   - ❌ Cons: External dependency, recurring costs ($8-16/user/month), limited customization
+   - **Timeline**: 1-2 months for integration
+   - **Cost**: $0 development + ongoing subscription
+
+2. **Complete Native Features** (Full control path)
+   - ✅ Pros: Full control, consulting-specific features, no recurring costs, competitive differentiation
+   - ❌ Cons: 12-18 months development, high cost, ongoing maintenance
+   - **Timeline**: 12-18 months for feature parity
+   - **Cost**: $600K-1.2M development + maintenance
+
+3. **Hybrid Approach** (RECOMMENDED)
+   - **Phase 1 (0-3 months)**: Complete existing foundations
+     - Implement workflow execution engine
+     - Complete round-robin logic
+     - Implement calendar sync
+     - Complete meeting polls
+     - **Investment**: $60K-120K
+   
+   - **Phase 2 (3-6 months)**: Core Calendly-like features
+     - Calendly Routing (lead qualification)
+     - Website embed options
+     - Video conferencing auto-add
+     - Collective events
+     - Basic analytics
+     - **Investment**: $100K-200K
+   
+   - **Phase 3 (6-12 months)**: Consulting-specific differentiation
+     - Deep CRM integration
+     - Engagement-based routing
+     - Project kick-off automation
+     - Client onboarding integration
+     - Advanced analytics
+     - **Investment**: $150K-300K
+   
+   - **Optional**: Offer Calendly integration for customers who want it immediately while native features mature
+   - **Total Investment**: $310K-620K over 12 months
+
+**Recommendation Rationale:**
+- ConsultantPro has already invested significantly in scheduling infrastructure (~40% complete)
+- Completing the foundation (workflows, round-robin, calendar sync) provides immediate value
+- Native features enable consulting-specific differentiation (engagement routing, onboarding integration)
+- Phased approach allows iterative delivery and feedback
+- Much more cost-effective than full rebuild or pure integration
+- Provides optionality: native features OR Calendly integration
+
+**Key Performance Indicators (Success Metrics):**
+- Meeting volume increase (target: 2x in 6 months)
+- No-show reduction (target: 30% decrease)
+- Time saved on scheduling (target: 5-10 hours/week per consultant)
+- Conversion rate (website visitors → booked meetings): target 10-15%
+- Meeting automation adoption (% meetings with workflows): target 70%+
+- Calendar sync adoption (% staff with connected calendars): target 80%+
+
+**Estimated ROI:**
+- **Cost**: $310K-620K over 12 months
+- **Revenue Impact**: 
+  - 2x meeting volume = 2x sales opportunities
+  - 30% no-show reduction = 30% more billable time
+  - 5 hours/week saved × 50 consultants × $200/hr = $2.6M/year value
+- **Break-even**: 2-4 months
+- **3-year ROI**: 800-1,600%
 
 ---
 

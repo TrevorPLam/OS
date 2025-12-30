@@ -110,3 +110,16 @@ Thumbs.db
 .Trashes
 ehthumbs.db
 Desktop.ini
+
+# Temporary PDF extraction files
+*_text.txt
+C_text.txt
+C2_text.txt
+AC_text.txt
+AC2_text.txt
+HS_text.txt
+HS2_text.txt
+K_text.txt
+K2_text.txt
+SF_text.txt
+SF2_text.txt
