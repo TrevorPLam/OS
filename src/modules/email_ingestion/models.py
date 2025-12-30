@@ -387,6 +387,7 @@ class IngestionAttempt(models.Model):
     IngestionAttempt / SyncAttemptLog model (per docs/15 section 2.3).
 
     Records every ingestion attempt for retry-safety and debugging.
+    Implements DOC-15.2: retry-safety with error classification.
     """
 
     OPERATION_CHOICES = [
@@ -399,6 +400,14 @@ class IngestionAttempt(models.Model):
     STATUS_CHOICES = [
         ("success", "Success"),
         ("fail", "Fail"),
+    ]
+
+    # Error classification for retry logic (per DOC-15.2)
+    ERROR_CLASS_CHOICES = [
+        ("transient", "Transient"),  # Temporary error, safe to retry
+        ("retryable", "Retryable"),  # Retryable with backoff
+        ("non_retryable", "Non-Retryable"),  # Permanent error, don't retry
+        ("rate_limited", "Rate Limited"),  # Provider rate limit
     ]
 
     # Identity
@@ -434,6 +443,24 @@ class IngestionAttempt(models.Model):
     error_summary = models.TextField(
         blank=True, help_text="Redacted error summary (no PII, no content)"
     )
+    error_class = models.CharField(
+        max_length=20,
+        choices=ERROR_CLASS_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Error classification for retry logic (DOC-15.2)",
+    )
+
+    # Retry tracking (DOC-15.2)
+    retry_count = models.IntegerField(
+        default=0, help_text="Number of times this operation has been retried"
+    )
+    next_retry_at = models.DateTimeField(
+        null=True, blank=True, help_text="Scheduled time for next retry (if applicable)"
+    )
+    max_retries_reached = models.BooleanField(
+        default=False, help_text="Whether max retry attempts have been exhausted"
+    )
 
     # Observability (per docs/21 OBSERVABILITY)
     correlation_id = models.UUIDField(
@@ -457,6 +484,9 @@ class IngestionAttempt(models.Model):
             models.Index(fields=["connection", "status"]),
             models.Index(fields=["email_artifact"]),
             models.Index(fields=["correlation_id"]),
+            models.Index(fields=["status", "error_class"]),
+            models.Index(fields=["next_retry_at"]),
+            models.Index(fields=["max_retries_reached"]),
         ]
 
     def __str__(self):

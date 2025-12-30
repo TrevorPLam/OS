@@ -3,17 +3,19 @@ Email Ingestion Services.
 
 Provides mapping suggestion logic and ingestion workflows.
 Implements docs/15 section 3 (mapping suggestions) and section 4 (staleness heuristics).
+Enhanced with DOC-15.2: staleness detection and retry-safety.
 """
 
 import uuid
 from decimal import Decimal
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, List
 from django.db import transaction
 from django.utils import timezone
 
 from modules.crm.models import Account, Engagement, Contact
 from modules.projects.models import WorkItem
 from .models import EmailArtifact, EmailConnection, IngestionAttempt
+from .staleness_service import StalenessDetector, StalenessConfig
 
 
 class EmailMappingService:
@@ -21,23 +23,29 @@ class EmailMappingService:
     Service for suggesting mappings from emails to domain objects.
 
     Implements docs/15 section 3: mapping suggestions with confidence scoring.
+    Enhanced with DOC-15.2: staleness detection per docs/15 section 4.
     """
 
     # Thresholds per docs/15 section 3
     AUTO_MAP_THRESHOLD = Decimal("0.85")  # Auto-map only if confidence >= 0.85
     TRIAGE_THRESHOLD = Decimal("0.50")  # Below this, always send to triage
 
+    def __init__(self, staleness_detector: StalenessDetector = None):
+        self.staleness_detector = staleness_detector or StalenessDetector()
+
     def suggest_mapping(
         self, email: EmailArtifact
-    ) -> Tuple[Optional[Account], Optional[Engagement], Optional[WorkItem], Decimal, str]:
+    ) -> Tuple[Optional[Account], Optional[Engagement], Optional[WorkItem], Decimal, str, bool]:
         """
         Suggest mapping for an email artifact.
 
         Returns:
-            (account, engagement, work_item, confidence, reasons)
+            (account, engagement, work_item, adjusted_confidence, reasons, requires_triage)
 
         Per docs/15 section 3: uses sender/recipient domain, subject keywords,
         prior thread mappings, and contact matching.
+
+        Enhanced with DOC-15.2: staleness detection per docs/15 section 4.
         """
         reasons = []
         confidence = Decimal("0.0")
@@ -125,10 +133,21 @@ class EmailMappingService:
         # Clamp confidence to [0, 1]
         confidence = min(confidence, Decimal("1.0"))
 
-        # Build reason string
-        reason_str = "; ".join(reasons) if reasons else "No strong signals found"
+        # Apply staleness detection (DOC-15.2)
+        adjusted_confidence, staleness_reasons, staleness_triage = self.staleness_detector.detect_staleness(
+            email, confidence
+        )
 
-        return account, engagement, work_item, confidence, reason_str
+        # Combine reasons
+        all_reasons = reasons + staleness_reasons
+        reason_str = "; ".join(all_reasons) if all_reasons else "No strong signals found"
+
+        # Determine if should force triage
+        requires_triage = self.staleness_detector.should_force_triage(
+            email, adjusted_confidence, staleness_reasons
+        )
+
+        return account, engagement, work_item, adjusted_confidence, reason_str, requires_triage
 
     def should_auto_map(self, confidence: Decimal) -> bool:
         """Return True if confidence is high enough for auto-mapping."""
@@ -231,7 +250,7 @@ class EmailIngestionService:
             # Attempt mapping
             map_start_time = timezone.now()
             try:
-                account, engagement, work_item, confidence, reasons = self.mapping_service.suggest_mapping(
+                account, engagement, work_item, confidence, reasons, requires_triage = self.mapping_service.suggest_mapping(
                     email
                 )
 
@@ -241,8 +260,11 @@ class EmailIngestionService:
                 email.mapping_confidence = confidence
                 email.mapping_reasons = reasons
 
-                # Determine status based on confidence
-                if self.mapping_service.should_auto_map(confidence):
+                # Determine status based on confidence and staleness (DOC-15.2)
+                if requires_triage:
+                    # Staleness heuristics force triage
+                    email.status = "triage"
+                elif self.mapping_service.should_auto_map(confidence):
                     # Auto-map: copy suggestions to confirmed fields
                     email.confirmed_account = account
                     email.confirmed_engagement = engagement
