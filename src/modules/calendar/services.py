@@ -6,12 +6,11 @@ Implements docs/34 sections 2.4, 3, and 4.
 """
 
 from datetime import datetime, timedelta
-from typing import List, Tuple, Optional
+from typing import Any, List, Tuple, Optional
 import pytz
 from django.db import transaction
 from django.utils import timezone
 
-from modules.crm.models import Engagement
 from .models import (
     AppointmentType,
     AvailabilityProfile,
@@ -173,7 +172,7 @@ class RoutingService:
         self,
         appointment_type: AppointmentType,
         account=None,
-        engagement: Optional[Engagement] = None,
+        engagement: Optional[Any] = None,
     ) -> Tuple[Optional[any], str]:
         """
         Route an appointment to a staff user based on routing policy.

@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from modules.clients.permissions import IsPortalUserOrFirmUser, PortalFirmAccessPermission
+from modules.clients.permissions import IsPortalUserOrFirmUser
 from modules.finance.models import Invoice
 from modules.finance.services import StripeService
 
@@ -25,7 +25,7 @@ class PaymentViewSet(viewsets.ViewSet):
     Portal users are scoped to their own client's invoices only.
     """
 
-    permission_classes = [IsAuthenticated, IsPortalUserOrFirmUser, PortalFirmAccessPermission]
+    permission_classes = [IsAuthenticated, IsPortalUserOrFirmUser]
 
     @action(detail=False, methods=["post"])
     def create_payment_intent(self, request):
