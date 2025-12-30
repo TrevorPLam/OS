@@ -1,0 +1,116 @@
+name: Documentation Quality
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - 'scripts/validate_*.py'
+      - 'scripts/check_*.py'
+      - '.markdownlint*'
+      - 'cspell.json'
+      - '.cspell/**'
+  push:
+    branches: [ main ]
+    paths:
+      - '**.md'
+      - 'docs/**'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  docs-structure:
+    name: Documentation Structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Validate docs structure
+        run: python scripts/validate_docs_structure.py
+
+      - name: Check docs completeness
+        run: python scripts/check_docs_completeness.py
+
+  markdown-lint:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Run markdownlint
+        run: markdownlint --config .markdownlint.jsonc --ignore-path .markdownlintignore "**/*.md"
+
+  spell-check:
+    name: Spell Checking
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install cspell
+        run: npm install -g cspell
+
+      - name: Run spell checker
+        run: cspell --config cspell.json "**/*.md"
+
+  link-check:
+    name: Link Checking
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check markdown links (internal only, fast)
+        run: |
+          python -m pip install --upgrade pip
+          python scripts/check_markdown_links.py --skip-external
+
+  link-check-external:
+    name: External Link Checking
+    runs-on: ubuntu-latest
+    # Only run on main branch (external links can be flaky)
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check all links (including external)
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >-
+            --no-progress
+            --exclude-mail
+            --exclude '^http://localhost'
+            --exclude '^http://127\\.0\\.0\\.1'
+            --timeout 10
+            --max-retries 3
+            README.md docs/**/*.md
+          fail: true

@@ -1,0 +1,79 @@
+{
+  // Markdownlint configuration for ConsultantPro documentation
+  // See https://github.com/DavidAnson/markdownlint for rule details
+
+  "default": true,
+
+  // MD001 - Heading levels should only increment by one level at a time
+  "MD001": true,
+
+  // MD003 - Heading style (consistent = same style throughout file)
+  "MD003": {
+    "style": "atx"
+  },
+
+  // MD004 - Unordered list style
+  "MD004": {
+    "style": "dash"
+  },
+
+  // MD007 - Unordered list indentation (2 spaces for sublists)
+  "MD007": {
+    "indent": 2
+  },
+
+  // MD010 - Hard tabs (use spaces instead)
+  "MD010": {
+    "code_blocks": false
+  },
+
+  // MD013 - Line length (disabled - code blocks and evidence citations can be long)
+  "MD013": false,
+
+  // MD024 - Multiple headings with the same content (allow siblings with same name)
+  "MD024": {
+    "siblings_only": true
+  },
+
+  // MD025 - Multiple top-level headings (only one H1 per file)
+  "MD025": true,
+
+  // MD026 - Trailing punctuation in heading (no periods at end of headings)
+  "MD026": {
+    "punctuation": ".,;:!"
+  },
+
+  // MD033 - Inline HTML (allow for necessary cases like anchor tags)
+  "MD033": {
+    "allowed_elements": ["a", "br", "details", "summary", "img"]
+  },
+
+  // MD034 - Bare URL (URLs should be in angle brackets or proper markdown links)
+  "MD034": true,
+
+  // MD036 - Emphasis used instead of a heading (bold should not replace headings)
+  "MD036": true,
+
+  // MD040 - Fenced code blocks should have a language specified
+  "MD040": true,
+
+  // MD041 - First line in a file should be a top-level heading (allow front matter)
+  "MD041": {
+    "front_matter_title": "^\\s*title\\s*[:=]"
+  },
+
+  // MD046 - Code block style (fenced with backticks)
+  "MD046": {
+    "style": "fenced"
+  },
+
+  // MD049 - Emphasis style (use asterisks for italic)
+  "MD049": {
+    "style": "asterisk"
+  },
+
+  // MD050 - Strong style (use asterisks for bold)
+  "MD050": {
+    "style": "asterisk"
+  }
+}
