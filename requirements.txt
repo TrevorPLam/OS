@@ -50,3 +50,4 @@ black==23.12.1
 
 # Security Scanning (required by CI)
 safety==3.0.1
+import-linter==2.0  # Architectural boundary enforcement (CONST-10)

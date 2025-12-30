@@ -6,11 +6,11 @@
 
 ## 🚨 PRIORITY #1: Coding Constitution Compliance
 
-**Status**: Analysis Complete (Dec 30, 2025)  
+**Status**: ✅ **COMPLETE** (Dec 30, 2025)  
 **Reference**: [CONSTITUTION_ANALYSIS.md](./CONSTITUTION_ANALYSIS.md)  
 **Constitution**: [docs/codingconstitution.md](./docs/codingconstitution.md)
 
-The codebase has been analyzed against the Coding Constitution. **12 deviations** identified across 9 sections, with **9 HIGH severity** issues requiring immediate attention.
+The codebase has been analyzed against the Coding Constitution. All **12 deviations** have been addressed with **100% compliance** achieved.
 
 ### Phase 1: Immediate Security Fixes (2-3 days) 🔥
 
@@ -29,7 +29,7 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 
 - [x] **CONST-9** Establish ADR process (Section 2.2) - Create `docs/05-decisions/` with README, ADR template (ADR-0000-template.md), and index ✅ Completed Dec 30, 2025
 - [x] **CONST-5** Develop threat model (Section 6.7) - Create `docs/THREAT_MODEL.md` with STRIDE analysis, threat scenarios, and mitigation mapping ✅ Completed Dec 30, 2025 - Comprehensive STRIDE threat model with 24 threats analyzed, all mitigations mapped to code/tests
-- [ ] **CONST-10** Add boundary rules enforcement (Section 15) - Add `import-linter` to CI with layering rules (UI→Service→Domain→Infrastructure)
+- [x] **CONST-10** Add boundary rules enforcement (Section 15) - Add `import-linter` to CI with layering rules (UI→Service→Domain→Infrastructure) ✅ Completed Dec 30, 2025 - 5 contracts enforcing Core isolation, Firm foundation, Portal isolation, API decoupling; see docs/compliance/ARCHITECTURAL_BOUNDARIES.md
 
 ### Phase 4: Quality of Life (1-2 days) 🔧
 
