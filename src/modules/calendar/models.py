@@ -742,6 +742,17 @@ class SyncAttemptLog(models.Model):
         blank=True, help_text="Redacted error summary (no PII, no content)"
     )
 
+    # Retry tracking (DOC-16.2)
+    retry_count = models.IntegerField(
+        default=0, help_text="Number of times this operation has been retried"
+    )
+    next_retry_at = models.DateTimeField(
+        null=True, blank=True, help_text="Scheduled time for next retry (if applicable)"
+    )
+    max_retries_reached = models.BooleanField(
+        default=False, help_text="Whether max retry attempts have been exhausted"
+    )
+
     # Observability (per docs/16 section 6)
     correlation_id = models.UUIDField(
         null=True, blank=True, help_text="Correlation ID for tracing"
@@ -762,6 +773,8 @@ class SyncAttemptLog(models.Model):
             models.Index(fields=["firm", "connection", "started_at"]),
             models.Index(fields=["status", "error_class"]),
             models.Index(fields=["correlation_id"]),
+            models.Index(fields=["next_retry_at"]),
+            models.Index(fields=["max_retries_reached"]),
         ]
 
     def __str__(self):
