@@ -129,12 +129,58 @@ class RuleSet(models.Model):
         return f"{self.name} v{self.version} ({self.status})"
 
     def compute_checksum(self) -> str:
-        """Compute SHA-256 checksum of normalized rules JSON."""
+        """
+        Compute SHA-256 checksum of normalized rules JSON.
+
+        DOC-09.3: Checksum is used for tamper detection and reproducibility.
+        """
         normalized = json.dumps(self.rules_json, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(normalized.encode()).hexdigest()
 
+    def verify_checksum(self) -> bool:
+        """
+        Verify that stored checksum matches current rules_json.
+
+        DOC-09.3: Checksum enforcement for tamper detection.
+
+        Returns:
+            True if checksum is valid, False otherwise
+        """
+        expected_checksum = self.compute_checksum()
+        return self.checksum == expected_checksum
+
     def save(self, *args: Any, **kwargs: Any) -> None:
-        """Update checksum before saving."""
+        """
+        Update checksum before saving.
+
+        DOC-09.3: Enforce immutability for published rulesets.
+        """
+        from django.core.exceptions import ValidationError
+
+        # DOC-09.3: Prevent modification of published rulesets
+        if self.pk:
+            try:
+                existing = RuleSet.objects.get(pk=self.pk)
+                if existing.status == "published":
+                    # Published rulesets are immutable - only allow status changes to deprecated
+                    if self.status != existing.status and self.status == "deprecated":
+                        # Allow publishing → deprecated transition
+                        self.deprecated_at = timezone.now()
+                    elif (
+                        self.rules_json != existing.rules_json
+                        or self.name != existing.name
+                        or self.code != existing.code
+                        or self.version != existing.version
+                        or self.schema_version != existing.schema_version
+                        or self.default_currency != existing.default_currency
+                    ):
+                        raise ValidationError(
+                            "Published rulesets are immutable. Create a new version instead."
+                        )
+            except RuleSet.DoesNotExist:
+                pass
+
+        # Compute and update checksum
         self.checksum = self.compute_checksum()
         super().save(*args, **kwargs)
 

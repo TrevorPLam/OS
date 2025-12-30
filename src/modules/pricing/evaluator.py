@@ -171,9 +171,36 @@ class PricingEvaluator:
         """
         Initialize evaluator with a ruleset.
 
+        DOC-09.3: Validates schema version and checksum before evaluation.
+
         Args:
             ruleset: The RuleSet model instance to evaluate
+
+        Raises:
+            SchemaCompatibilityError: If schema version is unsupported
+            ValueError: If checksum verification fails
         """
+        from modules.pricing.schema_compatibility import (
+            validate_schema_version,
+            verify_ruleset_checksum,
+            SchemaCompatibilityError,
+        )
+
+        # DOC-09.3: Validate schema version compatibility
+        try:
+            validate_schema_version(ruleset)
+        except SchemaCompatibilityError as e:
+            raise SchemaCompatibilityError(
+                f"Cannot evaluate ruleset '{ruleset.code}' v{ruleset.version}: {e}"
+            )
+
+        # DOC-09.3: Verify checksum for tamper detection
+        if not verify_ruleset_checksum(ruleset):
+            raise ValueError(
+                f"Ruleset '{ruleset.code}' v{ruleset.version} failed checksum verification. "
+                "Ruleset may have been tampered with."
+            )
+
         self.ruleset = ruleset
         self.rules = ruleset.rules_json
         self._step_counter = 0
