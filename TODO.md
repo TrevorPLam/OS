@@ -4,6 +4,22 @@
 
 ---
 
+## 📊 Strategic Implementation Plan
+
+**NEW:** See [STRATEGIC_IMPLEMENTATION_PLAN.md](./STRATEGIC_IMPLEMENTATION_PLAN.md) for comprehensive 10-week execution plan covering:
+- **Phase 1 (Week 1-2):** Critical Fixes - Data model issues, security vulnerabilities, test infrastructure
+- **Phase 2 (Week 3):** Constitution Completion - Threat model, boundary rules enforcement
+- **Phase 3 (Week 4-5):** API & Data Quality - Versioning, pagination, error model
+- **Phase 4 (Week 6-8):** Compliance & Privacy - GDPR, reconciliation, retention
+- **Phase 5 (Week 9-10):** Documentation & Process - Feature alignment, definition of done
+
+**Recommended Next Steps:**
+1. Fix ASSESS-C3.1: Prospect.stage field (CRITICAL - blocks 12+ tests)
+2. Fix ASSESS-C3.1b: Float to Decimal for currency (CRITICAL - data integrity)
+3. Fix ASSESS-S6.2: Async/signals firm isolation audit (CRITICAL - IDOR risk)
+
+---
+
 ## 🚨 PRIORITY #1: Coding Constitution Compliance
 
 **Status**: Analysis Complete (Dec 30, 2025)  
@@ -28,8 +44,8 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 ### Phase 3: Governance & Architecture (2-3 weeks) 📋
 
 - [x] **CONST-9** Establish ADR process (Section 2.2) - Create `docs/05-decisions/` with README, ADR template (ADR-0000-template.md), and index ✅ Completed Dec 30, 2025
-- [ ] **CONST-5** Develop threat model (Section 6.7) - Create `docs/THREAT_MODEL.md` with STRIDE analysis, threat scenarios, and mitigation mapping
-- [ ] **CONST-10** Add boundary rules enforcement (Section 15) - Add `import-linter` to CI with layering rules (UI→Service→Domain→Infrastructure)
+- [x] **CONST-5** Develop threat model (Section 6.7) - Created `docs/THREAT_MODEL.md` with comprehensive STRIDE analysis (18 threats), mitigation mapping, residual risks, and review schedule ✅ Completed Dec 30, 2025
+- [x] **CONST-10** Add boundary rules enforcement (Section 15) - Added `import-linter` to CI with 5 architectural contracts, created `docs/BOUNDARY_RULES.md` with enforcement guide ✅ Completed Dec 30, 2025
 
 ### Phase 4: Quality of Life (1-2 days) 🔧
 
@@ -37,7 +53,7 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 - [x] **CONST-12** Document feature flag cleanup plans (Section 11.6) - No feature flags found in codebase; ChatGPT assessment confirms clean state ✅ Completed Dec 30, 2025
 
 **Total Effort**: 75-107 hours (2-3 sprint cycles)
-**Progress**: 11/12 tasks completed (92%)
+**Progress**: 12/12 tasks completed (100%) ✅ **CONSTITUTION COMPLIANCE COMPLETE**
 **Next Review**: March 30, 2026 (quarterly)
 
 ### In-Code TODOs Identified (22 instances)
