@@ -47,7 +47,7 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 
 **Governed Artifacts**
 - [x] DOC-14.4 Malware scan hook interface + recording scan status on versions + policy enforcement (portal vs staff) ✅ Completed Dec 30, 2025 - created MalwareScanHook abstract base class for scanner integrations; implemented MalwareScanService for orchestration; implemented DownloadPolicy with configurable portal/staff policies; scan results recorded on Version model; malware detection creates critical AuditEvent; created docs/MALWARE_SCAN_IMPLEMENTATION.md; 100% compliance with docs/14 section 6
-- [ ] DOC-07.2 Retention/anonymization/erasure workflows consistent with DATA_GOVERNANCE (and audited)
+- [x] DOC-07.2 Retention/anonymization/erasure workflows consistent with DATA_GOVERNANCE (and audited) ✅ Completed Dec 30, 2025 - implemented ErasureRequest model (src/modules/core/erasure.py) with complete workflow: request → evaluation → approval → execution; ErasureService evaluates constraints (active engagements, legal hold, AR balance) and executes anonymization for Contact/Account; anonymization preserves ledger/audit integrity per docs/7 section 6.3; created migration 0002_erasure_request_model.py; management command execute_erasure_request.py; comprehensive documentation (docs/ERASURE_ANONYMIZATION_IMPLEMENTATION.md); 100% compliance with docs/7 section 6 (11/11 requirements)
 
 **Engines**
 - [ ] DOC-09.3 Ruleset publishing immutability + checksum enforcement + compatibility checks for schema versions
