@@ -428,6 +428,16 @@ class RecurrenceGeneration(models.Model):
         help_text="When the last generation attempt occurred",
     )
 
+    # Backfill tracking (DOC-10.2)
+    backfilled = models.BooleanField(
+        default=False,
+        help_text="Whether this generation was created via backfill operation",
+    )
+    backfill_reason = models.TextField(
+        blank=True,
+        help_text="Reason for backfill (if backfilled=True)",
+    )
+
     # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
     correlation_id = models.CharField(
