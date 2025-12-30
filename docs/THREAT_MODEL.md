@@ -125,7 +125,7 @@ See: `src/modules/core/governance.py` - Data classification implementation
 **Likelihood**: MEDIUM
 
 **Mitigations**:
-- `src/config/settings.py:42-67` - Django authentication framework
+- `src/config/settings.py:170-210` - Django authentication framework
 - `src/modules/firm/models.py:53-98` - User model with password hashing
 - Session expiry configured (24 hour timeout)
 - CSRF protection enabled globally
