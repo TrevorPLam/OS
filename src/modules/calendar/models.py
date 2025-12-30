@@ -780,3 +780,405 @@ class SyncAttemptLog(models.Model):
     def __str__(self):
         status_icon = "✓" if self.status == "success" else "✗"
         return f"{status_icon} {self.direction} {self.operation} at {self.started_at}"
+
+
+class MeetingPoll(models.Model):
+    """
+    Meeting Poll model (Calendly-like feature).
+
+    Allows organizers to propose multiple time slots and let invitees vote
+    to find a time that works for everyone.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    STATUS_CHOICES = [
+        ("open", "Open"),
+        ("closed", "Closed"),
+        ("scheduled", "Meeting Scheduled"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="meeting_polls",
+        help_text="Firm this poll belongs to",
+    )
+
+    # Poll details
+    title = models.CharField(max_length=500, help_text="Meeting poll title")
+    description = models.TextField(blank=True, help_text="Meeting description")
+    duration_minutes = models.IntegerField(help_text="Meeting duration in minutes")
+    location_mode = models.CharField(
+        max_length=20,
+        choices=AppointmentType.LOCATION_MODE_CHOICES,
+        default="video",
+        help_text="How the meeting will be conducted",
+    )
+    location_details = models.TextField(
+        blank=True, help_text="Additional location info"
+    )
+
+    # Organizer
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="organized_polls",
+        help_text="Staff member who created this poll",
+    )
+
+    # Invitees (JSON array of emails or user IDs)
+    invitees = models.JSONField(
+        default=list,
+        help_text="List of invitee emails or user IDs",
+    )
+
+    # Proposed time slots (JSON array)
+    proposed_slots = models.JSONField(
+        default=list,
+        help_text="List of proposed time slots {start_time, end_time, timezone}",
+    )
+
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="open",
+        help_text="Poll status",
+    )
+
+    # Voting deadline
+    voting_deadline = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When voting closes (optional)",
+    )
+
+    # Selected slot (when meeting is scheduled)
+    selected_slot_index = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Index of the selected slot from proposed_slots",
+    )
+    scheduled_appointment = models.ForeignKey(
+        "Appointment",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="source_poll",
+        help_text="Appointment created from this poll",
+    )
+
+    # Settings
+    allow_maybe_votes = models.BooleanField(
+        default=True,
+        help_text="Allow 'maybe' votes in addition to yes/no",
+    )
+    require_all_invitees = models.BooleanField(
+        default=False,
+        help_text="Require all invitees to respond before scheduling",
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "calendar_meeting_polls"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "status"]),
+            models.Index(fields=["firm", "-created_at"]),
+            models.Index(fields=["created_by", "status"]),
+        ]
+
+    def __str__(self):
+        return f"Poll: {self.title}"
+
+    def get_vote_summary(self):
+        """Get vote counts for each proposed slot."""
+        from collections import defaultdict
+
+        summary = defaultdict(lambda: {"yes": 0, "no": 0, "maybe": 0})
+
+        for vote in self.votes.all():
+            for slot_index, response in enumerate(vote.responses):
+                if response in ["yes", "no", "maybe"]:
+                    summary[slot_index][response] += 1
+
+        return dict(summary)
+
+    def find_best_slot(self):
+        """Find the slot with most 'yes' votes."""
+        vote_summary = self.get_vote_summary()
+        if not vote_summary:
+            return None
+
+        best_slot = max(vote_summary.items(), key=lambda x: x[1]["yes"])
+        return best_slot[0]  # Return slot index
+
+
+class MeetingPollVote(models.Model):
+    """
+    Vote on a meeting poll.
+
+    Records an invitee's availability for each proposed time slot.
+
+    TIER 0: Belongs to exactly one Firm (via poll relationship).
+    """
+
+    VOTE_CHOICES = [
+        ("yes", "Yes, I can attend"),
+        ("no", "No, I cannot attend"),
+        ("maybe", "Maybe / If needed"),
+    ]
+
+    # Relationship
+    poll = models.ForeignKey(
+        MeetingPoll,
+        on_delete=models.CASCADE,
+        related_name="votes",
+        help_text="Poll this vote belongs to",
+    )
+
+    # Voter
+    voter_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="poll_votes",
+        help_text="User who voted (if authenticated)",
+    )
+    voter_email = models.EmailField(
+        help_text="Email of voter (for external invitees)",
+    )
+    voter_name = models.CharField(
+        max_length=255,
+        help_text="Name of voter",
+    )
+
+    # Responses (JSON array parallel to poll.proposed_slots)
+    # Example: ["yes", "no", "maybe", "yes"]
+    responses = models.JSONField(
+        default=list,
+        help_text="Array of responses for each proposed slot",
+    )
+
+    # Additional notes
+    notes = models.TextField(
+        blank=True,
+        help_text="Optional notes from voter",
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "calendar_meeting_poll_votes"
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["poll", "voter_email"]),
+            models.Index(fields=["voter_user", "-created_at"]),
+        ]
+        # One vote per email per poll
+        unique_together = [["poll", "voter_email"]]
+
+    def __str__(self):
+        return f"Vote by {self.voter_name} on {self.poll.title}"
+
+
+class MeetingWorkflow(models.Model):
+    """
+    Meeting Workflow (Pre/Post meeting automation).
+
+    Defines automated actions before and after appointments:
+    - Pre-meeting reminders
+    - Pre-meeting content sharing
+    - Post-meeting follow-ups
+    - Post-meeting surveys
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    TRIGGER_CHOICES = [
+        ("appointment_created", "Appointment Created"),
+        ("appointment_confirmed", "Appointment Confirmed"),
+        ("appointment_completed", "Appointment Completed"),
+        ("appointment_cancelled", "Appointment Cancelled"),
+    ]
+
+    ACTION_TYPE_CHOICES = [
+        ("send_email", "Send Email"),
+        ("send_sms", "Send SMS"),
+        ("create_task", "Create Task"),
+        ("send_survey", "Send Survey"),
+        ("update_crm", "Update CRM"),
+    ]
+
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("paused", "Paused"),
+        ("archived", "Archived"),
+    ]
+
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="meeting_workflows",
+        help_text="Firm this workflow belongs to",
+    )
+
+    # Workflow identification
+    name = models.CharField(max_length=255, help_text="Workflow name")
+    description = models.TextField(blank=True, help_text="Workflow description")
+
+    # Trigger configuration
+    trigger = models.CharField(
+        max_length=30,
+        choices=TRIGGER_CHOICES,
+        help_text="When to trigger this workflow",
+    )
+    appointment_type = models.ForeignKey(
+        AppointmentType,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="workflows",
+        help_text="Apply workflow to this appointment type (null = all types)",
+    )
+
+    # Timing
+    delay_minutes = models.IntegerField(
+        default=0,
+        help_text="Delay before executing action (minutes, can be negative for 'before' actions)",
+    )
+
+    # Action configuration
+    action_type = models.CharField(
+        max_length=20,
+        choices=ACTION_TYPE_CHOICES,
+        help_text="Type of action to perform",
+    )
+    action_config = models.JSONField(
+        default=dict,
+        help_text="Action configuration (email template, SMS text, survey ID, etc.)",
+    )
+
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="active",
+        help_text="Workflow status",
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_workflows",
+    )
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "calendar_meeting_workflows"
+        ordering = ["name"]
+        indexes = [
+            models.Index(fields=["firm", "status"]),
+            models.Index(fields=["firm", "trigger"]),
+            models.Index(fields=["appointment_type", "status"]),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_trigger_display()})"
+
+
+class MeetingWorkflowExecution(models.Model):
+    """
+    Tracks execution of meeting workflow actions.
+
+    Records when workflows are triggered and their execution status.
+
+    TIER 0: Belongs to exactly one Firm (via workflow relationship).
+    """
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("executing", "Executing"),
+        ("completed", "Completed"),
+        ("failed", "Failed"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    # Relationships
+    workflow = models.ForeignKey(
+        MeetingWorkflow,
+        on_delete=models.CASCADE,
+        related_name="executions",
+        help_text="Workflow being executed",
+    )
+    appointment = models.ForeignKey(
+        "Appointment",
+        on_delete=models.CASCADE,
+        related_name="workflow_executions",
+        help_text="Appointment that triggered this workflow",
+    )
+
+    # Execution details
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+        help_text="Execution status",
+    )
+    scheduled_for = models.DateTimeField(
+        help_text="When this workflow should execute",
+    )
+    executed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When workflow was executed",
+    )
+
+    # Results
+    result_data = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Execution result data (email sent, task created, etc.)",
+    )
+    error_message = models.TextField(
+        blank=True,
+        help_text="Error message if execution failed",
+    )
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "calendar_workflow_executions"
+        ordering = ["scheduled_for"]
+        indexes = [
+            models.Index(fields=["workflow", "status"]),
+            models.Index(fields=["appointment", "status"]),
+            models.Index(fields=["status", "scheduled_for"]),
+        ]
+
+    def __str__(self):
+        return f"{self.workflow.name} for {self.appointment}"
