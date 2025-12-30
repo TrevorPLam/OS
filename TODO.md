@@ -33,11 +33,11 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 
 ### Phase 4: Quality of Life (1-2 days) 🔧
 
-- [ ] **CONST-11** Verify/fix pagination on ViewSets (Section 7.5) - Check 5 files: `src/api/portal/views.py`, `src/modules/crm/views.py`, `src/modules/pricing/views.py`
-- [ ] **CONST-12** Document feature flag cleanup plans (Section 11.6) - Add cleanup dates to `src/modules/finance/billing.py`, `src/modules/clients/permissions.py`
+- [x] **CONST-11** Verify/fix pagination on ViewSets (Section 7.5) - Check 5 files: `src/api/portal/views.py`, `src/modules/crm/views.py`, `src/modules/pricing/views.py` ✅ Completed Dec 30, 2025 - All list endpoints have pagination via global DRF config; see docs/compliance/PAGINATION_VERIFICATION.md
+- [x] **CONST-12** Document feature flag cleanup plans (Section 11.6) - Add cleanup dates to `src/modules/finance/billing.py`, `src/modules/clients/permissions.py` ✅ Completed Dec 30, 2025 - No feature flags currently in use; policy documented in docs/compliance/FEATURE_FLAG_POLICY.md
 
 **Total Effort**: 75-107 hours (2-3 sprint cycles)  
-**Progress**: 9/12 tasks completed (75%)  
+**Progress**: 11/12 tasks completed (92%)  
 **Next Review**: March 30, 2026 (quarterly)
 
 ### In-Code TODOs Identified (22 instances)
