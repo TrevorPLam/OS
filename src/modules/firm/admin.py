@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import BreakGlassSession, Firm, FirmMembership, PlatformUserProfile
+from modules.firm.profile_extensions import UserProfile
 
 
 @admin.register(Firm)
@@ -39,12 +40,102 @@ class FirmAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+class UserProfileInline(admin.StackedInline):
+    """Inline admin for UserProfile."""
+
+    model = UserProfile
+    can_delete = False
+    verbose_name_plural = 'User Profile'
+    fk_name = 'firm_membership'
+
+    fieldsets = (
+        (
+            'Visual Identity',
+            {
+                'fields': (
+                    'profile_photo',
+                    'job_title',
+                    'bio',
+                )
+            }
+        ),
+        (
+            'Email Signature',
+            {
+                'fields': (
+                    'email_signature_html',
+                    'email_signature_plain',
+                    'include_signature_by_default',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+        (
+            'Meeting & Scheduling',
+            {
+                'fields': (
+                    'personal_meeting_link',
+                    'meeting_link_description',
+                    'calendar_booking_link',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+        (
+            'Contact Information',
+            {
+                'fields': (
+                    'phone_number',
+                    'phone_extension',
+                    'mobile_number',
+                    'office_location',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+        (
+            'Social & Professional Links',
+            {
+                'fields': (
+                    'linkedin_url',
+                    'twitter_handle',
+                    'website_url',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+        (
+            'Preferences',
+            {
+                'fields': (
+                    'timezone_preference',
+                    'language_preference',
+                    'notification_preferences',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+        (
+            'Visibility Settings',
+            {
+                'fields': (
+                    'show_phone_in_directory',
+                    'show_email_in_directory',
+                    'show_availability_to_clients',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+    )
+
+
 @admin.register(FirmMembership)
 class FirmMembershipAdmin(admin.ModelAdmin):
     list_display = ("user", "firm", "role", "is_active", "invited_at")
     list_filter = ("role", "is_active", "invited_at")
     search_fields = ("user__username", "user__email", "firm__name")
     readonly_fields = ("invited_at", "invited_by")
+    inlines = [UserProfileInline]
     fieldsets = (
         ("Membership", {"fields": ("firm", "user", "role", "is_active")}),
         (

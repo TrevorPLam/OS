@@ -5,6 +5,7 @@ Django Admin configuration for CRM models (Pre-Sale).
 from django.contrib import admin
 
 from .models import Campaign, Contract, Lead, Proposal, Prospect
+from modules.crm.lead_scoring import ScoringRule, ScoreAdjustment
 
 
 @admin.register(Lead)
@@ -103,6 +104,202 @@ class ProposalAdmin(admin.ModelAdmin):
         return "-"
 
     get_company.short_description = "Company"
+
+
+@admin.register(ScoringRule)
+class ScoringRuleAdmin(admin.ModelAdmin):
+    """Admin for ScoringRule model."""
+
+    list_display = [
+        'name',
+        'firm',
+        'rule_type',
+        'trigger',
+        'points',
+        'is_active',
+        'priority',
+        'times_applied',
+        'created_at',
+    ]
+    list_filter = [
+        'firm',
+        'rule_type',
+        'trigger',
+        'is_active',
+        'created_at',
+    ]
+    search_fields = [
+        'name',
+        'description',
+    ]
+    readonly_fields = [
+        'times_applied',
+        'last_applied_at',
+        'created_at',
+        'updated_at',
+    ]
+    raw_id_fields = ['created_by']
+
+    fieldsets = (
+        (
+            'Basic Information',
+            {
+                'fields': (
+                    'firm',
+                    'name',
+                    'description',
+                    'rule_type',
+                )
+            }
+        ),
+        (
+            'Trigger & Conditions',
+            {
+                'fields': (
+                    'trigger',
+                    'conditions',
+                ),
+                'description': 'Conditions is a JSON object with field: value pairs'
+            }
+        ),
+        (
+            'Scoring',
+            {
+                'fields': (
+                    'points',
+                    'max_applications',
+                    'decay_days',
+                )
+            }
+        ),
+        (
+            'Status & Priority',
+            {
+                'fields': (
+                    'is_active',
+                    'priority',
+                )
+            }
+        ),
+        (
+            'Usage Statistics',
+            {
+                'fields': (
+                    'times_applied',
+                    'last_applied_at',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+        (
+            'Metadata',
+            {
+                'fields': (
+                    'created_by',
+                    'created_at',
+                    'updated_at',
+                ),
+                'classes': ('collapse',)
+            }
+        ),
+    )
+
+    def get_queryset(self, request):
+        """Optimize queryset with select_related."""
+        qs = super().get_queryset(request)
+        return qs.select_related('firm', 'created_by')
+
+
+@admin.register(ScoreAdjustment)
+class ScoreAdjustmentAdmin(admin.ModelAdmin):
+    """Admin for ScoreAdjustment model."""
+
+    list_display = [
+        'lead',
+        'points',
+        'reason',
+        'rule',
+        'trigger_event',
+        'is_decayed',
+        'applied_at',
+    ]
+    list_filter = [
+        'trigger_event',
+        'is_decayed',
+        'applied_at',
+    ]
+    search_fields = [
+        'lead__company_name',
+        'lead__contact_name',
+        'reason',
+    ]
+    readonly_fields = [
+        'lead',
+        'rule',
+        'points',
+        'reason',
+        'trigger_event',
+        'event_data',
+        'decays_at',
+        'is_decayed',
+        'applied_at',
+        'applied_by',
+    ]
+    raw_id_fields = ['lead', 'rule', 'applied_by']
+
+    fieldsets = (
+        (
+            'Adjustment Details',
+            {
+                'fields': (
+                    'lead',
+                    'points',
+                    'reason',
+                )
+            }
+        ),
+        (
+            'Rule & Trigger',
+            {
+                'fields': (
+                    'rule',
+                    'trigger_event',
+                    'event_data',
+                )
+            }
+        ),
+        (
+            'Decay',
+            {
+                'fields': (
+                    'decays_at',
+                    'is_decayed',
+                )
+            }
+        ),
+        (
+            'Metadata',
+            {
+                'fields': (
+                    'applied_at',
+                    'applied_by',
+                )
+            }
+        ),
+    )
+
+    def get_queryset(self, request):
+        """Optimize queryset with select_related."""
+        qs = super().get_queryset(request)
+        return qs.select_related('lead', 'rule', 'applied_by')
+
+    def has_add_permission(self, request):
+        """Adjustments are created automatically or via API, not manually."""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Adjustments are read-only for audit trail."""
+        return False
 
 
 @admin.register(Contract)
