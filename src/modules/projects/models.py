@@ -392,6 +392,35 @@ class Task(models.Model):
     due_date = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
+    # Template Traceability (DOC-12.1: Required for template instantiation)
+    template_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID of DeliveryTemplate this task was created from",
+    )
+    template_version = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Version of template at instantiation",
+    )
+    template_node_id = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Node ID within template",
+    )
+    instantiation_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="ID of TemplateInstantiation batch",
+    )
+
+    # Tags (for template-based categorization)
+    tags = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Tags/labels for this task",
+    )
+
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
