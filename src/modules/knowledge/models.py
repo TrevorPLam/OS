@@ -102,6 +102,7 @@ class KnowledgeItem(models.Model):
     reviewers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         through="KnowledgeReview",
+        through_fields=("knowledge_item", "reviewer"),
         related_name="reviewed_knowledge_items",
         help_text="Staff users who can review this item",
     )

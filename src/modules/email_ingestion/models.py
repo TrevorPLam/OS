@@ -152,15 +152,15 @@ class EmailArtifact(models.Model):
 
     # Mapping suggestions (nullable; populated by mapping engine)
     suggested_account = models.ForeignKey(
-        "crm.Account",
+        "clients.Client",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="suggested_emails",
-        help_text="Suggested Account mapping",
+        help_text="Suggested Client mapping",
     )
     suggested_engagement = models.ForeignKey(
-        "crm.Engagement",
+        "clients.ClientEngagement",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -168,12 +168,12 @@ class EmailArtifact(models.Model):
         help_text="Suggested Engagement mapping",
     )
     suggested_work_item = models.ForeignKey(
-        "projects.WorkItem",
+        "projects.Task",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="suggested_emails",
-        help_text="Suggested WorkItem mapping",
+        help_text="Suggested Task mapping",
     )
     mapping_confidence = models.DecimalField(
         max_digits=3,
@@ -188,15 +188,15 @@ class EmailArtifact(models.Model):
 
     # Confirmed mappings (set after review/approval)
     confirmed_account = models.ForeignKey(
-        "crm.Account",
+        "clients.Client",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="confirmed_emails",
-        help_text="Confirmed Account mapping (after review)",
+        help_text="Confirmed Client mapping (after review)",
     )
     confirmed_engagement = models.ForeignKey(
-        "crm.Engagement",
+        "clients.ClientEngagement",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -204,12 +204,12 @@ class EmailArtifact(models.Model):
         help_text="Confirmed Engagement mapping (after review)",
     )
     confirmed_work_item = models.ForeignKey(
-        "projects.WorkItem",
+        "projects.Task",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="confirmed_emails",
-        help_text="Confirmed WorkItem mapping (after review)",
+        help_text="Confirmed Task mapping (after review)",
     )
 
     # Ignored reason (if status = ignored)

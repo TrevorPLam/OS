@@ -336,15 +336,15 @@ class BookingLink(models.Model):
 
     # Optional context
     account = models.ForeignKey(
-        "crm.Account",
+        "clients.Client",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="booking_links",
-        help_text="Optional: link to specific account",
+        help_text="Optional: link to specific client",
     )
     engagement = models.ForeignKey(
-        "crm.Engagement",
+        "clients.ClientEngagement",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -447,15 +447,15 @@ class Appointment(models.Model):
         help_text="Staff member for this appointment",
     )
     account = models.ForeignKey(
-        "crm.Account",
+        "clients.Client",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="appointments",
-        help_text="Account for this appointment (if applicable)",
+        help_text="Client account for this appointment (if applicable)",
     )
     contact = models.ForeignKey(
-        "crm.Contact",
+        "clients.Contact",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
