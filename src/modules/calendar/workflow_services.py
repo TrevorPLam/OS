@@ -514,7 +514,8 @@ class WorkflowExecutionEngine:
         
         Provides variables that can be used in templates:
         - appointment.*
-        - client.*
+        - contact.* (from appointment.contact)
+        - account.* (from appointment.account)
         - staff.*
         - firm.*
         """
@@ -529,21 +530,24 @@ class WorkflowExecutionEngine:
             },
             'firm': {
                 'name': appointment.firm.name,
+            },
+            'staff': {
+                'name': appointment.staff_user.get_full_name(),
+                'email': appointment.staff_user.email,
             }
         }
         
-        # Add client info if available
-        if hasattr(appointment, 'client') and appointment.client:
-            context['client'] = {
-                'name': appointment.client.name,
-                'email': getattr(appointment.client, 'email', ''),
+        # Add contact info if available
+        if appointment.contact:
+            context['contact'] = {
+                'name': appointment.contact.name,
+                'email': getattr(appointment.contact, 'email', ''),
             }
         
-        # Add staff info if available
-        if hasattr(appointment, 'staff_user') and appointment.staff_user:
-            context['staff'] = {
-                'name': appointment.staff_user.get_full_name(),
-                'email': appointment.staff_user.email,
+        # Add account info if available
+        if appointment.account:
+            context['account'] = {
+                'name': appointment.account.name,
             }
         
         return context

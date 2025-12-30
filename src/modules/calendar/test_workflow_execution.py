@@ -106,7 +106,7 @@ class TestWorkflowTriggering:
             action_config={
                 'subject': 'Your appointment is booked',
                 'template': 'Thank you for booking!',
-                'to_email': '{{client.email}}'
+                'to_email': '{{contact.email}}'
             },
             status='active'
         )
@@ -257,7 +257,7 @@ class TestWorkflowExecution:
             action_type='send_email',
             action_config={
                 'subject': 'Appointment Confirmation',
-                'template': 'Hi {{client.name}}, your appointment is at {{appointment.start_time}}',
+                'template': 'Hi {{contact.name}}, your appointment is at {{appointment.start_time}}',
                 'to_email': 'john@example.com',
                 'from_email': 'noreply@test.com'
             },

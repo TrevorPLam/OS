@@ -37,8 +37,8 @@ workflow = MeetingWorkflow.objects.create(
     action_type='send_email',
     action_config={
         'subject': 'Appointment Reminder',
-        'template': 'Hi {{client.name}}, your appointment is at {{appointment.start_time}}',
-        'to_email': '{{client.email}}',
+        'template': 'Hi {{contact.name}}, your appointment is at {{appointment.start_time}}',
+        'to_email': '{{contact.email}}',
         'from_email': 'noreply@firm.com'
     },
     status='active'
@@ -85,21 +85,21 @@ The command will:
 action_config = {
     'subject': 'Subject with {{variables}}',
     'template': 'Email body with {{variables}}',
-    'to_email': '{{client.email}}',  # or direct email
+    'to_email': '{{contact.email}}',  # or direct email
     'from_email': 'sender@example.com'  # optional
 }
 ```
 
 **Template Variables:**
 - `{{appointment.*}}` - appointment_id, start_time, status, location_mode, location_details, duration_minutes
-- `{{client.*}}` - name, email
+- `{{contact.*}}` - name, email
 - `{{staff.*}}` - name, email
 - `{{firm.*}}` - name
 
 **Example:**
 ```
 Subject: Reminder: Your appointment with {{staff.name}}
-Body: Hi {{client.name}}, this is a reminder that your appointment is scheduled for {{appointment.start_time}}.
+Body: Hi {{contact.name}}, this is a reminder that your appointment is scheduled for {{appointment.start_time}}.
 ```
 
 ### 2. Create Task (Stub - Requires Project)
@@ -130,7 +130,7 @@ action_config = {
 ```python
 action_config = {
     'survey_id': 'satisfaction_survey_v1',
-    'to_email': '{{client.email}}'
+    'to_email': '{{contact.email}}'
 }
 ```
 
@@ -254,7 +254,7 @@ MeetingWorkflow.objects.create(
     action_type='send_email',
     action_config={
         'subject': 'Appointment Tomorrow',
-        'template': '''Hi {{client.name}},
+        'template': '''Hi {{contact.name}},
         
 This is a reminder that you have an appointment tomorrow at {{appointment.start_time}}.
 
@@ -263,7 +263,7 @@ Location: {{appointment.location_details}}
 Looking forward to speaking with you!
 
 {{staff.name}}''',
-        'to_email': '{{client.email}}'
+        'to_email': '{{contact.email}}'
     },
     status='active'
 )
@@ -282,7 +282,7 @@ MeetingWorkflow.objects.create(
     action_type='send_email',
     action_config={
         'subject': 'Thank you for your time',
-        'template': '''Hi {{client.name}},
+        'template': '''Hi {{contact.name}},
         
 Thank you for meeting with me today. I've attached the materials we discussed.
 
@@ -290,7 +290,7 @@ Please let me know if you have any questions!
 
 Best regards,
 {{staff.name}}''',
-        'to_email': '{{client.email}}'
+        'to_email': '{{contact.email}}'
     },
     status='active'
 )
@@ -309,14 +309,14 @@ MeetingWorkflow.objects.create(
     action_type='send_email',
     action_config={
         'subject': 'Your appointment is confirmed',
-        'template': '''Hi {{client.name}},
+        'template': '''Hi {{contact.name}},
         
 Your appointment has been confirmed for {{appointment.start_time}}.
 
 We'll send you a reminder 24 hours before the appointment.
 
 {{firm.name}}''',
-        'to_email': '{{client.email}}'
+        'to_email': '{{contact.email}}'
     },
     status='active'
 )
