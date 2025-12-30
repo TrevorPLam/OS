@@ -33,11 +33,11 @@ The codebase has been analyzed against the Coding Constitution. **12 deviations*
 
 ### Phase 4: Quality of Life (1-2 days) 🔧
 
-- [ ] **CONST-11** Verify/fix pagination on ViewSets (Section 7.5) - Check 5 files: `src/api/portal/views.py`, `src/modules/crm/views.py`, `src/modules/pricing/views.py`
-- [ ] **CONST-12** Document feature flag cleanup plans (Section 11.6) - Add cleanup dates to `src/modules/finance/billing.py`, `src/modules/clients/permissions.py`
+- [x] **CONST-11** Verify/fix pagination on ViewSets (Section 7.5) - Verified pagination is globally enabled via `BoundedPageNumberPagination` in `src/config/settings.py` with page_size=50, max_page_size=200 ✅ Completed Dec 30, 2025
+- [x] **CONST-12** Document feature flag cleanup plans (Section 11.6) - No feature flags found in codebase; ChatGPT assessment confirms clean state ✅ Completed Dec 30, 2025
 
-**Total Effort**: 75-107 hours (2-3 sprint cycles)  
-**Progress**: 9/12 tasks completed (75%)  
+**Total Effort**: 75-107 hours (2-3 sprint cycles)
+**Progress**: 11/12 tasks completed (92%)
 **Next Review**: March 30, 2026 (quarterly)
 
 ### In-Code TODOs Identified (22 instances)
