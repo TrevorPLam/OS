@@ -29,11 +29,11 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 - [x] DOC-16.1 Calendar sync MVP: stable external IDs + SyncAttemptLog + reconciliation rules + manual resync tooling ✅ Completed Dec 30, 2025 - added CalendarConnection and SyncAttemptLog models; CalendarSyncService with idempotent pull/push operations; ResyncService with manual resync tooling; unique constraint on (connection_id, external_event_id); timezone-aware event parsing; audit logging for time changes and resync requests
 - [x] DOC-22.1 Add contract tests mandated by docs (pricing/permissions/recurrence/orchestration/billing/documents) ✅ Completed Dec 30, 2025 - added src/tests/contract_tests.py with comprehensive contract tests for pricing determinism, recurrence DST/leap-year correctness and dedupe, orchestration retry matrix and DLQ routing, document versioning/locking/portal visibility/access logging, billing ledger idempotency and allocation constraints, permissions allow/deny matrix
 - [x] DOC-21.1 Observability baseline: correlation IDs end-to-end; tenant-safe metrics; DLQ + integration lag visibility ✅ Completed Dec 30, 2025 - added modules/core/observability.py with correlation ID utilities, metrics collectors for API/Workers/Integrations/Documents/Billing, alert threshold configuration, tenant-safe structured logging; created docs/ALERT_CONFIGURATION.md with default thresholds and routing; correlation IDs flow through requests, jobs, and audit events
+- [x] DOC-05.1 Align system invariants in code with SYSTEM_SPEC ✅ Completed Dec 30, 2025 - created docs/SYSTEM_SPEC_ALIGNMENT.md (85% compliance, 57/67 requirements complete); implemented FirmScopedQuerySet in src/modules/firm/utils.py to close SYSTEM_SPEC 3.1.2 gap; documented remaining gaps for DOC-06.1 (canonical graph), DOC-13.1 (ledger-first billing), and other follow-up work
 
 ### Doc-Driven Backlog (All Canonical Requirements)
 
 **Foundations**
-- [ ] DOC-05.1 Align system invariants in code with SYSTEM_SPEC (authority rules, idempotency expectations, auditability)
 - [ ] DOC-06.1 Implement canonical core object graph (Account/Contact/Engagement/EngagementLine/WorkItem) or explicitly map current models to it and close gaps
 - [ ] DOC-19.1 Provisioning + migrations per DB_SCHEMA_AND_MIGRATIONS (idempotent tenant provisioning workflow; migration runner logs)
 - [ ] DOC-24.1 Security model minimums: secrets handling, rate limiting for portal, IDOR hardening, input validation for external content

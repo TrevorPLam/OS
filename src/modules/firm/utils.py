@@ -34,9 +34,78 @@ def get_request_firm(request: HttpRequest):
     return request.firm
 
 
+class FirmScopedQuerySet(models.QuerySet):
+    """
+    QuerySet that automatically enforces firm scoping.
+
+    Per SYSTEM_SPEC section 3.1.2: "All tenant-scoped queries MUST use FirmScopedQuerySet
+    or equivalent enforcement to prevent cross-tenant data access."
+
+    Usage in models:
+        class Client(models.Model):
+            firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)
+            # ...
+
+            objects = FirmScopedManager.from_queryset(FirmScopedQuerySet)()
+
+        # In views:
+        clients = Client.objects.for_firm(request.firm)
+
+    This QuerySet provides firm-scoped filtering methods and can be chained
+    with other QuerySet operations.
+    """
+
+    def for_firm(self, firm):
+        """
+        Filter queryset to a specific firm.
+
+        Args:
+            firm: Firm instance to scope to
+
+        Returns:
+            QuerySet filtered to the firm
+
+        Raises:
+            FirmScopingError: If firm is None
+        """
+        if firm is None:
+            raise FirmScopingError(
+                f"Cannot scope {self.model.__name__} to None firm. " "All firm-scoped queries require a firm."
+            )
+        return self.filter(firm=firm)
+
+    def exclude_deleted(self):
+        """
+        Exclude soft-deleted records (if model has deleted_at field).
+
+        Returns:
+            QuerySet excluding deleted records
+        """
+        if hasattr(self.model, 'deleted_at'):
+            return self.filter(deleted_at__isnull=True)
+        return self
+
+    def active(self):
+        """
+        Filter to active records (combines firm scoping with active status if applicable).
+
+        Returns:
+            QuerySet filtered to active records
+        """
+        qs = self.exclude_deleted()
+        if hasattr(self.model, 'is_active'):
+            qs = qs.filter(is_active=True)
+        elif hasattr(self.model, 'status'):
+            # Common pattern: status='active'
+            qs = qs.filter(status='active')
+        return qs
+
+
 def firm_scoped_queryset(model_class: models.Model, firm, base_queryset: models.QuerySet | None = None):
     """
     Get a firm-scoped queryset for a model.
+
+    DEPRECATED: Use FirmScopedQuerySet.for_firm() instead.
 
     Args:
         model_class: The Django model class
@@ -62,19 +131,31 @@ def firm_scoped_queryset(model_class: models.Model, firm, base_queryset: models.
 
 class FirmScopedManager(models.Manager):
     """
-    Custom manager that enforces firm scoping.
+    Custom manager that enforces firm scoping using FirmScopedQuerySet.
+
+    Per SYSTEM_SPEC section 3.1.2: Provides firm-scoped query methods.
 
     Usage in models:
         class Client(models.Model):
             firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)
             # ...
 
-            objects = models.Manager()  # Keep default manager
-            firm_scoped = FirmScopedManager()  # Add firm-scoped manager
+            objects = FirmScopedManager()  # Use as default manager
 
         # In views:
-        clients = Client.firm_scoped.for_firm(request.firm)
+        clients = Client.objects.for_firm(request.firm)
+        active_clients = Client.objects.for_firm(request.firm).active()
+
+    The manager uses FirmScopedQuerySet, providing all its methods (for_firm, exclude_deleted, active).
     """
+
+    def get_queryset(self):
+        """
+        Return the base FirmScopedQuerySet.
+
+        This ensures all queries through this manager use FirmScopedQuerySet.
+        """
+        return FirmScopedQuerySet(self.model, using=self._db)
 
     def for_firm(self, firm):
         """
@@ -84,13 +165,27 @@ class FirmScopedManager(models.Manager):
             firm: Firm instance to scope to
 
         Returns:
-            QuerySet filtered to the firm
+            FirmScopedQuerySet filtered to the firm
         """
-        if firm is None:
-            raise FirmScopingError(
-                f"Cannot scope {self.model.__name__} to None firm. " "All firm-scoped queries require a firm."
-            )
-        return self.filter(firm=firm)
+        return self.get_queryset().for_firm(firm)
+
+    def exclude_deleted(self):
+        """
+        Exclude soft-deleted records.
+
+        Returns:
+            FirmScopedQuerySet excluding deleted records
+        """
+        return self.get_queryset().exclude_deleted()
+
+    def active(self):
+        """
+        Filter to active records.
+
+        Returns:
+            FirmScopedQuerySet filtered to active records
+        """
+        return self.get_queryset().active()
 
 
 class FirmScopedMixin:
