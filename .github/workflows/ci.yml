@@ -196,6 +196,12 @@ jobs:
         bandit -r src/ -f json -o bandit-report.json || true
         bandit -r src/ -ll -f screen
 
+    - name: Check architectural boundaries
+      run: |
+        # CONST-10: Enforce import boundaries with import-linter
+        pip install import-linter==2.0
+        lint-imports --config .importlinter
+
     - name: Scan for secrets
       uses: trufflesecurity/trufflehog@main
       with:
