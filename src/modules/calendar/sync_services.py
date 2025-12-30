@@ -3,12 +3,14 @@ Calendar Sync Services.
 
 Provides idempotent sync with external calendar providers (Google/Microsoft).
 Implements docs/16 CALENDAR_SYNC_SPEC sections 3 (sync behavior) and 4 (retry behavior).
+Enhanced with DOC-16.2: retry logic and failed attempt replay.
 """
 
 import uuid
+import random
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple
-from django.db import transaction
+from typing import Dict, Optional, Tuple, List
+from django.db import transaction, models as django_models
 from django.utils import timezone
 
 from .models import (
@@ -403,4 +405,344 @@ class ResyncService:
         return {
             "status": "success",
             "correlation_id": str(correlation_id),
+        }
+
+
+class SyncRetryStrategy:
+    """
+    Retry strategy for calendar sync with exponential backoff.
+
+    Implements DOC-16.2: retry logic similar to email ingestion.
+    """
+
+    # Retry configuration
+    MAX_RETRIES = 5
+    BASE_DELAY_SECONDS = 2
+    MAX_DELAY_SECONDS = 300  # 5 minutes
+    JITTER_FACTOR = 0.1  # 10% jitter
+
+    @classmethod
+    def calculate_next_retry(cls, retry_count: int, error_class: str) -> Optional[timedelta]:
+        """
+        Calculate delay until next retry based on error class and retry count.
+
+        Returns:
+            timedelta for next retry, or None if should not retry.
+        """
+        # Non-retryable errors: never retry
+        if error_class == "non_retryable":
+            return None
+
+        # Max retries exceeded
+        if retry_count >= cls.MAX_RETRIES:
+            return None
+
+        # Calculate base delay with exponential backoff
+        if error_class == "transient":
+            # Transient errors: faster retry (1s, 2s, 4s, 8s, 16s)
+            delay = min(2 ** retry_count, cls.MAX_DELAY_SECONDS)
+        elif error_class == "rate_limited":
+            # Rate limited: slower backoff (60s, 120s, 240s, ...)
+            delay = min(60 * (2 ** retry_count), cls.MAX_DELAY_SECONDS)
+        else:
+            # Retryable: standard backoff (2s, 4s, 8s, 16s, 32s)
+            delay = min(cls.BASE_DELAY_SECONDS * (2 ** retry_count), cls.MAX_DELAY_SECONDS)
+
+        # Add jitter to avoid thundering herd
+        jitter = delay * cls.JITTER_FACTOR * random.uniform(-1, 1)
+        delay_with_jitter = max(1, delay + jitter)
+
+        return timedelta(seconds=delay_with_jitter)
+
+    @classmethod
+    def should_retry(cls, retry_count: int, error_class: str) -> bool:
+        """Return True if should retry based on error class and count."""
+        return cls.calculate_next_retry(retry_count, error_class) is not None
+
+
+class SyncFailedAttemptReplayService:
+    """
+    Service for replaying failed calendar sync attempts.
+
+    Implements DOC-16.2: replay of failed attempts with audit trail.
+    """
+
+    def __init__(self):
+        self.sync_service = CalendarSyncService()
+        self.resync_service = ResyncService()
+        self.retry_strategy = SyncRetryStrategy()
+
+    def get_failed_attempts(
+        self,
+        firm_id: Optional[int] = None,
+        connection_id: Optional[int] = None,
+        include_exhausted: bool = False,
+    ) -> List[SyncAttemptLog]:
+        """
+        Get failed sync attempts eligible for retry or review.
+
+        Args:
+            firm_id: Filter by firm
+            connection_id: Filter by connection
+            include_exhausted: Include attempts that hit max retries
+
+        Returns:
+            List of failed SyncAttemptLog records
+        """
+        queryset = SyncAttemptLog.objects.filter(status="fail").exclude(
+            error_class="non_retryable"
+        )
+
+        if firm_id:
+            queryset = queryset.filter(firm_id=firm_id)
+
+        if connection_id:
+            queryset = queryset.filter(connection_id=connection_id)
+
+        if not include_exhausted:
+            queryset = queryset.filter(max_retries_reached=False)
+
+        # Filter by next_retry_at (ready to retry)
+        now = timezone.now()
+        queryset = queryset.filter(
+            django_models.Q(next_retry_at__isnull=True) | django_models.Q(next_retry_at__lte=now)
+        )
+
+        return list(queryset.select_related("connection", "appointment").order_by("started_at"))
+
+    @transaction.atomic
+    def record_retry_attempt(
+        self,
+        original_attempt: SyncAttemptLog,
+        error: Exception,
+        user=None,
+    ) -> SyncAttemptLog:
+        """
+        Record a retry attempt for a failed sync.
+
+        Creates a new SyncAttemptLog with incremented retry_count.
+
+        Args:
+            original_attempt: The original failed attempt
+            error: The error that occurred on retry
+            user: User who initiated the retry (for audit)
+
+        Returns:
+            New SyncAttemptLog record
+        """
+        from modules.firm.audit import AuditEvent
+
+        # Classify error (simplified - in production, use ErrorClassifier)
+        error_type = type(error).__name__
+        if error_type in ["ConnectionError", "Timeout", "TimeoutError"]:
+            error_class = "transient"
+        elif "rate" in str(error).lower() or "429" in str(error):
+            error_class = "rate_limited"
+        elif error_type in ["ValidationError", "ValueError", "PermissionDenied"]:
+            error_class = "non_retryable"
+        else:
+            error_class = "transient"
+
+        retry_count = original_attempt.retry_count + 1
+
+        # Calculate next retry time
+        next_retry_delay = self.retry_strategy.calculate_next_retry(retry_count, error_class)
+        next_retry_at = timezone.now() + next_retry_delay if next_retry_delay else None
+        max_retries_reached = not self.retry_strategy.should_retry(retry_count, error_class)
+
+        # Create new attempt record
+        new_attempt = SyncAttemptLog.objects.create(
+            firm=original_attempt.firm,
+            connection=original_attempt.connection,
+            appointment=original_attempt.appointment,
+            direction=original_attempt.direction,
+            operation=original_attempt.operation,
+            status="fail",
+            error_class=error_class,
+            error_summary=f"Retry {retry_count}: {error_type}",
+            retry_count=retry_count,
+            next_retry_at=next_retry_at,
+            max_retries_reached=max_retries_reached,
+            correlation_id=original_attempt.correlation_id,
+            finished_at=timezone.now(),
+        )
+
+        # Audit event for retry
+        AuditEvent.objects.create(
+            firm=original_attempt.firm,
+            event_category="integration",
+            event_type="calendar_sync_retry",
+            actor_user=user,
+            resource_type="SyncAttemptLog",
+            resource_id=str(new_attempt.attempt_id),
+            severity="warning" if not max_retries_reached else "error",
+            metadata={
+                "original_attempt_id": original_attempt.attempt_id,
+                "retry_count": retry_count,
+                "error_class": error_class,
+                "max_retries_reached": max_retries_reached,
+                "next_retry_at": next_retry_at.isoformat() if next_retry_at else None,
+                "connection_id": original_attempt.connection_id,
+                "operation": original_attempt.operation,
+                "direction": original_attempt.direction,
+            },
+        )
+
+        return new_attempt
+
+    @transaction.atomic
+    def manual_replay(
+        self,
+        attempt: SyncAttemptLog,
+        user,
+    ) -> Dict:
+        """
+        Manually replay a failed sync attempt (admin-gated).
+
+        Implements DOC-16.2: manual replay with full audit trail.
+
+        Args:
+            attempt: The failed attempt to replay
+            user: Staff user initiating the replay
+
+        Returns:
+            dict with replay result
+        """
+        from modules.firm.audit import AuditEvent
+
+        # Audit the manual replay request
+        AuditEvent.objects.create(
+            firm=attempt.firm,
+            event_category="admin",
+            event_type="calendar_sync_manual_replay_requested",
+            actor_user=user,
+            resource_type="SyncAttemptLog",
+            resource_id=str(attempt.attempt_id),
+            metadata={
+                "attempt_id": attempt.attempt_id,
+                "connection_id": attempt.connection_id,
+                "operation": attempt.operation,
+                "direction": attempt.direction,
+                "original_error": attempt.error_summary,
+            },
+        )
+
+        try:
+            # Replay based on operation type
+            if attempt.operation == "resync":
+                # Replay connection resync
+                result = self.resync_service.resync_connection(
+                    connection=attempt.connection,
+                    user=user,
+                )
+
+                # Audit success
+                AuditEvent.objects.create(
+                    firm=attempt.firm,
+                    event_category="admin",
+                    event_type="calendar_sync_manual_replay_success",
+                    actor_user=user,
+                    resource_type="SyncAttemptLog",
+                    resource_id=str(attempt.attempt_id),
+                    metadata={
+                        "attempt_id": attempt.attempt_id,
+                        "operation": attempt.operation,
+                        "result": result,
+                    },
+                )
+
+                return {"success": True, "result": result}
+
+            elif attempt.operation == "upsert" and attempt.appointment:
+                # Replay appointment resync
+                result = self.resync_service.resync_appointment(
+                    appointment=attempt.appointment,
+                    user=user,
+                )
+
+                # Audit success
+                AuditEvent.objects.create(
+                    firm=attempt.firm,
+                    event_category="admin",
+                    event_type="calendar_sync_manual_replay_success",
+                    actor_user=user,
+                    resource_type="SyncAttemptLog",
+                    resource_id=str(attempt.attempt_id),
+                    metadata={
+                        "attempt_id": attempt.attempt_id,
+                        "operation": attempt.operation,
+                        "appointment_id": attempt.appointment.appointment_id,
+                        "result": result,
+                    },
+                )
+
+                return {"success": True, "result": result}
+
+            else:
+                return {
+                    "success": False,
+                    "error": f"Replay not implemented for operation: {attempt.operation}",
+                }
+
+        except Exception as e:
+            # Record retry failure
+            self.record_retry_attempt(attempt, e, user)
+
+            # Audit failure
+            AuditEvent.objects.create(
+                firm=attempt.firm,
+                event_category="admin",
+                event_type="calendar_sync_manual_replay_failed",
+                actor_user=user,
+                resource_type="SyncAttemptLog",
+                resource_id=str(attempt.attempt_id),
+                severity="error",
+                metadata={
+                    "attempt_id": attempt.attempt_id,
+                    "operation": attempt.operation,
+                    "error": type(e).__name__,
+                },
+            )
+
+            return {"success": False, "error": str(e)}
+
+    def get_sync_statistics(self, connection: CalendarConnection) -> Dict:
+        """
+        Get sync statistics for a connection.
+
+        Returns:
+            dict with sync metrics
+        """
+        attempts = SyncAttemptLog.objects.filter(connection=connection)
+
+        total_attempts = attempts.count()
+        successes = attempts.filter(status="success").count()
+        failures = attempts.filter(status="fail").count()
+        max_retries_reached = attempts.filter(max_retries_reached=True).count()
+        pending_retry = attempts.filter(
+            status="fail",
+            max_retries_reached=False,
+            next_retry_at__gt=timezone.now(),
+        ).count()
+
+        error_breakdown = {}
+        for error_class in ["transient", "non_retryable", "rate_limited"]:
+            error_breakdown[error_class] = attempts.filter(
+                status="fail", error_class=error_class
+            ).count()
+
+        # Last successful sync
+        last_success = attempts.filter(status="success").order_by("-finished_at").first()
+
+        return {
+            "total_attempts": total_attempts,
+            "successes": successes,
+            "failures": failures,
+            "success_rate": f"{(successes / total_attempts * 100):.1f}%" if total_attempts > 0 else "0%",
+            "max_retries_reached": max_retries_reached,
+            "pending_retry": pending_retry,
+            "eligible_for_retry": len(self.get_failed_attempts(connection_id=connection.pk)),
+            "error_breakdown": error_breakdown,
+            "last_successful_sync": last_success.finished_at.isoformat() if last_success and last_success.finished_at else None,
+            "last_sync_cursor": connection.last_sync_cursor or "Not set",
         }
