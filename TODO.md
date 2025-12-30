@@ -4,12 +4,81 @@
 
 ---
 
+## 🚨 PRIORITY #1: Coding Constitution Compliance
+
+**Status**: Analysis Complete (Dec 30, 2025)  
+**Reference**: [CONSTITUTION_ANALYSIS.md](./CONSTITUTION_ANALYSIS.md)  
+**Constitution**: [docs/codingconstitution.md](./docs/codingconstitution.md)
+
+The codebase has been analyzed against the Coding Constitution. **12 deviations** identified across 9 sections, with **9 HIGH severity** issues requiring immediate attention.
+
+### Phase 1: Immediate Security Fixes (2-3 days) 🔥
+
+- [ ] **CONST-1** Add SAST to CI (Section 6.6) - Add bandit to `.github/workflows/ci.yml` for static security analysis
+- [ ] **CONST-3** Add webhook signature verification (Section 7.6) - Fix `src/modules/sms/webhooks.py` to verify Twilio signatures
+- [ ] **CONST-4** Create cross-tenant attack test suite (Section 13.1) - Test suite in `src/tests/security/test_tenant_isolation.py` covering data leakage scenarios
+- [ ] **CONST-6** Generate and commit OpenAPI schema (Section 7.1) - Run `make openapi`, commit to `docs/03-reference/api/openapi.yaml`, add CI drift check
+
+### Phase 2: Reliability & Operations (1-2 weeks) ⚙️
+
+- [ ] **CONST-2** Implement health check endpoints (Section 9.4) - Create `/health` (liveness) and `/ready` (readiness) endpoints in `src/api/health.py`
+- [ ] **CONST-7** Create rollback documentation (Section 11.4) - Document rollback procedures for DB migrations, code deployments, and feature flags in `docs/runbooks/ROLLBACK.md`
+- [ ] **CONST-8** Begin runbooks creation (Section 12.6) - Create `docs/runbooks/` with initial docs: incident response, deployment, backup/restore, scaling, failed jobs
+
+### Phase 3: Governance & Architecture (2-3 weeks) 📋
+
+- [ ] **CONST-9** Establish ADR process (Section 2.2) - Create `docs/05-decisions/` with README, ADR template (ADR-0000-template.md), and index
+- [ ] **CONST-5** Develop threat model (Section 6.7) - Create `docs/THREAT_MODEL.md` with STRIDE analysis, threat scenarios, and mitigation mapping
+- [ ] **CONST-10** Add boundary rules enforcement (Section 15) - Add `import-linter` to CI with layering rules (UI→Service→Domain→Infrastructure)
+
+### Phase 4: Quality of Life (1-2 days) 🔧
+
+- [ ] **CONST-11** Verify/fix pagination on ViewSets (Section 7.5) - Check 5 files: `src/api/portal/views.py`, `src/modules/crm/views.py`, `src/modules/pricing/views.py`
+- [ ] **CONST-12** Document feature flag cleanup plans (Section 11.6) - Add cleanup dates to `src/modules/finance/billing.py`, `src/modules/clients/permissions.py`
+
+**Total Effort**: 75-107 hours (2-3 sprint cycles)  
+**Next Review**: March 30, 2026 (quarterly)
+
+### In-Code TODOs Identified (22 instances)
+
+These TODOs should be addressed as part of constitution compliance or feature completion:
+
+**High Priority (Feature Completion)**
+- [ ] `src/api/portal/views.py` - Implement organization-based multi-account logic (DOC-26.1 account switcher)
+- [ ] `src/api/portal/views.py` - Add document access logging per DOC-14.2
+- [ ] `src/api/portal/views.py` - Implement staff notification on portal upload
+- [ ] `src/modules/sms/views.py` - Queue webhook processing for background execution
+- [ ] `src/modules/orchestration/executor.py` - Implement actual step handler dispatch based on step type
+- [ ] `src/modules/orchestration/executor.py` - Add PII redaction logic to error messages
+
+**Medium Priority (Implementation Details)**
+- [ ] `src/api/portal/views.py` - Update session/token context with new client_id on account switch
+- [ ] `src/api/portal/views.py` - Link uploaded documents to Contact if available
+- [ ] `src/api/portal/views.py` - Notify staff of appointment cancellation
+- [ ] `src/modules/calendar/views.py` - Get account from validated_data if provided
+- [ ] `src/modules/marketing/views.py` - Trigger actual email send jobs
+- [ ] `src/modules/delivery/instantiator.py` - Implement role-based assignment lookup
+- [ ] `src/modules/firm/provisioning.py` - Implement when configuration models are defined
+
+**Deferred (External Dependencies)**
+- [ ] `src/modules/core/notifications.py` - Slack API integration (See TODO_ANALYSIS.md #10)
+- [ ] `src/modules/core/notifications.py` - SMS service integration (See TODO_ANALYSIS.md #11)
+- [ ] `src/modules/clients/views.py` - E-signature workflow (See TODO_ANALYSIS.md #12)
+
+**Low Priority (Future Enhancements)**
+- [ ] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7)
+- [ ] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events
+
+**Note**: 22 TODOs found. Focus on High Priority items after Phase 1 constitution compliance.
+
+---
+
 ## ✅ Doc-Driven Roadmap (Canonical; docs/1–docs/35)
 
 Docs 1–35 are the source of truth for platform scope, invariants, and required subsystems.
 Any legacy roadmap/checklist items below are retained for history only and MUST NOT drive prioritization.
 
-### Prioritized Next Work (Top 18)
+### Prioritized Next Work (Top 18) - ⚠️ SUPERSEDED BY CONSTITUTION COMPLIANCE ABOVE
 
 - [x] DOC-17.1 Resolve repo-structure delta vs docs/17 (document the intentional differences; keep boundaries explicit) ✅ Completed Dec 29, 2025 - see docs/repo-structure-delta.md
 - [x] DOC-04.1 Resolve tenancy contradiction: docs require schema-per-tenant; code is firm-scoped row tenancy (choose + update invariants accordingly) ✅ Completed Dec 29, 2025 - ADR-0010 in docs/4 documents row-level tenancy as canonical
