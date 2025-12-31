@@ -23,7 +23,9 @@
 **Medium Priority (Implementation Details)**
 - [x] `src/api/portal/views.py` - Link uploaded documents to Contact if available ✅ Completed
 - [x] `src/api/portal/views.py` - Notify staff of appointment cancellation ✅ Completed
-- [ ] `src/modules/firm/provisioning.py` - Implement when configuration models are defined
+- [x] `src/modules/firm/provisioning.py` - Implement baseline configuration seeding ✅ Completed
+  - Default project templates (General Consulting, Monthly Retainer, Advisory Services)
+  - Default email templates (Welcome Email, Appointment Confirmation, Project Update)
 
 **Deferred (External Dependencies)**
 - [ ] `src/modules/core/notifications.py` - Slack API integration (See TODO_ANALYSIS.md #10)
