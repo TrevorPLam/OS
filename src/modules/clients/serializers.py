@@ -334,10 +334,11 @@ class ClientTaskSerializer(serializers.ModelSerializer):
 
     def get_hours_logged(self, obj):
         """Calculate total hours logged for this task."""
+        from decimal import Decimal
         from django.db.models import Sum
 
         total = obj.time_entries.aggregate(total=Sum("hours"))["total"]
-        return float(total) if total else 0.0
+        return total if total is not None else Decimal("0.00")
 
     def get_comments(self, obj):
         """Get client comments for this task."""
@@ -411,10 +412,11 @@ class ClientProjectSerializer(serializers.ModelSerializer):
 
     def get_total_hours_logged(self, obj):
         """Calculate total hours logged for this project."""
+        from decimal import Decimal
         from django.db.models import Sum
 
         total = obj.time_entries.aggregate(total=Sum("hours"))["total"]
-        return float(total) if total else 0.0
+        return total if total is not None else Decimal("0.00")
 
     def get_progress_percentage(self, obj):
         """Calculate overall project progress based on completed tasks."""

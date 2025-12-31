@@ -370,7 +370,7 @@ class Prospect(models.Model):
     country = models.CharField(max_length=100, default="USA")
 
     # Pipeline Tracking
-    pipeline_stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default="discovery")
+    stage = models.CharField(max_length=20, choices=STAGE_CHOICES, default="discovery", help_text="Current pipeline stage")
     probability = models.IntegerField(default=50, help_text="Win probability percentage (0-100)")
 
     # Financial Forecast
@@ -407,14 +407,14 @@ class Prospect(models.Model):
         db_table = "crm_prospects"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "pipeline_stage"]),  # TIER 0: Firm scoping, name="crm_fir_pip_idx")
-            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping, name="crm_fir_cre_idx")
-            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping, name="crm_fir_ass_idx")
-            models.Index(fields=["firm", "close_date_estimate"]),  # TIER 0: Firm scoping, name="crm_fir_clo_idx")
+            models.Index(fields=["firm", "stage"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "-created_at"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping
+            models.Index(fields=["firm", "close_date_estimate"]),  # TIER 0: Firm scoping
         ]
 
     def __str__(self) -> str:
-        return f"{self.company_name} - {self.get_pipeline_stage_display()}"
+        return f"{self.company_name} - {self.get_stage_display()}"
 
 
 class Campaign(models.Model):

@@ -39,7 +39,7 @@ def test_refresh_membership_applies_filters_and_tags():
         company_name="Proposal Prospect",
         primary_contact_name="Prospect One",
         primary_contact_email="prospect1@example.com",
-        pipeline_stage="proposal",
+        stage="proposal",
         estimated_value=100000,
         close_date_estimate=date.today(),
         assigned_to=user,
@@ -89,7 +89,7 @@ def test_refresh_membership_respects_entity_types_and_tenancy():
         company_name="Negotiation Prospect",
         primary_contact_name="Prospect Two",
         primary_contact_email="prospect2@example.com",
-        pipeline_stage="negotiation",
+        stage="negotiation",
         estimated_value=50000,
         close_date_estimate=date.today(),
     )

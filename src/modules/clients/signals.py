@@ -169,7 +169,7 @@ def _handle_new_client(proposal):
     )
 
     # 6. Mark Prospect as won
-    proposal.prospect.pipeline_stage = "won"
+    proposal.prospect.stage = "won"
     proposal.prospect.won_date = timezone.now().date()
     proposal.prospect.save()
 

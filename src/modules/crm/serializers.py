@@ -73,7 +73,7 @@ class ProspectSerializer(serializers.ModelSerializer):
             "state",
             "postal_code",
             "country",
-            "pipeline_stage",
+            "stage",
             "probability",
             "estimated_value",
             "close_date_estimate",

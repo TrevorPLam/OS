@@ -256,7 +256,7 @@ class Segment(models.Model):
 
             stages = criteria.get("prospect_stages") or criteria.get("pipeline_stages")
             if stages:
-                prospect_qs = prospect_qs.filter(pipeline_stage__in=stages)
+                prospect_qs = prospect_qs.filter(stage__in=stages)
 
             prospect_qs = apply_tag_filter(prospect_qs, "prospect")
             total_members += prospect_qs.distinct().count()

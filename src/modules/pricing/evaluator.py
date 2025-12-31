@@ -327,9 +327,9 @@ class PricingEvaluator:
                 "product_code": product_code,
                 "name": product_def.get("name", product_code),
                 "description": product_def.get("description", ""),
-                "quantity": float(quantity),
-                "unit_price": float(unit_price),
-                "amount": float(amount),
+                "quantity": str(quantity),  # Convert to string for JSON serialization
+                "unit_price": str(unit_price),  # Maintain precision as string
+                "amount": str(amount),  # Maintain precision as string
                 "billing_model": product_def.get("billing_model", "fixed"),
                 "billing_unit": product_def.get("billing_unit", ""),
                 "tax_category": product_def.get("tax_category", ""),
@@ -344,11 +344,11 @@ class PricingEvaluator:
                 inputs={
                     "product_code": product_code,
                     "client_type": context.client_type,
-                    "quantity": float(quantity),
+                    "quantity": str(quantity),
                 },
                 outputs={
-                    "unit_price": float(unit_price),
-                    "amount": float(amount),
+                    "unit_price": str(unit_price),
+                    "amount": str(amount),
                 },
                 outcome="applied",
             )
@@ -402,8 +402,8 @@ class PricingEvaluator:
                 else:
                     item_discount = Decimal("0")
 
-                line_item["amount"] = float(original_amount - item_discount)
-                line_item["discount_applied"] = float(item_discount)
+                line_item["amount"] = str(original_amount - item_discount)
+                line_item["discount_applied"] = str(item_discount)
                 total_discount += item_discount
 
             self._add_trace_step(
@@ -413,9 +413,9 @@ class PricingEvaluator:
                 inputs={
                     "discount_code": discount_code,
                     "discount_type": discount_type,
-                    "discount_value": float(discount_value),
+                    "discount_value": str(discount_value),
                 },
-                outputs={"total_discount": float(total_discount)},
+                outputs={"total_discount": str(total_discount)},
                 outcome="applied",
             )
 
@@ -441,12 +441,12 @@ class PricingEvaluator:
         total = subtotal + tax_amount
 
         totals = {
-            "subtotal": float(subtotal + total_discounts),  # Before discounts
-            "discounts": float(total_discounts),
-            "subtotal_after_discounts": float(subtotal),
-            "tax_rate": float(tax_rate),
-            "tax_amount": float(tax_amount),
-            "total": float(total),
+            "subtotal": str(subtotal + total_discounts),  # Before discounts
+            "discounts": str(total_discounts),
+            "subtotal_after_discounts": str(subtotal),
+            "tax_rate": str(tax_rate),
+            "tax_amount": str(tax_amount),
+            "total": str(total),
             "currency": context.currency,
         }
 

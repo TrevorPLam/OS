@@ -242,7 +242,7 @@ class TestTenantIsolation:
             company_name="Prospect A",
             primary_contact_name="Prospect A Contact",
             primary_contact_email="prospect_a@example.com",
-            pipeline_stage="discovery",
+            stage="discovery",
             estimated_value=Decimal("10000.00"),
             close_date_estimate=timezone.now().date() + timezone.timedelta(days=30)
         )
@@ -251,7 +251,7 @@ class TestTenantIsolation:
             company_name="Prospect B",
             primary_contact_name="Prospect B Contact",
             primary_contact_email="prospect_b@example.com",
-            pipeline_stage="discovery",
+            stage="discovery",
             estimated_value=Decimal("10000.00"),
             close_date_estimate=timezone.now().date() + timezone.timedelta(days=30)
         )

@@ -575,7 +575,7 @@ class ClientInvoiceViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOn
             for item in status_counts:
                 summary["by_status"][item["status"]] = {
                     "count": item["count"],
-                    "total": float(item["total"]) if item["total"] else 0,
+                    "total": str(item["total"]) if item["total"] else "0.00",  # Maintain precision as string
                 }
 
             # Overdue invoices
