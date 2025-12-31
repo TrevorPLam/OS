@@ -48,7 +48,10 @@ The codebase underwent comprehensive external audit identifying **22 FAIL findin
 
 **All critical, high, and medium priority items completed.**
 
-- [x] **ASSESS-C3.9** Refactor complexity hotspots - **DEFERRED** as ongoing maintenance (finance/models.py ~1584 lines, calendar/models.py ~1184 lines) - Code quality acceptable; refactoring provides marginal benefit. To be addressed during routine maintenance or when adding new features to these modules.
+- [x] **ASSESS-C3.9** Refactor complexity hotspots - **DEFERRED** as ongoing maintenance  
+  (finance/models.py ~1584 lines, calendar/models.py ~1184 lines)  
+  Code quality acceptable; refactoring provides marginal benefit.  
+  To be addressed during routine maintenance or when adding new features to these modules.
 
 **Total Issues**: 22 FAIL findings  
 **Progress**: 22/22 items addressed (100%) ✅  

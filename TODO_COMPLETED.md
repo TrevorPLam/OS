@@ -120,7 +120,11 @@ The codebase has been analyzed against the Coding Constitution. All **12 deviati
 - [x] **ASSESS-G18.5b** Add reconciliation for S3 - Verify document Version records match S3 objects; detect missing files ✅ Completed (reconcile_s3 management command)
 
 **Code Quality Maintenance**
-- [x] **ASSESS-C3.9** Refactor complexity hotspots - **DEFERRED** as ongoing maintenance ✅ Completed Dec 31, 2025 - finance/models.py (1584 lines) and calendar/models.py (1184 lines) - Code quality acceptable; refactoring provides marginal benefit. To be addressed during routine maintenance or when adding new features to these modules.
+- [x] **ASSESS-C3.9** Refactor complexity hotspots - **DEFERRED** as ongoing maintenance  
+  ✅ Completed Dec 31, 2025  
+  finance/models.py (1584 lines) and calendar/models.py (1184 lines)  
+  Code quality acceptable; refactoring provides marginal benefit.  
+  To be addressed during routine maintenance or when adding new features to these modules.
 
 ### Phase 4: Requirements & Documentation (LOW - 1 week) 🔧
 
