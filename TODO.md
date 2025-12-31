@@ -4,38 +4,11 @@
 
 ---
 
-## 📊 Current Status Summary
-
-**Platform Maturity:** Core platform complete with 95%+ of critical work done
-
-**✅ Completed (Dec 2025):**
-- **Tiers 0-5:** 100% complete (all 6 foundational tiers)
-- **Constitution Compliance:** 12/12 tasks (100%)
-- **Assessment Remediation:** 21/22 tasks (95% - 1 low-priority refactoring deferred)
-- **Doc-Driven Roadmap:** 33/33 active work items (100%)
-
 **⚠️ Known Issues:**
 - **MISSING-* Features:** Code exists but requires significant refactoring before deployment
   - 8 modules need migration fixes (60+ admin errors, 30+ index naming conflicts)
   - Estimated 16-24 hours to make functional
   - See [IMPLEMENTATION_ASSESSMENT.md](docs/ARCHIVE/roadmap-legacy-2025-12-30/IMPLEMENTATION_ASSESSMENT.md)
-
-**🎯 Recommended Next Steps:**
-1. ~~Review and update TODO.md~~ ✅ Complete (Dec 31, 2025)
-2. ~~Update CHANGELOG.md~~ ✅ Complete (Dec 31, 2025)
-3. Refactor MISSING-* feature modules (if needed for business requirements)
-4. Continue with legacy roadmap items (3.1-5.10) as business priorities dictate
-
----
-
-## 📊 Strategic Implementation Plan
-
-**NEW:** See [STRATEGIC_IMPLEMENTATION_PLAN.md](./STRATEGIC_IMPLEMENTATION_PLAN.md) for comprehensive 10-week execution plan covering:
-- **Phase 1 (Week 1-2):** Critical Fixes - Data model issues, security vulnerabilities, test infrastructure
-- **Phase 2 (Week 3):** Constitution Completion - Threat model, boundary rules enforcement
-- **Phase 3 (Week 4-5):** API & Data Quality - Versioning, pagination, error model
-- **Phase 4 (Week 6-8):** Compliance & Privacy - GDPR, reconciliation, retention
-- **Phase 5 (Week 9-10):** Documentation & Process - Feature alignment, definition of done
 
 ---
 
