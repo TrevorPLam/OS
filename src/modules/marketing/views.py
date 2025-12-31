@@ -322,7 +322,22 @@ class CampaignExecutionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         execution.started_at = timezone.now()
         execution.save(update_fields=["status", "started_at"])
 
-        # TODO: Trigger actual email send jobs here
+        # Trigger email send jobs
+        # In production, this would queue background jobs for each recipient
+        # For now, log the send request and mark as queued
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(
+            f"Campaign execution {execution.id} queued for sending",
+            extra={
+                "campaign_id": execution.campaign.id if execution.campaign else None,
+                "template_id": execution.email_template.id if execution.email_template else None,
+                "segment_id": execution.segment.id if execution.segment else None,
+                "firm_id": execution.campaign.firm.id if execution.campaign else None,
+            }
+        )
+        # TODO: Queue actual email send jobs via background task system
+        # Example: queue_email_campaign.delay(execution.id)
 
         return Response(
             {

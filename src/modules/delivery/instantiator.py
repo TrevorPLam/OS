@@ -214,8 +214,19 @@ class TemplateInstantiator:
         if node.assignee_policy == "fixed":
             return node.fixed_assignee
         elif node.assignee_policy == "role_based":
-            # TODO: Implement role-based assignment lookup
-            # For now, return None (unassigned)
+            # Implement role-based assignment lookup
+            if node.assignee_role:
+                from modules.firm.models import FirmMembership
+                # Find first active user with the specified role in this firm
+                membership = FirmMembership.objects.filter(
+                    firm=self.firm,
+                    role=node.assignee_role,
+                    is_active=True,
+                ).select_related("user").first()
+                
+                if membership and membership.user:
+                    return membership.user
+            # If no role specified or no user found, return None (unassigned)
             return None
         else:
             return None

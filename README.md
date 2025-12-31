@@ -125,7 +125,7 @@ The Django server will be available at http://localhost:8000.
 - **Platform privacy enforcement** - Platform staff cannot read customer content by default
 - **Break-glass access** - Audited emergency access with time limits and reason tracking
 - **Client portal containment** - Default-deny for portal users
-- **End-to-end encryption** - Customer content is E2EE
+- **End-to-end encryption** - Coming Soon (E2EE infrastructure dependency)
 - **Immutable audit logs** - All critical actions tracked with metadata only
 
 ### Roles

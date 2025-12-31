@@ -166,10 +166,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
 
         # Route to staff user (per docs/34 section 2.4)
         routing_service = RoutingService()
+        account = serializer.validated_data.get("account")
+        engagement = serializer.validated_data.get("engagement")
         staff_user, routing_reason = routing_service.route_appointment(
             appointment_type=appointment_type,
-            account=None,  # TODO: Get from validated_data if provided
-            engagement=None,
+            account=account,
+            engagement=engagement,
         )
 
         if not staff_user:

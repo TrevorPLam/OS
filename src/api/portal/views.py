@@ -222,8 +222,9 @@ class PortalAccountSwitcherViewSet(QueryTimeoutMixin, PortalAccessMixin, viewset
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # TODO: Update session/token context with new client_id
-        # For now, just validate and return success
+        # Update session context with new client_id
+        request.session['active_client_id'] = int(account_id)
+        request.session.save()
 
         return Response({
             "success": True,
