@@ -135,7 +135,7 @@ class Client(models.Model):
     )
 
     # Company Information
-    company_name = models.CharField(max_length=255, unique=True)
+    company_name = models.CharField(max_length=255)
     industry = models.CharField(max_length=100, blank=True)
 
     # Contact Information

@@ -14,6 +14,7 @@ from django.conf import settings
 from django.db import models
 from django.core.exceptions import ValidationError
 from modules.firm.utils import FirmScopedManager
+from modules.core.validators import validate_safe_url
 
 
 class KnowledgeItem(models.Model):
@@ -517,7 +518,7 @@ class KnowledgeAttachment(models.Model):
         blank=True,
         help_text="Reference to delivery template",
     )
-    external_url = models.URLField(blank=True, help_text="External link (allowed list policy)")
+    external_url = models.URLField(blank=True, validators=[validate_safe_url], help_text="External link (allowed list policy)")
     description = models.CharField(max_length=255, blank=True, help_text="Optional description of attachment")
 
     # Audit

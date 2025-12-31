@@ -128,10 +128,15 @@ DATABASES = {
 }
 
 if os.environ.get("USE_SQLITE_FOR_TESTS") == "True":
+    # ASSESS-C3.10: SQLite for tests - enable foreign key constraints for determinism
+    # WARNING: Prefer PostgreSQL for tests to match production behavior
     DATABASES["default"] = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
+
+    # Enable foreign key constraints in SQLite (disabled by default)
+    # This is configured via a database signal - see config/__init__.py
 
 # Password validation
 # SECURITY: Minimum 12 characters recommended for stronger security

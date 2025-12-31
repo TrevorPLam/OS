@@ -248,13 +248,14 @@ class InputValidator:
         return content
 
     @classmethod
-    def validate_url(cls, url: str, allowed_schemes: Optional[List[str]] = None) -> str:
+    def validate_url(cls, url: str, allowed_schemes: Optional[List[str]] = None, allow_private_ips: bool = False) -> str:
         """
         Validate URL.
 
         Args:
             url: URL to validate
             allowed_schemes: Allowed URL schemes (default: ['http', 'https'])
+            allow_private_ips: If False, block private/internal IPs (SSRF protection)
 
         Returns:
             Validated URL
@@ -266,6 +267,7 @@ class InputValidator:
             - Prevents javascript: URLs (XSS)
             - Prevents data: URLs (XSS)
             - Prevents file: URLs (local file access)
+            - Prevents SSRF to internal IPs/localhost
             - Only allows http/https by default
         """
         if not url:
@@ -295,6 +297,46 @@ class InputValidator:
             raise ValidationError(
                 f"URL scheme '{scheme}' is blocked for security reasons"
             )
+
+        # SSRF protection: Block internal IPs and localhost
+        if not allow_private_ips:
+            import urllib.parse
+            import socket
+            import ipaddress
+
+            parsed = urllib.parse.urlparse(url)
+            hostname = parsed.hostname
+
+            if not hostname:
+                raise ValidationError("URL must contain a valid hostname")
+
+            # Block localhost variants
+            localhost_variants = [
+                'localhost', '127.0.0.1', '::1', '0.0.0.0',
+                '0000:0000:0000:0000:0000:0000:0000:0001',
+                '0:0:0:0:0:0:0:1'
+            ]
+            if hostname.lower() in localhost_variants:
+                raise ValidationError("URLs to localhost are blocked (SSRF protection)")
+
+            # Try to resolve hostname and check if it's a private IP
+            try:
+                # Get IP address
+                ip_str = socket.gethostbyname(hostname)
+                ip = ipaddress.ip_address(ip_str)
+
+                # Block private/internal IP ranges
+                if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                    raise ValidationError(
+                        f"URLs to private/internal IP addresses are blocked (SSRF protection): {ip_str}"
+                    )
+
+            except socket.gaierror:
+                # Hostname resolution failed - allow it (external validation will catch invalid URLs)
+                pass
+            except ValueError:
+                # IP parsing failed - allow it (external validation will catch invalid IPs)
+                pass
 
         return url
 

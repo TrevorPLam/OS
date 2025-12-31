@@ -10,8 +10,8 @@ Extends FirmMembership with profile customization features:
 
 from django.db import models
 from django.conf import settings
-from django.core.validators import URLValidator
 from modules.firm.models import FirmMembership
+from modules.core.validators import validate_safe_url
 
 
 class UserProfile(models.Model):
@@ -69,7 +69,7 @@ class UserProfile(models.Model):
     personal_meeting_link = models.URLField(
         blank=True,
         max_length=500,
-        validators=[URLValidator()],
+        validators=[validate_safe_url],
         help_text='Personal meeting link (Zoom, Teams, Google Meet, etc.)'
     )
     meeting_link_description = models.CharField(
@@ -80,7 +80,7 @@ class UserProfile(models.Model):
     calendar_booking_link = models.URLField(
         blank=True,
         max_length=500,
-        validators=[URLValidator()],
+        validators=[validate_safe_url],
         help_text='Personal calendar booking link (Calendly-style link for this user)'
     )
 
@@ -110,7 +110,7 @@ class UserProfile(models.Model):
     linkedin_url = models.URLField(
         blank=True,
         max_length=500,
-        validators=[URLValidator()],
+        validators=[validate_safe_url],
         help_text='LinkedIn profile URL'
     )
     twitter_handle = models.CharField(
@@ -121,7 +121,7 @@ class UserProfile(models.Model):
     website_url = models.URLField(
         blank=True,
         max_length=500,
-        validators=[URLValidator()],
+        validators=[validate_safe_url],
         help_text='Personal or professional website'
     )
 
