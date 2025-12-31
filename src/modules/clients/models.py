@@ -665,10 +665,10 @@ class ClientEngagement(models.Model):
                 "old_engagement_version": self.version,
                 "new_engagement_id": renewal.id,
                 "new_engagement_version": renewal.version,
-                "old_package_fee": float(self.package_fee or 0),
-                "new_package_fee": float(renewal.package_fee or 0),
-                "old_hourly_rate": float(self.hourly_rate_default or 0),
-                "new_hourly_rate": float(renewal.hourly_rate_default or 0),
+                "old_package_fee": str(self.package_fee or 0),  # Maintain precision as string
+                "new_package_fee": str(renewal.package_fee or 0),
+                "old_hourly_rate": str(self.hourly_rate_default or 0),
+                "new_hourly_rate": str(renewal.hourly_rate_default or 0),
                 "pricing_mode": renewal.pricing_mode,
             },
         )

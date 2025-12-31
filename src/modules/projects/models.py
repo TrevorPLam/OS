@@ -434,14 +434,14 @@ class Project(models.Model):
         )
         
         return {
-            "total_hours": float(total_hours),
-            "billable_hours": float(billable_hours),
-            "non_billable_hours": float(non_billable_hours),
-            "utilization_rate": float(utilization_rate),
-            "budgeted_hours": float(budgeted_hours) if budgeted_hours else None,
-            "hours_variance": float(hours_variance) if hours_variance else None,
+            "total_hours": total_hours,  # Keep as Decimal for precision
+            "billable_hours": billable_hours,
+            "non_billable_hours": non_billable_hours,
+            "utilization_rate": utilization_rate,
+            "budgeted_hours": budgeted_hours if budgeted_hours else None,
+            "hours_variance": hours_variance if hours_variance else None,
             "team_members": team_members,
-            "avg_hours_per_user": float(avg_hours_per_user),
+            "avg_hours_per_user": avg_hours_per_user,
         }
 
     def clean(self) -> None:
@@ -533,13 +533,13 @@ class Project(models.Model):
             "user_email": user.email,
             "period_start": start_date.isoformat(),
             "period_end": end_date.isoformat(),
-            "total_hours": float(total_hours),
-            "billable_hours": float(billable_hours),
-            "non_billable_hours": float(non_billable_hours),
-            "utilization_rate": float(utilization_rate),
+            "total_hours": total_hours,  # Keep as Decimal for precision
+            "billable_hours": billable_hours,
+            "non_billable_hours": non_billable_hours,
+            "utilization_rate": utilization_rate,
             "projects_worked": projects_worked,
-            "available_hours": float(available_hours),
-            "capacity_utilization": float(capacity_utilization),
+            "available_hours": available_hours,
+            "capacity_utilization": capacity_utilization,
         }
 
 

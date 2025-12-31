@@ -117,8 +117,8 @@ def create_package_invoice(
                     {
                         "description": f"Package Fee - {engagement.contract.title}",
                         "quantity": 1,
-                        "rate": float(engagement.package_fee),
-                        "amount": float(engagement.package_fee),
+                        "rate": str(engagement.package_fee),  # Maintain precision as string
+                        "amount": str(engagement.package_fee),  # Maintain precision as string
                         "type": "package_fee",
                     }
                 ],
@@ -138,7 +138,7 @@ def create_package_invoice(
             metadata={
                 "invoice_id": invoice.id,
                 "engagement_id": engagement.id,
-                "amount": float(engagement.package_fee),
+                "amount": str(engagement.package_fee),  # Maintain precision as string
                 "period_start": str(period_start),
                 "period_end": str(period_end),
             },
@@ -199,7 +199,7 @@ def execute_autopay_for_invoice(invoice: Invoice):
         metadata={
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
-            "amount": float(invoice.total_amount),
+            "amount": str(invoice.total_amount),  # Maintain precision as string
         },
     )
 
@@ -351,7 +351,7 @@ def handle_payment_failure(invoice: Invoice, failure_reason: str, failure_code: 
         metadata={
             "invoice_id": invoice.id,
             "invoice_number": invoice.invoice_number,
-            "amount": float(invoice.total_amount),
+            "amount": str(invoice.total_amount),  # Maintain precision as string
             "failure_reason": failure_reason,
             "failure_code": failure_code,
             "retry_count": invoice.payment_retry_count,
@@ -424,7 +424,7 @@ def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
         metadata={
             "dispute_id": dispute.id,
             "invoice_id": invoice.id,
-            "amount": float(dispute.amount),
+            "amount": str(dispute.amount),  # Maintain precision as string
             "reason": dispute.reason,
             "stripe_dispute_id": dispute.stripe_dispute_id,
         },
@@ -460,7 +460,7 @@ def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
             "dispute_id": dispute.id,
             "invoice_id": dispute.invoice.id,
             "resolution": dispute.resolution,
-            "amount": float(dispute.amount),
+            "amount": str(dispute.amount),  # Maintain precision as string
         },
         severity="CRITICAL",
     )
@@ -551,8 +551,8 @@ def create_milestone_invoice(
                     "description": f"Milestone: {milestone_data.get('name')}",
                     "detail": milestone_data.get("description", ""),
                     "quantity": 1,
-                    "rate": float(milestone_amount),
-                    "amount": float(milestone_amount),
+                    "rate": str(milestone_amount),  # Maintain precision as string
+                    "amount": str(milestone_amount),  # Maintain precision as string
                     "type": "milestone",
                 }
             ],
@@ -571,7 +571,7 @@ def create_milestone_invoice(
             "project_code": project.project_code,
             "milestone_index": milestone_index,
             "milestone_name": milestone_data.get("name"),
-            "amount": float(milestone_amount),
+            "amount": str(milestone_amount),  # Maintain precision as string
         },
     )
 
@@ -744,7 +744,7 @@ def send_dunning_reminder(invoice) -> Invoice:
             "invoice_number": invoice.invoice_number,
             "dunning_level": invoice.dunning_level,
             "days_overdue": (timezone.now().date() - invoice.due_date).days,
-            "amount": float(invoice.total_amount),
+            "amount": str(invoice.total_amount),  # Maintain precision as string
         },
         severity="WARNING" if invoice.dunning_level >= 3 else "INFO",
     )
