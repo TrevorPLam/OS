@@ -41,8 +41,13 @@ class ProjectSerializer(serializers.ModelSerializer):
             "notes",
             "total_hours_logged",
             "total_billed_amount",
+            # Client Acceptance fields (Medium Feature 2.8)
+            "client_accepted",
+            "acceptance_date",
+            "accepted_by",
+            "acceptance_notes",
         ]
-        read_only_fields = ["created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at", "acceptance_date"]
 
     def get_total_hours_logged(self, obj):
         """Calculate total hours logged for this project."""
