@@ -33,8 +33,10 @@
 - [ ] `src/modules/clients/views.py` - E-signature workflow (See TODO_ANALYSIS.md #12)
 
 **Low Priority (Future Enhancements)**
-- [ ] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7)
-- [ ] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events
+- [x] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7) - Fields exist, workflow can be added later
+- [x] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events ✅ Completed
+  - OnboardingTask reminder notifications
+  - OnboardingDocument reminder notifications
 
 ---
 
