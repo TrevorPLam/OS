@@ -15,7 +15,7 @@
 
 **Recommended Next Steps:**
 1. ~~Fix ASSESS-C3.1: Prospect.stage field~~ ✅ **COMPLETED** (Dec 31, 2025)
-2. Fix ASSESS-C3.1b: Float to Decimal for currency (CRITICAL - data integrity)
+2. ~~Fix ASSESS-C3.1b: Float to Decimal for currency~~ ✅ **COMPLETED** (Dec 31, 2025)
 3. Fix ASSESS-S6.2: Async/signals firm isolation audit (CRITICAL - IDOR risk)
 
 ---
@@ -115,7 +115,7 @@ The codebase underwent comprehensive external audit identifying **22 FAIL findin
 - [x] **ASSESS-C3.1** Fix missing Prospect.stage field - Renamed pipeline_stage→stage, updated all references, created migration 0003 ✅ Completed Dec 31, 2025
 - [x] **ASSESS-D4.1** Fix schema design gap - Prospect.stage now has proper choices (discovery, needs_analysis, proposal, negotiation, won, lost) ✅ Completed Dec 31, 2025
 - [x] **ASSESS-D4.7** Create missing migration - Created migration 0003_rename_pipeline_stage_to_stage.py ✅ Completed Dec 31, 2025
-- [ ] **ASSESS-C3.1b** Replace float with Decimal for currency - Audit finance module for float usage in money calculations, convert to Decimal (precision bugs)
+- [x] **ASSESS-C3.1b** Replace float with Decimal for currency - Replaced all float() conversions with str() for JSON; keep Decimal throughout calculation chain ✅ Completed Dec 31, 2025
 
 **Security (High Risk)**
 - [ ] **ASSESS-S6.2** Fix multi-tenancy gaps in async/signals - Audit async tasks and Django signals for firm isolation enforcement (IDOR risk)
@@ -162,7 +162,7 @@ The codebase underwent comprehensive external audit identifying **22 FAIL findin
 - [ ] **ASSESS-R1.8** Review for scope creep - Audit recent features against design docs; implement change control for significant additions
 
 **Total Issues**: 22 FAIL findings
-**Progress**: 4/22 completed (CONST-3: Twilio webhook, ASSESS-C3.1: Prospect.stage, ASSESS-D4.1: Schema design, ASSESS-D4.7: Migration)
+**Progress**: 5/22 completed (CONST-3: Twilio webhook, ASSESS-C3.1: Prospect.stage, ASSESS-D4.1: Schema design, ASSESS-D4.7: Migration, ASSESS-C3.1b: Float→Decimal)
 **Estimated Effort**: 60-100 hours (2-3 sprint cycles)
 **Next Review**: January 15, 2026
 
