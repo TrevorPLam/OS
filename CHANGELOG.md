@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Notes
+- Platform foundation complete: All 6 tiers finished (100%)
+- Constitution compliance: 12/12 tasks complete (100%)
+- Assessment remediation: 21/22 tasks complete (95%, 1 low-priority item deferred)
+- Doc-driven roadmap: 33/33 active work items complete (100%)
+
+---
+
+## [0.6.0] - 2025-12-31
+
+### Added - Tier 5: Durability, Scale & Exit (100% Complete)
+- ✅ Hero workflow integration tests
+- ✅ Performance safeguards (tenant-safe at scale)
+- ✅ Firm offboarding and data exit flows
+- ✅ Configuration change safety
+- ✅ Operational observability (without content access)
+
+### Fixed
+- Fixed import error in `modules.core.observability` (added `get_correlation_id` alias)
+
+### Documentation
+- Updated TODO.md with accurate status (Dec 31, 2025)
+- Updated README.md to reflect 100% tier completion
+- Updated CHANGELOG.md with Tier 5 completion
+
+### Platform Progress
+- **6 out of 6 tiers complete (100% of platform foundation)** ✅
+- All critical work from Constitution and Assessment complete
+- Platform ready for production deployment
+
+---
+
+## [0.5.0] - 2025-12-26
+
 ### Added - Priority #1: Active Work Items
 - ✅ Organization-based multi-account logic in portal views (DOC-26.1 account switcher)
 - ✅ Step handler dispatch implementation in orchestration executor
@@ -23,14 +57,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Detects missing files
   - Management command: `python manage.py reconcile_s3`
 - ✅ ASSESS-D4.6: Test/prod environment alignment (Postgres enforcement in conftest.py)
-
-### Platform Progress
-- **5 out of 6 tiers complete (83% of platform foundation)**
-- Tier 5 (Durability, Scale & Exit) - In Progress
-
----
-
-## [0.5.0] - 2025-12-26
 
 ### Added - Tier 4: Billing & Monetization (100% Complete)
 - Package fee invoicing with auto-generation and duplicate prevention
@@ -54,6 +80,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/tier4/PAYMENT_FAILURE_STATUS.md`
 - Updated tier system documentation
 - Session archives created for historical documentation
+
+### Platform Progress
+- **5 out of 6 tiers complete (83% of platform foundation)**
+- Tier 5 (Durability, Scale & Exit) - In Progress
 
 ---
 
@@ -160,6 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Focus | Tiers Complete |
 |---------|------|-------|----------------|
+| 0.6.0 | 2025-12-31 | Durability, Scale & Exit | 6/6 (100%) ✅ |
 | 0.5.0 | 2025-12-26 | Billing & Monetization | 5/6 (83%) |
 | 0.4.0 | 2025-12-25 | Data Integrity & Privacy | 4/6 (67%) |
 | 0.3.0 | 2025-12-24 | Core Features | 3/6 (50%) |

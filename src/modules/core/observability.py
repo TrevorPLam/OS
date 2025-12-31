@@ -25,6 +25,10 @@ def get_correlation_id_from_request(request) -> str:
     return getattr(request, "correlation_id", None) or request.META.get("HTTP_X_CORRELATION_ID") or generate_correlation_id()
 
 
+# Alias for backwards compatibility
+get_correlation_id = get_correlation_id_from_request
+
+
 # API metrics (per docs/21 section 2)
 def track_api_request(route: str, status_code: int, duration_ms: int, correlation_id: Optional[str] = None, tenant_id: Optional[int] = None):
     """Track API request metrics."""
