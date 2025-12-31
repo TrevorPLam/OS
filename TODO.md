@@ -16,7 +16,7 @@
 **Recommended Next Steps:**
 1. ~~Fix ASSESS-C3.1: Prospect.stage field~~ ✅ **COMPLETED** (Dec 31, 2025)
 2. ~~Fix ASSESS-C3.1b: Float to Decimal for currency~~ ✅ **COMPLETED** (Dec 31, 2025)
-3. Fix ASSESS-S6.2: Async/signals firm isolation audit (CRITICAL - IDOR risk)
+3. ~~Fix ASSESS-S6.2: Async/signals firm isolation audit~~ ✅ **COMPLETED** (Dec 31, 2025) - Fixed 10 IDOR vulnerabilities in signals and billing
 
 ---
 

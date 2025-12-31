@@ -292,14 +292,26 @@ def _charge_invoice(invoice: Invoice, payment_service=StripeService):
     return invoice
 
 
-def process_recurring_invoices(reference_time: timezone.datetime | None = None, payment_service=StripeService):
-    """Find invoices marked for autopay and execute charges."""
+def process_recurring_invoices(
+    reference_time: timezone.datetime | None = None, payment_service=StripeService, firm=None
+):
+    """Find invoices marked for autopay and execute charges.
+
+    Args:
+        reference_time: Optional reference time for processing
+        payment_service: Payment service to use (default: StripeService)
+        firm: Optional firm to scope invoice processing (tenant isolation)
+    """
 
     now = reference_time or timezone.now()
     due_invoices = Invoice.objects.filter(
         autopay_opt_in=True,
         status__in=["sent", "partial", "overdue"],
-    ).select_related("client")
+    ).select_related("client", "firm")
+
+    # SECURITY: Enforce firm isolation to prevent cross-firm processing (ASSESS-S6.2)
+    if firm:
+        due_invoices = due_invoices.filter(firm=firm)
 
     processed = []
     for invoice in due_invoices:
@@ -398,9 +410,21 @@ def schedule_payment_retry(invoice: Invoice):
         )
 
 
-def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
-    """Create a dispute record and flag invoice as disputed."""
-    invoice = Invoice.objects.get(stripe_invoice_id=stripe_dispute_data["invoice_id"])
+def handle_dispute_opened(stripe_dispute_data: dict, firm=None) -> PaymentDispute:
+    """Create a dispute record and flag invoice as disputed.
+
+    Args:
+        stripe_dispute_data: Dispute data from Stripe webhook
+        firm: Optional firm context for validation (tenant isolation)
+
+    Raises:
+        Invoice.DoesNotExist: If invoice not found or doesn't match firm
+    """
+    # SECURITY: Add firm filtering to prevent cross-firm dispute manipulation (ASSESS-S6.2)
+    if firm:
+        invoice = Invoice.objects.get(stripe_invoice_id=stripe_dispute_data["invoice_id"], firm=firm)
+    else:
+        invoice = Invoice.objects.get(stripe_invoice_id=stripe_dispute_data["invoice_id"])
 
     dispute = PaymentDispute.objects.create(
         firm=invoice.firm,
@@ -434,9 +458,23 @@ def handle_dispute_opened(stripe_dispute_data: dict) -> PaymentDispute:
     return dispute
 
 
-def handle_dispute_closed(stripe_dispute_data: dict) -> PaymentDispute:
-    """Close dispute and update invoice status accordingly."""
-    dispute = PaymentDispute.objects.get(stripe_dispute_id=stripe_dispute_data["id"])
+def handle_dispute_closed(stripe_dispute_data: dict, firm=None) -> PaymentDispute:
+    """Close dispute and update invoice status accordingly.
+
+    Args:
+        stripe_dispute_data: Dispute data from Stripe webhook
+        firm: Optional firm context for validation (tenant isolation)
+
+    Raises:
+        PaymentDispute.DoesNotExist: If dispute not found or doesn't match firm
+    """
+    # SECURITY: Add firm filtering to prevent cross-firm dispute manipulation (ASSESS-S6.2)
+    if firm:
+        dispute = PaymentDispute.objects.select_related("invoice").get(
+            stripe_dispute_id=stripe_dispute_data["id"], firm=firm
+        )
+    else:
+        dispute = PaymentDispute.objects.select_related("invoice").get(stripe_dispute_id=stripe_dispute_data["id"])
 
     dispute.status = "closed"
     dispute.resolution = stripe_dispute_data.get("status", "")

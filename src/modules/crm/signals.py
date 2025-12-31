@@ -31,7 +31,11 @@ def proposal_status_workflow(sender, instance, **kwargs):
     """
     if instance.pk:  # Only for updates, not creation
         try:
-            old_instance = Proposal.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = Proposal.objects.filter(firm=instance.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(f"Proposal {instance.pk} not found in firm {instance.firm_id} - possible IDOR attempt")
+                return
 
             # Track status change
             if old_instance.status != instance.status:
@@ -97,7 +101,11 @@ def contract_status_workflow(sender, instance, **kwargs):
     """
     if instance.pk:  # Only for updates
         try:
-            old_instance = Contract.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = Contract.objects.filter(firm=instance.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(f"Contract {instance.pk} not found in firm {instance.firm_id} - possible IDOR attempt")
+                return
 
             if old_instance.status != instance.status:
                 logger.info(
