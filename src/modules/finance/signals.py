@@ -43,7 +43,11 @@ def bill_state_machine_workflow(sender, instance, **kwargs):
 
     if instance.pk:  # Only for updates
         try:
-            old_instance = Bill.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = Bill.objects.filter(firm=instance.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(f"Bill {instance.pk} not found in firm {instance.firm_id} - possible IDOR attempt")
+                return
 
             # Prevent modification of paid bills
             if old_instance.status == "paid":

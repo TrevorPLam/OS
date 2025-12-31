@@ -30,7 +30,11 @@ def task_status_workflow(sender, instance, **kwargs):
     """
     if instance.pk:  # Only for updates
         try:
-            old_instance = Task.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = Task.objects.filter(project__firm=instance.project.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(f"Task {instance.pk} not found in firm {instance.project.firm_id} - possible IDOR attempt")
+                return
 
             if old_instance.status != instance.status:
                 logger.info(f"Task '{instance.title}' status changed: " f"{old_instance.status} -> {instance.status}")
@@ -89,7 +93,13 @@ def time_entry_validation(sender, instance, **kwargs):
     """
     if instance.pk:  # Only for updates
         try:
-            old_instance = TimeEntry.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = TimeEntry.objects.filter(project__firm=instance.project.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(
+                    f"TimeEntry {instance.pk} not found in firm {instance.project.firm_id} - possible IDOR attempt"
+                )
+                return
 
             # Prevent modification of invoiced entries
             if old_instance.invoiced and (
@@ -137,7 +147,11 @@ def project_status_workflow(sender, instance, **kwargs):
     """
     if instance.pk:  # Only for updates
         try:
-            old_instance = Project.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = Project.objects.filter(firm=instance.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(f"Project {instance.pk} not found in firm {instance.firm_id} - possible IDOR attempt")
+                return
 
             if old_instance.status != instance.status:
                 logger.info(f"Project '{instance.name}' status changed: " f"{old_instance.status} -> {instance.status}")
@@ -252,7 +266,11 @@ def expense_approval_workflow(sender, instance, **kwargs):
 
     if instance.pk:  # Only for updates
         try:
-            old_instance = Expense.objects.get(pk=instance.pk)
+            # SECURITY: Filter by firm to prevent cross-firm IDOR (ASSESS-S6.2)
+            old_instance = Expense.objects.filter(project__firm=instance.project.firm, pk=instance.pk).first()
+            if not old_instance:
+                logger.warning(f"Expense {instance.pk} not found in firm {instance.project.firm_id} - possible IDOR attempt")
+                return
 
             # Prevent modification of invoiced expenses
             if old_instance.status == "invoiced":
