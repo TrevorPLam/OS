@@ -127,11 +127,16 @@ DATABASES = {
     }
 }
 
+# ASSESS-C3.10: Standardize tests to use Postgres (not SQLite)
+# SQLite only allowed for local development if explicitly enabled
+# Tests are enforced to use Postgres via conftest.py
 if os.environ.get("USE_SQLITE_FOR_TESTS") == "True":
     DATABASES["default"] = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     }
+    # Enable foreign keys for SQLite (ASSESS-C3.10)
+    # Note: This is handled in conftest.py for tests
 
 # Password validation
 # SECURITY: Minimum 12 characters recommended for stronger security

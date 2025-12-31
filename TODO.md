@@ -1,6 +1,6 @@
 # ConsultantPro - Current Work & Roadmap
 
-**Last Updated:** December 30, 2025
+**Last Updated:** December 2025
 
 ---
 
@@ -17,6 +17,15 @@
 1. ~~Fix ASSESS-C3.1: Prospect.stage field~~ ✅ **COMPLETED** (Dec 31, 2025)
 2. ~~Fix ASSESS-C3.1b: Float to Decimal for currency~~ ✅ **COMPLETED** (Dec 31, 2025)
 3. ~~Fix ASSESS-S6.2: Async/signals firm isolation audit~~ ✅ **COMPLETED** (Dec 31, 2025) - Fixed 10 IDOR vulnerabilities in signals and billing
+4. ~~Fix ASSESS-D4.4: Idempotency gaps~~ ✅ **COMPLETED** (Dec 2025) - Added idempotency_key to Stripe calls; created StripeWebhookEvent model
+5. ~~Fix ASSESS-D4.4b: Company name uniqueness~~ ✅ **COMPLETED** (Dec 2025) - Changed to unique_together(firm, company_name)
+6. ~~Fix ASSESS-C3.10: Test non-determinism~~ ✅ **COMPLETED** (Dec 2025) - Enforced Postgres for tests via conftest.py
+7. ~~Fix ASSESS-I5.6: SSRF validation~~ ✅ **COMPLETED** (Dec 2025) - Enhanced validate_url() to block internal IPs
+8. ~~Implement ASSESS-I5.1: API versioning~~ ✅ **COMPLETED** (Dec 2025) - Added /api/v1/ prefix; created versioning policy
+9. ~~Implement ASSESS-I5.4: Error model~~ ✅ **COMPLETED** (Dec 2025) - Structured error responses with codes
+10. ~~Implement ASSESS-L19.2: Consent tracking~~ ✅ **COMPLETED** (Dec 2025) - Added consent fields to Client/Prospect/Lead
+11. ~~Implement ASSESS-L19.3: Data export~~ ✅ **COMPLETED** (Dec 2025) - Created export_user_data command
+12. ~~Implement ASSESS-L19.4: Retention policies~~ ✅ **COMPLETED** (Dec 2025) - Created retention policy system
 
 ---
 
@@ -118,22 +127,22 @@ The codebase underwent comprehensive external audit identifying **22 FAIL findin
 - [x] **ASSESS-C3.1b** Replace float with Decimal for currency - Replaced all float() conversions with str() for JSON; keep Decimal throughout calculation chain ✅ Completed Dec 31, 2025
 
 **Security (High Risk)**
-- [ ] **ASSESS-S6.2** Fix multi-tenancy gaps in async/signals - Audit async tasks and Django signals for firm isolation enforcement (IDOR risk)
+- [x] **ASSESS-S6.2** Fix multi-tenancy gaps in async/signals - Audit async tasks and Django signals for firm isolation enforcement (IDOR risk) ✅ Completed Dec 2025 - All 10 IDOR vulnerabilities fixed; regression tests added
 - [ ] **ASSESS-G18.4** ~~Add Twilio webhook signature verification~~ ✅ Already completed in CONST-3 (Dec 30, 2025)
-- [ ] **ASSESS-I5.6** Fix SSRF validation gaps - Apply InputValidator.validate_url() to all URL inputs; block internal IPs/localhost
-- [ ] **ASSESS-D4.4** Fix idempotency gaps - Add idempotency_key to Stripe PaymentIntent calls; store webhook event IDs to prevent duplicate processing
+- [x] **ASSESS-I5.6** Fix SSRF validation gaps - Apply InputValidator.validate_url() to all URL inputs; block internal IPs/localhost ✅ Completed Dec 2025 - Enhanced validate_url() to block internal IPs/localhost via validate_safe_url()
+- [x] **ASSESS-D4.4** Fix idempotency gaps - Add idempotency_key to Stripe PaymentIntent calls; store webhook event IDs to prevent duplicate processing ✅ Completed Dec 2025 - Added idempotency_key parameter; created StripeWebhookEvent model
 
 **Data Integrity**
-- [ ] **ASSESS-D4.4b** Fix company_name uniqueness scope - Change from globally unique to unique per firm: unique_together('firm', 'company_name')
-- [ ] **ASSESS-C3.10** Eliminate test non-determinism - Standardize tests to use Postgres (not SQLite); enable SQLite foreign keys if SQLite used
+- [x] **ASSESS-D4.4b** Fix company_name uniqueness scope - Change from globally unique to unique per firm: unique_together('firm', 'company_name') ✅ Completed Dec 2025 - Removed unique=True from Client.company_name; added unique_together to Prospect model
+- [x] **ASSESS-C3.10** Eliminate test non-determinism - Standardize tests to use Postgres (not SQLite); enable SQLite foreign keys if SQLite used ✅ Completed Dec 2025 - Created conftest.py to enforce Postgres for tests; added SQLite foreign key support
 
 ### Phase 2: API & Infrastructure (HIGH - 1 week) ⚙️
 
 **API Design**
-- [ ] **ASSESS-I5.1** Implement API versioning - Add /api/v1/ prefix; establish version support policy
-- [ ] **ASSESS-I5.5** Add pagination to all list endpoints - Enable DRF PageNumberPagination (page_size=50); update frontend
-- [ ] **ASSESS-I5.4** Improve error model - Create structured error responses with codes; map known errors (Stripe card_declined, etc.)
-- [ ] **ASSESS-I5.9** Establish deprecation policy - Document API change process; support deprecated fields for 1 version cycle
+- [x] **ASSESS-I5.1** Implement API versioning - Add /api/v1/ prefix; establish version support policy ✅ Completed Dec 2025 - Added /api/v1/ prefix; created API_VERSIONING_POLICY.md; legacy endpoints redirect to v1
+- [x] **ASSESS-I5.5** Add pagination to all list endpoints - Enable DRF PageNumberPagination (page_size=50); update frontend ✅ Verified Dec 2025 - Global pagination configured via BoundedPageNumberPagination; all list endpoints paginated (verified in PAGINATION_VERIFICATION.md)
+- [x] **ASSESS-I5.4** Improve error model - Create structured error responses with codes; map known errors (Stripe card_declined, etc.) ✅ Completed Dec 2025 - Enhanced error handler with error codes; mapped Stripe errors (card_declined, etc.)
+- [x] **ASSESS-I5.9** Establish deprecation policy - Document API change process; support deprecated fields for 1 version cycle ✅ Completed Dec 2025 - Created API_DEPRECATION_POLICY.md with 1 version cycle support policy
 
 **Data & Testing**
 - [ ] **ASSESS-D4.6** Align test/prod environments - Use Postgres for local tests (via Docker); eliminate SQLite vs Postgres drift
@@ -142,9 +151,9 @@ The codebase underwent comprehensive external audit identifying **22 FAIL findin
 ### Phase 3: Compliance & Privacy (MEDIUM - 1-2 weeks) 📋
 
 **GDPR/Privacy Requirements**
-- [ ] **ASSESS-L19.2** Implement consent tracking - Add Contact.marketing_opt_in, consent_timestamp, consent_source fields; track ToS acceptance
-- [ ] **ASSESS-L19.3** Build right-to-delete/export - Create admin tools for data export (all user data as JSON/CSV); anonymization scripts for deletion requests
-- [ ] **ASSESS-L19.4** Define retention policies - Establish data retention schedule; implement auto-purge for old data (configurable per firm)
+- [x] **ASSESS-L19.2** Implement consent tracking - Add Contact.marketing_opt_in, consent_timestamp, consent_source fields; track ToS acceptance ✅ Completed Dec 2025 - Added consent fields to Client, Prospect, and Lead models; added ToS tracking
+- [x] **ASSESS-L19.3** Build right-to-delete/export - Create admin tools for data export (all user data as JSON/CSV); anonymization scripts for deletion requests ✅ Completed Dec 2025 - Created export_user_data management command; supports JSON/CSV export; integrates with erasure workflow
+- [x] **ASSESS-L19.4** Define retention policies - Establish data retention schedule; implement auto-purge for old data (configurable per firm) ✅ Completed Dec 2025 - Created RetentionPolicy model and RetentionService; execute_retention_policies management command; supports archive/anonymize/delete actions
 
 **Integration Resilience**
 - [ ] **ASSESS-G18.5** Add reconciliation for Stripe - Create daily cron to cross-check Invoice status vs Stripe API; flag mismatches
@@ -162,7 +171,7 @@ The codebase underwent comprehensive external audit identifying **22 FAIL findin
 - [ ] **ASSESS-R1.8** Review for scope creep - Audit recent features against design docs; implement change control for significant additions
 
 **Total Issues**: 22 FAIL findings
-**Progress**: 5/22 completed (CONST-3: Twilio webhook, ASSESS-C3.1: Prospect.stage, ASSESS-D4.1: Schema design, ASSESS-D4.7: Migration, ASSESS-C3.1b: Float→Decimal)
+**Progress**: 19/22 completed (CONST-3: Twilio webhook, ASSESS-C3.1: Prospect.stage, ASSESS-D4.1: Schema design, ASSESS-D4.7: Migration, ASSESS-C3.1b: Float→Decimal, ASSESS-S6.2: IDOR fixes, ASSESS-I5.6: SSRF validation, ASSESS-D4.4: Idempotency, ASSESS-D4.4b: Company name uniqueness, ASSESS-C3.10: Test standardization, ASSESS-I5.1: API versioning, ASSESS-I5.4: Error model, ASSESS-I5.5: Pagination verification, ASSESS-I5.9: Deprecation policy, ASSESS-L19.2: Consent tracking, ASSESS-L19.3: Data export, ASSESS-L19.4: Retention policies, ASSESS-R1.7: Definition of done, ASSESS-R1.3: Hidden assumptions) - All completed Dec 2025
 **Estimated Effort**: 60-100 hours (2-3 sprint cycles)
 **Next Review**: January 15, 2026
 

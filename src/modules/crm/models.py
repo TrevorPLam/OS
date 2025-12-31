@@ -361,6 +361,22 @@ class Prospect(models.Model):
     primary_contact_email = models.EmailField()
     primary_contact_phone = models.CharField(max_length=50, blank=True)
     primary_contact_title = models.CharField(max_length=100, blank=True)
+    
+    # GDPR/Privacy Compliance (ASSESS-L19.2) - For prospects/leads
+    marketing_opt_in = models.BooleanField(
+        default=False,
+        help_text="Has the prospect opted in to receive marketing communications?"
+    )
+    consent_timestamp = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When consent was given (GDPR requirement)"
+    )
+    consent_source = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Source of consent (e.g., 'lead_form', 'email_campaign', 'website')"
+    )
 
     # Address
     street_address = models.CharField(max_length=255, blank=True)

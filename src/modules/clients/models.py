@@ -218,6 +218,36 @@ class Client(models.Model):
     active_projects_count = models.IntegerField(default=0, help_text="Number of currently active projects")
     client_since = models.DateField(help_text="Date of first engagement")
 
+    # GDPR/Privacy Compliance (ASSESS-L19.2)
+    marketing_opt_in = models.BooleanField(
+        default=False,
+        help_text="Has the client opted in to receive marketing communications?"
+    )
+    consent_timestamp = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When consent was given (GDPR requirement)"
+    )
+    consent_source = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Source of consent (e.g., 'signup_form', 'email_campaign', 'portal_settings')"
+    )
+    tos_accepted = models.BooleanField(
+        default=False,
+        help_text="Has the client accepted Terms of Service?"
+    )
+    tos_accepted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When Terms of Service were accepted"
+    )
+    tos_version = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Version of ToS that was accepted"
+    )
+
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
