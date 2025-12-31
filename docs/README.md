@@ -28,6 +28,11 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 - **[Changelog](../CHANGELOG.md)** - Release history and changes
 - **[Contributing Guide](../CONTRIBUTING.md)** - Development workflow
 
+## Operational Documentation
+
+- **[Runbooks](runbooks/README.md)** - Operational procedures for common failures, deployments, and incident response
+- **[Compliance Documentation](compliance/)** - Compliance verification docs (boundaries, pagination, feature flags)
+
 ## Tier-Specific Documentation
 
 Documentation for each tier is organized in directories:

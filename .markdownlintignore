@@ -1,0 +1,69 @@
+# Markdownlint ignore patterns
+
+# Archives - historical docs not required to meet current standards
+docs/ARCHIVE/
+
+# Third-party or generated content
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.egg-info/
+
+# Build artifacts
+dist/
+build/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Git
+.git/
+
+# Logs
+*.log
+src/logs/
+
+# Frontend build
+src/frontend/dist/
+src/frontend/build/
+
+# Migration files may have auto-generated comments
+**/migrations/
+
+# Numbered spec files (until they're renamed with .md extension)
+docs/1
+docs/2
+docs/3
+docs/4
+docs/5
+docs/6
+docs/7
+docs/8
+docs/9
+docs/10
+docs/11
+docs/12
+docs/13
+docs/14
+docs/15
+docs/16
+docs/17
+docs/18
+docs/19
+docs/20
+docs/21
+docs/22
+docs/23
+docs/24
+docs/25
+docs/26
+docs/27
+docs/28
+docs/29
+docs/30
+docs/31
+docs/32
+docs/33
+docs/34
+docs/35

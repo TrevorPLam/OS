@@ -1,0 +1,66 @@
+{
+  "version": "0.2",
+  "language": "en-US",
+
+  // Files to check
+  "files": [
+    "**/*.md",
+    "**/*.txt",
+    "!**/node_modules/**",
+    "!**/.venv/**",
+    "!**/venv/**",
+    "!**/__pycache__/**",
+    "!**/*.egg-info/**",
+    "!**/dist/**",
+    "!**/build/**",
+    "!**/.git/**",
+    "!**/migrations/**",
+    "!**/docs/ARCHIVE/**"
+  ],
+
+  // Dictionaries to use
+  "dictionaries": [
+    "companies",
+    "css",
+    "html",
+    "http",
+    "misc",
+    "node",
+    "npm",
+    "python",
+    "softwareTerms",
+    "typescript",
+    "project-dictionary"
+  ],
+
+  // Custom dictionary file
+  "dictionaryDefinitions": [
+    {
+      "name": "project-dictionary",
+      "path": "./.cspell/project-dictionary.txt",
+      "addWords": true
+    }
+  ],
+
+  // Ignore patterns (regex)
+  "ignoreRegExpList": [
+    "/```[\\s\\S]*?```/g",
+    "/`[^`]+`/g",
+    "/https?://[^\\s)]+/g",
+    "/[0-9a-f]{7,40}/g",
+    "/[A-Z0-9]{8,}/g",
+    "/<[^>]+>/g"
+  ],
+
+  // Allow compound words
+  "allowCompoundWords": true,
+
+  // Case sensitivity
+  "caseSensitive": false,
+
+  // Maximum number of problems to report
+  "maxNumberOfProblems": 1000,
+
+  // Maximum duplicate problems (same word)
+  "maxDuplicateProblems": 10
+}

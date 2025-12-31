@@ -8,7 +8,7 @@ else
 Q :=
 endif
 
-.PHONY: setup lint test dev openapi docs-validate verify
+.PHONY: setup lint test dev openapi docs-validate docs-check verify
 
 setup:
 	$(Q)set +e
@@ -42,13 +42,13 @@ lint:
 	$(Q)echo "=== FRONTEND LINT ==="
 	$(Q)$(MAKE) -C src/frontend lint V=$(V)
 	frontend_status=$$?
-	$(Q)echo "=== DOCS VALIDATE ==="
-	$(Q)$(MAKE) -C docs validate V=$(V)
+	$(Q)echo "=== DOCS QUALITY CHECK ==="
+	$(Q)$(MAKE) -C docs docs-check V=$(V)
 	docs_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND LINT: PASS"; else echo "BACKEND LINT: FAIL"; fi
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND LINT: PASS"; else echo "FRONTEND LINT: FAIL"; fi
-	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS VALIDATE: PASS"; else echo "DOCS VALIDATE: FAIL"; fi
+	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS QUALITY: PASS"; else echo "DOCS QUALITY: FAIL"; fi
 	$(Q)summary=0
 	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ] || [ $$docs_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
@@ -108,12 +108,15 @@ openapi:
 docs-validate:
 	$(Q)set +e
 	docs_status=0
-	$(Q)echo "=== DOCS VALIDATE ==="
-	$(Q)$(MAKE) -C docs validate V=$(V)
+	$(Q)echo "=== DOCS QUALITY CHECK ==="
+	$(Q)$(MAKE) -C docs docs-check V=$(V)
 	docs_status=$$?
 	$(Q)echo "=== SUMMARY ==="
-	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS VALIDATE: PASS"; else echo "DOCS VALIDATE: FAIL"; fi
+	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS QUALITY: PASS"; else echo "DOCS QUALITY: FAIL"; fi
 	$(Q)exit $$docs_status
+
+docs-check:
+	$(Q)$(MAKE) docs-validate V=$(V)
 
 verify:
 	$(Q)set +e
