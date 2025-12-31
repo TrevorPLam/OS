@@ -84,6 +84,7 @@ class StripeService:
         customer_id: str | None = None,
         metadata: dict | None = None,
         payment_method: str | None = None,
+        idempotency_key: str | None = None,
     ) -> stripe.PaymentIntent:
         """
         Create a payment intent for one-time payments.
@@ -93,6 +94,8 @@ class StripeService:
             currency: Currency code (default: 'usd')
             customer_id: Optional Stripe customer ID
             metadata: Additional metadata
+            payment_method: Optional payment method ID for off-session payments
+            idempotency_key: Optional idempotency key to prevent duplicate charges (ASSESS-D4.4)
 
         Returns:
             stripe.PaymentIntent: Created payment intent
@@ -113,6 +116,10 @@ class StripeService:
                 kwargs["payment_method"] = payment_method
                 kwargs["confirm"] = True
                 kwargs["off_session"] = True
+
+            # SECURITY: Add idempotency key to prevent duplicate charges (ASSESS-D4.4)
+            if idempotency_key:
+                kwargs["idempotency_key"] = idempotency_key
 
             payment_intent = stripe.PaymentIntent.create(**kwargs)
 

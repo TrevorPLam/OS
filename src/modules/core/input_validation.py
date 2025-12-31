@@ -248,26 +248,31 @@ class InputValidator:
         return content
 
     @classmethod
-    def validate_url(cls, url: str, allowed_schemes: Optional[List[str]] = None) -> str:
+    def validate_url(cls, url: str, allowed_schemes: Optional[List[str]] = None, block_internal: bool = True) -> str:
         """
-        Validate URL.
+        Validate URL and prevent SSRF attacks (ASSESS-I5.6).
 
         Args:
             url: URL to validate
             allowed_schemes: Allowed URL schemes (default: ['http', 'https'])
+            block_internal: If True, block internal IPs and localhost (SSRF protection)
 
         Returns:
             Validated URL
 
         Raises:
-            ValidationError: If URL is invalid
+            ValidationError: If URL is invalid or blocked
 
         Security:
             - Prevents javascript: URLs (XSS)
             - Prevents data: URLs (XSS)
             - Prevents file: URLs (local file access)
+            - Blocks internal IPs and localhost (SSRF protection) via validate_safe_url
             - Only allows http/https by default
         """
+        from modules.core.validators import validate_safe_url
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
         if not url:
             raise ValidationError("URL cannot be empty")
 
@@ -295,6 +300,14 @@ class InputValidator:
             raise ValidationError(
                 f"URL scheme '{scheme}' is blocked for security reasons"
             )
+
+        # SECURITY: Block internal IPs and localhost to prevent SSRF (ASSESS-I5.6)
+        # Use existing validate_safe_url which has comprehensive SSRF protection
+        if block_internal:
+            try:
+                validate_safe_url(url)
+            except DjangoValidationError as e:
+                raise ValidationError(str(e)) from e
 
         return url
 

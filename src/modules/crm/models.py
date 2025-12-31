@@ -412,6 +412,8 @@ class Prospect(models.Model):
             models.Index(fields=["firm", "assigned_to"]),  # TIER 0: Firm scoping
             models.Index(fields=["firm", "close_date_estimate"]),  # TIER 0: Firm scoping
         ]
+        # SECURITY: Company names must be unique per firm, not globally (ASSESS-D4.4b)
+        unique_together = [["firm", "company_name"]]
 
     def __str__(self) -> str:
         return f"{self.company_name} - {self.get_stage_display()}"

@@ -256,13 +256,18 @@ def _charge_invoice(invoice: Invoice, payment_service=StripeService):
     invoice.autopay_last_attempt_at = timezone.now()
     invoice.save(update_fields=["autopay_status", "autopay_last_attempt_at"])
 
+    # SECURITY: Generate idempotency key to prevent duplicate charges (ASSESS-D4.4)
+    import uuid
+    idempotency_key = f"invoice_{invoice.id}_{invoice.autopay_last_attempt_at.timestamp()}_{uuid.uuid4().hex[:8]}"
+
     try:
         intent = payment_service.create_payment_intent(
             amount=invoice.total_amount,
             currency=invoice.currency.lower(),
             customer_id=None,
-            metadata={"invoice_id": invoice.id},
+            metadata={"invoice_id": invoice.id, "invoice_number": invoice.invoice_number},
             payment_method=payment_method_id,
+            idempotency_key=idempotency_key,
         )
     except Exception as exc:  # pragma: no cover - safety net
         result = handle_payment_failure(invoice, failure_reason=str(exc), failure_code="processor_error")
@@ -410,16 +415,30 @@ def schedule_payment_retry(invoice: Invoice):
         )
 
 
-def handle_dispute_opened(stripe_dispute_data: dict, firm=None) -> PaymentDispute:
+def handle_dispute_opened(stripe_dispute_data: dict, firm=None, stripe_event_id: str | None = None) -> PaymentDispute:
     """Create a dispute record and flag invoice as disputed.
 
     Args:
         stripe_dispute_data: Dispute data from Stripe webhook
         firm: Optional firm context for validation (tenant isolation)
+        stripe_event_id: Optional Stripe event ID for idempotency (ASSESS-D4.4)
 
     Raises:
         Invoice.DoesNotExist: If invoice not found or doesn't match firm
     """
+    from modules.finance.models import StripeWebhookEvent
+
+    # SECURITY: Check for duplicate webhook event (ASSESS-D4.4)
+    if stripe_event_id:
+        existing_event = StripeWebhookEvent.objects.filter(stripe_event_id=stripe_event_id).first()
+        if existing_event:
+            logger.warning(f"Duplicate webhook event detected: {stripe_event_id}. Skipping processing.")
+            # Return existing dispute if it exists
+            if existing_event.dispute:
+                return existing_event.dispute
+            # If event was processed but dispute doesn't exist, return None or raise
+            raise ValueError(f"Webhook event {stripe_event_id} already processed but no dispute found")
+
     # SECURITY: Add firm filtering to prevent cross-firm dispute manipulation (ASSESS-S6.2)
     if firm:
         invoice = Invoice.objects.get(stripe_invoice_id=stripe_dispute_data["invoice_id"], firm=firm)
@@ -441,6 +460,17 @@ def handle_dispute_opened(stripe_dispute_data: dict, firm=None) -> PaymentDisput
     invoice.status = "disputed"
     invoice.save(update_fields=["status"])
 
+    # SECURITY: Store webhook event ID to prevent duplicate processing (ASSESS-D4.4)
+    if stripe_event_id:
+        StripeWebhookEvent.objects.create(
+            firm=invoice.firm,
+            stripe_event_id=stripe_event_id,
+            event_type="charge.dispute.created",
+            invoice=invoice,
+            event_data=stripe_dispute_data,
+            processed_successfully=True,
+        )
+
     audit.log_billing_event(
         firm=invoice.firm,
         action="payment_disputed",
@@ -451,6 +481,7 @@ def handle_dispute_opened(stripe_dispute_data: dict, firm=None) -> PaymentDisput
             "amount": str(dispute.amount),  # Maintain precision as string
             "reason": dispute.reason,
             "stripe_dispute_id": dispute.stripe_dispute_id,
+            "stripe_event_id": stripe_event_id,
         },
         severity="CRITICAL",
     )
@@ -458,16 +489,30 @@ def handle_dispute_opened(stripe_dispute_data: dict, firm=None) -> PaymentDisput
     return dispute
 
 
-def handle_dispute_closed(stripe_dispute_data: dict, firm=None) -> PaymentDispute:
+def handle_dispute_closed(stripe_dispute_data: dict, firm=None, stripe_event_id: str | None = None) -> PaymentDispute:
     """Close dispute and update invoice status accordingly.
 
     Args:
         stripe_dispute_data: Dispute data from Stripe webhook
         firm: Optional firm context for validation (tenant isolation)
+        stripe_event_id: Optional Stripe event ID for idempotency (ASSESS-D4.4)
 
     Raises:
         PaymentDispute.DoesNotExist: If dispute not found or doesn't match firm
     """
+    from modules.finance.models import StripeWebhookEvent
+
+    # SECURITY: Check for duplicate webhook event (ASSESS-D4.4)
+    if stripe_event_id:
+        existing_event = StripeWebhookEvent.objects.filter(stripe_event_id=stripe_event_id).first()
+        if existing_event:
+            logger.warning(f"Duplicate webhook event detected: {stripe_event_id}. Skipping processing.")
+            # Return existing dispute if it exists
+            if existing_event.dispute:
+                return existing_event.dispute
+            # If event was processed but dispute doesn't exist, return None or raise
+            raise ValueError(f"Webhook event {stripe_event_id} already processed but no dispute found")
+
     # SECURITY: Add firm filtering to prevent cross-firm dispute manipulation (ASSESS-S6.2)
     if firm:
         dispute = PaymentDispute.objects.select_related("invoice").get(
@@ -490,6 +535,18 @@ def handle_dispute_closed(stripe_dispute_data: dict, firm=None) -> PaymentDisput
 
     dispute.invoice.save(update_fields=["status", "amount_paid"])
 
+    # SECURITY: Store webhook event ID to prevent duplicate processing (ASSESS-D4.4)
+    if stripe_event_id:
+        StripeWebhookEvent.objects.create(
+            firm=dispute.firm,
+            stripe_event_id=stripe_event_id,
+            event_type="charge.dispute.closed",
+            invoice=dispute.invoice,
+            dispute=dispute,
+            event_data=stripe_dispute_data,
+            processed_successfully=True,
+        )
+
     audit.log_billing_event(
         firm=dispute.firm,
         action=f"dispute_{dispute.resolution or 'closed'}",
@@ -499,6 +556,7 @@ def handle_dispute_closed(stripe_dispute_data: dict, firm=None) -> PaymentDisput
             "invoice_id": dispute.invoice.id,
             "resolution": dispute.resolution,
             "amount": str(dispute.amount),  # Maintain precision as string
+            "stripe_event_id": stripe_event_id,
         },
         severity="CRITICAL",
     )

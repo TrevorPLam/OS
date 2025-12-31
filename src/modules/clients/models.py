@@ -135,7 +135,8 @@ class Client(models.Model):
     )
 
     # Company Information
-    company_name = models.CharField(max_length=255, unique=True)
+    # SECURITY: company_name is unique per firm, not globally (ASSESS-D4.4b)
+    company_name = models.CharField(max_length=255)
     industry = models.CharField(max_length=100, blank=True)
 
     # Contact Information

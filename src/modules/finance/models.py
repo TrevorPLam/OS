@@ -1487,3 +1487,98 @@ class PaymentAllocation(models.Model):
                     self.invoice.status = "partial"
                 
                 self.invoice.save(update_fields=["status", "paid_date", "updated_at"])
+
+
+class StripeWebhookEvent(models.Model):
+    """
+    Track Stripe webhook events to prevent duplicate processing (ASSESS-D4.4).
+    
+    Stores webhook event IDs to ensure idempotent processing of Stripe webhooks.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="stripe_webhook_events",
+        help_text="Firm this webhook event belongs to",
+    )
+    
+    # Stripe event tracking
+    stripe_event_id = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text="Stripe webhook event ID (unique identifier from Stripe)"
+    )
+    event_type = models.CharField(
+        max_length=100,
+        help_text="Stripe event type (e.g., payment_intent.succeeded, charge.dispute.created)"
+    )
+    
+    # Processing metadata
+    processed_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this event was processed"
+    )
+    processed_successfully = models.BooleanField(
+        default=True,
+        help_text="Whether event was processed successfully"
+    )
+    error_message = models.TextField(
+        blank=True,
+        help_text="Error message if processing failed"
+    )
+    
+    # Related objects (optional, for tracking)
+    invoice = models.ForeignKey(
+        "finance.Invoice",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_events",
+        help_text="Invoice related to this event (if applicable)"
+    )
+    payment = models.ForeignKey(
+        "finance.Payment",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_events",
+        help_text="Payment related to this event (if applicable)"
+    )
+    dispute = models.ForeignKey(
+        "finance.PaymentDispute",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_events",
+        help_text="Payment dispute related to this event (if applicable)"
+    )
+    
+    # Raw event data (for debugging/audit)
+    event_data = models.JSONField(
+        default=dict,
+        help_text="Raw Stripe event data (for audit/debugging)"
+    )
+    
+    # Audit fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "finance_stripe_webhook_events"
+        ordering = ["-processed_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "event_type"], name="finance_fir_evt_idx"),
+            models.Index(fields=["firm", "processed_at"], name="finance_fir_pro_idx"),
+            models.Index(fields=["stripe_event_id"], name="finance_evt_id_idx"),  # Unique index already on field
+        ]
+        verbose_name = "Stripe Webhook Event"
+        verbose_name_plural = "Stripe Webhook Events"
+    
+    def __str__(self) -> str:
+        return f"{self.event_type} - {self.stripe_event_id} ({self.firm.name})"
