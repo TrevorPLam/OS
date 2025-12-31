@@ -1,17 +1,16 @@
 # ConsultantPro - Multi-Firm SaaS Platform
 
-**Privacy-first architecture with tiered governance for multi-tenant consulting firms.**
+**Privacy-first architecture with tiered governance for multi-tenant service based firms.**
 
 ---
 
 ## Overview
 
-ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The platform emphasizes strict tenant isolation, privacy controls, and a tiered delivery model that prevents skipping foundational safety work.
+ConsultantPro is a multi-tenant SaaS platform designed for service based firms. The platform emphasizes strict tenant isolation and privacy.
 
 **Core goals:**
 - Firm-level tenant isolation and privacy by default
 - Audited break-glass access with strict oversight
-- Clear governance and delivery tiers
 - Transparent, honest CI and schema management
 
 ---
@@ -22,29 +21,11 @@ ConsultantPro is a multi-tenant SaaS platform designed for consulting firms. The
 - **Architecture:** [`docs/04-explanation/architecture-overview.md`](docs/04-explanation/architecture-overview.md) - System design and concepts
 - **Platform Capabilities:** [`docs/03-reference/platform-capabilities.md`](docs/03-reference/platform-capabilities.md) - Feature inventory (what exists and what's missing)
 - **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
-- **Tier System:** [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md) - Architecture governance and priorities
 - **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md) - Complete API documentation
 - **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md) - Production deployment
 - **Changelog:** [`CHANGELOG.md`](CHANGELOG.md) - Release history and changes
 - **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow
 - **Security:** [`SECURITY.md`](SECURITY.md) - Security policy and reporting
-
----
-
-## 🚨 Architectural Governance
-
-This project follows a **strict tiered implementation model** to ensure security, privacy, and multi-tenant safety.
-
-**Critical Rules:**
-1. **No tier may be skipped** - Each tier builds on the previous
-2. **No tier may be partially completed and left** - Complete all tasks in a tier
-3. **All changes must preserve tenant isolation and privacy guarantees** - Security is non-negotiable
-4. **CI must never lie** - Test failures must fail the build
-
-**Current Progress (as of Dec 31, 2025):** Tiers 0-5 Complete (100%)
-**Platform Foundation:** 100% Complete (6 of 6 tiers)
-
-For detailed tier information and current status, see [`docs/03-reference/tier-system.md`](docs/03-reference/tier-system.md).
 
 ---
 
