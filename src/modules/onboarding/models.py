@@ -17,6 +17,11 @@ from django.utils import timezone
 from datetime import timedelta
 
 from modules.firm.utils import FirmScopedManager
+from modules.core.notifications import EmailNotification
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OnboardingTemplate(models.Model):
@@ -446,7 +451,36 @@ class OnboardingTask(models.Model):
             self.reminder_sent = True
             self.last_reminder_sent_at = timezone.now()
             self.save(update_fields=["reminder_sent", "last_reminder_sent_at"])
-            # TODO: Trigger email/notification to client
+            
+            # Send email notification to client
+            try:
+                client = self.process.client
+                if client and client.primary_contact_email:
+                    EmailNotification.send(
+                        to=client.primary_contact_email,
+                        subject=f"Reminder: {self.title} - {self.process.name}",
+                        html_content=f"""
+                            <h2>Onboarding Task Reminder</h2>
+                            <p>Dear {client.primary_contact_name},</p>
+                            <p>This is a friendly reminder about the following onboarding task:</p>
+                            <p><strong>Task:</strong> {self.title}</p>
+                            <p><strong>Description:</strong> {self.description or 'No description provided'}</p>
+                            <p><strong>Due Date:</strong> {self.due_date.strftime('%B %d, %Y') if self.due_date else 'Not specified'}</p>
+                            <p>Please complete this task at your earliest convenience to continue with your onboarding process.</p>
+                            <p>If you have any questions, please don't hesitate to contact us.</p>
+                            <p>Best regards,<br>{self.process.firm.name}</p>
+                        """,
+                    )
+                    logger.info(
+                        f"Sent onboarding task reminder to client {client.id} for task {self.id}",
+                        extra={'task_id': self.id, 'client_id': client.id}
+                    )
+            except Exception as e:
+                logger.error(
+                    f"Failed to send onboarding task reminder: {str(e)}",
+                    extra={'task_id': self.id, 'error': str(e)}
+                )
+            
             return True
         return False
 
@@ -610,6 +644,42 @@ class OnboardingDocument(models.Model):
                 self.status = "requested"
                 self.requested_at = timezone.now()
             self.save(update_fields=["reminder_count", "last_reminder_sent_at", "status", "requested_at"])
-            # TODO: Trigger email/notification to client
+            
+            # Send email notification to client
+            try:
+                client = self.process.client
+                if client and client.primary_contact_email:
+                    status_message = {
+                        'required': 'is required',
+                        'requested': 'has been requested',
+                        'rejected': 'was rejected and needs to be re-submitted'
+                    }.get(self.status, 'is required')
+                    
+                    EmailNotification.send(
+                        to=client.primary_contact_email,
+                        subject=f"Document Reminder: {self.document_name} - {self.process.name}",
+                        html_content=f"""
+                            <h2>Onboarding Document Reminder</h2>
+                            <p>Dear {client.primary_contact_name},</p>
+                            <p>This is a reminder about the following document for your onboarding process:</p>
+                            <p><strong>Document:</strong> {self.document_name}</p>
+                            <p><strong>Description:</strong> {self.description or 'No description provided'}</p>
+                            <p><strong>Status:</strong> This document {status_message}</p>
+                            {f'<p><strong>Rejection Reason:</strong> {self.rejection_reason}</p>' if self.status == 'rejected' and self.rejection_reason else ''}
+                            <p>Please upload this document at your earliest convenience to continue with your onboarding process.</p>
+                            <p>If you have any questions, please don't hesitate to contact us.</p>
+                            <p>Best regards,<br>{self.process.firm.name}</p>
+                        """,
+                    )
+                    logger.info(
+                        f"Sent onboarding document reminder to client {client.id} for document {self.id}",
+                        extra={'document_id': self.id, 'client_id': client.id}
+                    )
+            except Exception as e:
+                logger.error(
+                    f"Failed to send onboarding document reminder: {str(e)}",
+                    extra={'document_id': self.id, 'error': str(e)}
+                )
+            
             return True
         return False

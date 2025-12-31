@@ -192,12 +192,37 @@ membership, created = FirmMembership.objects.get_or_create(
 ```
 
 ### Step 4: Seed Baseline Configuration
-- **Future:** CRM pipeline stages
-- **Future:** Default project templates
-- **Future:** Email notification templates
-- **Future:** Default document categories
 
-(Currently stub - no configuration to seed yet)
+The provisioning service automatically seeds baseline configuration for new firms:
+
+#### Project Templates
+Three default project templates are created:
+1. **General Consulting Engagement** (`GEN-CONSULT`)
+   - Standard consulting engagement with common milestones
+   - Default billing: Time & Materials
+   - Duration: 90 days
+   - Milestones: Discovery, Analysis, Implementation, Review
+
+2. **Monthly Retainer** (`MONTHLY-RET`)
+   - Recurring monthly retainer engagement
+   - Default billing: Fixed Fee
+   - Duration: 30 days
+
+3. **Advisory Services** (`ADVISORY`)
+   - Advisory and strategic consulting
+   - Default billing: Time & Materials
+   - Duration: 60 days
+   - Milestones: Initial Consultation, Strategic Recommendations, Implementation Support
+
+#### Email Templates
+Three default email templates are created:
+1. **Welcome Email** - Sent to new clients upon onboarding
+2. **Appointment Confirmation** - Sent when appointments are scheduled
+3. **Project Update Notification** - Sent when project status changes
+
+All templates support merge fields (e.g., `{{firm_name}}`, `{{client_name}}`) for personalization.
+
+**Idempotency:** All seeding operations check for existing records before creation, making the process safe to retry.
 
 ### Step 5: Record Audit Events
 ```python
