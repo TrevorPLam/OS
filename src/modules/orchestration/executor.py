@@ -240,9 +240,9 @@ class OrchestrationExecutor:
         step_execution: StepExecution,
     ) -> Dict[str, Any]:
         """
-        Execute the actual step handler logic.
+        Execute the actual step handler logic per docs/11 section 2.2.
 
-        This is a placeholder for the step handler dispatch mechanism.
+        Dispatches to appropriate handler based on step type.
 
         Args:
             step_def: Step definition
@@ -252,19 +252,206 @@ class OrchestrationExecutor:
         Returns:
             Step result dict
 
-        TODO: Implement actual step handler dispatch based on step type.
+        DOC-11.1: Step handlers must be idempotent and accept idempotency_key.
         """
-        # Placeholder implementation
-        # In real implementation, this would:
-        # 1. Look up the handler based on step_def["handler"]
-        # 2. Call the handler with idempotency_key
-        # 3. Return the result
+        step_type = step_def.get("type", "custom")
+        handler_name = step_def.get("handler")
 
-        # For now, simulate success
+        # Generate step-level idempotency key
+        step_idempotency_key = f"{execution.idempotency_key}:step:{step_execution.step_id}:attempt:{step_execution.attempt_number}"
+
+        # Dispatch based on step type
+        if step_type == "email":
+            return self._execute_email_handler(step_def, execution, step_execution, step_idempotency_key)
+        elif step_type == "notification":
+            return self._execute_notification_handler(step_def, execution, step_execution, step_idempotency_key)
+        elif step_type == "webhook":
+            return self._execute_webhook_handler(step_def, execution, step_execution, step_idempotency_key)
+        elif step_type == "delay":
+            return self._execute_delay_handler(step_def, execution, step_execution, step_idempotency_key)
+        elif step_type == "custom" and handler_name:
+            # Custom handler lookup by name
+            return self._execute_custom_handler(handler_name, step_def, execution, step_execution, step_idempotency_key)
+        else:
+            # Default: no-op step
+            return {
+                "status": "completed",
+                "message": f"Step {step_execution.step_name} completed (no-op)",
+            }
+
+    def _execute_email_handler(
+        self,
+        step_def: Dict[str, Any],
+        execution: OrchestrationExecution,
+        step_execution: StepExecution,
+        idempotency_key: str,
+    ) -> Dict[str, Any]:
+        """Execute email step handler."""
+        from modules.core.notifications import EmailNotification
+
+        to = step_def.get("to", [])
+        subject = step_def.get("subject", "")
+        template = step_def.get("template")
+        context = step_def.get("context", {})
+
+        # Merge execution input_data into context
+        context.update(execution.input_data)
+
+        if template:
+            # Use template-based email
+            EmailNotification.send_template(
+                to=to,
+                template=template,
+                context=context,
+                idempotency_key=idempotency_key,
+            )
+        else:
+            # Use direct email
+            EmailNotification.send(
+                to=to,
+                subject=subject,
+                html_content=step_def.get("html_content", ""),
+                idempotency_key=idempotency_key,
+            )
+
         return {
             "status": "completed",
-            "message": f"Step {step_execution.step_name} completed",
+            "message": f"Email sent to {len(to)} recipient(s)",
         }
+
+    def _execute_notification_handler(
+        self,
+        step_def: Dict[str, Any],
+        execution: OrchestrationExecution,
+        step_execution: StepExecution,
+        idempotency_key: str,
+    ) -> Dict[str, Any]:
+        """Execute notification step handler."""
+        from modules.core.notifications import NotificationService
+
+        notification_type = step_def.get("notification_type", "info")
+        message = step_def.get("message", "")
+        recipients = step_def.get("recipients", [])
+
+        NotificationService.send(
+            firm=self.firm,
+            notification_type=notification_type,
+            message=message,
+            recipients=recipients,
+            idempotency_key=idempotency_key,
+        )
+
+        return {
+            "status": "completed",
+            "message": f"Notification sent to {len(recipients)} recipient(s)",
+        }
+
+    def _execute_webhook_handler(
+        self,
+        step_def: Dict[str, Any],
+        execution: OrchestrationExecution,
+        step_execution: StepExecution,
+        idempotency_key: str,
+    ) -> Dict[str, Any]:
+        """Execute webhook step handler."""
+        import requests
+
+        url = step_def.get("url")
+        method = step_def.get("method", "POST")
+        headers = step_def.get("headers", {})
+        payload = step_def.get("payload", {})
+
+        # Merge execution input_data into payload
+        payload.update(execution.input_data)
+
+        # Add idempotency key to headers
+        headers["X-Idempotency-Key"] = idempotency_key
+
+        response = requests.request(
+            method=method,
+            url=url,
+            headers=headers,
+            json=payload,
+            timeout=step_def.get("timeout", 30),
+        )
+
+        response.raise_for_status()
+
+        return {
+            "status": "completed",
+            "message": f"Webhook {method} to {url} succeeded",
+            "response_status": response.status_code,
+        }
+
+    def _execute_delay_handler(
+        self,
+        step_def: Dict[str, Any],
+        execution: OrchestrationExecution,
+        step_execution: StepExecution,
+        idempotency_key: str,
+    ) -> Dict[str, Any]:
+        """Execute delay step handler."""
+        import time
+
+        delay_seconds = step_def.get("delay_seconds", 0)
+
+        if delay_seconds > 0:
+            time.sleep(delay_seconds)
+
+        return {
+            "status": "completed",
+            "message": f"Delayed for {delay_seconds} seconds",
+        }
+
+    def _execute_custom_handler(
+        self,
+        handler_name: str,
+        step_def: Dict[str, Any],
+        execution: OrchestrationExecution,
+        step_execution: StepExecution,
+        idempotency_key: str,
+    ) -> Dict[str, Any]:
+        """
+        Execute custom handler by name.
+
+        Looks up handler from registry or imports from module path.
+        """
+        # Try to import handler from common locations
+        handler_registry = {
+            # Add registered handlers here
+            # "my_handler": my_handler_function,
+        }
+
+        if handler_name in handler_registry:
+            handler = handler_registry[handler_name]
+            return handler(
+                step_def=step_def,
+                execution=execution,
+                step_execution=step_execution,
+                idempotency_key=idempotency_key,
+                firm=self.firm,
+                user=self.user,
+            )
+
+        # Try to import from module path (e.g., "modules.my_module.my_handler")
+        try:
+            module_path, func_name = handler_name.rsplit(".", 1)
+            module = __import__(module_path, fromlist=[func_name])
+            handler = getattr(module, func_name)
+
+            return handler(
+                step_def=step_def,
+                execution=execution,
+                step_execution=step_execution,
+                idempotency_key=idempotency_key,
+                firm=self.firm,
+                user=self.user,
+            )
+        except (ImportError, AttributeError, ValueError) as e:
+            raise ValueError(
+                f"Handler '{handler_name}' not found. "
+                f"Register in handler_registry or provide valid module path. Error: {str(e)}"
+            )
 
     def _classify_error(
         self, error: Exception, step_def: Dict[str, Any]

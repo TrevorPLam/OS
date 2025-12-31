@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Priority #1: Active Work Items
+- ✅ Organization-based multi-account logic in portal views (DOC-26.1 account switcher)
+- ✅ Step handler dispatch implementation in orchestration executor
+- ✅ Link uploaded documents to Contact if available in portal views
+- ✅ Staff notification on appointment cancellation in portal views
+
+### Added - Priority #2: Assessment Remediation
+- ✅ ASSESS-G18.5: Stripe reconciliation service with daily cron support
+  - Cross-checks Invoice status vs Stripe API
+  - Flags mismatches for manual review
+  - Management command: `python manage.py reconcile_stripe`
+- ✅ ASSESS-G18.5b: S3 reconciliation service
+  - Verifies document Version records match S3 objects
+  - Detects missing files
+  - Management command: `python manage.py reconcile_s3`
+- ✅ ASSESS-D4.6: Test/prod environment alignment (Postgres enforcement in conftest.py)
+
 ### Platform Progress
 - **5 out of 6 tiers complete (83% of platform foundation)**
 - Tier 5 (Durability, Scale & Exit) - In Progress

@@ -90,6 +90,48 @@ class S3Service:
         except ClientError as e:
             raise Exception(f"Failed to delete file from S3: {str(e)}") from e
 
+    def object_exists(self, s3_key: str, bucket: str | None = None) -> bool:
+        """
+        Check if an S3 object exists.
+
+        Args:
+            s3_key: S3 object key
+            bucket: S3 bucket name (defaults to configured bucket)
+
+        Returns:
+            bool: True if object exists, False otherwise
+        """
+        target_bucket = bucket or self.bucket_name
+        try:
+            self.s3_client.head_object(Bucket=target_bucket, Key=s3_key)
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                return False
+            raise Exception(f"Failed to check S3 object existence: {str(e)}") from e
+
+    def get_object_metadata(self, s3_key: str, bucket: str | None = None) -> dict:
+        """
+        Get S3 object metadata.
+
+        Args:
+            s3_key: S3 object key
+            bucket: S3 bucket name (defaults to configured bucket)
+
+        Returns:
+            dict: Object metadata including ContentLength, ContentType, etc.
+        """
+        target_bucket = bucket or self.bucket_name
+        try:
+            response = self.s3_client.head_object(Bucket=target_bucket, Key=s3_key)
+            return response.get("Metadata", {}) | {
+                "ContentLength": response.get("ContentLength"),
+                "ContentType": response.get("ContentType"),
+                "LastModified": response.get("LastModified"),
+            }
+        except ClientError as e:
+            raise Exception(f"Failed to get S3 object metadata: {str(e)}") from e
+
     def generate_presigned_url(self, s3_key: str, expiration: int = 3600, bucket: str | None = None) -> str:
         """
         Generate a presigned URL for temporary file access.

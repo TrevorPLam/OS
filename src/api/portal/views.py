@@ -84,8 +84,14 @@ class PortalHomeViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ViewSet):
         # Base: user's primary client
         clients = Client.objects.filter(id=portal_user.client_id)
 
-        # TODO: Add organization-based multi-account logic (DOC-26.1 account switcher)
+        # DOC-26.1: Organization-based multi-account logic
         # If portal_user.client.organization, include other clients in same org
+        if portal_user.client.organization:
+            org_clients = Client.objects.filter(
+                organization=portal_user.client.organization,
+                firm=portal_user.client.firm,
+            )
+            clients = clients.union(org_clients)
 
         return clients
 
@@ -384,6 +390,14 @@ class PortalDocumentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
             folder_path = f"firm-{firm.id}/client-{portal_user.client_id}/portal-uploads"
             upload_result = s3_service.upload_file(file_obj, folder=folder_path)
 
+            # Link to Contact if available (portal user's client primary contact)
+            contact = None
+            if hasattr(portal_user.client, 'primary_contact'):
+                contact = portal_user.client.primary_contact
+            elif hasattr(portal_user.client, 'contacts') and portal_user.client.contacts.exists():
+                # Fallback to first contact if primary_contact not set
+                contact = portal_user.client.contacts.first()
+
             # Create document record (always client-visible)
             document = Document.objects.create(
                 firm=firm,
@@ -399,6 +413,11 @@ class PortalDocumentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
                 current_version=1,
                 uploaded_by=request.user,
             )
+
+            # Link document to Contact if available
+            if contact and hasattr(document, 'contact'):
+                document.contact = contact
+                document.save(update_fields=['contact'])
 
             # Log document upload access
             DocumentAccessLog.log_access(
@@ -643,11 +662,19 @@ class PortalAppointmentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.Re
         from datetime import datetime
         start_time = datetime.fromisoformat(start_time_str)
 
+        # Link to Contact if available (portal user's client primary contact)
+        contact = None
+        if hasattr(portal_user.client, 'primary_contact'):
+            contact = portal_user.client.primary_contact
+        elif hasattr(portal_user.client, 'contacts') and portal_user.client.contacts.exists():
+            # Fallback to first contact if primary_contact not set
+            contact = portal_user.client.contacts.first()
+
         booking_service = BookingService()
         result = booking_service.book_appointment(
             appointment_type=apt_type,
             account=portal_user.client,
-            contact=None,  # TODO: Link to Contact if available
+            contact=contact,
             start_time=start_time,
             notes=notes,
             booked_by=request.user,
@@ -681,7 +708,32 @@ class PortalAppointmentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.Re
         appointment.status = "cancelled"
         appointment.save()
 
-        # TODO: Notify staff of cancellation
+        # Notify staff of appointment cancellation
+        firm = get_request_firm(request)
+        staff_emails = FirmMembership.objects.filter(
+            firm=firm,
+            is_active=True,
+        ).exclude(
+            user__email=""
+        ).values_list("user__email", flat=True)
+
+        if staff_emails:
+            client_name = appointment.account.company_name if appointment.account else "Client"
+            appointment_type_name = appointment.appointment_type.name if appointment.appointment_type else "Appointment"
+            EmailNotification.send(
+                to=list(staff_emails),
+                subject=f"Appointment cancelled: {appointment_type_name} with {client_name}",
+                html_content=f"""
+                <p>An appointment has been cancelled by the client.</p>
+                <ul>
+                    <li><strong>Client:</strong> {client_name}</li>
+                    <li><strong>Appointment Type:</strong> {appointment_type_name}</li>
+                    <li><strong>Scheduled Time:</strong> {appointment.start_time}</li>
+                    <li><strong>Cancelled by:</strong> {request.user.get_full_name() or request.user.email}</li>
+                </ul>
+                <p>Please review the appointment in the calendar.</p>
+                """,
+            )
 
         serializer = self.get_serializer(appointment)
         return Response(serializer.data)
