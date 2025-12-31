@@ -161,8 +161,13 @@ Data under legal hold is automatically skipped:
 - Notification before data purging
 - Granular retention rules (e.g., by document type)
 
+## See Also
+
+- [GDPR Data Export Implementation](./GDPR_DATA_EXPORT_IMPLEMENTATION.md) - Right to access and data portability
+- [Erasure Implementation](./ERASURE_ANONYMIZATION_IMPLEMENTATION.md) - Data anonymization and deletion
+- [Hidden Assumptions](./HIDDEN_ASSUMPTIONS.md) - Data retention assumptions
+
 ## References
 
 - **ASSESS-L19.4:** Data retention policy implementation
 - **GDPR Article 5(1)(e):** Storage limitation principle
-- [Erasure Implementation](./ERASURE_ANONYMIZATION_IMPLEMENTATION.md)

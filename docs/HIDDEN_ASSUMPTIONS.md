@@ -227,8 +227,13 @@ This document clarifies hidden assumptions and design decisions that may not be 
 - No data loss in migrations
 - **Rationale:** Enables safe deployments
 
+## See Also
+
+- [Definition of Done](./DEFINITION_OF_DONE.md) - PR checklist and quality gates
+- [API Versioning Policy](./API_VERSIONING_POLICY.md) - API versioning assumptions
+- [System Spec Alignment](./SYSTEM_SPEC_ALIGNMENT.md) - Spec alignment documentation
+- [Threat Model](./THREAT_MODEL.md) - Security assumptions and mitigations
+
 ## References
 
 - **ASSESS-R1.3:** Hidden assumptions documentation
-- [System Spec Alignment](./SYSTEM_SPEC_ALIGNMENT.md)
-- [API Versioning Policy](./API_VERSIONING_POLICY.md)

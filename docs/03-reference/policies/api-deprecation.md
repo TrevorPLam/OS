@@ -13,7 +13,7 @@ This policy defines how API changes are managed, including deprecation of fields
 ### Minimum Support Period
 
 - **Deprecated fields/endpoints:** Supported for minimum 1 version cycle (3-6 months)
-- **Breaking changes:** Require new API version (see [API_VERSIONING_POLICY.md](./API_VERSIONING_POLICY.md))
+- **Breaking changes:** Require new API version (see [API Versioning Policy](./api-versioning.md))
 - **Notice period:** 3-6 months before removal
 
 ## Deprecation Process
@@ -188,10 +188,10 @@ In such cases:
 
 ## See Also
 
-- [API Versioning Policy](./API_VERSIONING_POLICY.md) - Version lifecycle and support policy
-- [API Documentation](../03-reference/api/) - Complete API reference
-- [Error Handling](../config/error_handlers.py) - Structured error responses
-- [Changelog](../CHANGELOG.md) - Release history
+- [API Versioning Policy](./api-versioning.md) - Version lifecycle and support policy
+- [API Documentation](../api/) - Complete API reference
+- [Error Handling](../../config/error_handlers.py) - Structured error responses
+- [Changelog](../../CHANGELOG.md) - Release history
 
 ## References
 

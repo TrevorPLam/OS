@@ -106,9 +106,9 @@ GET /api/crm/prospects/ → 301 → /api/v1/crm/prospects/
 
 ## See Also
 
-- [API Deprecation Policy](./API_DEPRECATION_POLICY.md) - How deprecated fields/endpoints are managed
-- [API Documentation](../03-reference/api/) - Complete API reference
-- [Error Handling](../config/error_handlers.py) - Structured error responses
+- [API Deprecation Policy](./api-deprecation.md) - How deprecated fields/endpoints are managed
+- [API Documentation](../api/) - Complete API reference
+- [Error Handling](../../config/error_handlers.py) - Structured error responses
 
 ## References
 

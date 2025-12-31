@@ -183,10 +183,10 @@ For experimental/prototype features:
 
 ## See Also
 
-- [Hidden Assumptions](./HIDDEN_ASSUMPTIONS.md) - Key assumptions and design decisions
-- [Style Guide](./STYLE_GUIDE.md) - Documentation and code style standards
-- [Contributing Guide](../CONTRIBUTING.md) - Development workflow
-- [Security Policy](../SECURITY.md) - Security vulnerability reporting
+- [Hidden Assumptions](../assumptions.md) - Key assumptions and design decisions
+- [Style Guide](../style-guide.md) - Documentation and code style standards
+- [Contributing Guide](../../CONTRIBUTING.md) - Development workflow
+- [Security Policy](../../SECURITY.md) - Security vulnerability reporting
 
 ## References
 

@@ -130,9 +130,14 @@ The export functionality integrates with the erasure workflow (`modules.core.era
 - Export history tracking
 - API endpoint for programmatic exports
 
+## See Also
+
+- [Data Retention Implementation](./DATA_RETENTION_IMPLEMENTATION.md) - Automated data retention policies
+- [Erasure Implementation](./ERASURE_ANONYMIZATION_IMPLEMENTATION.md) - Data anonymization and deletion
+- [Hidden Assumptions](./HIDDEN_ASSUMPTIONS.md) - GDPR compliance assumptions
+
 ## References
 
 - **ASSESS-L19.3:** Right-to-delete/export implementation
 - **GDPR Article 15:** Right of access
 - **GDPR Article 20:** Right to data portability
-- [Erasure Implementation](./ERASURE_ANONYMIZATION_IMPLEMENTATION.md)
