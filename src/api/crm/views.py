@@ -42,14 +42,14 @@ class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
     ViewSet for Prospect model.
 
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
-    Supports CRUD operations and filtering by pipeline_stage, assigned_to.
+    Supports CRUD operations and filtering by stage, assigned_to.
     """
 
     model = Prospect
     serializer_class = ProspectSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ["pipeline_stage", "assigned_to", "close_date_estimate"]
+    filterset_fields = ["stage", "assigned_to", "close_date_estimate"]
     search_fields = ["company_name", "contact_name", "contact_email"]
     ordering_fields = ["company_name", "created_at", "estimated_value"]
     ordering = ["-created_at"]

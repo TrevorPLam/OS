@@ -20,14 +20,14 @@ class LeadAdmin(admin.ModelAdmin):
 class ProspectAdmin(admin.ModelAdmin):
     list_display = [
         "company_name",
-        "pipeline_stage",
+        "stage",
         "estimated_value",
         "close_date_estimate",
         "probability",
         "assigned_to",
         "created_at",
     ]
-    list_filter = ["pipeline_stage", "assigned_to"]
+    list_filter = ["stage", "assigned_to"]
     search_fields = ["company_name", "primary_contact_name", "primary_contact_email"]
     readonly_fields = ["created_at", "updated_at", "won_date", "lost_date"]
 

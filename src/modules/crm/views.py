@@ -70,7 +70,7 @@ class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             primary_contact_email=lead.contact_email,
             primary_contact_phone=lead.contact_phone,
             primary_contact_title=lead.contact_title,
-            pipeline_stage="discovery",
+            stage="discovery",
             estimated_value=0,  # To be updated by sales team
             close_date_estimate=request.data.get("close_date_estimate"),
             assigned_to=lead.assigned_to,
@@ -100,7 +100,7 @@ class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
     serializer_class = ProspectSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
     filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
-    filterset_fields = ["pipeline_stage", "assigned_to"]
+    filterset_fields = ["stage", "assigned_to"]
     search_fields = ["company_name", "primary_contact_name", "primary_contact_email"]
     ordering_fields = ["company_name", "close_date_estimate", "estimated_value"]
     ordering = ["-created_at"]
@@ -121,9 +121,9 @@ class ProspectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
             queryset = self.get_queryset()
 
             pipeline_summary = (
-                queryset.values("pipeline_stage")
+                queryset.values("stage")
                 .annotate(count=Count("id"), total_value=Sum("estimated_value"))
-                .order_by("pipeline_stage")
+                .order_by("stage")
             )
 
             return Response(
