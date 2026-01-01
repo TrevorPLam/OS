@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "modules.jobs",  # DOC-20.1: Background job queue and DLQ
     "modules.snippets",  # Quick text insertion system (HubSpot-style snippets)
     "modules.sms",  # SMS messaging integration (Twilio, campaigns, two-way conversations)
+    "modules.webhooks",  # General webhook platform for external integrations (Task 3.7)
 ]
 
 MIDDLEWARE = [
