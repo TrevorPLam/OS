@@ -1,6 +1,6 @@
 # ConsultantPro - Task List
 
-**Last Updated:** January 1, 2026 (Updated to reflect completed features)
+**Last Updated:** January 1, 2026
 
 ---
 
@@ -27,12 +27,14 @@
 
 ## Medium Priority Tasks Progress
 
-**Status:** 5 of 14 Integration & Enterprise features completed (36%)
+**Status:** 4 of 14 Integration & Enterprise features completed (29%)
 - ✅ SMS service integration (Full Twilio integration with 6 models)
-- ✅ Calendar sync OAuth models (Partial - models exist, full sync in progress)
 - ✅ RBAC/ABAC policy system (12 module visibility classes, 5 portal scope classes)
 - ✅ General automation/workflow engine (Orchestration module with retry/DLQ)
 - ✅ API versioning strategy (v1 API with versioning and deprecation policies)
+
+**In Progress:** 1 feature
+- ⚠️ Calendar sync (OAuth models complete, full integration remaining)
 
 **Low Priority:** 1 of 10 Platform Transformation features completed (10%)
 - ✅ Operational observability (Correlation IDs, metrics collectors, tenant-safe logging)
@@ -62,9 +64,10 @@
   - Full Twilio integration in src/modules/sms/
   - Migration: sms/0001_initial.py (6 models, 790 lines)
 - [ ] E-signature workflow (`src/modules/clients/views.py`) - **Deferred**
-- [x] **Email/calendar sync integration (Google/Outlook)** - ✅ **PARTIALLY COMPLETED**
-  - OAuth models exist in calendar/oauth_models.py
-  - CalendarConnection model with OAuth credentials implemented
+- [ ] **Email/calendar sync integration (Google/Outlook)** - ⚠️ **IN PROGRESS**
+  - OAuth models exist in calendar/oauth_models.py ✅
+  - CalendarConnection model with OAuth credentials implemented ✅
+  - Full end-to-end sync implementation remaining (24-40 hours)
 - [ ] Document co-authoring with real-time collaboration - **Very High Complexity** (32-48 hours)
 
 ### Enterprise Features
