@@ -15,8 +15,20 @@ from rest_framework.response import Response
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import DenyPortalAccess
-from modules.crm.models import Campaign, Contract, Lead, Proposal, Prospect
+from modules.crm.models import (
+    Account,
+    AccountContact,
+    AccountRelationship,
+    Campaign,
+    Contract,
+    Lead,
+    Proposal,
+    Prospect,
+)
 from modules.crm.serializers import (
+    AccountContactSerializer,
+    AccountRelationshipSerializer,
+    AccountSerializer,
     CampaignSerializer,
     ContractSerializer,
     LeadSerializer,
@@ -24,6 +36,110 @@ from modules.crm.serializers import (
     ProspectSerializer,
 )
 from modules.firm.utils import FirmScopedMixin, get_request_firm
+
+
+class AccountViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Account management (Task 3.1).
+    
+    Accounts represent companies/organizations in the CRM system.
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    
+    model = Account
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["account_type", "status", "industry", "owner"]
+    search_fields = ["name", "legal_name", "website"]
+    ordering_fields = ["name", "created_at", "updated_at"]
+    ordering = ["name"]
+    
+    @action(detail=True, methods=["get"])
+    def contacts(self, request, pk=None):
+        """
+        Get all contacts for this account.
+        
+        TIER 0: Firm context automatically applied.
+        """
+        account = self.get_object()
+        contacts = account.contacts.filter(is_active=True)
+        serializer = AccountContactSerializer(contacts, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=["get"])
+    def relationships(self, request, pk=None):
+        """
+        Get all relationships for this account.
+        
+        Returns both outgoing and incoming relationships.
+        """
+        account = self.get_object()
+        outgoing = account.relationships_from.all()
+        incoming = account.relationships_to.all()
+        
+        return Response({
+            "outgoing": AccountRelationshipSerializer(outgoing, many=True).data,
+            "incoming": AccountRelationshipSerializer(incoming, many=True).data,
+        })
+
+
+class AccountContactViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for AccountContact management (Task 3.1).
+    
+    Contacts are individuals associated with accounts.
+    
+    TIER 0: Automatically scoped to request.firm via account relationship.
+    """
+    
+    model = AccountContact
+    serializer_class = AccountContactSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["account", "is_primary_contact", "is_decision_maker", "is_active"]
+    search_fields = ["first_name", "last_name", "email", "job_title"]
+    ordering_fields = ["last_name", "first_name", "created_at"]
+    ordering = ["last_name", "first_name"]
+    
+    def get_queryset(self):
+        """
+        Override to scope by firm through account relationship.
+        
+        TIER 0: Ensure firm isolation.
+        """
+        firm = get_request_firm(self.request)
+        return AccountContact.objects.filter(account__firm=firm).select_related("account")
+
+
+class AccountRelationshipViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for AccountRelationship management (Task 3.1).
+    
+    Manages relationships between accounts (e.g., parent-subsidiary).
+    
+    TIER 0: Automatically scoped to request.firm via from_account relationship.
+    """
+    
+    model = AccountRelationship
+    serializer_class = AccountRelationshipSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["from_account", "to_account", "relationship_type", "status"]
+    ordering_fields = ["created_at", "start_date"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """
+        Override to scope by firm through from_account relationship.
+        
+        TIER 0: Ensure firm isolation.
+        """
+        firm = get_request_firm(self.request)
+        return AccountRelationship.objects.filter(
+            from_account__firm=firm
+        ).select_related("from_account", "to_account")
 
 
 class LeadViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):

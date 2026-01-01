@@ -4,8 +4,137 @@ Django Admin configuration for CRM models (Pre-Sale).
 
 from django.contrib import admin
 
-from .models import Campaign, Contract, Lead, Proposal, Prospect
+from .models import (
+    Account,
+    AccountContact,
+    AccountRelationship,
+    Campaign,
+    Contract,
+    Lead,
+    Proposal,
+    Prospect,
+)
 from modules.crm.lead_scoring import ScoringRule, ScoreAdjustment
+
+
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "account_type",
+        "status",
+        "industry",
+        "owner",
+        "employee_count",
+        "created_at",
+    ]
+    list_filter = ["account_type", "status", "industry", "owner"]
+    search_fields = ["name", "legal_name", "website"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["parent_account", "owner", "created_by"]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("firm", "name", "legal_name", "account_type", "status", "owner")
+        }),
+        ("Business Details", {
+            "fields": ("industry", "website", "employee_count", "annual_revenue")
+        }),
+        ("Billing Address", {
+            "fields": (
+                "billing_address_line1",
+                "billing_address_line2",
+                "billing_city",
+                "billing_state",
+                "billing_postal_code",
+                "billing_country",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Shipping Address", {
+            "fields": (
+                "shipping_address_line1",
+                "shipping_address_line2",
+                "shipping_city",
+                "shipping_state",
+                "shipping_postal_code",
+                "shipping_country",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Relationships", {
+            "fields": ("parent_account",)
+        }),
+        ("Notes", {"fields": ("notes",)}),
+        ("Audit", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(AccountContact)
+class AccountContactAdmin(admin.ModelAdmin):
+    list_display = [
+        "full_name",
+        "account",
+        "email",
+        "job_title",
+        "is_primary_contact",
+        "is_decision_maker",
+        "is_active",
+        "created_at",
+    ]
+    list_filter = ["is_primary_contact", "is_decision_maker", "is_active", "preferred_contact_method"]
+    search_fields = ["first_name", "last_name", "email", "account__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["account", "created_by"]
+    
+    fieldsets = (
+        ("Account", {"fields": ("account",)}),
+        ("Personal Information", {
+            "fields": ("first_name", "last_name", "email", "phone", "mobile_phone")
+        }),
+        ("Professional Information", {
+            "fields": ("job_title", "department")
+        }),
+        ("Contact Preferences", {
+            "fields": (
+                "is_primary_contact",
+                "is_decision_maker",
+                "preferred_contact_method",
+                "opt_out_marketing",
+            )
+        }),
+        ("Status", {"fields": ("is_active",)}),
+        ("Notes", {"fields": ("notes",)}),
+        ("Audit", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(AccountRelationship)
+class AccountRelationshipAdmin(admin.ModelAdmin):
+    list_display = [
+        "from_account",
+        "relationship_type",
+        "to_account",
+        "status",
+        "start_date",
+        "end_date",
+        "created_at",
+    ]
+    list_filter = ["relationship_type", "status", "created_at"]
+    search_fields = ["from_account__name", "to_account__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["from_account", "to_account", "created_by"]
+    
+    fieldsets = (
+        ("Relationship", {
+            "fields": ("from_account", "to_account", "relationship_type", "status")
+        }),
+        ("Timeline", {
+            "fields": ("start_date", "end_date")
+        }),
+        ("Notes", {"fields": ("notes",)}),
+        ("Audit", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
+    )
 
 
 @admin.register(Lead)
