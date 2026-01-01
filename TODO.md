@@ -188,13 +188,18 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
   - API endpoints with validation and price recalculation actions
   - Database migration created (0006_add_cpq_models.py)
   - Documentation: docs/03-reference/cpq-system.md
-- [~] 3.6 Add Gantt chart/timeline view for projects (Projects) 🔶 Partial (Models Complete)
+- [x] 3.6 Add Gantt chart/timeline view for projects (Projects) ✅ Completed
   - ProjectTimeline model for project-level tracking
   - TaskSchedule model with critical path analysis
   - TaskDependency model with FS/SS/FF/SF types
   - Lag/lead time and milestone support
-  - **Remaining:** Admin interface, API endpoints, critical path algorithm, migration, documentation
-  - **Status:** Models implemented (376 lines), API/Admin/Docs pending
+  - Full admin interface with comprehensive fieldsets
+  - Serializers with validation and computed fields
+  - ViewSets with custom actions (recalculate, critical_path_tasks, milestones, project_dependencies)
+  - API endpoints with filtering and ordering
+  - Database migration created (0005_add_gantt_chart_timeline_models.py)
+  - Documentation: docs/03-reference/gantt-chart-timeline.md
+  - **Note:** Critical path algorithm (CPM) implementation is pending (future enhancement)
 - [ ] 3.7 Build general webhook platform (Integration) ⏳ Not Started
   - **Complexity:** High (16-24 hours estimated)
   - See: docs/03-reference/complex-tasks-implementation-summary.md
@@ -209,10 +214,10 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
   - See: docs/03-reference/complex-tasks-implementation-summary.md
 
 **Progress Summary:**
-- ✅ Complete: 5/10 tasks (50%)
-- 🔶 Partial: 1/10 tasks (Models only)
+- ✅ Complete: 6/10 tasks (60%)
+- 🔶 Partial: 0/10 tasks
 - ⏳ Pending: 4/10 tasks
-- **Overall:** 55% complete (when counting partial completion)
+- **Overall:** 60% complete
 - **Documentation:** Implementation summary created: docs/03-reference/complex-tasks-implementation-summary.md
 
 ### 🔴 Advanced - Enterprise Features

@@ -4,7 +4,16 @@ Django Admin configuration for Projects models.
 
 from django.contrib import admin
 
-from .models import Project, ResourceAllocation, ResourceCapacity, Task, TimeEntry
+from .models import (
+    Project,
+    ProjectTimeline,
+    ResourceAllocation,
+    ResourceCapacity,
+    Task,
+    TaskDependency,
+    TaskSchedule,
+    TimeEntry,
+)
 
 
 @admin.register(Project)
@@ -129,3 +138,139 @@ class ResourceCapacityAdmin(admin.ModelAdmin):
         ("Notes", {"fields": ("notes",)}),
         ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
+
+
+@admin.register(ProjectTimeline)
+class ProjectTimelineAdmin(admin.ModelAdmin):
+    list_display = [
+        "project",
+        "planned_start_date",
+        "planned_end_date",
+        "completion_percentage_display",
+        "critical_path_duration_days",
+        "milestone_count",
+        "is_on_critical_path_risk",
+    ]
+    list_filter = ["planned_start_date", "planned_end_date", "created_at"]
+    search_fields = ["project__project_code", "project__name"]
+    readonly_fields = ["created_at", "updated_at", "completion_percentage_display", "last_calculated_at"]
+    raw_id_fields = ["project"]
+    
+    fieldsets = (
+        ("Project", {
+            "fields": ("project",)
+        }),
+        ("Timeline Dates", {
+            "fields": ("planned_start_date", "planned_end_date", "actual_start_date", "actual_end_date")
+        }),
+        ("Critical Path", {
+            "fields": ("critical_path_task_ids", "critical_path_duration_days")
+        }),
+        ("Statistics", {
+            "fields": ("total_tasks", "completed_tasks", "milestone_count", "completion_percentage_display")
+        }),
+        ("Calculation", {
+            "fields": ("last_calculated_at", "calculation_metadata"),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+    
+    def completion_percentage_display(self, obj):
+        """Display completion percentage."""
+        return f"{obj.completion_percentage:.1f}%"
+    completion_percentage_display.short_description = "Completion %"
+
+
+@admin.register(TaskSchedule)
+class TaskScheduleAdmin(admin.ModelAdmin):
+    list_display = [
+        "task",
+        "planned_start_date",
+        "planned_end_date",
+        "planned_duration_days",
+        "completion_percentage",
+        "is_on_critical_path",
+        "is_milestone",
+        "is_behind_schedule",
+    ]
+    list_filter = ["is_on_critical_path", "is_milestone", "constraint_type", "planned_start_date"]
+    search_fields = ["task__title", "task__project__name"]
+    readonly_fields = ["created_at", "updated_at", "is_behind_schedule", "days_remaining"]
+    raw_id_fields = ["task"]
+    
+    fieldsets = (
+        ("Task", {
+            "fields": ("task",)
+        }),
+        ("Planned Schedule", {
+            "fields": ("planned_start_date", "planned_end_date", "planned_duration_days")
+        }),
+        ("Actual Schedule", {
+            "fields": ("actual_start_date", "actual_end_date", "actual_duration_days")
+        }),
+        ("Constraints", {
+            "fields": ("constraint_type", "constraint_date")
+        }),
+        ("Critical Path Analysis", {
+            "fields": (
+                "is_on_critical_path",
+                "total_slack_days",
+                "free_slack_days",
+                "early_start_date",
+                "early_finish_date",
+                "late_start_date",
+                "late_finish_date",
+            ),
+            "classes": ("collapse",)
+        }),
+        ("Progress", {
+            "fields": ("completion_percentage", "is_behind_schedule", "days_remaining")
+        }),
+        ("Milestone", {
+            "fields": ("is_milestone", "milestone_date"),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(TaskDependency)
+class TaskDependencyAdmin(admin.ModelAdmin):
+    list_display = [
+        "predecessor",
+        "successor",
+        "dependency_type",
+        "lag_days",
+        "same_project_check",
+    ]
+    list_filter = ["dependency_type", "created_at"]
+    search_fields = [
+        "predecessor__title",
+        "successor__title",
+        "predecessor__project__name",
+        "successor__project__name",
+    ]
+    readonly_fields = ["created_at", "updated_at", "same_project_check"]
+    raw_id_fields = ["predecessor", "successor"]
+    
+    fieldsets = (
+        ("Dependency", {
+            "fields": ("predecessor", "successor", "dependency_type", "lag_days")
+        }),
+        ("Validation", {
+            "fields": ("same_project_check",),
+            "classes": ("collapse",)
+        }),
+        ("Notes", {"fields": ("notes",)}),
+        ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+    
+    def same_project_check(self, obj):
+        """Display if tasks are in the same project."""
+        if obj.predecessor and obj.successor:
+            if obj.predecessor.project == obj.successor.project:
+                return f"✓ Same project: {obj.predecessor.project.project_code}"
+            return "✗ Different projects (invalid)"
+        return "N/A"
+    same_project_check.short_description = "Project Check"

@@ -16,12 +16,24 @@ from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import DenyPortalAccess
 from modules.firm.utils import FirmScopedMixin, get_request_firm
-from modules.projects.models import Project, ResourceAllocation, ResourceCapacity, Task, TimeEntry
+from modules.projects.models import (
+    Project,
+    ProjectTimeline,
+    ResourceAllocation,
+    ResourceCapacity,
+    Task,
+    TaskDependency,
+    TaskSchedule,
+    TimeEntry,
+)
 
 from .serializers import (
     ProjectSerializer,
+    ProjectTimelineSerializer,
     ResourceAllocationSerializer,
     ResourceCapacitySerializer,
+    TaskDependencySerializer,
+    TaskScheduleSerializer,
     TaskSerializer,
     TimeEntrySerializer,
 )
@@ -464,3 +476,198 @@ class ResourceCapacityViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.Model
             "end_date": end_date,
             "availability": list(availability.values()),
         })
+
+
+class ProjectTimelineViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for ProjectTimeline model (Task 3.6).
+    
+    Provides CRUD operations for project timelines and Gantt chart data.
+    
+    TIER 0: Inherits firm from project via OneToOne relationship.
+    TIER 2: DenyPortalAccess - portal users cannot access.
+    """
+    
+    serializer_class = ProjectTimelineSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, BoundedSearchFilter]
+    filterset_fields = ["project", "planned_start_date", "planned_end_date"]
+    search_fields = ["project__project_code", "project__name"]
+    ordering_fields = ["planned_start_date", "planned_end_date", "created_at"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Get timelines scoped to user's firm."""
+        firm = get_request_firm(self.request)
+        return ProjectTimeline.objects.filter(project__firm=firm).select_related("project")
+    
+    @action(detail=True, methods=["post"])
+    def recalculate(self, request, pk=None):
+        """
+        Recalculate critical path and timeline data.
+        
+        This would trigger the critical path algorithm to update:
+        - critical_path_task_ids
+        - critical_path_duration_days
+        - TaskSchedule early/late dates
+        - TaskSchedule slack values
+        
+        For now, returns a placeholder response. Full implementation requires
+        critical path algorithm (CPM - Critical Path Method).
+        """
+        timeline = self.get_object()
+        
+        # TODO: Implement critical path calculation algorithm
+        # This would involve:
+        # 1. Forward pass: Calculate early start/finish dates
+        # 2. Backward pass: Calculate late start/finish dates
+        # 3. Calculate slack (late - early)
+        # 4. Identify critical path (tasks with zero slack)
+        
+        from django.utils import timezone
+        timeline.last_calculated_at = timezone.now()
+        timeline.calculation_metadata = {
+            "message": "Critical path algorithm not yet implemented",
+            "calculated_at": timezone.now().isoformat(),
+        }
+        timeline.save()
+        
+        serializer = self.get_serializer(timeline)
+        return Response(serializer.data)
+
+
+class TaskScheduleViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for TaskSchedule model (Task 3.6).
+    
+    Provides CRUD operations for task scheduling data.
+    
+    TIER 0: Inherits firm from task.project via OneToOne relationship.
+    TIER 2: DenyPortalAccess - portal users cannot access.
+    """
+    
+    serializer_class = TaskScheduleSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, BoundedSearchFilter]
+    filterset_fields = [
+        "task",
+        "task__project",
+        "is_on_critical_path",
+        "is_milestone",
+        "constraint_type",
+        "planned_start_date",
+    ]
+    search_fields = ["task__title", "task__project__name"]
+    ordering_fields = ["planned_start_date", "planned_end_date", "completion_percentage"]
+    ordering = ["planned_start_date"]
+    
+    def get_queryset(self):
+        """Get schedules scoped to user's firm."""
+        firm = get_request_firm(self.request)
+        return TaskSchedule.objects.filter(
+            task__project__firm=firm
+        ).select_related("task", "task__project")
+    
+    @action(detail=False, methods=["get"])
+    def critical_path_tasks(self, request):
+        """
+        Get all tasks on the critical path for a project.
+        
+        Query params:
+        - project: Project ID (required)
+        """
+        project_id = request.query_params.get("project")
+        if not project_id:
+            return Response(
+                {"error": "project parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        firm = get_request_firm(request)
+        schedules = self.get_queryset().filter(
+            task__project_id=project_id,
+            task__project__firm=firm,
+            is_on_critical_path=True
+        )
+        
+        serializer = self.get_serializer(schedules, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=["get"])
+    def milestones(self, request):
+        """
+        Get all milestones for a project.
+        
+        Query params:
+        - project: Project ID (required)
+        """
+        project_id = request.query_params.get("project")
+        if not project_id:
+            return Response(
+                {"error": "project parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        firm = get_request_firm(request)
+        schedules = self.get_queryset().filter(
+            task__project_id=project_id,
+            task__project__firm=firm,
+            is_milestone=True
+        ).order_by("milestone_date")
+        
+        serializer = self.get_serializer(schedules, many=True)
+        return Response(serializer.data)
+
+
+class TaskDependencyViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for TaskDependency model (Task 3.6).
+    
+    Provides CRUD operations for task dependencies.
+    
+    TIER 0: Inherits firm from predecessor/successor tasks.
+    TIER 2: DenyPortalAccess - portal users cannot access.
+    """
+    
+    serializer_class = TaskDependencySerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["predecessor", "successor", "predecessor__project", "dependency_type"]
+    ordering_fields = ["created_at"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Get dependencies scoped to user's firm."""
+        firm = get_request_firm(self.request)
+        return TaskDependency.objects.filter(
+            predecessor__project__firm=firm
+        ).select_related(
+            "predecessor",
+            "successor",
+            "predecessor__project",
+            "successor__project"
+        )
+    
+    @action(detail=False, methods=["get"])
+    def project_dependencies(self, request):
+        """
+        Get all dependencies for a project.
+        
+        Query params:
+        - project: Project ID (required)
+        """
+        project_id = request.query_params.get("project")
+        if not project_id:
+            return Response(
+                {"error": "project parameter is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        firm = get_request_firm(request)
+        dependencies = self.get_queryset().filter(
+            predecessor__project_id=project_id,
+            predecessor__project__firm=firm
+        )
+        
+        serializer = self.get_serializer(dependencies, many=True)
+        return Response(serializer.data)
