@@ -15,7 +15,7 @@ Reference documentation is information-oriented and designed for quick lookup of
 - [Management Commands](management-commands.md) - UNKNOWN (verify existence)
 
 ### Platform
-- [Platform Capabilities](platform-capabilities.md) - UNKNOWN (verify existence)
+- [Platform Capabilities](platform-capabilities.md) - Comprehensive inventory of implemented and planned features
 - [Tier System](tier-system.md) - UNKNOWN (verify existence)
 
 ## What Makes Good Reference?
