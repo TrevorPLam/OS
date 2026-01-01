@@ -106,7 +106,7 @@ class Snippet(models.Model):
         indexes = [
             models.Index(fields=['firm', 'shortcut'], name="snippets_fir_sho_idx"),
             models.Index(fields=['firm', 'is_shared'], name="snippets_fir_is__idx"),
-            models.Index(fields=['firm', 'created_by'], name="snippets_fir_cre_idx"),
+            models.Index(fields=['firm', 'created_by'], name="snippets_snippet_fir_cre_idx"),
             models.Index(fields=['is_active'], name="snippets_is__idx"),
         ]
         unique_together = [('firm', 'shortcut', 'created_by')]
@@ -319,7 +319,7 @@ class SnippetFolder(models.Model):
         db_table = 'snippet_folders'
         ordering = ['name']
         indexes = [
-            models.Index(fields=['firm', 'created_by'], name="snippets_fir_cre_idx"),
+            models.Index(fields=['firm', 'created_by'], name="snippets_folder_fir_cre_idx"),
         ]
         unique_together = [('firm', 'name', 'created_by')]
 

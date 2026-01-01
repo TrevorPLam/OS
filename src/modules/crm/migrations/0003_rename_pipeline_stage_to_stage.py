@@ -1,6 +1,6 @@
 # Generated manually for ASSESS-C3.1: Rename pipeline_stage to stage
 
-from django.db import migrations
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         # Add new index on stage
         migrations.AddIndex(
             model_name='prospect',
-            index=migrations.Index(
+            index=models.Index(
                 fields=['firm', 'stage', '-created_at'],
                 name='crm_prospect_stage_idx'
             ),

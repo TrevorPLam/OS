@@ -124,9 +124,9 @@ class SMSPhoneNumber(models.Model):
         db_table = 'sms_phone_numbers'
         ordering = ['-is_default', 'phone_number']
         indexes = [
-            models.Index(fields=['firm', 'status'], name="sms_fir_sta_idx"),
-            models.Index(fields=['firm', 'is_default'], name="sms_fir_is__idx"),
-            models.Index(fields=['phone_number'], name="sms_pho_idx"),
+            models.Index(fields=['firm', 'status'], name="sms_phone_fir_sta_idx"),
+            models.Index(fields=['firm', 'is_default'], name="sms_phone_fir_is__idx"),
+            models.Index(fields=['phone_number'], name="sms_phone_pho_idx"),
         ]
         unique_together = [('firm', 'phone_number')]
 
@@ -233,7 +233,7 @@ class SMSTemplate(models.Model):
         ordering = ['name']
         indexes = [
             models.Index(fields=['firm', 'template_type'], name="sms_fir_tem_idx"),
-            models.Index(fields=['firm', 'is_active'], name="sms_fir_is__idx"),
+            models.Index(fields=['firm', 'is_active'], name="sms_template_fir_is__idx"),
         ]
 
     def __str__(self):
@@ -432,7 +432,7 @@ class SMSMessage(models.Model):
         db_table = 'sms_messages'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['firm', '-created_at'], name="sms_fir_cre_idx"),
+            models.Index(fields=['firm', '-created_at'], name="sms_message_fir_cre_idx"),
             models.Index(fields=['firm', 'to_number', '-created_at'], name="sms_fir_to__cre_idx"),
             models.Index(fields=['campaign', '-created_at'], name="sms_cam_cre_idx"),
             models.Index(fields=['conversation', '-created_at'], name="sms_con_cre_idx"),
@@ -597,8 +597,8 @@ class SMSCampaign(models.Model):
         db_table = 'sms_campaigns'
         ordering = ['-created_at']
         indexes = [
-            models.Index(fields=['firm', 'status'], name="sms_fir_sta_idx"),
-            models.Index(fields=['firm', '-created_at'], name="sms_fir_cre_idx"),
+            models.Index(fields=['firm', 'status'], name="sms_campaign_fir_sta_idx"),
+            models.Index(fields=['firm', '-created_at'], name="sms_campaign_fir_cre_idx"),
             models.Index(fields=['scheduled_at'], name="sms_sch_idx"),
         ]
 
@@ -782,7 +782,7 @@ class SMSOptOut(models.Model):
         ordering = ['-opted_out_at']
         indexes = [
             models.Index(fields=['firm', 'phone_number'], name="sms_fir_pho_idx"),
-            models.Index(fields=['phone_number'], name="sms_pho_idx"),
+            models.Index(fields=['phone_number'], name="sms_optout_pho_idx"),
         ]
         unique_together = [('firm', 'phone_number')]
 
