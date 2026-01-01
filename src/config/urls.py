@@ -42,6 +42,7 @@ api_v1_patterns = [
     path("snippets/", include("modules.snippets.urls")),  # Quick text insertion (HubSpot-style snippets)
     path("sms/", include("modules.sms.urls")),  # SMS messaging (Twilio integration, campaigns, conversations)
     path("webhooks/", include("api.webhooks.urls")),  # General webhook platform (Task 3.7)
+    path("accounting/", include("modules.accounting_integrations.urls")),  # Sprint 3: QuickBooks/Xero integrations
 ]
 
 urlpatterns = [
@@ -82,6 +83,7 @@ urlpatterns = [
     path("api/snippets/", RedirectView.as_view(url="/api/v1/snippets/", permanent=False)),
     path("api/sms/", RedirectView.as_view(url="/api/v1/sms/", permanent=False)),
     path("api/webhooks/", RedirectView.as_view(url="/api/v1/webhooks/", permanent=False)),
+    path("api/accounting/", RedirectView.as_view(url="/api/v1/accounting/", permanent=False)),
 ]
 
 # Serve media files in development

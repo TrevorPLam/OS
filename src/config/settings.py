@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     "modules.snippets",  # Quick text insertion system (HubSpot-style snippets)
     "modules.sms",  # SMS messaging integration (Twilio, campaigns, two-way conversations)
     "modules.webhooks",  # General webhook platform for external integrations (Task 3.7)
+    "modules.accounting_integrations",  # Sprint 3: QuickBooks and Xero integrations
 ]
 
 MIDDLEWARE = [
