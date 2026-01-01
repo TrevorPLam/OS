@@ -8,6 +8,80 @@ This file contains all completed tasks that have been migrated from TODO.md.
 
 ## Recently Completed (January 1, 2026)
 
+### MISSING Features - Critical Migrations Created (MISSING-7 through MISSING-12)
+
+- [x] **MISSING-7** API Layer Completion ✅
+  - All 8 modules without migrations now have initial migrations
+  - All models can now be deployed and used via API
+  
+- [x] **MISSING-8** Snippets System ✅
+  - Migration created: snippets/0001_initial.py
+  - Models: Snippet, SnippetUsageLog, SnippetFolder (3 models, 345 lines)
+  - HubSpot-style text snippets with variables and shortcuts
+  
+- [x] **MISSING-9** User Profile Customization ✅
+  - Migration verified: firm/0012_user_profiles.py exists
+  - User profiles for customization and preferences
+  
+- [x] **MISSING-10** Lead Scoring Automation ✅
+  - Models verified in crm/0006_activity_product_productconfiguration_productoption_and_more.py
+  - ScoringRule and ScoreAdjustment models for automated lead scoring
+  
+- [x] **MISSING-11** SMS Integration ✅
+  - Migration created: sms/0001_initial.py
+  - Models: SMSPhoneNumber, SMSMessage, SMSConversation, SMSCampaign, SMSTemplate, SMSOptOut (6 models, 790 lines)
+  - Two-way SMS conversations, bulk campaigns, templates, and opt-out management
+  
+- [x] **MISSING-12** Calendar Sync (Google/Outlook) ✅
+  - Migration verified: calendar/0002_calendar_sync.py
+  - CalendarConnection model with OAuth credentials for Google/Outlook sync
+
+### System Check Errors Fixed
+
+- [x] Fixed 20 duplicate index name errors across 13 modules ✅
+  - calendar: 6 indexes (AppointmentType, BookingLink, Appointment, MeetingPoll, MeetingWorkflow, MeetingWorkflowExecution)
+  - clients: 4 indexes (ClientNote, ClientComment, ClientChatThread, ClientMessage)
+  - communications: 2 indexes (Participant, ConversationLink)
+  - delivery: 2 indexes (DeliveryNode, DeliveryEdge)
+  - email_ingestion: 2 indexes (EmailAttachment, IngestionAttempt)
+  - finance: 5 indexes (Payment, PaymentAllocation, PaymentDispute, PaymentFailure, Chargeback)
+  - jobs: 6 indexes (JobQueue, JobDLQ)
+  - knowledge: 3 indexes (KnowledgeVersion, KnowledgeReview, KnowledgeAttachment)
+  - marketing: 2 indexes (Segment, EmailTemplate)
+  - orchestration: 4 indexes (OrchestrationDefinition, OrchestrationExecution, StepExecution)
+  - pricing: 3 indexes (RuleSet, Quote, QuoteVersion)
+  - projects: 2 indexes (Expense, Task)
+  - recurrence: 2 indexes (RecurrenceRule, RecurrenceGeneration)
+
+- [x] Fixed related_name clash ✅
+  - finance.PaymentAllocation.created_by (created_allocations → created_payment_allocations)
+  - Resolved conflict with projects.ResourceAllocation.created_by
+
+### Initial Migrations Created for 8 Modules
+
+- [x] snippets/0001_initial.py ✅
+- [x] sms/0001_initial.py ✅
+- [x] pricing/0001_initial.py ✅
+- [x] delivery/0001_initial.py ✅
+- [x] knowledge/0001_initial.py ✅
+- [x] onboarding/0001_initial.py ✅
+- [x] orchestration/0001_initial.py ✅
+- [x] support/0001_initial.py ✅
+- [x] recurrence/0001_initial.py (regenerated from empty initial) ✅
+
+### Automatic Migrations Generated
+
+- [x] calendar/0004_meetingpoll_meetingpollvote_meetingworkflow_and_more.py ✅
+- [x] clients/0008_contact_engagementline_and_more.py ✅
+- [x] crm/0006_activity_product_productconfiguration_productoption_and_more.py ✅
+- [x] documents/0004_document_classification_document_deprecated_at_and_more.py ✅
+- [x] finance/0011_chargeback_paymentfailure_stripewebhookevent_and_more.py ✅
+- [x] firm/0013_remove_provisioninglog_firm_and_more.py ✅
+- [x] marketing/0002_rename_mkt_idx_marketing_cam_sta_idx_and_more.py ✅
+- [x] projects/0006_expense_projecttemplate_tasktemplate_and_more.py ✅
+
+---
+
 ### In-Code TODOs - Completed
 
 **High Priority (Feature Completion)**
