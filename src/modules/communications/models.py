@@ -376,8 +376,8 @@ class Message(models.Model):
         ordering = ["created_at"]
         indexes = [
             models.Index(fields=["firm", "conversation", "created_at"], name="communicat_fir_con_cre_idx"),
-            models.Index(fields=["firm", "sender_user", "-created_at"], name="communicat_fir_sen_cre_idx"),
-            models.Index(fields=["firm", "sender_portal_user_id", "-created_at"], name="communicat_fir_sen_cre_idx"),
+            models.Index(fields=["firm", "sender_user", "-created_at"], name="communicat_fir_sen_use_idx"),
+            models.Index(fields=["firm", "sender_portal_user_id", "-created_at"], name="communicat_fir_sen_por_idx"),
             models.Index(fields=["correlation_id"], name="communicat_cor_idx"),
         ]
 

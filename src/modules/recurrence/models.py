@@ -220,9 +220,9 @@ class RecurrenceRule(models.Model):
         indexes = [
             models.Index(fields=["firm", "status"], name="recurrence_fir_sta_idx"),
             models.Index(fields=["firm", "scope"], name="recurrence_fir_sco_idx"),
-            models.Index(fields=["target_delivery_template"], name="recurrence_tar_idx"),
-            models.Index(fields=["target_engagement"], name="recurrence_tar_idx"),
-            models.Index(fields=["target_engagement_line"], name="recurrence_tar_idx"),
+            models.Index(fields=["target_delivery_template"], name="recurrence_tar_del_idx"),
+            models.Index(fields=["target_engagement"], name="recurrence_tar_eng_idx"),
+            models.Index(fields=["target_engagement_line"], name="recurrence_tar_lin_idx"),
             models.Index(fields=["start_at"], name="recurrence_sta_idx"),
             models.Index(fields=["end_at"], name="recurrence_end_idx"),
         ]

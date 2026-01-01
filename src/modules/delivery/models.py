@@ -682,8 +682,8 @@ class TemplateInstantiation(models.Model):
         indexes = [
             models.Index(fields=["firm", "-created_at"], name="delivery_fir_cre_idx"),
             models.Index(fields=["template", "-created_at"], name="delivery_tem_cre_idx"),
-            models.Index(fields=["target_engagement"], name="delivery_tar_idx"),
-            models.Index(fields=["target_engagement_line"], name="delivery_tar_idx"),
+            models.Index(fields=["target_engagement"], name="delivery_tar_eng_idx"),
+            models.Index(fields=["target_engagement_line"], name="delivery_tar_lin_idx"),
             models.Index(fields=["correlation_id"], name="delivery_cor_idx"),
         ]
 
