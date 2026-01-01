@@ -10,9 +10,11 @@ from .views import (
     BillViewSet,
     InvoiceViewSet,
     LedgerEntryViewSet,
-    PaymentViewSet,
+    MVRefreshLogViewSet,
     PaymentAllocationViewSet,
+    PaymentViewSet,
     ProjectProfitabilityViewSet,
+    RevenueByProjectMonthMVViewSet,
     ServiceLineProfitabilityViewSet,
 )
 
@@ -25,6 +27,8 @@ router.register(r"payments", PaymentViewSet, basename="payment")  # Cash applica
 router.register(r"payment-allocations", PaymentAllocationViewSet, basename="payment-allocation")  # Feature 2.10
 router.register(r"project-profitability", ProjectProfitabilityViewSet, basename="project-profitability")  # Task 3.3
 router.register(r"service-line-profitability", ServiceLineProfitabilityViewSet, basename="service-line-profitability")  # Task 3.3
+router.register(r"revenue-reports", RevenueByProjectMonthMVViewSet, basename="revenue-reports")  # Sprint 5.2
+router.register(r"mv-refresh-logs", MVRefreshLogViewSet, basename="mv-refresh-logs")  # Sprint 5.5
 
 urlpatterns = [
     path("", include(router.urls)),
