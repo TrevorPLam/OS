@@ -359,13 +359,365 @@
 
 ---
 
+## Additional Features from CHECKLIST.md Analysis
+
+**Note:** The following features were identified in CHECKLIST.md but are not currently in the TODO. They are organized by priority based on their impact on the CRM + Marketing Automation platform vision.
+
+### Sprint 15: Pipeline & Deal Management Module (HIGH PRIORITY) - 40-56 hours
+**Status:** Core CRM feature missing - required for sales pipeline functionality
+
+- [ ] **Sprint 15.1** Design Pipeline and Deal models - 4-6 hours
+  - Pipeline model with stage configuration
+  - Deal model with value, probability, associations
+  - Deal-to-Project conversion workflow
+- [ ] **Sprint 15.2** Implement Deal CRUD operations and API - 8-12 hours
+  - Deal creation, update, delete endpoints
+  - Deal stage transitions
+  - Deal associations (contacts, accounts, tasks)
+- [ ] **Sprint 15.3** Build Pipeline visualization UI - 8-12 hours
+  - Kanban board view of deals by stage
+  - Drag-and-drop stage transitions
+  - Pipeline filtering and search
+- [ ] **Sprint 15.4** Add forecasting and analytics - 8-12 hours
+  - Weighted pipeline forecasting
+  - Win/loss tracking
+  - Pipeline performance reports
+- [ ] **Sprint 15.5** Implement assignment automation - 6-8 hours
+  - Round-robin deal assignment
+  - Territory-based routing
+  - Deal stage automation triggers
+- [ ] **Sprint 15.6** Add deal splitting and rotting alerts - 6-8 hours
+
+### Sprint 16: Marketing Automation Workflow Builder (HIGH PRIORITY) - 48-64 hours
+**Status:** Core marketing automation feature missing - critical for ActiveCampaign-like functionality
+
+- [ ] **Sprint 16.1** Design automation workflow architecture - 6-8 hours
+  - Workflow model with nodes and edges
+  - Trigger types definition
+  - Action types definition
+- [ ] **Sprint 16.2** Implement automation triggers - 8-12 hours
+  - Form submission triggers
+  - Email action triggers (open, click, reply)
+  - Site tracking triggers
+  - Deal change triggers
+  - Score threshold triggers
+  - Date-based triggers
+- [ ] **Sprint 16.3** Implement automation actions - 12-16 hours
+  - Send email action
+  - Wait conditions (time delay, until date, until condition)
+  - If/Else branching logic
+  - Add/Remove tags and lists
+  - Update contact fields
+  - Create/Update deal
+  - Create task
+  - Webhook action
+- [ ] **Sprint 16.4** Build visual workflow builder UI - 12-16 hours
+  - Drag-and-drop workflow canvas
+  - Node configuration panels
+  - Connection management
+  - Workflow validation
+- [ ] **Sprint 16.5** Add automation execution engine - 6-8 hours
+  - Workflow execution scheduler
+  - Contact flow tracking
+  - Goal tracking and completion
+- [ ] **Sprint 16.6** Create automation analytics - 4-6 hours
+  - Flow visualization with drop-off points
+  - Goal conversion rates
+  - Performance metrics per automation
+
+### Sprint 17: Contact Management Enhancements (MEDIUM-HIGH PRIORITY) - 24-32 hours
+**Status:** Enhance existing contact management with ActiveCampaign-like features
+
+- [ ] **Sprint 17.1** Add contact states and lifecycle - 4-6 hours
+  - Contact state model (Active, Unsubscribed, Bounced, Unconfirmed, Inactive)
+  - State transition logic
+  - State-based filtering
+- [ ] **Sprint 17.2** Implement bulk operations - 8-12 hours
+  - CSV/Excel import with field mapping UI
+  - Duplicate detection and merge rules
+  - Bulk update API
+  - Import history and error tracking
+- [ ] **Sprint 17.3** Add contact merging - 6-8 hours
+  - Merge conflict resolution UI
+  - Activity consolidation
+  - Association transfer (deals, projects, etc.)
+- [ ] **Sprint 17.4** Enhance segmentation - 6-8 hours
+  - Geographic segmentation (radius search)
+  - E-commerce segmentation (when e-commerce integrated)
+  - Advanced segment builder with nested conditions
+
+### Sprint 18: Site & Event Tracking (MEDIUM PRIORITY) - 28-36 hours
+**Status:** Critical for behavioral automation and personalization
+
+- [ ] **Sprint 18.1** Design tracking architecture - 3-4 hours
+  - JavaScript snippet design
+  - Event data model
+  - Privacy compliance (GDPR, CCPA)
+- [ ] **Sprint 18.2** Implement JavaScript tracking library - 8-12 hours
+  - Page visit tracking
+  - Anonymous visitor tracking
+  - Cookie consent management
+  - Cross-domain tracking
+- [ ] **Sprint 18.3** Add custom event tracking - 6-8 hours
+  - Event API endpoints
+  - JavaScript event helpers
+  - Event properties support
+- [ ] **Sprint 18.4** Build tracking dashboard - 6-8 hours
+  - Visitor timeline
+  - Page visit analytics
+  - Event analytics
+- [ ] **Sprint 18.5** Integrate with automation triggers - 5-6 hours
+  - Site visit triggers
+  - Event-based triggers
+  - Page-specific triggers
+
+### Sprint 19: Web Personalization & Site Messages (MEDIUM PRIORITY) - 20-28 hours
+**Status:** Extends site tracking with on-site engagement
+
+- [ ] **Sprint 19.1** Design site message system - 3-4 hours
+  - Message types (modal, slide-in, banner)
+  - Targeting rules engine
+- [ ] **Sprint 19.2** Implement message builder - 6-8 hours
+  - Message template editor
+  - Personalization tokens
+  - Form integration
+- [ ] **Sprint 19.3** Add targeting and display logic - 6-8 hours
+  - Segment-based targeting
+  - Behavior-based targeting
+  - Frequency capping
+- [ ] **Sprint 19.4** Build site message UI - 5-8 hours
+  - Message preview
+  - A/B testing setup
+  - Performance tracking
+
+### Sprint 20: Email Campaign Builder Enhancements (MEDIUM PRIORITY) - 24-32 hours
+**Status:** Enhance existing email template system
+
+- [ ] **Sprint 20.1** Build drag-and-drop email editor - 12-16 hours
+  - Content block library (text, image, button, video, etc.)
+  - Block configuration panels
+  - Mobile preview
+- [ ] **Sprint 20.2** Add dynamic content - 4-6 hours
+  - Conditional content blocks
+  - Segment-based content variations
+- [ ] **Sprint 20.3** Implement link tracking - 4-6 hours
+  - Automatic UTM parameter addition
+  - Click heatmaps
+  - Individual link performance
+- [ ] **Sprint 20.4** Add campaign types - 4-6 hours
+  - RSS-triggered campaigns
+  - Date-based campaigns (birthdays, anniversaries)
+  - Recurring campaigns
+
+### Sprint 21: E-commerce Platform Integrations (MEDIUM PRIORITY) - 32-48 hours per platform
+**Status:** Critical for e-commerce customers
+
+- [ ] **Sprint 21.1** Research e-commerce platforms - 2-4 hours
+  - Shopify, WooCommerce, BigCommerce APIs
+- [ ] **Sprint 21.2** Design e-commerce integration models - 4-6 hours
+  - Product catalog sync
+  - Order history model
+  - Abandoned cart tracking
+- [ ] **Sprint 21.3** Implement Shopify integration - 12-16 hours
+  - OAuth authentication
+  - Product catalog sync
+  - Order webhook handlers
+  - Customer sync
+- [ ] **Sprint 21.4** Add abandoned cart tracking - 6-8 hours
+  - Cart abandonment detection
+  - Cart recovery automation triggers
+- [ ] **Sprint 21.5** Implement customer lifetime value - 4-6 hours
+  - CLV calculation
+  - Purchase behavior segmentation
+- [ ] **Sprint 21.6** Create e-commerce automation recipes - 4-6 hours
+  - Cart recovery workflow
+  - Post-purchase follow-up
+  - Win-back campaigns
+
+### Sprint 22: Additional Native Integrations (MEDIUM PRIORITY) - 16-24 hours per integration
+**Status:** Expand integration ecosystem
+
+- [ ] **Sprint 22.1** Salesforce CRM integration - 16-24 hours
+  - OAuth authentication
+  - Contact/Lead bidirectional sync
+  - Opportunity sync
+- [ ] **Sprint 22.2** Slack integration (full version) - 12-16 hours
+  - Webhook notifications
+  - Interactive slash commands
+  - Channel configuration
+- [ ] **Sprint 22.3** Google Analytics integration - 12-16 hours
+  - Event tracking sync
+  - Campaign UTM tracking
+  - Goal tracking integration
+- [ ] **Sprint 22.4** Zoom integration - 12-16 hours
+  - OAuth authentication
+  - Meeting creation from platform
+  - Webinar registration sync
+- [ ] **Sprint 22.5** Additional integrations as needed
+  - WordPress, Zendesk, Help Scout, etc. (16-24 hours each)
+
+### Sprint 23: Advanced Reporting & Analytics (MEDIUM PRIORITY) - 28-36 hours
+**Status:** Enhance existing reporting with advanced features
+
+- [ ] **Sprint 23.1** Build custom dashboard builder - 12-16 hours
+  - Widget system architecture
+  - Dashboard layout editor
+  - Widget library (charts, metrics, tables)
+- [ ] **Sprint 23.2** Add geographic/device reports - 6-8 hours
+  - Campaign performance by location
+  - Device and email client breakdown
+- [ ] **Sprint 23.3** Implement multi-touch attribution - 10-12 hours
+  - Attribution model configuration
+  - First-touch, last-touch, linear models
+  - Attribution reports and visualization
+
+### Sprint 24: GDPR Compliance Features (LOW-MEDIUM PRIORITY) - 20-28 hours
+**Status:** Required for EU customers
+
+- [ ] **Sprint 24.1** Implement consent tracking - 6-8 hours
+  - Consent model (source, date, version)
+  - Consent audit trail
+  - Consent status UI
+- [ ] **Sprint 24.2** Add double opt-in - 4-6 hours
+  - Confirmation email workflow
+  - Opt-in status tracking
+- [ ] **Sprint 24.3** Right to erasure - 6-8 hours
+  - Data deletion workflow
+  - Anonymization options
+  - Deletion audit trail
+- [ ] **Sprint 24.4** Data portability - 4-6 hours
+  - Export all contact data
+  - Standardized export format (JSON, CSV)
+
+### Sprint 25: CAN-SPAM Compliance (LOW-MEDIUM PRIORITY) - 12-16 hours
+**Status:** Required for US email marketing
+
+- [ ] **Sprint 25.1** Automatic unsubscribe links - 4-6 hours
+  - Template variable for unsubscribe
+  - One-click unsubscribe handling
+- [ ] **Sprint 25.2** Physical address in footer - 2-3 hours
+  - Firm address in email footer
+  - Template configuration
+- [ ] **Sprint 25.3** Sender identification - 3-4 hours
+  - Clear "From" name and email
+  - Reply-to configuration
+- [ ] **Sprint 25.4** Consent tracking - 3-4 hours
+  - Express vs implied consent
+  - Consent source tracking
+
+### Sprint 26: Email Deliverability & Infrastructure (LOW-MEDIUM PRIORITY) - 24-32 hours
+**Status:** Critical for email deliverability
+
+- [ ] **Sprint 26.1** Domain authentication setup - 6-8 hours
+  - SPF record validation
+  - DKIM signature implementation
+  - DMARC policy configuration
+- [ ] **Sprint 26.2** Bounce handling - 6-8 hours
+  - Bounce webhook processing
+  - Automatic suppression lists
+  - Bounce type categorization
+- [ ] **Sprint 26.3** Dedicated IP management - 4-6 hours
+  - Dedicated IP configuration
+  - IP warmup automation
+- [ ] **Sprint 26.4** Reputation monitoring - 8-10 hours
+  - Blacklist monitoring
+  - Sender reputation tracking
+  - Deliverability alerts
+
+### Sprint 27: Mobile Applications (LOW PRIORITY) - 80-120 hours (major feature)
+**Status:** Requires separate mobile development effort
+
+- [ ] **Sprint 27.1** Design mobile app architecture - 8-12 hours
+- [ ] **Sprint 27.2** Implement iOS app - 32-48 hours
+  - Contact management
+  - Deal management
+  - Task management
+  - Push notifications
+- [ ] **Sprint 27.3** Implement Android app - 32-48 hours
+  - Contact management
+  - Deal management
+  - Task management
+  - Push notifications
+- [ ] **Sprint 27.4** Add offline mode - 8-12 hours
+  - Local data caching
+  - Sync queue
+
+### Sprint 28: AI & Machine Learning Features (LOW PRIORITY) - 32-48 hours
+**Status:** Advanced features for competitive differentiation
+
+- [ ] **Sprint 28.1** Predictive send-time optimization - 8-12 hours
+  - Historical engagement analysis
+  - Optimal send time prediction per contact
+- [ ] **Sprint 28.2** Predictive content recommendations - 8-12 hours
+  - Content engagement tracking
+  - Recommendation engine
+- [ ] **Sprint 28.3** Win probability prediction - 8-12 hours
+  - Deal historical data analysis
+  - Probability model training
+- [ ] **Sprint 28.4** Churn prediction - 8-12 hours
+  - Engagement decline detection
+  - At-risk customer identification
+
+### Sprint 29: Platform Features (LOW PRIORITY) - 24-32 hours
+**Status:** Platform maturity features
+
+- [ ] **Sprint 29.1** API versioning system - 6-8 hours
+  - Version routing
+  - Deprecation warnings
+- [ ] **Sprint 29.2** Interactive API documentation - 8-12 hours
+  - Swagger/OpenAPI integration
+  - API explorer UI
+- [ ] **Sprint 29.3** Official SDKs - 10-12 hours
+  - Python SDK
+  - JavaScript SDK
+  - PHP SDK
+
+### Sprint 30: User Management Enhancements (LOW PRIORITY) - 20-28 hours
+**Status:** Enhanced permission system
+
+- [ ] **Sprint 30.1** Custom roles - 8-12 hours
+  - Role builder UI
+  - Granular permission configuration
+- [ ] **Sprint 30.2** Field-level permissions - 6-8 hours
+  - Sensitive field hiding
+  - Read-only field configuration
+- [ ] **Sprint 30.3** Multi-language support - 6-8 hours
+  - Internationalization (i18n) setup
+  - Language files for key locales
+
+---
+
 ## Summary Statistics
 
-**Total Sprint Tasks:** 78 tasks across 14 sprints
+**Total Sprint Tasks:** 78 tasks across 14 sprints (ORIGINAL) + 16 additional sprints from CHECKLIST.md analysis
 - **High Priority (Sprints 1-2):** 17 tasks (~52-72 hours) - ✅ COMPLETED
 - **Medium Priority (Sprints 3-4):** 24 tasks (~68-92 hours) - ✅ COMPLETED
 - **Medium-Low Priority (Sprint 5):** 5 tasks (~12-16 hours) - ✅ COMPLETED
 - **Low Priority (Sprints 6-14):** 37 tasks (~184-272 hours)
+
+**Additional Features from CHECKLIST.md Analysis (Sprints 15-30):**
+- **High Priority (Sprints 15-16):** Core CRM & Marketing Automation (~88-120 hours)
+  - Pipeline & Deal Management
+  - Marketing Automation Workflow Builder
+- **Medium-High Priority (Sprint 17):** Contact Management Enhancements (~24-32 hours)
+- **Medium Priority (Sprints 18-23):** Tracking, Personalization, Integrations, Reporting (~180-264 hours)
+  - Site & Event Tracking
+  - Web Personalization
+  - Email Campaign Builder Enhancements
+  - E-commerce Integrations
+  - Additional Native Integrations
+  - Advanced Reporting & Analytics
+- **Low-Medium Priority (Sprints 24-26):** Compliance & Deliverability (~56-76 hours)
+  - GDPR Compliance
+  - CAN-SPAM Compliance
+  - Email Deliverability & Infrastructure
+- **Low Priority (Sprints 27-30):** Advanced Features (~156-228 hours)
+  - Mobile Applications
+  - AI & Machine Learning
+  - Platform Features
+  - User Management Enhancements
+
+**Total Additional Features:** ~504-720 hours of development work identified from CHECKLIST.md
 
 **Large Features Requiring Further Planning:** 1 feature (Document co-authoring)
 
@@ -376,6 +728,12 @@
 - **Focus:** High priority authentication and security features first (Sprints 1-2) - ✅ Complete
 - **Current:** Performance & Reporting (Sprint 5) - ✅ Complete
 - **Next Steps:** Platform Transformation Tasks (Sprints 6-14) or Large Features (Document co-authoring)
+- **CHECKLIST.md Analysis:** Sprints 15-30 added based on comprehensive CHECKLIST.md review (January 1, 2026)
+  - Identified missing features from CHECKLIST.md that align with CRM + Marketing Automation platform vision
+  - Prioritized based on ActiveCampaign/HubSpot feature parity
+  - High priority: Pipeline/Deal management and Marketing Automation Builder (critical gaps)
+  - Medium priority: Site tracking, e-commerce, and integration expansion
+  - Low priority: Mobile apps, advanced AI/ML features
 - **Completed Work:** See [TODO_COMPLETED.md](./TODO_COMPLETED.md) for historical reference of all completed tasks
 - **Sprint Planning:** Each sprint task includes estimated hours for better planning
 - **Flexibility:** Task breakdowns can be adjusted based on team capacity and priorities
