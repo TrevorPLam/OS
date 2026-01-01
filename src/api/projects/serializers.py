@@ -6,7 +6,16 @@ from django.db import models
 from django.utils import timezone
 from rest_framework import serializers
 
-from modules.projects.models import Project, ResourceAllocation, ResourceCapacity, Task, TimeEntry
+from modules.projects.models import (
+    Project,
+    ProjectTimeline,
+    ResourceAllocation,
+    ResourceCapacity,
+    Task,
+    TaskDependency,
+    TaskSchedule,
+    TimeEntry,
+)
 
 
 class ResourceAllocationSerializer(serializers.ModelSerializer):
@@ -275,4 +284,164 @@ class TimeEntrySerializer(serializers.ModelSerializer):
             if any(k in attrs for k in ["hours", "hourly_rate", "is_billable"]):
                 raise serializers.ValidationError("Cannot modify invoiced time entries")
 
+        return attrs
+
+
+class ProjectTimelineSerializer(serializers.ModelSerializer):
+    """Serializer for ProjectTimeline model (Task 3.6)."""
+    
+    project_name = serializers.CharField(source="project.name", read_only=True)
+    project_code = serializers.CharField(source="project.project_code", read_only=True)
+    completion_percentage = serializers.ReadOnlyField()
+    is_on_critical_path_risk = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = ProjectTimeline
+        fields = [
+            "id",
+            "project",
+            "project_name",
+            "project_code",
+            "planned_start_date",
+            "planned_end_date",
+            "actual_start_date",
+            "actual_end_date",
+            "critical_path_task_ids",
+            "critical_path_duration_days",
+            "total_tasks",
+            "completed_tasks",
+            "milestone_count",
+            "completion_percentage",
+            "is_on_critical_path_risk",
+            "last_calculated_at",
+            "calculation_metadata",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "completion_percentage", "is_on_critical_path_risk"]
+
+
+class TaskScheduleSerializer(serializers.ModelSerializer):
+    """Serializer for TaskSchedule model (Task 3.6)."""
+    
+    task_title = serializers.CharField(source="task.title", read_only=True)
+    task_project_name = serializers.CharField(source="task.project.name", read_only=True)
+    is_behind_schedule = serializers.ReadOnlyField()
+    days_remaining = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = TaskSchedule
+        fields = [
+            "id",
+            "task",
+            "task_title",
+            "task_project_name",
+            "planned_start_date",
+            "planned_end_date",
+            "planned_duration_days",
+            "actual_start_date",
+            "actual_end_date",
+            "actual_duration_days",
+            "constraint_type",
+            "constraint_date",
+            "is_on_critical_path",
+            "total_slack_days",
+            "free_slack_days",
+            "early_start_date",
+            "early_finish_date",
+            "late_start_date",
+            "late_finish_date",
+            "completion_percentage",
+            "is_milestone",
+            "milestone_date",
+            "is_behind_schedule",
+            "days_remaining",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "is_behind_schedule", "days_remaining"]
+    
+    def validate_planned_duration_days(self, value):
+        """Validate planned duration is positive."""
+        if value < 1:
+            raise serializers.ValidationError("Planned duration must be at least 1 day")
+        return value
+    
+    def validate(self, attrs):
+        """Cross-field validation."""
+        # Validate milestone logic
+        if attrs.get("is_milestone"):
+            if attrs.get("planned_duration_days", 1) > 1:
+                raise serializers.ValidationError({
+                    "planned_duration_days": "Milestones must have duration of 1 day"
+                })
+        
+        # Validate date order
+        planned_start = attrs.get("planned_start_date")
+        planned_end = attrs.get("planned_end_date")
+        if planned_start and planned_end and planned_start > planned_end:
+            raise serializers.ValidationError({
+                "planned_end_date": "End date must be after start date"
+            })
+        
+        actual_start = attrs.get("actual_start_date")
+        actual_end = attrs.get("actual_end_date")
+        if actual_start and actual_end and actual_start > actual_end:
+            raise serializers.ValidationError({
+                "actual_end_date": "Actual end date must be after actual start date"
+            })
+        
+        return attrs
+
+
+class TaskDependencySerializer(serializers.ModelSerializer):
+    """Serializer for TaskDependency model (Task 3.6)."""
+    
+    predecessor_title = serializers.CharField(source="predecessor.title", read_only=True)
+    successor_title = serializers.CharField(source="successor.title", read_only=True)
+    predecessor_project = serializers.CharField(source="predecessor.project.name", read_only=True)
+    successor_project = serializers.CharField(source="successor.project.name", read_only=True)
+    
+    class Meta:
+        model = TaskDependency
+        fields = [
+            "id",
+            "predecessor",
+            "predecessor_title",
+            "predecessor_project",
+            "successor",
+            "successor_title",
+            "successor_project",
+            "dependency_type",
+            "lag_days",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+    
+    def validate(self, attrs):
+        """Cross-field validation."""
+        predecessor = attrs.get("predecessor")
+        successor = attrs.get("successor")
+        
+        # Use instance values if not in attrs (for updates)
+        if not predecessor and self.instance:
+            predecessor = self.instance.predecessor
+        if not successor and self.instance:
+            successor = self.instance.successor
+        
+        # Validate tasks are in the same project
+        if predecessor and successor:
+            if predecessor.project_id != successor.project_id:
+                raise serializers.ValidationError({
+                    "successor": "Dependencies must be within the same project"
+                })
+            
+            # Validate not a self-dependency
+            if predecessor.id == successor.id:
+                raise serializers.ValidationError({
+                    "successor": "A task cannot depend on itself"
+                })
+        
         return attrs
