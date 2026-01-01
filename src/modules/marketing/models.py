@@ -190,7 +190,7 @@ class Segment(models.Model):
         db_table = "marketing_segments"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="marketing_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="marketing_seg_fir_sta_idx"),
             models.Index(fields=["firm", "-created_at"], name="marketing_fir_cre_idx"),
         ]
 
@@ -403,7 +403,7 @@ class EmailTemplate(models.Model):
         db_table = "marketing_email_templates"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="marketing_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="marketing_tml_fir_sta_idx"),
             models.Index(fields=["firm", "template_type"], name="marketing_fir_tem_idx"),
         ]
 

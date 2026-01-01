@@ -364,7 +364,7 @@ class KnowledgeVersion(models.Model):
         db_table = "knowledge_versions"
         ordering = ["-version_number"]
         indexes = [
-            models.Index(fields=["firm", "knowledge_item"], name="knowledge_fir_kno_idx"),
+            models.Index(fields=["firm", "knowledge_item"], name="knowledge_ver_fir_kno_idx"),
             models.Index(fields=["knowledge_item", "-version_number"], name="knowledge_kno_ver_idx"),
         ]
         unique_together = [["knowledge_item", "version_number"]]
@@ -417,7 +417,7 @@ class KnowledgeReview(models.Model):
         db_table = "knowledge_reviews"
         ordering = ["-requested_at"]
         indexes = [
-            models.Index(fields=["firm", "knowledge_item"], name="knowledge_fir_kno_idx"),
+            models.Index(fields=["firm", "knowledge_item"], name="knowledge_rev_fir_kno_idx"),
             models.Index(fields=["reviewer", "decision"], name="knowledge_rev_dec_idx"),
         ]
         unique_together = [["knowledge_item", "reviewer"]]  # One review per reviewer per item
@@ -537,7 +537,7 @@ class KnowledgeAttachment(models.Model):
         db_table = "knowledge_attachments"
         ordering = ["created_at"]
         indexes = [
-            models.Index(fields=["firm", "knowledge_item"], name="knowledge_fir_kno_idx"),
+            models.Index(fields=["firm", "knowledge_item"], name="knowledge_att_fir_kno_idx"),
             models.Index(fields=["attachment_type"], name="knowledge_att_idx"),
         ]
 

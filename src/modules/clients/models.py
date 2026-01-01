@@ -374,7 +374,7 @@ class ClientNote(models.Model):
         db_table = "clients_note"
         ordering = ["-is_pinned", "-created_at"]
         indexes = [
-            models.Index(fields=["client", "-created_at"], name="clients_cli_cre_idx"),
+            models.Index(fields=["client", "-created_at"], name="clients_not_cli_cre_idx"),
         ]
 
     def __str__(self):
@@ -755,8 +755,8 @@ class ClientComment(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["task", "-created_at"], name="clients_tas_cre_idx"),
-            models.Index(fields=["client", "-created_at"], name="clients_cli_cre_idx"),
-            models.Index(fields=["is_read_by_firm"], name="clients_is__idx"),
+            models.Index(fields=["client", "-created_at"], name="clients_com_cli_cre_idx"),
+            models.Index(fields=["is_read_by_firm"], name="clients_com_is_rea_idx"),
         ]
 
     def __str__(self):
@@ -799,7 +799,7 @@ class ClientChatThread(models.Model):
         ordering = ["-date"]
         indexes = [
             models.Index(fields=["client", "-date"], name="clients_cli_dat_idx"),
-            models.Index(fields=["is_active"], name="clients_is__idx"),
+            models.Index(fields=["is_active"], name="clients_thr_is_act_idx"),
             models.Index(fields=["-last_message_at"], name="clients_las_idx"),
         ]
         unique_together = [["client", "date"]]
@@ -864,7 +864,7 @@ class ClientMessage(models.Model):
         indexes = [
             models.Index(fields=["thread", "created_at"], name="clients_thr_cre_idx"),
             models.Index(fields=["sender", "-created_at"], name="clients_sen_cre_idx"),
-            models.Index(fields=["is_read"], name="clients_is__idx"),
+            models.Index(fields=["is_read"], name="clients_msg_is_rea_idx"),
         ]
 
     def __str__(self):

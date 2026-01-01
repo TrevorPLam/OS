@@ -120,7 +120,7 @@ class RuleSet(models.Model):
         ordering = ["-version"]
         indexes = [
             models.Index(fields=["firm", "code", "-version"], name="pricing_fir_cod_ver_idx"),
-            models.Index(fields=["firm", "status"], name="pricing_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="pricing_rul_fir_sta_idx"),
             models.Index(fields=["checksum"], name="pricing_che_idx"),
         ]
         unique_together = [["firm", "code", "version"]]
@@ -318,7 +318,7 @@ class Quote(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["firm", "client", "-created_at"], name="pricing_fir_cli_cre_idx"),
-            models.Index(fields=["firm", "status"], name="pricing_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="pricing_quo_fir_sta_idx"),
             models.Index(fields=["firm", "quote_number"], name="pricing_fir_quo_idx"),
         ]
         unique_together = [["firm", "quote_number"]]
@@ -470,7 +470,7 @@ class QuoteVersion(models.Model):
         ordering = ["-version_number"]
         indexes = [
             models.Index(fields=["firm", "quote", "-version_number"], name="pricing_fir_quo_ver_idx"),
-            models.Index(fields=["firm", "status"], name="pricing_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="pricing_ver_fir_sta_idx"),
             models.Index(fields=["firm", "ruleset"], name="pricing_fir_rul_idx"),
             models.Index(fields=["correlation_id"], name="pricing_cor_idx"),
         ]

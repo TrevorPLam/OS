@@ -445,7 +445,7 @@ class DeliveryNode(models.Model):
         db_table = "delivery_node"
         ordering = ["node_id"]
         indexes = [
-            models.Index(fields=["firm", "template"], name="delivery_fir_tem_idx"),
+            models.Index(fields=["firm", "template"], name="delivery_nod_fir_tem_idx"),
             models.Index(fields=["type"], name="delivery_typ_idx"),
         ]
         unique_together = [["template", "node_id"]]
@@ -541,7 +541,7 @@ class DeliveryEdge(models.Model):
         db_table = "delivery_edge"
         ordering = ["from_node_id", "to_node_id"]
         indexes = [
-            models.Index(fields=["firm", "template"], name="delivery_fir_tem_idx"),
+            models.Index(fields=["firm", "template"], name="delivery_edg_fir_tem_idx"),
             models.Index(fields=["from_node_id"], name="delivery_fro_idx"),
             models.Index(fields=["to_node_id"], name="delivery_to__idx"),
         ]
@@ -682,8 +682,8 @@ class TemplateInstantiation(models.Model):
         indexes = [
             models.Index(fields=["firm", "-created_at"], name="delivery_fir_cre_idx"),
             models.Index(fields=["template", "-created_at"], name="delivery_tem_cre_idx"),
-            models.Index(fields=["target_engagement"], name="delivery_tar_idx"),
-            models.Index(fields=["target_engagement_line"], name="delivery_tar_idx"),
+            models.Index(fields=["target_engagement"], name="delivery_tar_eng_idx"),
+            models.Index(fields=["target_engagement_line"], name="delivery_tar_lin_idx"),
             models.Index(fields=["correlation_id"], name="delivery_cor_idx"),
         ]
 

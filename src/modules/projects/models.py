@@ -132,7 +132,7 @@ class Expense(models.Model):
         db_table = "projects_expenses"
         ordering = ["-date", "-created_at"]
         indexes = [
-            models.Index(fields=["project", "status"], name="projects_pro_sta_idx"),
+            models.Index(fields=["project", "status"], name="projects_exp_pro_sta_idx"),
             models.Index(fields=["submitted_by", "status"], name="projects_sub_sta_idx"),
             models.Index(fields=["date"], name="projects_dat_idx"),
         ]
@@ -638,7 +638,7 @@ class Task(models.Model):
         db_table = "projects_tasks"
         ordering = ["position", "-created_at"]
         indexes = [
-            models.Index(fields=["project", "status"], name="projects_pro_sta_idx"),
+            models.Index(fields=["project", "status"], name="projects_tsk_pro_sta_idx"),
             models.Index(fields=["assigned_to"], name="projects_ass_idx"),
         ]
 

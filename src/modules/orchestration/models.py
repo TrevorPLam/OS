@@ -118,7 +118,7 @@ class OrchestrationDefinition(models.Model):
         ordering = ["-version"]
         indexes = [
             models.Index(fields=["firm", "code", "-version"], name="orchestrat_fir_cod_ver_idx"),
-            models.Index(fields=["firm", "status"], name="orchestrat_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="orchestrat_def_fir_sta_idx"),
         ]
         unique_together = [["firm", "code", "version"]]
 
@@ -272,7 +272,7 @@ class OrchestrationExecution(models.Model):
         indexes = [
             models.Index(fields=["firm", "status", "-started_at"], name="orchestrat_fir_sta_sta_idx"),
             models.Index(fields=["firm", "definition", "-started_at"], name="orchestrat_fir_def_sta_idx"),
-            models.Index(fields=["idempotency_key"], name="orchestrat_ide_idx"),
+            models.Index(fields=["idempotency_key"], name="orchestrat_exe_ide_idx"),
             models.Index(fields=["correlation_id"], name="orchestrat_cor_idx"),
             models.Index(fields=["target_object_type", "target_object_id"], name="orchestrat_tar_tar_idx"),
         ]
@@ -434,8 +434,8 @@ class StepExecution(models.Model):
         ordering = ["execution", "step_id", "attempt_number"]
         indexes = [
             models.Index(fields=["firm", "execution", "step_id"], name="orchestrat_fir_exe_ste_idx"),
-            models.Index(fields=["firm", "status"], name="orchestrat_fir_sta_idx"),
-            models.Index(fields=["idempotency_key"], name="orchestrat_ide_idx"),
+            models.Index(fields=["firm", "status"], name="orchestrat_stp_fir_sta_idx"),
+            models.Index(fields=["idempotency_key"], name="orchestrat_stp_ide_idx"),
             models.Index(fields=["retry_after_at"], name="orchestrat_ret_idx"),
         ]
 

@@ -452,7 +452,7 @@ class PaymentDispute(models.Model):
         indexes = [
             models.Index(fields=["firm", "status", "-opened_at"], name="finance_fir_sta_ope_idx"),
             models.Index(fields=["invoice", "-opened_at"], name="finance_inv_ope_idx"),
-            models.Index(fields=["stripe_dispute_id"], name="finance_str_idx"),
+            models.Index(fields=["stripe_dispute_id"], name="finance_dis_str_idx"),
         ]
 
     def __str__(self) -> str:
@@ -577,7 +577,7 @@ class PaymentFailure(models.Model):
             models.Index(fields=["firm", "resolved", "-failed_at"], name="finance_fir_res_fai_idx"),
             models.Index(fields=["invoice", "-failed_at"], name="finance_inv_fai_idx"),
             models.Index(fields=["client", "-failed_at"], name="finance_cli_fai_idx"),
-            models.Index(fields=["stripe_payment_intent_id"], name="finance_str_idx"),
+            models.Index(fields=["stripe_payment_intent_id"], name="finance_fai_str_idx"),
             models.Index(fields=["next_retry_at"], name="finance_nex_idx"),
         ]
 
@@ -705,7 +705,7 @@ class Chargeback(models.Model):
             models.Index(fields=["firm", "status", "-initiated_at"], name="finance_fir_sta_ini_idx"),
             models.Index(fields=["invoice", "-initiated_at"], name="finance_inv_ini_idx"),
             models.Index(fields=["client", "-initiated_at"], name="finance_cli_ini_idx"),
-            models.Index(fields=["stripe_chargeback_id"], name="finance_str_idx"),
+            models.Index(fields=["stripe_chargeback_id"], name="finance_chb_str_idx"),
         ]
 
     def __str__(self) -> str:
@@ -1312,7 +1312,7 @@ class Payment(models.Model):
         indexes = [
             models.Index(fields=["firm", "client", "-payment_date"], name="finance_fir_cli_pay_idx"),
             models.Index(fields=["firm", "status"], name="finance_fir_sta_idx"),
-            models.Index(fields=["firm", "payment_number"], name="finance_fir_pay_idx"),
+            models.Index(fields=["firm", "payment_number"], name="finance_fir_pay_num_idx"),
         ]
         unique_together = [["firm", "payment_number"]]
     
@@ -1402,7 +1402,7 @@ class PaymentAllocation(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
-        related_name="created_allocations",
+        related_name="created_payment_allocations",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -1414,7 +1414,7 @@ class PaymentAllocation(models.Model):
         db_table = "finance_payment_allocations"
         ordering = ["-allocation_date", "-created_at"]
         indexes = [
-            models.Index(fields=["firm", "payment"], name="finance_fir_pay_idx"),
+            models.Index(fields=["firm", "payment"], name="finance_all_fir_pay_idx"),
             models.Index(fields=["firm", "invoice"], name="finance_fir_inv_idx"),
             models.Index(fields=["allocation_date"], name="finance_all_idx"),
         ]
