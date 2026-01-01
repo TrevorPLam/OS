@@ -5,6 +5,7 @@ Authentication Serializers.
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from modules.auth.models import SAMLConfiguration
 
 User = get_user_model()
 
@@ -56,3 +57,31 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     old_password = serializers.CharField(required=True, write_only=True)
     new_password = serializers.CharField(required=True, write_only=True, validators=[validate_password])
+
+
+class SAMLConfigurationSerializer(serializers.ModelSerializer):
+    """
+    Sprint 1.8: Serializer for SAML Configuration.
+    """
+    
+    class Meta:
+        model = SAMLConfiguration
+        fields = [
+            "id",
+            "name",
+            "sp_entity_id",
+            "sp_public_cert",
+            "sp_private_key",
+            "idp_entity_id",
+            "idp_sso_url",
+            "idp_slo_url",
+            "idp_x509_cert",
+            "attribute_mapping",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+        extra_kwargs = {
+            "sp_private_key": {"write_only": True},
+        }

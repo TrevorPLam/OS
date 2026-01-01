@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",  # Required for django-allauth
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
@@ -45,6 +46,15 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    # Sprint 1: OAuth/SAML/MFA Authentication
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.microsoft",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
+    "django_otp.plugins.otp_static",
     # USP Business Modules (Organized by Domain)
     "modules.core",  # TIER 3: Shared infrastructure (purge, audit utilities)
     "modules.firm",  # TIER 0: Multi-tenant foundation (Workspace/Firm)
@@ -79,6 +89,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    # Sprint 1: Django-allauth middleware (must come after AuthenticationMiddleware)
+    "allauth.account.middleware.AccountMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # TIER 5.5: Operational observability (non-content telemetry)
@@ -252,6 +264,74 @@ KMS_BACKEND = os.environ.get("KMS_BACKEND", "local")
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+
+# =============================================================================
+# Sprint 1: OAuth/SAML/MFA Authentication Configuration
+# =============================================================================
+
+# Site ID for django.contrib.sites (required by django-allauth)
+SITE_ID = 1
+
+# Django-allauth Configuration
+AUTHENTICATION_BACKENDS = [
+    # Django default
+    "django.contrib.auth.backends.ModelBackend",
+    # django-allauth OAuth providers
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# Allauth settings
+ACCOUNT_AUTHENTICATION_METHOD = "username_email"  # Allow both username and email
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"  # Set to "mandatory" in production
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = "optional"
+
+# OAuth Provider Credentials (Google)
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.environ.get("GOOGLE_OAUTH_CLIENT_ID", ""),
+            "secret": os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", ""),
+            "key": "",
+        },
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    },
+    "microsoft": {
+        "APP": {
+            "client_id": os.environ.get("MICROSOFT_OAUTH_CLIENT_ID", ""),
+            "secret": os.environ.get("MICROSOFT_OAUTH_CLIENT_SECRET", ""),
+            "key": "",
+        },
+        "SCOPE": [
+            "User.Read",
+            "email",
+        ],
+    },
+}
+
+# SAML Configuration
+SAML_ENABLED = os.environ.get("SAML_ENABLED", "False") == "True"
+SAML_IDP_METADATA_URL = os.environ.get("SAML_IDP_METADATA_URL", "")
+SAML_SP_ENTITY_ID = os.environ.get("SAML_SP_ENTITY_ID", "")
+SAML_SP_PUBLIC_CERT = os.environ.get("SAML_SP_PUBLIC_CERT", "")
+SAML_SP_PRIVATE_KEY = os.environ.get("SAML_SP_PRIVATE_KEY", "")
+
+# MFA/OTP Configuration
+OTP_TOTP_ISSUER = "ConsultantPro"
+OTP_LOGIN_URL = "/api/auth/mfa/verify/"
+
+# SMS OTP settings (integrates with existing SMS module)
+SMS_OTP_ENABLED = True
+SMS_OTP_LENGTH = 6
+SMS_OTP_VALIDITY_MINUTES = 10
 
 # API Documentation with drf-spectacular
 SPECTACULAR_SETTINGS = {
