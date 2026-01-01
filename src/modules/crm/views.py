@@ -25,6 +25,9 @@ from modules.crm.models import (
     IntakeFormField,
     IntakeFormSubmission,
     Lead,
+    Product,
+    ProductConfiguration,
+    ProductOption,
     Proposal,
     Prospect,
 )
@@ -38,6 +41,10 @@ from modules.crm.serializers import (
     IntakeFormFieldSerializer,
     IntakeFormSubmissionSerializer,
     LeadSerializer,
+    ProductConfigurationCreateSerializer,
+    ProductConfigurationSerializer,
+    ProductOptionSerializer,
+    ProductSerializer,
     ProposalSerializer,
     ProspectSerializer,
 )
@@ -488,4 +495,192 @@ class IntakeFormSubmissionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         return Response({
             "message": "Lead created successfully",
             "lead": lead_serializer.data
+        })
+
+
+# ============================================================================
+# CPQ (Configure-Price-Quote) ViewSets - Task 3.5
+# ============================================================================
+
+
+class ProductViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Product management (CPQ - Task 3.5).
+    
+    Provides CRUD operations for products in the CPQ system.
+    """
+    
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["product_type", "status", "is_configurable", "category"]
+    search_fields = ["code", "name", "description"]
+    ordering_fields = ["name", "code", "base_price", "created_at"]
+    ordering = ["name"]
+    
+    def perform_create(self, serializer):
+        """Set firm and created_by on create."""
+        firm = get_request_firm(self.request)
+        serializer.save(firm=firm, created_by=self.request.user)
+    
+    @action(detail=True, methods=["get"])
+    def options(self, request, pk=None):
+        """Get all options for a product."""
+        product = self.get_object()
+        options = product.options.all()
+        serializer = ProductOptionSerializer(options, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=["get"])
+    def configurations(self, request, pk=None):
+        """Get all configurations for a product."""
+        product = self.get_object()
+        configurations = product.configurations.all()
+        serializer = ProductConfigurationSerializer(configurations, many=True)
+        return Response(serializer.data)
+
+
+class ProductOptionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for ProductOption management (CPQ - Task 3.5).
+    
+    Provides CRUD operations for product options.
+    """
+    
+    queryset = ProductOption.objects.all()
+    serializer_class = ProductOptionSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["product", "option_type", "required"]
+    ordering_fields = ["display_order", "label"]
+    ordering = ["display_order"]
+    
+    def get_queryset(self):
+        """Filter queryset by firm through product relationship."""
+        firm = get_request_firm(self.request)
+        return self.queryset.filter(product__firm=firm)
+
+
+class ProductConfigurationViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for ProductConfiguration management (CPQ - Task 3.5).
+    
+    Provides CRUD operations for product configurations with pricing calculation.
+    """
+    
+    queryset = ProductConfiguration.objects.all()
+    serializer_class = ProductConfigurationSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["product", "status", "quote"]
+    ordering_fields = ["created_at", "configuration_price"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Filter queryset by firm through product relationship."""
+        firm = get_request_firm(self.request)
+        return self.queryset.filter(product__firm=firm)
+    
+    def get_serializer_class(self):
+        """Use different serializer for create action."""
+        if self.action == "create":
+            return ProductConfigurationCreateSerializer
+        return ProductConfigurationSerializer
+    
+    def perform_create(self, serializer):
+        """Set created_by on create and validate configuration."""
+        serializer.save(created_by=self.request.user)
+    
+    @action(detail=True, methods=["post"])
+    def validate(self, request, pk=None):
+        """Validate configuration against product rules."""
+        configuration = self.get_object()
+        is_valid, errors = configuration.validate_configuration()
+        configuration.save()
+        
+        return Response({
+            "is_valid": is_valid,
+            "errors": errors,
+            "status": configuration.status,
+            "validation_errors": configuration.validation_errors,
+        })
+    
+    @action(detail=True, methods=["post"])
+    def recalculate_price(self, request, pk=None):
+        """Recalculate pricing for configuration."""
+        configuration = self.get_object()
+        
+        # Update discount if provided
+        if "discount_percentage" in request.data:
+            discount = request.data["discount_percentage"]
+            configuration.discount_percentage = discount
+        
+        # Recalculate price
+        configuration.calculate_price()
+        configuration.save()
+        
+        serializer = self.get_serializer(configuration)
+        return Response({
+            "message": "Price recalculated successfully",
+            "configuration": serializer.data,
+        })
+    
+    @action(detail=True, methods=["post"])
+    def create_quote(self, request, pk=None):
+        """Create a Quote from this configuration."""
+        configuration = self.get_object()
+        
+        # Validate configuration first
+        is_valid, errors = configuration.validate_configuration()
+        if not is_valid:
+            return Response(
+                {
+                    "error": "Configuration is invalid",
+                    "validation_errors": errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if quote already exists
+        if configuration.quote:
+            return Response(
+                {"error": "Quote already exists for this configuration"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get required data from request
+        client_id = request.data.get("client_id")
+        quote_number = request.data.get("quote_number")
+        valid_until = request.data.get("valid_until")
+        
+        if not client_id or not quote_number:
+            return Response(
+                {"error": "client_id and quote_number are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Import Quote model (avoid circular import)
+        from modules.pricing.models import Quote
+        
+        # Create quote
+        firm = get_request_firm(request)
+        quote = Quote.objects.create(
+            firm=firm,
+            quote_number=quote_number,
+            client_id=client_id,
+            status="draft",
+            valid_until=valid_until,
+            created_by=request.user,
+        )
+        
+        # Link configuration to quote
+        configuration.quote = quote
+        configuration.status = "quoted"
+        configuration.save()
+        
+        return Response({
+            "message": "Quote created successfully",
+            "quote_id": quote.id,
+            "quote_number": quote.quote_number,
         })

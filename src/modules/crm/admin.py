@@ -14,6 +14,9 @@ from .models import (
     IntakeFormField,
     IntakeFormSubmission,
     Lead,
+    Product,
+    ProductConfiguration,
+    ProductOption,
     Proposal,
     Prospect,
 )
@@ -632,3 +635,211 @@ class IntakeFormSubmissionAdmin(admin.ModelAdmin):
         self.message_user(request, f"Marked {count} submission(s) as spam.")
     
     mark_as_spam.short_description = "Mark as spam"
+
+
+# ============================================================================
+# CPQ (Configure-Price-Quote) Admin - Task 3.5
+# ============================================================================
+
+
+class ProductOptionInline(admin.TabularInline):
+    """Inline admin for ProductOption within Product admin."""
+    model = ProductOption
+    extra = 0
+    fields = [
+        "code",
+        "label",
+        "option_type",
+        "required",
+        "display_order",
+        "price_modifier",
+        "price_multiplier",
+    ]
+    readonly_fields = ["created_at", "updated_at"]
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    """Admin interface for Product model (CPQ)."""
+    
+    list_display = [
+        "code",
+        "name",
+        "product_type",
+        "status",
+        "base_price",
+        "currency",
+        "is_configurable",
+        "created_at",
+    ]
+    list_filter = ["product_type", "status", "is_configurable", "category"]
+    search_fields = ["code", "name", "description", "category"]
+    readonly_fields = ["created_at", "created_by", "updated_at"]
+    raw_id_fields = ["created_by"]
+    inlines = [ProductOptionInline]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("firm", "code", "name", "description", "product_type", "status")
+        }),
+        ("Pricing", {
+            "fields": ("base_price", "currency")
+        }),
+        ("Configuration", {
+            "fields": ("is_configurable", "configuration_schema")
+        }),
+        ("Metadata", {
+            "fields": ("category", "tags")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "created_by", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        """Set created_by on first save."""
+        if not change:
+            obj.created_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(ProductOption)
+class ProductOptionAdmin(admin.ModelAdmin):
+    """Admin interface for ProductOption model (CPQ)."""
+    
+    list_display = [
+        "product",
+        "code",
+        "label",
+        "option_type",
+        "required",
+        "display_order",
+        "price_modifier",
+        "price_multiplier",
+    ]
+    list_filter = ["option_type", "required", "product__product_type"]
+    search_fields = ["code", "label", "description", "product__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["product"]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("product", "code", "label", "description", "option_type")
+        }),
+        ("Configuration", {
+            "fields": ("required", "display_order", "values")
+        }),
+        ("Pricing Impact", {
+            "fields": ("price_modifier", "price_multiplier")
+        }),
+        ("Dependencies", {
+            "fields": ("dependency_rules",),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(ProductConfiguration)
+class ProductConfigurationAdmin(admin.ModelAdmin):
+    """Admin interface for ProductConfiguration model (CPQ)."""
+    
+    list_display = [
+        "id",
+        "product",
+        "configuration_name",
+        "status",
+        "base_price",
+        "configuration_price",
+        "discount_percentage",
+        "quote",
+        "created_at",
+    ]
+    list_filter = ["status", "product__product_type"]
+    search_fields = ["configuration_name", "product__name", "product__code"]
+    readonly_fields = [
+        "base_price",
+        "configuration_price",
+        "discount_amount",
+        "price_breakdown",
+        "validation_errors",
+        "created_at",
+        "created_by",
+        "updated_at",
+    ]
+    raw_id_fields = ["product", "quote", "created_by"]
+    actions = ["validate_configurations", "recalculate_prices"]
+    
+    fieldsets = (
+        ("Product", {
+            "fields": ("product",)
+        }),
+        ("Configuration", {
+            "fields": ("configuration_name", "selected_options", "status")
+        }),
+        ("Pricing", {
+            "fields": (
+                "base_price",
+                "configuration_price",
+                "discount_percentage",
+                "discount_amount",
+                "price_breakdown",
+            )
+        }),
+        ("Validation", {
+            "fields": ("validation_errors",),
+            "classes": ("collapse",)
+        }),
+        ("Quote Reference", {
+            "fields": ("quote",),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "created_by", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    def save_model(self, request, obj, form, change):
+        """Set created_by on first save and validate configuration."""
+        if not change:
+            obj.created_by = request.user
+        
+        # Validate configuration before saving
+        obj.validate_configuration()
+        super().save_model(request, obj, form, change)
+    
+    def validate_configurations(self, request, queryset):
+        """Admin action to validate selected configurations."""
+        count = 0
+        errors = 0
+        for config in queryset:
+            is_valid, _ = config.validate_configuration()
+            config.save()
+            if is_valid:
+                count += 1
+            else:
+                errors += 1
+        
+        self.message_user(
+            request,
+            f"Validated {count + errors} configuration(s): {count} valid, {errors} with errors."
+        )
+    
+    validate_configurations.short_description = "Validate configurations"
+    
+    def recalculate_prices(self, request, queryset):
+        """Admin action to recalculate prices for selected configurations."""
+        count = 0
+        for config in queryset:
+            config.calculate_price()
+            config.save()
+            count += 1
+        
+        self.message_user(request, f"Recalculated prices for {count} configuration(s).")
+    
+    recalculate_prices.short_description = "Recalculate prices"

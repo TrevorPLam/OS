@@ -177,7 +177,17 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
   - Full admin interface with inline field editing
   - API endpoints with score calculation and lead creation
   - Documentation: docs/03-reference/intake-forms.md
-- [ ] 3.5 Implement CPQ (Configure-Price-Quote) engine (CRM)
+- [x] 3.5 Implement CPQ (Configure-Price-Quote) engine (CRM) ✅ Completed
+  - Product model for product catalog management
+  - ProductOption model for configurable product options
+  - ProductConfiguration model with automatic price calculation
+  - Dependency rules for complex configurations
+  - Discount management and validation
+  - Quote creation from configurations
+  - Full admin interface with inline option editing
+  - API endpoints with validation and price recalculation actions
+  - Database migration created (0006_add_cpq_models.py)
+  - Documentation: docs/03-reference/cpq-system.md
 - [ ] 3.6 Add Gantt chart/timeline view for projects (Projects)
 - [ ] 3.7 Build general webhook platform (Integration)
 - [ ] 3.8 Add email/calendar sync integration (Integration)
