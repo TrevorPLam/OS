@@ -4,7 +4,7 @@ Django Admin configuration for Projects models.
 
 from django.contrib import admin
 
-from .models import Project, Task, TimeEntry
+from .models import Project, ResourceAllocation, ResourceCapacity, Task, TimeEntry
 
 
 @admin.register(Project)
@@ -68,5 +68,64 @@ class TimeEntryAdmin(admin.ModelAdmin):
         ("Time Information", {"fields": ("date", "user", "project", "task", "hours", "description")}),
         ("Billing", {"fields": ("is_billable", "hourly_rate", "billed_amount")}),
         ("Invoicing", {"fields": ("invoiced", "invoice")}),
+        ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(ResourceAllocation)
+class ResourceAllocationAdmin(admin.ModelAdmin):
+    list_display = [
+        "resource",
+        "project",
+        "allocation_percentage",
+        "role",
+        "start_date",
+        "end_date",
+        "status",
+        "is_billable",
+    ]
+    list_filter = ["status", "allocation_type", "is_billable", "start_date"]
+    search_fields = ["resource__username", "resource__first_name", "resource__last_name", "project__name", "role"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["project", "resource", "created_by"]
+    
+    fieldsets = (
+        ("Allocation", {
+            "fields": ("project", "resource", "allocation_type", "allocation_percentage", "role")
+        }),
+        ("Timeline", {
+            "fields": ("start_date", "end_date", "status")
+        }),
+        ("Financial", {
+            "fields": ("hourly_rate", "is_billable")
+        }),
+        ("Notes", {"fields": ("notes",)}),
+        ("Audit", {"fields": ("created_by", "created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(ResourceCapacity)
+class ResourceCapacityAdmin(admin.ModelAdmin):
+    list_display = [
+        "resource",
+        "date",
+        "available_hours",
+        "unavailable_hours",
+        "net_available_hours",
+        "unavailability_type",
+    ]
+    list_filter = ["date", "unavailability_type", "firm"]
+    search_fields = ["resource__username", "resource__first_name", "resource__last_name"]
+    readonly_fields = ["created_at", "updated_at", "net_available_hours"]
+    raw_id_fields = ["resource", "firm"]
+    
+    fieldsets = (
+        ("Resource & Date", {
+            "fields": ("firm", "resource", "date")
+        }),
+        ("Capacity", {
+            "fields": ("available_hours", "unavailable_hours", "net_available_hours", "unavailability_type")
+        }),
+        ("Notes", {"fields": ("notes",)}),
         ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
