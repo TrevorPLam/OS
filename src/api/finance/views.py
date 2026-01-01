@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import DenyPortalAccess
-from modules.finance.models import Bill, Invoice, LedgerEntry, Payment, PaymentAllocation
+from modules.finance.models import Bill, Invoice, LedgerEntry, Payment, PaymentAllocation, ProjectProfitability, ServiceLineProfitability
 from modules.firm.utils import FirmScopedMixin
 
 from .serializers import (
@@ -26,6 +26,8 @@ from .serializers import (
     LedgerEntrySerializer,
     PaymentSerializer,
     PaymentAllocationSerializer,
+    ProjectProfitabilitySerializer,
+    ServiceLineProfitabilitySerializer,
 )
 
 
@@ -207,3 +209,67 @@ class PaymentAllocationViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.Mode
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
         return base_queryset.select_related("payment", "invoice", "created_by")
+
+
+class ProjectProfitabilityViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Project Profitability (Task 3.3).
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    Provides profitability analysis for individual projects.
+    """
+    
+    model = ProjectProfitability
+    serializer_class = ProjectProfitabilitySerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["project"]
+    search_fields = ["project__name", "project__client__company_name"]
+    ordering_fields = ["gross_margin_percentage", "net_margin_percentage", "total_revenue", "last_calculated_at"]
+    ordering = ["-last_calculated_at"]
+    
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related("project", "project__client", "firm")
+    
+    @action(detail=True, methods=["post"])
+    def recalculate(self, request, pk=None):
+        """Recalculate profitability for this project."""
+        profitability = self.get_object()
+        profitability.calculate_profitability()
+        serializer = self.get_serializer(profitability)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=["post"])
+    def recalculate_all(self, request):
+        """Recalculate profitability for all projects."""
+        queryset = self.get_queryset()
+        count = 0
+        for record in queryset:
+            record.calculate_profitability()
+            count += 1
+        return Response({"message": f"Recalculated profitability for {count} project(s)."})
+
+
+class ServiceLineProfitabilityViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Service Line Profitability (Task 3.3).
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    Provides aggregated profitability analysis across service lines.
+    """
+    
+    model = ServiceLineProfitability
+    serializer_class = ServiceLineProfitabilitySerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["name", "period_start", "period_end"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["margin_percentage", "total_revenue", "period_start"]
+    ordering = ["-period_start", "-period_end"]
+    
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related("firm")

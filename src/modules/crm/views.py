@@ -21,6 +21,9 @@ from modules.crm.models import (
     AccountRelationship,
     Campaign,
     Contract,
+    IntakeForm,
+    IntakeFormField,
+    IntakeFormSubmission,
     Lead,
     Proposal,
     Prospect,
@@ -31,6 +34,9 @@ from modules.crm.serializers import (
     AccountSerializer,
     CampaignSerializer,
     ContractSerializer,
+    IntakeFormSerializer,
+    IntakeFormFieldSerializer,
+    IntakeFormSubmissionSerializer,
     LeadSerializer,
     ProposalSerializer,
     ProspectSerializer,
@@ -383,3 +389,103 @@ class ContractViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
     search_fields = ["contract_number", "title"]
     ordering_fields = ["contract_number", "start_date", "total_value"]
     ordering = ["-created_at"]
+
+
+class IntakeFormViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Intake Forms (Task 3.4).
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    Supports CRUD operations for intake forms with embedded fields.
+    """
+    
+    model = IntakeForm
+    serializer_class = IntakeFormSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["status", "qualification_enabled", "auto_create_lead"]
+    search_fields = ["name", "title", "description"]
+    ordering_fields = ["name", "submission_count", "created_at"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Override to prefetch fields for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.prefetch_related("fields")
+
+
+class IntakeFormFieldViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Intake Form Fields (Task 3.4).
+    
+    Note: No FirmScopedMixin as fields belong to forms, not directly to firms.
+    Access control through form ownership.
+    """
+    
+    model = IntakeFormField
+    serializer_class = IntakeFormFieldSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["form", "field_type", "required", "scoring_enabled"]
+    search_fields = ["label"]
+    ordering_fields = ["order", "created_at"]
+    ordering = ["form", "order"]
+    
+    def get_queryset(self):
+        """Filter to only show fields from forms in user's firm."""
+        user = self.request.user
+        return IntakeFormField.objects.filter(form__firm=user.firm).select_related("form")
+
+
+class IntakeFormSubmissionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Intake Form Submissions (Task 3.4).
+    
+    Note: No FirmScopedMixin as submissions belong to forms, not directly to firms.
+    Access control through form ownership.
+    """
+    
+    model = IntakeFormSubmission
+    serializer_class = IntakeFormSubmissionSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["form", "status", "is_qualified"]
+    search_fields = ["submitter_email", "submitter_name", "submitter_company"]
+    ordering_fields = ["qualification_score", "created_at"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Filter to only show submissions from forms in user's firm."""
+        user = self.request.user
+        return IntakeFormSubmission.objects.filter(form__firm=user.firm).select_related(
+            "form", "lead", "prospect", "reviewed_by"
+        )
+    
+    @action(detail=True, methods=["post"])
+    def calculate_score(self, request, pk=None):
+        """Calculate qualification score for this submission."""
+        submission = self.get_object()
+        score = submission.calculate_qualification_score()
+        serializer = self.get_serializer(submission)
+        return Response({
+            "score": score,
+            "is_qualified": submission.is_qualified,
+            "submission": serializer.data
+        })
+    
+    @action(detail=True, methods=["post"])
+    def create_lead(self, request, pk=None):
+        """Create a Lead record from this submission."""
+        submission = self.get_object()
+        if submission.lead:
+            return Response(
+                {"error": "Lead already exists for this submission"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        lead = submission.create_lead()
+        from modules.crm.serializers import LeadSerializer
+        lead_serializer = LeadSerializer(lead)
+        return Response({
+            "message": "Lead created successfully",
+            "lead": lead_serializer.data
+        })

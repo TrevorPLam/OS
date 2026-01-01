@@ -161,8 +161,22 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
   - Conflict detection and availability reporting
   - Full admin interface, serializers, and ViewSets
   - Documentation: docs/03-reference/resource-planning.md
-- [ ] 3.3 Add profitability reporting with margin analysis (Finance)
-- [ ] 3.4 Build intake form system with qualification logic (CRM)
+- [x] 3.3 Add profitability reporting with margin analysis (Finance) ✅ Completed
+  - ProjectProfitability model for individual project analysis
+  - ServiceLineProfitability model for service line aggregation
+  - Real-time margin calculations and forecasting
+  - Full admin interface with recalculation actions
+  - API endpoints with filtering and bulk operations
+  - Documentation: docs/03-reference/profitability-reporting.md
+- [x] 3.4 Build intake form system with qualification logic (CRM) ✅ Completed
+  - IntakeForm model for customizable lead capture forms
+  - IntakeFormField model for dynamic field definitions
+  - IntakeFormSubmission model with automatic scoring
+  - Qualification logic with configurable thresholds
+  - Auto-create leads from qualified submissions
+  - Full admin interface with inline field editing
+  - API endpoints with score calculation and lead creation
+  - Documentation: docs/03-reference/intake-forms.md
 - [ ] 3.5 Implement CPQ (Configure-Price-Quote) engine (CRM)
 - [ ] 3.6 Add Gantt chart/timeline view for projects (Projects)
 - [ ] 3.7 Build general webhook platform (Integration)

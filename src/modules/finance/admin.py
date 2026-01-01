@@ -4,7 +4,7 @@ Django Admin configuration for Finance models.
 
 from django.contrib import admin
 
-from .models import Bill, Invoice, LedgerEntry
+from .models import Bill, Invoice, LedgerEntry, ProjectProfitability, ServiceLineProfitability
 
 
 @admin.register(Invoice)
@@ -68,4 +68,95 @@ class LedgerEntryAdmin(admin.ModelAdmin):
         ("Entry Information", {"fields": ("transaction_date", "entry_type", "account", "amount", "description")}),
         ("References", {"fields": ("invoice", "bill", "transaction_group_id")}),
         ("Audit", {"fields": ("created_by", "created_at"), "classes": ("collapse",)}),
+    )
+
+
+@admin.register(ProjectProfitability)
+class ProjectProfitabilityAdmin(admin.ModelAdmin):
+    """Admin interface for Project Profitability (Task 3.3)."""
+    
+    list_display = [
+        "project",
+        "total_revenue",
+        "gross_margin",
+        "gross_margin_percentage",
+        "net_margin_percentage",
+        "hours_logged",
+        "billable_utilization",
+        "last_calculated_at",
+    ]
+    list_filter = ["last_calculated_at", "firm"]
+    search_fields = ["project__name", "project__client__company_name"]
+    readonly_fields = [
+        "total_revenue",
+        "recognized_revenue",
+        "labor_cost",
+        "expense_cost",
+        "overhead_cost",
+        "gross_margin",
+        "gross_margin_percentage",
+        "net_margin",
+        "net_margin_percentage",
+        "hours_logged",
+        "billable_utilization",
+        "last_calculated_at",
+        "created_at",
+    ]
+    
+    fieldsets = (
+        ("Project", {"fields": ("firm", "project")}),
+        ("Revenue", {"fields": ("total_revenue", "recognized_revenue")}),
+        ("Costs", {"fields": ("labor_cost", "expense_cost", "overhead_cost")}),
+        ("Margins", {"fields": ("gross_margin", "gross_margin_percentage", "net_margin", "net_margin_percentage")}),
+        ("Metrics", {"fields": ("hours_logged", "billable_utilization")}),
+        ("Forecasting", {"fields": ("estimated_completion_cost", "estimated_final_margin")}),
+        ("Timestamps", {"fields": ("last_calculated_at", "created_at"), "classes": ("collapse",)}),
+    )
+    
+    actions = ["recalculate_profitability"]
+    
+    def recalculate_profitability(self, request, queryset):
+        """Admin action to recalculate profitability for selected records."""
+        count = 0
+        for record in queryset:
+            record.calculate_profitability()
+            count += 1
+        self.message_user(request, f"Recalculated profitability for {count} project(s).")
+    
+    recalculate_profitability.short_description = "Recalculate profitability"
+
+
+@admin.register(ServiceLineProfitability)
+class ServiceLineProfitabilityAdmin(admin.ModelAdmin):
+    """Admin interface for Service Line Profitability (Task 3.3)."""
+    
+    list_display = [
+        "name",
+        "period_start",
+        "period_end",
+        "project_count",
+        "total_revenue",
+        "gross_margin",
+        "margin_percentage",
+        "last_calculated_at",
+    ]
+    list_filter = ["firm", "period_start", "period_end"]
+    search_fields = ["name", "description"]
+    readonly_fields = [
+        "total_revenue",
+        "total_cost",
+        "gross_margin",
+        "margin_percentage",
+        "project_count",
+        "active_project_count",
+        "last_calculated_at",
+        "created_at",
+    ]
+    
+    fieldsets = (
+        ("Service Line", {"fields": ("firm", "name", "description")}),
+        ("Period", {"fields": ("period_start", "period_end")}),
+        ("Metrics", {"fields": ("total_revenue", "total_cost", "gross_margin", "margin_percentage")}),
+        ("Projects", {"fields": ("project_count", "active_project_count")}),
+        ("Timestamps", {"fields": ("last_calculated_at", "created_at"), "classes": ("collapse",)}),
     )
