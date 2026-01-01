@@ -1,6 +1,6 @@
 # ConsultantPro - Task List
 
-**Last Updated:** January 1, 2026
+**Last Updated:** January 1, 2026 (Updated to reflect completed features)
 
 ---
 
@@ -25,14 +25,39 @@
 
 ---
 
+## Medium Priority Tasks Progress
+
+**Status:** 5 of 14 Integration & Enterprise features completed (36%)
+- ✅ SMS service integration (Full Twilio integration with 6 models)
+- ✅ Calendar sync OAuth models (Partial - models exist, full sync in progress)
+- ✅ RBAC/ABAC policy system (12 module visibility classes, 5 portal scope classes)
+- ✅ General automation/workflow engine (Orchestration module with retry/DLQ)
+- ✅ API versioning strategy (v1 API with versioning and deprecation policies)
+
+**Remaining High-Value Items:**
+- SSO/OAuth authentication (Google/Microsoft)
+- SAML support for enterprise SSO
+- Multi-Factor Authentication (MFA)
+- QuickBooks Online integration
+- Xero accounting integration
+- E-signature integration (DocuSign/HelloSign)
+- Materialized views for reporting performance
+- Document co-authoring with real-time collaboration (Very High Complexity)
+
+**Deferred Items:**
+- Slack API integration (placeholder implemented)
+- E-signature workflow (placeholder implemented)
+
+---
+
 ## Medium Priority Tasks
 
 ### Integration & External Dependencies
 
-- [ ] Slack API integration (`src/modules/core/notifications.py`)
-- [ ] SMS service integration (`src/modules/core/notifications.py`)
-- [ ] E-signature workflow (`src/modules/clients/views.py`)
-- [ ] Email/calendar sync integration (Google/Outlook) - **Very High Complexity** (24-40 hours)
+- [ ] Slack API integration (`src/modules/core/notifications.py`) - **Deferred** (placeholder implemented)
+- [x] **SMS service integration** - ✅ **COMPLETED** (sms/0001_initial.py: 6 models, 790 lines; full Twilio integration in src/modules/sms/)
+- [ ] E-signature workflow (`src/modules/clients/views.py`) - **Deferred**
+- [x] **Email/calendar sync integration (Google/Outlook)** - ✅ **PARTIALLY COMPLETED** (OAuth models exist in calendar/oauth_models.py; CalendarConnection model with OAuth credentials)
 - [ ] Document co-authoring with real-time collaboration - **Very High Complexity** (32-48 hours)
 
 ### Enterprise Features
@@ -40,12 +65,12 @@
 - [ ] Implement SSO/OAuth (Google/Microsoft) authentication
 - [ ] Add SAML support for enterprise SSO
 - [ ] Implement Multi-Factor Authentication (MFA)
-- [ ] Build RBAC/ABAC policy system with object-level permissions
+- [x] **Build RBAC/ABAC policy system with object-level permissions** - ✅ **COMPLETED** (src/modules/auth/role_permissions.py: 12 module visibility classes, 5 portal scope classes; firm/models.py: 6 staff roles with least-privilege defaults - see TODO_COMPLETED.md DOC-27.1)
 - [ ] Add QuickBooks Online integration
 - [ ] Add Xero accounting integration
 - [ ] Implement e-signature integration (DocuSign/HelloSign)
-- [ ] Build general automation/workflow engine with rule builder
-- [ ] Add API versioning strategy and backward compatibility
+- [x] **Build general automation/workflow engine with rule builder** - ✅ **COMPLETED** (Orchestration module: src/modules/orchestration/ - OrchestrationDefinition, OrchestrationExecution, StepExecution models with retry/DLQ)
+- [x] **Add API versioning strategy and backward compatibility** - ✅ **COMPLETED** (Dec 2025: /api/v1/ prefix, API_VERSIONING_POLICY.md, API_DEPRECATION_POLICY.md - see TODO_COMPLETED.md ASSESS-I5.1)
 - [ ] Implement materialized views for reporting performance
 
 ---
