@@ -25,14 +25,51 @@
 
 ---
 
+## Medium Priority Tasks Progress
+
+**Status:** 4 of 14 Integration & Enterprise features completed (29%)
+- ✅ SMS service integration (Full Twilio integration with 6 models)
+- ✅ RBAC/ABAC policy system (12 module visibility classes, 5 portal scope classes)
+- ✅ General automation/workflow engine (Orchestration module with retry/DLQ)
+- ✅ API versioning strategy (v1 API with versioning and deprecation policies)
+
+**In Progress:** 1 feature
+- ⚠️ Calendar sync (OAuth models complete, full integration remaining)
+
+**Low Priority:** 1 of 10 Platform Transformation features completed (10%)
+- ✅ Operational observability (Correlation IDs, metrics collectors, tenant-safe logging)
+
+**Remaining High-Value Items:**
+- SSO/OAuth authentication (Google/Microsoft)
+- SAML support for enterprise SSO
+- Multi-Factor Authentication (MFA)
+- QuickBooks Online integration
+- Xero accounting integration
+- E-signature integration (DocuSign/HelloSign)
+- Materialized views for reporting performance
+- Document co-authoring with real-time collaboration (Very High Complexity)
+
+**Deferred Items:**
+- Slack API integration (placeholder implemented)
+- E-signature workflow (placeholder implemented)
+
+---
+
 ## Medium Priority Tasks
 
 ### Integration & External Dependencies
 
-- [ ] Slack API integration (`src/modules/core/notifications.py`)
-- [ ] SMS service integration (`src/modules/core/notifications.py`)
-- [ ] E-signature workflow (`src/modules/clients/views.py`)
-- [ ] Email/calendar sync integration (Google/Outlook) - **Very High Complexity** (24-40 hours)
+- [ ] Slack API integration - **Deferred**
+  - Placeholder implemented in src/modules/core/notifications.py
+- [x] **SMS service integration** - ✅ **COMPLETED**
+  - Full Twilio integration in src/modules/sms/
+  - Migration: sms/0001_initial.py (6 models, 790 lines)
+- [ ] E-signature workflow - **Deferred**
+  - Placeholder implemented in src/modules/clients/views.py
+- [ ] **Email/calendar sync integration (Google/Outlook)** - ⚠️ **IN PROGRESS**
+  - OAuth models exist in calendar/oauth_models.py ✅
+  - CalendarConnection model with OAuth credentials implemented ✅
+  - Full end-to-end sync implementation remaining (24-40 hours)
 - [ ] Document co-authoring with real-time collaboration - **Very High Complexity** (32-48 hours)
 
 ### Enterprise Features
@@ -40,12 +77,21 @@
 - [ ] Implement SSO/OAuth (Google/Microsoft) authentication
 - [ ] Add SAML support for enterprise SSO
 - [ ] Implement Multi-Factor Authentication (MFA)
-- [ ] Build RBAC/ABAC policy system with object-level permissions
+- [x] **Build RBAC/ABAC policy system with object-level permissions** - ✅ **COMPLETED**
+  - 12 module visibility classes, 5 portal scope classes (src/modules/auth/role_permissions.py)
+  - 6 staff roles with least-privilege defaults (firm/models.py)
+  - See TODO_COMPLETED.md DOC-27.1
 - [ ] Add QuickBooks Online integration
 - [ ] Add Xero accounting integration
 - [ ] Implement e-signature integration (DocuSign/HelloSign)
-- [ ] Build general automation/workflow engine with rule builder
-- [ ] Add API versioning strategy and backward compatibility
+- [x] **Build general automation/workflow engine with rule builder** - ✅ **COMPLETED**
+  - Orchestration module in src/modules/orchestration/
+  - OrchestrationDefinition, OrchestrationExecution, StepExecution models
+  - Includes retry logic and DLQ (Dead Letter Queue)
+- [x] **Add API versioning strategy and backward compatibility** - ✅ **COMPLETED**
+  - /api/v1/ prefix implemented (Dec 2025)
+  - API_VERSIONING_POLICY.md and API_DEPRECATION_POLICY.md created
+  - See TODO_COMPLETED.md ASSESS-I5.1
 - [ ] Implement materialized views for reporting performance
 
 ---
@@ -56,10 +102,13 @@
 
 - [ ] Build unified event bus for cross-module automation
 - [ ] Implement SCIM provisioning for automated user management
-- [ ] Add audit review UI with query/filter/export capabilities
+- [ ] Add audit review UI with query/filter/export capabilities (backend audit system exists in firm/audit.py, needs admin UI)
 - [ ] Build integration marketplace scaffolding
 - [ ] Implement records management system with immutability
-- [ ] Add operational observability without content access
+- [x] **Add operational observability without content access** - ✅ **COMPLETED**
+  - Correlation IDs, metrics collectors for API/Workers/Integrations
+  - Tenant-safe logging (src/modules/core/observability.py)
+  - See TODO_COMPLETED.md DOC-21.1
 - [ ] Build custom dashboard builder with widget system
 - [ ] Implement ERP connectors for enterprise customers
 - [ ] Add AI-powered lead scoring and sales automation
