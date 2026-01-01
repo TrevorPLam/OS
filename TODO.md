@@ -67,16 +67,22 @@
 ### Sprint 2: Calendar Integration Completion (High Priority)
 
 #### Complete Calendar Sync Integration - 20-32 hours
-- [ ] **Sprint 2.1** Implement Google Calendar API sync service - 8-12 hours
-  - Create event pull/push operations
-  - Handle recurring events
-  - Implement conflict resolution
-- [ ] **Sprint 2.2** Implement Outlook Calendar API sync service - 8-12 hours
-  - Create event pull/push operations
-  - Handle recurring events
-  - Implement conflict resolution
+- [x] **Sprint 2.1** Implement Google Calendar API sync service - 8-12 hours ✅
+  - OAuth authentication flow implemented (`google_service.py`)
+  - Event pull/push operations with incremental sync
+  - Recurring events handled via Google Calendar API
+  - Conflict resolution implemented (`sync_service.py`)
+- [x] **Sprint 2.2** Implement Outlook Calendar API sync service - 8-12 hours ✅
+  - OAuth authentication flow implemented (`microsoft_service.py`)
+  - Event pull/push operations with delta sync
+  - Recurring events handled via Microsoft Graph API
+  - Conflict resolution implemented (`sync_service.py`)
 - [ ] **Sprint 2.3** Add sync configuration UI - 2-4 hours
+  - Backend API complete (`oauth_views.py`)
+  - Frontend UI needed for calendar connection management
 - [ ] **Sprint 2.4** Implement sync status monitoring and error handling - 2-4 hours
+  - Backend monitoring complete (`admin_views.py`)
+  - Frontend UI needed for sync status dashboard
 
 ### Sprint 3: Accounting Integrations (Medium Priority)
 
