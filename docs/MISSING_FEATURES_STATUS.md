@@ -1,7 +1,7 @@
 # Missing Features Status (ASSESS-R1.2, ASSESS-R1.4)
 
 **Status:** Active  
-**Last Updated:** December 2025
+**Last Updated:** January 1, 2026
 
 ## Overview
 
@@ -59,11 +59,24 @@ The following features are fully implemented and documented:
 - Audit logging
 - Data retention policies
 - GDPR compliance (consent tracking, data export, erasure)
+- Calendar sync (OAuth-based Google/Outlook integration)
+- Snippets system (HubSpot-style text snippets)
+- SMS integration (two-way messaging and campaigns)
+- Lead scoring automation
+- User profile customization
+- Pricing/quoting (CPQ) engine
+- Delivery template system
+- Knowledge base management
+- Client onboarding workflows
+- Orchestration engine
+- Support ticketing system
+- Recurrence rules
 
 ### ⚠️ Partially Implemented Features
 
 - **Email Campaign Sending:** Campaign execution tracking exists, but actual email send jobs are queued (stub implementation)
-- **Calendar Sync:** OAuth models exist but migrations missing (see MISSING-12 in TODO.md)
+
+**Note:** Calendar Sync (previously listed here) was completed in January 2026 with migration calendar/0002_calendar_sync.py providing OAuth-based CalendarConnection models. The feature moved to "Fully Implemented" status.
 
 ### ❌ Not Implemented (Documented as Coming Soon)
 
