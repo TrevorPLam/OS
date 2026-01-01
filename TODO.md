@@ -188,11 +188,32 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
   - API endpoints with validation and price recalculation actions
   - Database migration created (0006_add_cpq_models.py)
   - Documentation: docs/03-reference/cpq-system.md
-- [ ] 3.6 Add Gantt chart/timeline view for projects (Projects)
-- [ ] 3.7 Build general webhook platform (Integration)
-- [ ] 3.8 Add email/calendar sync integration (Integration)
-- [ ] 3.9 Implement document co-authoring with real-time collaboration (Documents)
-- [ ] 3.10 Add secure external document sharing with permissions (Documents)
+- [~] 3.6 Add Gantt chart/timeline view for projects (Projects) 🔶 Partial (Models Complete)
+  - ProjectTimeline model for project-level tracking
+  - TaskSchedule model with critical path analysis
+  - TaskDependency model with FS/SS/FF/SF types
+  - Lag/lead time and milestone support
+  - **Remaining:** Admin interface, API endpoints, critical path algorithm, migration, documentation
+  - **Status:** Models implemented (376 lines), API/Admin/Docs pending
+- [ ] 3.7 Build general webhook platform (Integration) ⏳ Not Started
+  - **Complexity:** High (16-24 hours estimated)
+  - See: docs/03-reference/complex-tasks-implementation-summary.md
+- [ ] 3.8 Add email/calendar sync integration (Integration) ⏳ Not Started
+  - **Complexity:** Very High (24-40 hours estimated)
+  - See: docs/03-reference/complex-tasks-implementation-summary.md
+- [ ] 3.9 Implement document co-authoring with real-time collaboration (Documents) ⏳ Not Started
+  - **Complexity:** Very High (32-48 hours estimated)
+  - See: docs/03-reference/complex-tasks-implementation-summary.md
+- [ ] 3.10 Add secure external document sharing with permissions (Documents) ⏳ Not Started
+  - **Complexity:** Medium-High (12-20 hours estimated)
+  - See: docs/03-reference/complex-tasks-implementation-summary.md
+
+**Progress Summary:**
+- ✅ Complete: 5/10 tasks (50%)
+- 🔶 Partial: 1/10 tasks (Models only)
+- ⏳ Pending: 4/10 tasks
+- **Overall:** 55% complete (when counting partial completion)
+- **Documentation:** Implementation summary created: docs/03-reference/complex-tasks-implementation-summary.md
 
 ### 🔴 Advanced - Enterprise Features
 
