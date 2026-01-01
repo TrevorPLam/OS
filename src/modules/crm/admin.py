@@ -10,6 +10,9 @@ from .models import (
     AccountRelationship,
     Campaign,
     Contract,
+    IntakeForm,
+    IntakeFormField,
+    IntakeFormSubmission,
     Lead,
     Proposal,
     Prospect,
@@ -457,3 +460,175 @@ class ContractAdmin(admin.ModelAdmin):
         ("Notes", {"fields": ("notes",)}),
         ("Audit", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
+
+
+class IntakeFormFieldInline(admin.TabularInline):
+    """Inline admin for IntakeFormField (Task 3.4)."""
+    
+    model = IntakeFormField
+    extra = 1
+    fields = ["label", "field_type", "required", "order", "scoring_enabled"]
+    ordering = ["order", "id"]
+
+
+@admin.register(IntakeForm)
+class IntakeFormAdmin(admin.ModelAdmin):
+    """Admin interface for Intake Forms (Task 3.4)."""
+    
+    list_display = [
+        "name",
+        "status",
+        "submission_count",
+        "qualified_count",
+        "qualification_threshold",
+        "created_at",
+    ]
+    list_filter = ["status", "qualification_enabled", "auto_create_lead", "auto_create_prospect"]
+    search_fields = ["name", "title", "description"]
+    readonly_fields = ["submission_count", "qualified_count", "created_at", "updated_at"]
+    inlines = [IntakeFormFieldInline]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("firm", "name", "title", "description", "status")
+        }),
+        ("Qualification", {
+            "fields": ("qualification_enabled", "qualification_threshold")
+        }),
+        ("Automation", {
+            "fields": ("auto_create_lead", "auto_create_prospect", "default_owner")
+        }),
+        ("Notifications", {
+            "fields": ("notify_on_submission", "notification_emails")
+        }),
+        ("Thank You Page", {
+            "fields": ("thank_you_title", "thank_you_message", "redirect_url")
+        }),
+        ("Statistics", {
+            "fields": ("submission_count", "qualified_count"),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_by", "created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(IntakeFormField)
+class IntakeFormFieldAdmin(admin.ModelAdmin):
+    """Admin interface for Intake Form Fields (Task 3.4)."""
+    
+    list_display = [
+        "label",
+        "form",
+        "field_type",
+        "required",
+        "scoring_enabled",
+        "order",
+    ]
+    list_filter = ["form", "field_type", "required", "scoring_enabled"]
+    search_fields = ["label", "form__name"]
+    readonly_fields = ["created_at", "updated_at"]
+    
+    fieldsets = (
+        ("Field Configuration", {
+            "fields": ("form", "label", "field_type", "placeholder", "help_text", "required", "order")
+        }),
+        ("Options (for select fields)", {
+            "fields": ("options",)
+        }),
+        ("Qualification Scoring", {
+            "fields": ("scoring_enabled", "scoring_rules")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(IntakeFormSubmission)
+class IntakeFormSubmissionAdmin(admin.ModelAdmin):
+    """Admin interface for Intake Form Submissions (Task 3.4)."""
+    
+    list_display = [
+        "form",
+        "submitter_email",
+        "submitter_company",
+        "qualification_score",
+        "status",
+        "is_qualified",
+        "created_at",
+    ]
+    list_filter = ["form", "status", "is_qualified", "created_at"]
+    search_fields = ["submitter_email", "submitter_name", "submitter_company"]
+    readonly_fields = [
+        "responses",
+        "qualification_score",
+        "is_qualified",
+        "ip_address",
+        "user_agent",
+        "referrer",
+        "created_at",
+        "updated_at",
+    ]
+    raw_id_fields = ["lead", "prospect", "reviewed_by"]
+    
+    fieldsets = (
+        ("Form", {
+            "fields": ("form", "status")
+        }),
+        ("Submitter Information", {
+            "fields": ("submitter_email", "submitter_name", "submitter_phone", "submitter_company")
+        }),
+        ("Responses", {
+            "fields": ("responses",)
+        }),
+        ("Qualification", {
+            "fields": ("qualification_score", "is_qualified")
+        }),
+        ("Conversion", {
+            "fields": ("lead", "prospect")
+        }),
+        ("Review", {
+            "fields": ("reviewed_by", "reviewed_at", "review_notes")
+        }),
+        ("Metadata", {
+            "fields": ("ip_address", "user_agent", "referrer"),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    actions = ["calculate_scores", "create_leads", "mark_as_spam"]
+    
+    def calculate_scores(self, request, queryset):
+        """Admin action to calculate qualification scores."""
+        count = 0
+        for submission in queryset:
+            submission.calculate_qualification_score()
+            count += 1
+        self.message_user(request, f"Calculated qualification scores for {count} submission(s).")
+    
+    calculate_scores.short_description = "Calculate qualification scores"
+    
+    def create_leads(self, request, queryset):
+        """Admin action to create leads from submissions."""
+        count = 0
+        for submission in queryset.filter(lead__isnull=True):
+            submission.create_lead()
+            count += 1
+        self.message_user(request, f"Created {count} lead(s) from submissions.")
+    
+    create_leads.short_description = "Create leads from submissions"
+    
+    def mark_as_spam(self, request, queryset):
+        """Admin action to mark submissions as spam."""
+        count = queryset.update(status="spam")
+        self.message_user(request, f"Marked {count} submission(s) as spam.")
+    
+    mark_as_spam.short_description = "Mark as spam"

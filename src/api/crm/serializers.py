@@ -11,7 +11,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from modules.clients.models import Client
-from modules.crm.models import Contract, Proposal
+from modules.crm.models import Contract, IntakeForm, IntakeFormField, IntakeFormSubmission, Proposal
 
 
 class ClientSerializer(serializers.ModelSerializer):
@@ -199,3 +199,114 @@ class ContractSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"signed_date": "Signed date cannot be after start date"})
 
         return attrs
+
+
+class IntakeFormFieldSerializer(serializers.ModelSerializer):
+    """Serializer for IntakeFormField (Task 3.4)."""
+    
+    class Meta:
+        model = IntakeFormField
+        fields = [
+            "id",
+            "form",
+            "label",
+            "field_type",
+            "placeholder",
+            "help_text",
+            "required",
+            "order",
+            "options",
+            "scoring_enabled",
+            "scoring_rules",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class IntakeFormSerializer(serializers.ModelSerializer):
+    """Serializer for IntakeForm (Task 3.4)."""
+    
+    fields = IntakeFormFieldSerializer(many=True, read_only=True)
+    default_owner_name = serializers.CharField(source="default_owner.get_full_name", read_only=True)
+    
+    class Meta:
+        model = IntakeForm
+        fields = [
+            "id",
+            "firm",
+            "name",
+            "title",
+            "description",
+            "status",
+            "qualification_enabled",
+            "qualification_threshold",
+            "auto_create_lead",
+            "auto_create_prospect",
+            "default_owner",
+            "default_owner_name",
+            "notify_on_submission",
+            "notification_emails",
+            "thank_you_title",
+            "thank_you_message",
+            "redirect_url",
+            "submission_count",
+            "qualified_count",
+            "fields",
+            "created_at",
+            "updated_at",
+            "created_by",
+        ]
+        read_only_fields = ["id", "submission_count", "qualified_count", "created_at", "updated_at"]
+
+
+class IntakeFormSubmissionSerializer(serializers.ModelSerializer):
+    """Serializer for IntakeFormSubmission (Task 3.4)."""
+    
+    form_name = serializers.CharField(source="form.name", read_only=True)
+    lead_email = serializers.CharField(source="lead.email", read_only=True, allow_null=True)
+    prospect_company = serializers.CharField(source="prospect.company", read_only=True, allow_null=True)
+    
+    class Meta:
+        model = IntakeFormSubmission
+        fields = [
+            "id",
+            "form",
+            "form_name",
+            "lead",
+            "lead_email",
+            "prospect",
+            "prospect_company",
+            "responses",
+            "qualification_score",
+            "status",
+            "is_qualified",
+            "submitter_email",
+            "submitter_name",
+            "submitter_phone",
+            "submitter_company",
+            "ip_address",
+            "user_agent",
+            "referrer",
+            "reviewed_by",
+            "reviewed_at",
+            "review_notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "qualification_score",
+            "is_qualified",
+            "ip_address",
+            "user_agent",
+            "referrer",
+            "created_at",
+            "updated_at",
+        ]
+    
+    def validate_responses(self, value):
+        """Validate that responses match the form's field definitions."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Responses must be a dictionary")
+        return value

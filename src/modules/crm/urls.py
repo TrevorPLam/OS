@@ -11,6 +11,9 @@ from modules.crm.views import (
     AccountViewSet,
     CampaignViewSet,
     ContractViewSet,
+    IntakeFormViewSet,
+    IntakeFormFieldViewSet,
+    IntakeFormSubmissionViewSet,
     LeadViewSet,
     ProposalViewSet,
     ProspectViewSet,
@@ -31,6 +34,9 @@ router.register(r"proposals", ProposalViewSet, basename="proposal")
 router.register(r"contracts", ContractViewSet, basename="contract")
 router.register(r"scoring-rules", ScoringRuleViewSet, basename="scoring-rule")
 router.register(r"score-adjustments", ScoreAdjustmentViewSet, basename="score-adjustment")
+router.register(r"intake-forms", IntakeFormViewSet, basename="intake-form")  # Task 3.4
+router.register(r"intake-form-fields", IntakeFormFieldViewSet, basename="intake-form-field")  # Task 3.4
+router.register(r"intake-form-submissions", IntakeFormSubmissionViewSet, basename="intake-form-submission")  # Task 3.4
 
 urlpatterns = [
     path("", include(router.urls)),
