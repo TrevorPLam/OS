@@ -1,6 +1,6 @@
 # ConsultantPro - Current Work & Roadmap
 
-**Last Updated:** December 31, 2025
+**Last Updated:** January 1, 2026
 
 ---
 
@@ -33,7 +33,7 @@
 - [ ] `src/modules/clients/views.py` - E-signature workflow (See TODO_ANALYSIS.md #12)
 
 **Low Priority (Future Enhancements)**
-- [x] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7) - Fields exist, workflow can be added later
+- [x] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7) ✅ Completed
 - [x] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events ✅ Completed
   - OnboardingTask reminder notifications
   - OnboardingDocument reminder notifications
@@ -142,10 +142,10 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
 
 ### 🟡 Medium - Workflow & Business Logic
 
-- [ ] 2.7 Add document approval workflow (Draft → Review → Approved → Published) (Documents)
-- [ ] 2.8 Add client acceptance gate before invoicing (Projects/Finance)
-- [ ] 2.9 Implement utilization tracking and reporting (Projects)
-- [ ] 2.10 Add cash application matching (partial/over/under payments) (Finance)
+- [x] 2.7 Add document approval workflow (Draft → Review → Approved → Published) (Documents) ✅ Completed
+- [x] 2.8 Add client acceptance gate before invoicing (Projects/Finance) ✅ Completed
+- [x] 2.9 Implement utilization tracking and reporting (Projects) ✅ Completed
+- [x] 2.10 Add cash application matching (partial/over/under payments) (Finance) ✅ Completed
 
 ### 🟠 Complex - New Subsystems & Integrations
 
