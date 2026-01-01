@@ -689,7 +689,7 @@
 
 ## Summary Statistics
 
-**Total Sprint Tasks:** 78 tasks across 14 sprints (ORIGINAL) + 16 additional sprints from CHECKLIST.md analysis
+**Total Sprint Tasks:** 78 tasks across 14 sprints (ORIGINAL) + 16 additional sprints from CHECKLIST.md analysis + 6 sprints from CHECKLIST3.md analysis
 - **High Priority (Sprints 1-2):** 17 tasks (~52-72 hours) - ✅ COMPLETED
 - **Medium Priority (Sprints 3-4):** 24 tasks (~68-92 hours) - ✅ COMPLETED
 - **Medium-Low Priority (Sprint 5):** 5 tasks (~12-16 hours) - ✅ COMPLETED
@@ -717,7 +717,22 @@
   - Platform Features
   - User Management Enhancements
 
-**Total Additional Features:** ~504-720 hours of development work identified from CHECKLIST.md
+**Total Additional Features from CHECKLIST.md:** ~504-720 hours of development work
+
+**Additional Features from CHECKLIST3.md Analysis (Sprints 31-36):**
+- **Medium-High Priority (Sprint 34):** Video Conferencing Integration (~32-44 hours)
+  - Zoom auto-create meetings
+  - Microsoft Teams meeting generation
+  - Google Meet link creation
+- **Medium Priority (Sprints 31-33, 35-36):** Appointment Scheduling Enhancements (~112-152 hours)
+  - Group appointments with capacity and waitlist
+  - Multi-host collective appointments with Venn diagram availability
+  - Advanced round robin (weighted, capacity-based, rebalancing)
+  - Appointment analytics and reporting
+  - Booking page customization and SMS confirmations
+
+**Total Additional Features from CHECKLIST3.md:** ~144-196 hours of relevant scheduling features
+**Note:** CHECKLIST3.md describes a Calendly-like scheduling platform. Only features relevant to PSA appointment scheduling were added.
 
 **Large Features Requiring Further Planning:** 1 feature (Document co-authoring)
 
@@ -734,6 +749,11 @@
   - High priority: Pipeline/Deal management and Marketing Automation Builder (critical gaps)
   - Medium priority: Site tracking, e-commerce, and integration expansion
   - Low priority: Mobile apps, advanced AI/ML features
+- **CHECKLIST3.md Analysis:** Sprints 31-36 added based on CHECKLIST3.md review (January 1, 2026)
+  - CHECKLIST3.md describes a Calendly-like scheduling automation platform (not our PSA system)
+  - Filtered to include only appointment scheduling features relevant to PSA use case
+  - 6 new sprints focused on: group appointments, multi-host scheduling, advanced round robin, video conferencing, analytics, and booking page enhancements
+  - Excluded ~200+ Calendly-specific features not applicable to PSA (browser extensions, marketplace, LinkedIn integration, etc.)
 - **Completed Work:** See [TODO_COMPLETED.md](./TODO_COMPLETED.md) for historical reference of all completed tasks
 - **Sprint Planning:** Each sprint task includes estimated hours for better planning
 - **Flexibility:** Task breakdowns can be adjusted based on team capacity and priorities
@@ -1021,6 +1041,145 @@ These features exist in CHECKLIST2.md but are not currently implemented in the c
 - [ ] Partner Ecosystem: Certified integration partners
 - [ ] Transparency: Public status page, clear pricing, open security posture
 
+
+---
+
+## Missing Features from CHECKLIST3.md Analysis
+
+**Date Added:** January 1, 2026
+**Source:** CHECKLIST3.md comprehensive scheduling platform analysis
+**Context:** CHECKLIST3.md describes a Calendly-like scheduling platform. Most features are not relevant for our PSA system, but some appointment scheduling enhancements could be beneficial.
+
+These features exist in CHECKLIST3.md but are not currently implemented and are not planned in the existing TODO sections above. Only features relevant to a PSA system's appointment scheduling module are included.
+
+### Sprint 31: Group Appointments & Capacity Management (MEDIUM PRIORITY) - 24-32 hours
+**Status:** Enhance existing appointment system with group capacity features
+
+- [ ] **Sprint 31.1** Design group appointment capacity model - 4-6 hours
+  - Extend AppointmentType for group events
+  - Max attendees configuration
+  - Attendee list tracking
+- [ ] **Sprint 31.2** Implement waitlist management - 6-8 hours
+  - Waitlist queue model
+  - Automatic promotion when spots open
+  - Waitlist notification system
+- [ ] **Sprint 31.3** Add per-attendee registration - 6-8 hours
+  - Attendee-specific intake questions
+  - Individual attendee responses
+  - Attendee contact information
+- [ ] **Sprint 31.4** Build attendee management dashboard - 8-10 hours
+  - View attendee list per appointment
+  - Individual attendee cancellation
+  - Waitlist management UI
+  - Attendee export functionality
+
+### Sprint 32: Multi-Host Collective Appointments (MEDIUM PRIORITY) - 28-36 hours
+**Status:** Enable appointments requiring multiple staff members
+
+- [ ] **Sprint 32.1** Design multi-host appointment model - 4-6 hours
+  - Host relationships (primary, required, optional)
+  - Host substitution rules
+  - Multi-host validation logic
+- [ ] **Sprint 32.2** Implement Venn diagram availability logic - 10-14 hours
+  - Calculate overlapping availability across multiple hosts
+  - Consider all host calendars simultaneously
+  - Timezone-aware availability computation
+  - Performance optimization for multi-calendar queries
+- [ ] **Sprint 32.3** Add host substitution workflow - 6-8 hours
+  - Define substitution rules per appointment type
+  - Automatic substitute assignment
+  - Substitute notification system
+- [ ] **Sprint 32.4** Build multi-host booking UI - 8-10 hours
+  - Display available slots with all hosts
+  - Show which hosts are attending
+  - Handle host conflicts and changes
+
+### Sprint 33: Advanced Round Robin Enhancements (MEDIUM PRIORITY) - 20-28 hours
+**Status:** Extend existing round robin with advanced distribution logic
+
+- [ ] **Sprint 33.1** Implement weighted round robin - 6-8 hours
+  - Weight configuration per staff member
+  - Weighted distribution algorithm
+  - Weight-based assignment tracking
+- [ ] **Sprint 33.2** Add capacity-based prioritization - 6-8 hours
+  - Track current capacity per staff member
+  - Prioritize less-booked staff
+  - Capacity threshold alerts
+- [ ] **Sprint 33.3** Build automatic rebalancing - 4-6 hours
+  - Detect imbalanced distribution
+  - Suggest or auto-reassign appointments
+  - Rebalancing history and audit
+- [ ] **Sprint 33.4** Create distribution analytics - 4-6 hours
+  - Distribution fairness metrics
+  - Booking count per staff member
+  - Distribution visualization dashboard
+
+### Sprint 34: Video Conferencing Integration (MEDIUM-HIGH PRIORITY) - 32-44 hours
+**Status:** Auto-generate video meeting links for appointments
+
+- [ ] **Sprint 34.1** Research video conferencing APIs - 3-4 hours
+  - Zoom API capabilities and OAuth
+  - Microsoft Teams meeting generation
+  - Google Meet link creation
+- [ ] **Sprint 34.2** Implement Zoom integration - 12-16 hours
+  - OAuth 2.0 authentication
+  - Auto-create Zoom meetings on appointment booking
+  - Add meeting links to calendar events
+  - Configure recording settings
+  - Alternative host support
+  - Automatic meeting cleanup on cancellation
+- [ ] **Sprint 34.3** Implement Microsoft Teams integration - 10-14 hours
+  - Graph API authentication
+  - Auto-create Teams meetings
+  - Add meeting links to Outlook calendar events
+  - Teams meeting options configuration
+- [ ] **Sprint 34.4** Implement Google Meet integration - 7-10 hours
+  - Calendar API meeting link generation
+  - Auto-add Meet links to Google Calendar events
+  - Meet configuration options
+
+### Sprint 35: Appointment Analytics & Reporting (MEDIUM PRIORITY) - 24-32 hours
+**Status:** Add scheduling-specific analytics
+
+- [ ] **Sprint 35.1** Design appointment analytics models - 4-6 hours
+  - Booking rate metrics
+  - No-show tracking
+  - Appointment source attribution
+  - Time-to-book calculations
+- [ ] **Sprint 35.2** Implement booking analytics - 8-12 hours
+  - Booking rate calculation per appointment type
+  - Booking trends over time
+  - Popular appointment types
+  - Source tracking (referrer, UTM parameters)
+- [ ] **Sprint 35.3** Add no-show analytics - 6-8 hours
+  - No-show rate per appointment type
+  - No-show rate per staff member
+  - No-show pattern analysis
+  - Predictive no-show indicators
+- [ ] **Sprint 35.4** Build appointment reports dashboard - 6-8 hours
+  - Appointment volume reports
+  - Staff utilization from appointments
+  - Cancellation and reschedule rates
+  - Time-to-book distribution
+  - Export functionality
+
+### Sprint 36: Appointment Booking Enhancements (LOW-MEDIUM PRIORITY) - 16-24 hours
+**Status:** Improve booking page UX and features
+
+- [ ] **Sprint 36.1** Add custom domain support for booking pages - 6-8 hours
+  - Custom subdomain configuration per firm
+  - SSL certificate management
+  - DNS configuration documentation
+- [ ] **Sprint 36.2** Implement booking page customization - 6-8 hours
+  - Logo upload and display
+  - Color scheme customization
+  - Custom header/footer
+  - Custom CSS support (advanced)
+- [ ] **Sprint 36.3** Add SMS booking confirmations - 4-8 hours
+  - Integrate with existing Twilio SMS module
+  - SMS confirmation template configuration
+  - International phone number support
+  - Short URL generation for booking links
 
 ---
 
