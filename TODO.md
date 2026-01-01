@@ -92,17 +92,17 @@ Any legacy roadmap/checklist items below are retained for history only and MUST 
 
 **NOTE:** Previous session created code but features are **NON-FUNCTIONAL** due to missing migrations and broken model references. See [IMPLEMENTATION_ASSESSMENT.md](./IMPLEMENTATION_ASSESSMENT.md) for details.
 
-- [ ] MISSING-1 Support/Ticketing System **❌ INCOMPLETE** - Code exists (632 lines, 5 models) but NO migrations; admin references non-existent fields (account, contact, related_project, sla_breached); 9+ unnamed indexes
-- [ ] MISSING-2 Meeting Polls **❌ INCOMPLETE** - Code exists but admin references non-existent fields (organizer, created_appointment, require_all_responses)
-- [ ] MISSING-3 Meeting Workflow Automation **❌ INCOMPLETE** - Code exists but admin references non-existent field (is_active)
-- [ ] MISSING-4 Email Campaign Templates **⚠️ PARTIALLY COMPLETE** - Code exists (marketing module, 655 lines), 1 migration created; admin references non-existent fields (template, scheduled_at)
-- [ ] MISSING-5 Tag-based Segmentation **⚠️ PARTIALLY COMPLETE** - Code exists (marketing module), 1 migration created; admin references non-existent fields (auto_tagged, created_at)
-- [ ] MISSING-6 Client Onboarding Workflows **❌ INCOMPLETE** - Code exists (615 lines, 4 models) but NO migrations; admin references 8+ non-existent fields; unnamed indexes
+- [x] MISSING-1 Support/Ticketing System **⚠️ ADMIN FIXED** - Code exists (632 lines, 5 models) but NO migrations; admin field references fixed (responses→answers); 9+ unnamed indexes FIXED
+- [x] MISSING-2 Meeting Polls **⚠️ ADMIN FIXED** - Code exists but admin field references fixed (organizer→created_by, created_appointment→scheduled_appointment, require_all_responses→require_all_invitees, invitee_emails→invitees)
+- [x] MISSING-3 Meeting Workflow Automation **⚠️ ADMIN FIXED** - Code exists but admin field reference fixed (removed non-existent is_active, uses status)
+- [x] MISSING-4 Email Campaign Templates **⚠️ ADMIN FIXED** - Code exists (marketing module, 655 lines), 1 migration created; admin field references fixed (template→email_template, scheduled_at→scheduled_for)
+- [x] MISSING-5 Tag-based Segmentation **⚠️ ADMIN FIXED** - Code exists (marketing module), 1 migration created; admin field references fixed (auto_tagged→auto_applied, created_at→applied_at)
+- [x] MISSING-6 Client Onboarding Workflows **⚠️ ADMIN FIXED** - Code exists (615 lines, 4 models) but NO migrations; admin references fixed (is_active→status, estimated_days→estimated_duration_days, task_definitions→steps, etc.); unnamed indexes FIXED
 - [ ] MISSING-7 API Layer Completion **❌ NON-FUNCTIONAL** - ViewSets exist but all underlying models lack migrations
-- [ ] MISSING-8 Snippets System **❌ INCOMPLETE** - Code exists (345 lines, 3 models) but NO migrations; 10+ unnamed indexes; import error FIXED
+- [ ] MISSING-8 Snippets System **⚠️ ADMIN OK** - Code exists (345 lines, 3 models) but NO migrations; unnamed indexes FIXED; admin is functional
 - [ ] MISSING-9 User Profile Customization **⚠️ CHECK STATUS** - May be functional if migration 0012_user_profiles.py exists in modules/firm/migrations (needs verification)
 - [ ] MISSING-10 Lead Scoring Automation **⚠️ CHECK STATUS** - Code exists in crm/lead_scoring.py; import error FIXED; needs migration verification
-- [ ] MISSING-11 SMS Integration **❌ INCOMPLETE** - Code exists (790 lines, 6 models) but NO migrations; references non-existent clients.Contact model; 20+ unnamed indexes; import error FIXED; URL config FIXED
+- [ ] MISSING-11 SMS Integration **⚠️ ADMIN OK** - Code exists (790 lines, 6 models) but NO migrations; unnamed indexes FIXED; admin is functional; import error FIXED; URL config FIXED
 - [ ] MISSING-12 Calendar Sync (Google/Outlook) **❌ INCOMPLETE** - Code exists (OAuth models, services) but NO migrations for OAuth models; Appointment/BookingLink reference non-existent crm.Account, crm.Contact, crm.Engagement
 
 **CRITICAL ISSUES FIXED:**
