@@ -8,7 +8,7 @@ export interface OAuthConnection {
   sync_window_days: number
   last_sync_at: string | null
   status: 'active' | 'expired' | 'revoked' | 'error'
-  error_message: string
+  error_message: string | null
   created_at: string
   updated_at: string
 }
@@ -24,7 +24,7 @@ export interface SyncStatusResponse {
   last_sync_at: string | null
   sync_enabled: boolean
   status: string
-  error_message: string
+  error_message: string | null
   is_token_expired: boolean
   needs_refresh: boolean
 }

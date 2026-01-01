@@ -8,6 +8,8 @@ const CalendarSync: React.FC = () => {
   const [syncing, setSyncing] = useState<number | null>(null)
   const [editingConnection, setEditingConnection] = useState<number | null>(null)
   const [editData, setEditData] = useState<Partial<OAuthConnection>>({})
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
     loadConnections()
@@ -30,7 +32,7 @@ const CalendarSync: React.FC = () => {
       // Redirect to OAuth authorization URL
       window.location.href = response.authorization_url
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to initiate Google OAuth')
+      setErrorMessage(error.response?.data?.error || 'Failed to initiate Google OAuth')
     }
   }
 
@@ -40,7 +42,7 @@ const CalendarSync: React.FC = () => {
       // Redirect to OAuth authorization URL
       window.location.href = response.authorization_url
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Failed to initiate Microsoft OAuth')
+      setErrorMessage(error.response?.data?.error || 'Failed to initiate Microsoft OAuth')
     }
   }
 
@@ -51,10 +53,11 @@ const CalendarSync: React.FC = () => {
 
     try {
       await calendarApi.disconnectCalendar(connectionId)
+      setSuccessMessage('Calendar disconnected successfully')
       loadConnections()
     } catch (error) {
       console.error('Failed to disconnect calendar:', error)
-      alert('Failed to disconnect calendar')
+      setErrorMessage('Failed to disconnect calendar')
     }
   }
 
@@ -62,12 +65,12 @@ const CalendarSync: React.FC = () => {
     setSyncing(connectionId)
     try {
       const result = await calendarApi.syncNow(connectionId)
-      alert(
-        `Sync completed!\nPulled: ${result.pulled} events\nPushed: ${result.pushed} events`
+      setSuccessMessage(
+        `Sync completed! Pulled: ${result.pulled} events, Pushed: ${result.pushed} events`
       )
       loadConnections()
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Sync failed')
+      setErrorMessage(error.response?.data?.error || 'Sync failed')
     } finally {
       setSyncing(null)
     }
@@ -85,10 +88,11 @@ const CalendarSync: React.FC = () => {
     try {
       await calendarApi.updateConnection(connectionId, editData)
       setEditingConnection(null)
+      setSuccessMessage('Connection settings updated successfully')
       loadConnections()
     } catch (error) {
       console.error('Failed to update connection:', error)
-      alert('Failed to update connection settings')
+      setErrorMessage('Failed to update connection settings')
     }
   }
 
@@ -133,6 +137,26 @@ const CalendarSync: React.FC = () => {
           Connect your calendars to sync appointments automatically
         </p>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="notification notification-success">
+          <span>✓ {successMessage}</span>
+          <button onClick={() => setSuccessMessage(null)} className="notification-close">
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="notification notification-error">
+          <span>✗ {errorMessage}</span>
+          <button onClick={() => setErrorMessage(null)} className="notification-close">
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="connect-section">
         <h2>Connect a Calendar</h2>
@@ -199,11 +223,11 @@ const CalendarSync: React.FC = () => {
                           type="number"
                           min="7"
                           max="365"
-                          value={editData.sync_window_days}
+                          value={editData.sync_window_days || 30}
                           onChange={(e) =>
                             setEditData({
                               ...editData,
-                              sync_window_days: parseInt(e.target.value),
+                              sync_window_days: parseInt(e.target.value) || 30,
                             })
                           }
                         />

@@ -10,6 +10,8 @@ const CalendarOAuthCallback: React.FC = () => {
   const [message, setMessage] = useState('Processing OAuth callback...')
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
     const handleCallback = async () => {
       const code = searchParams.get('code')
       const state = searchParams.get('state')
@@ -18,14 +20,14 @@ const CalendarOAuthCallback: React.FC = () => {
       if (error) {
         setStatus('error')
         setMessage(`OAuth error: ${error}`)
-        setTimeout(() => navigate('/calendar-sync'), 3000)
+        timeoutId = setTimeout(() => navigate('/calendar-sync'), 3000)
         return
       }
 
       if (!code || !state) {
         setStatus('error')
         setMessage('Missing authorization code or state')
-        setTimeout(() => navigate('/calendar-sync'), 3000)
+        timeoutId = setTimeout(() => navigate('/calendar-sync'), 3000)
         return
       }
 
@@ -33,17 +35,24 @@ const CalendarOAuthCallback: React.FC = () => {
         const result = await calendarApi.handleOAuthCallback(code, state)
         setStatus('success')
         setMessage(result.message || 'Calendar connected successfully!')
-        setTimeout(() => navigate('/calendar-sync'), 2000)
+        timeoutId = setTimeout(() => navigate('/calendar-sync'), 2000)
       } catch (error: any) {
         setStatus('error')
         setMessage(
           error.response?.data?.error || 'Failed to connect calendar. Please try again.'
         )
-        setTimeout(() => navigate('/calendar-sync'), 3000)
+        timeoutId = setTimeout(() => navigate('/calendar-sync'), 3000)
       }
     }
 
     handleCallback()
+
+    // Cleanup timeout on unmount
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+    }
   }, [searchParams, navigate])
 
   return (
