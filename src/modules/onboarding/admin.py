@@ -17,8 +17,8 @@ class OnboardingTaskInline(admin.TabularInline):
     model = OnboardingTask
     extra = 0
     fields = [
-        "sequence",
-        "title",
+        "step_number",
+        "name",
         "task_type",
         "assigned_to_client",
         "status",
@@ -65,12 +65,12 @@ class OnboardingProcessAdmin(admin.ModelAdmin):
         "client",
         "status",
         "progress_percentage",
-        "kickoff_meeting",
+        "kickoff_appointment",
         "target_completion_date",
         "created_at",
     ]
     list_filter = ["firm", "status", "created_at"]
-    search_fields = ["client__name", "notes"]
+    search_fields = ["client__company_name", "notes"]
     readonly_fields = [
         "progress_percentage",
         "started_at",
@@ -78,7 +78,7 @@ class OnboardingProcessAdmin(admin.ModelAdmin):
         "created_at",
         "updated_at",
     ]
-    raw_id_fields = ["firm", "client", "template", "kickoff_meeting", "created_by", "assigned_to"]
+    raw_id_fields = ["firm", "client", "template", "kickoff_appointment", "created_by", "assigned_to"]
     inlines = [OnboardingTaskInline]
     fieldsets = (
         (None, {"fields": ("firm", "client", "template")}),
@@ -98,9 +98,10 @@ class OnboardingProcessAdmin(admin.ModelAdmin):
             "Scheduling",
             {
                 "fields": (
-                    "kickoff_meeting",
+                    "kickoff_appointment",
+                    "kickoff_scheduled",
+                    "kickoff_completed",
                     "target_completion_date",
-                    "actual_completion_date",
                 )
             },
         ),
@@ -112,42 +113,44 @@ class OnboardingProcessAdmin(admin.ModelAdmin):
 @admin.register(OnboardingTask)
 class OnboardingTaskAdmin(admin.ModelAdmin):
     list_display = [
-        "title",
+        "name",
         "process",
         "task_type",
         "status",
         "assigned_to_client",
         "due_date",
-        "is_blocker",
+        "is_required",
     ]
-    list_filter = ["task_type", "status", "assigned_to_client", "is_blocker"]
-    search_fields = ["title", "description", "process__client__name"]
+    list_filter = ["task_type", "status", "assigned_to_client", "is_required"]
+    search_fields = ["name", "description", "process__client__company_name"]
     readonly_fields = ["completed_at", "created_at", "updated_at"]
-    raw_id_fields = ["process", "assigned_to", "depends_on"]
+    raw_id_fields = ["process", "completed_by", "depends_on", "related_document"]
     fieldsets = (
         (
             None,
             {
                 "fields": (
                     "process",
-                    "sequence",
-                    "title",
+                    "step_number",
+                    "name",
                     "description",
                     "task_type",
                 )
             },
         ),
-        ("Assignment", {"fields": ("assigned_to_client", "assigned_to")}),
+        ("Assignment", {"fields": ("assigned_to_client", "completed_by")}),
         (
             "Status & Timing",
-            {"fields": ("status", "due_date", "completed_at", "is_blocker")},
+            {"fields": ("status", "due_date", "completed_at", "is_required")},
         ),
         ("Dependencies", {"fields": ("depends_on",)}),
+        ("Reminders", {"fields": ("reminder_sent", "last_reminder_sent_at")}),
+        ("Related", {"fields": ("related_document",)}),
         (
             "Metadata",
             {
                 "fields": (
-                    "metadata",
+                    "notes",
                     "created_at",
                     "updated_at",
                 ),
@@ -163,27 +166,26 @@ class OnboardingDocumentAdmin(admin.ModelAdmin):
         "document_name",
         "process",
         "status",
-        "required",
+        "is_required",
         "requested_at",
         "received_at",
     ]
-    list_filter = ["status", "required", "requested_at", "received_at"]
-    search_fields = ["document_name", "description", "process__client__name"]
+    list_filter = ["status", "is_required", "requested_at", "received_at"]
+    search_fields = ["document_name", "description", "process__client__company_name"]
     readonly_fields = [
         "requested_at",
         "received_at",
-        "reviewed_at",
         "approved_at",
         "created_at",
         "updated_at",
     ]
-    raw_id_fields = ["process", "uploaded_document", "reviewed_by", "approved_by"]
+    raw_id_fields = ["process", "task", "document", "reviewed_by"]
     fieldsets = (
         (
             None,
-            {"fields": ("process", "document_name", "description", "document_type")},
+            {"fields": ("process", "task", "document_name", "description", "document_type")},
         ),
-        ("Requirements", {"fields": ("required",)}),
+        ("Requirements", {"fields": ("is_required",)}),
         (
             "Status & Timeline",
             {
@@ -191,15 +193,15 @@ class OnboardingDocumentAdmin(admin.ModelAdmin):
                     "status",
                     "requested_at",
                     "received_at",
-                    "reviewed_at",
                     "approved_at",
                 )
             },
         ),
         (
             "Document",
-            {"fields": ("uploaded_document", "rejection_reason"), "classes": ("collapse",)},
+            {"fields": ("document",), "classes": ("collapse",)},
         ),
-        ("Review", {"fields": ("reviewed_by", "approved_by")}),
+        ("Review", {"fields": ("reviewed_by", "review_notes")}),
+        ("Reminders", {"fields": ("reminder_count", "last_reminder_sent_at")}),
         ("Metadata", {"fields": ("created_at", "updated_at")}),
     )

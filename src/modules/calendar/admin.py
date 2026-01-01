@@ -187,11 +187,20 @@ class MeetingPollAdmin(admin.ModelAdmin):
 class MeetingPollVoteAdmin(admin.ModelAdmin):
     """Admin for MeetingPollVote."""
 
-    list_display = ["poll", "voter_email", "slot_index", "vote", "voted_at"]
-    list_filter = ["vote", "voted_at"]
+    list_display = ["poll", "voter_email", "voter_name", "created_at"]
+    list_filter = ["created_at"]
     search_fields = ["voter_email", "voter_name", "poll__title"]
-    readonly_fields = ["voted_at"]
-    raw_id_fields = ["poll"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["poll", "voter_user"]
+    fieldsets = (
+        (None, {"fields": ("poll",)}),
+        ("Voter", {"fields": ("voter_user", "voter_email", "voter_name")}),
+        ("Responses", {
+            "fields": ("responses", "notes"),
+            "description": "responses is a JSON array of vote choices (yes/no/maybe) for each proposed slot"
+        }),
+        ("Metadata", {"fields": ("created_at", "updated_at")}),
+    )
 
 
 @admin.register(MeetingWorkflow)
