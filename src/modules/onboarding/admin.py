@@ -32,27 +32,27 @@ class OnboardingTemplateAdmin(admin.ModelAdmin):
     list_display = [
         "name",
         "firm",
-        "is_active",
-        "estimated_days",
+        "status",
+        "estimated_duration_days",
         "times_used",
         "created_at",
     ]
-    list_filter = ["firm", "is_active", "created_at"]
+    list_filter = ["firm", "status", "created_at"]
     search_fields = ["name", "description"]
-    readonly_fields = ["times_used", "last_used_at", "created_at", "updated_at"]
+    readonly_fields = ["times_used", "created_at", "updated_at"]
     fieldsets = (
-        (None, {"fields": ("firm", "name", "description")}),
+        (None, {"fields": ("firm", "name", "description", "service_type")}),
         (
             "Configuration",
             {
-                "fields": ("task_definitions", "estimated_days"),
-                "description": "task_definitions is a JSON array defining the template tasks",
+                "fields": ("steps", "estimated_duration_days"),
+                "description": "steps is a JSON array defining the template tasks",
             },
         ),
-        ("Status", {"fields": ("is_active",)}),
+        ("Status", {"fields": ("status",)}),
         (
             "Usage Stats",
-            {"fields": ("times_used", "last_used_at"), "classes": ("collapse",)},
+            {"fields": ("times_used",), "classes": ("collapse",)},
         ),
         ("Metadata", {"fields": ("created_at", "updated_at", "created_by")}),
     )

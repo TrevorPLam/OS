@@ -147,19 +147,19 @@ class MeetingPollAdmin(admin.ModelAdmin):
 
     list_display = [
         "title",
-        "organizer",
+        "created_by",
         "status",
         "voting_deadline",
-        "require_all_responses",
+        "require_all_invitees",
         "created_at",
     ]
-    list_filter = ["status", "require_all_responses", "firm", "created_at"]
+    list_filter = ["status", "require_all_invitees", "firm", "created_at"]
     search_fields = ["title", "description"]
-    readonly_fields = ["created_at", "updated_at", "scheduled_at"]
-    raw_id_fields = ["organizer", "created_appointment"]
+    readonly_fields = ["created_at", "updated_at", "closed_at"]
+    raw_id_fields = ["created_by", "scheduled_appointment"]
     fieldsets = (
         (None, {"fields": ("firm", "title", "description")}),
-        ("Organizer", {"fields": ("organizer",)}),
+        ("Organizer", {"fields": ("created_by",)}),
         (
             "Time Slots",
             {
@@ -170,15 +170,15 @@ class MeetingPollAdmin(admin.ModelAdmin):
         (
             "Invitees",
             {
-                "fields": ("invitee_emails",),
+                "fields": ("invitees",),
                 "description": "JSON array of invitee email addresses",
             },
         ),
         (
             "Settings",
-            {"fields": ("voting_deadline", "require_all_responses")},
+            {"fields": ("voting_deadline", "require_all_invitees", "allow_maybe_votes")},
         ),
-        ("Status", {"fields": ("status", "created_appointment", "scheduled_at")}),
+        ("Status", {"fields": ("status", "scheduled_appointment", "selected_slot_index", "closed_at")}),
         ("Metadata", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -204,9 +204,8 @@ class MeetingWorkflowAdmin(admin.ModelAdmin):
         "action_type",
         "delay_minutes",
         "status",
-        "is_active",
     ]
-    list_filter = ["trigger", "action_type", "status", "is_active", "firm"]
+    list_filter = ["trigger", "action_type", "status", "firm"]
     search_fields = ["name", "description"]
     readonly_fields = ["created_at", "updated_at"]
     raw_id_fields = ["appointment_type", "created_by"]
@@ -226,7 +225,7 @@ class MeetingWorkflowAdmin(admin.ModelAdmin):
                 "description": "action_config is a JSON object with action-specific settings",
             },
         ),
-        ("Status", {"fields": ("status", "is_active")}),
+        ("Status", {"fields": ("status",)}),
         ("Metadata", {"fields": ("created_at", "updated_at", "created_by")}),
     )
 
