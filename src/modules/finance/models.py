@@ -1582,3 +1582,297 @@ class StripeWebhookEvent(models.Model):
     
     def __str__(self) -> str:
         return f"{self.event_type} - {self.stripe_event_id} ({self.firm.name})"
+
+
+class ProjectProfitability(models.Model):
+    """
+    Project Profitability Analysis (Task 3.3).
+    
+    Tracks revenue, costs, and margins for individual projects.
+    Provides real-time profitability insights for project managers.
+    
+    TIER 0: Belongs to a Firm through Project relationship.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="project_profitability_records",
+        help_text="Firm this profitability record belongs to",
+    )
+    
+    # Relationships
+    project = models.OneToOneField(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="profitability",
+        help_text="Project being analyzed",
+    )
+    
+    # Revenue Tracking
+    total_revenue = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total revenue from invoices and payments",
+    )
+    recognized_revenue = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Revenue recognized based on completion percentage",
+    )
+    
+    # Cost Tracking
+    labor_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total cost of labor (time entries × rates)",
+    )
+    expense_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total project expenses (travel, materials, etc.)",
+    )
+    overhead_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Allocated overhead costs (facility, admin, etc.)",
+    )
+    
+    # Margin Analysis
+    gross_margin = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Revenue minus direct costs (labor + expenses)",
+    )
+    gross_margin_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Gross margin as percentage of revenue",
+    )
+    net_margin = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Gross margin minus overhead costs",
+    )
+    net_margin_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Net margin as percentage of revenue",
+    )
+    
+    # Forecasting
+    estimated_completion_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Estimated total cost to complete project",
+    )
+    estimated_final_margin = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Projected final margin at completion",
+    )
+    
+    # Metrics
+    hours_logged = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total hours logged on project",
+    )
+    billable_utilization = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Percentage of billable hours vs total hours",
+    )
+    
+    # Timestamps
+    last_calculated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="When profitability was last calculated",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "finance_project_profitability"
+        verbose_name = "Project Profitability"
+        verbose_name_plural = "Project Profitability Records"
+        indexes = [
+            models.Index(fields=["firm", "last_calculated_at"], name="finance_proj_prof_calc_idx"),
+            models.Index(fields=["firm", "gross_margin_percentage"], name="finance_proj_prof_gm_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"Profitability: {self.project.name} (Margin: {self.gross_margin_percentage}%)"
+    
+    def calculate_profitability(self) -> None:
+        """Calculate profitability metrics from project data."""
+        from modules.projects.models import TimeEntry, Expense
+        
+        # Calculate revenue from invoices
+        invoices = self.project.invoices.filter(status__in=["paid", "partial"])
+        self.total_revenue = sum(inv.paid_amount or Decimal("0.00") for inv in invoices)
+        
+        # Calculate recognized revenue (simplified - could be % complete based)
+        if self.project.status == "completed":
+            self.recognized_revenue = self.total_revenue
+        else:
+            # Use percentage complete if available
+            completion_pct = getattr(self.project, "completion_percentage", 0) / 100
+            self.recognized_revenue = self.total_revenue * Decimal(str(completion_pct))
+        
+        # Calculate labor costs
+        time_entries = TimeEntry.objects.filter(project=self.project)
+        self.labor_cost = sum(
+            te.hours * (te.hourly_rate or Decimal("0.00"))
+            for te in time_entries
+        )
+        self.hours_logged = sum(te.hours for te in time_entries)
+        
+        # Calculate expense costs
+        expenses = Expense.objects.filter(project=self.project, status="approved")
+        self.expense_cost = sum(exp.amount for exp in expenses)
+        
+        # Calculate overhead (simple allocation - 20% of labor cost)
+        self.overhead_cost = self.labor_cost * Decimal("0.20")
+        
+        # Calculate margins
+        direct_cost = self.labor_cost + self.expense_cost
+        self.gross_margin = self.recognized_revenue - direct_cost
+        
+        if self.recognized_revenue > 0:
+            self.gross_margin_percentage = (self.gross_margin / self.recognized_revenue) * 100
+        else:
+            self.gross_margin_percentage = Decimal("0.00")
+        
+        self.net_margin = self.gross_margin - self.overhead_cost
+        
+        if self.recognized_revenue > 0:
+            self.net_margin_percentage = (self.net_margin / self.recognized_revenue) * 100
+        else:
+            self.net_margin_percentage = Decimal("0.00")
+        
+        # Calculate billable utilization
+        billable_hours = sum(te.hours for te in time_entries if te.is_billable)
+        if self.hours_logged > 0:
+            self.billable_utilization = (billable_hours / self.hours_logged) * 100
+        else:
+            self.billable_utilization = Decimal("0.00")
+        
+        self.save()
+
+
+class ServiceLineProfitability(models.Model):
+    """
+    Service Line Profitability Analysis (Task 3.3).
+    
+    Aggregates profitability across multiple projects within a service line.
+    Service lines could be: Consulting, Advisory, Implementation, etc.
+    
+    TIER 0: Belongs to a Firm.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="service_line_profitability",
+        help_text="Firm this service line belongs to",
+    )
+    
+    # Service Line Definition
+    name = models.CharField(
+        max_length=200,
+        help_text="Service line name (e.g., 'Management Consulting', 'IT Advisory')",
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Description of this service line",
+    )
+    
+    # Period
+    period_start = models.DateField(help_text="Start of reporting period")
+    period_end = models.DateField(help_text="End of reporting period")
+    
+    # Aggregated Metrics
+    total_revenue = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total revenue across all projects in service line",
+    )
+    total_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Total costs (labor + expenses + overhead)",
+    )
+    gross_margin = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Total revenue minus total costs",
+    )
+    margin_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Margin as percentage of revenue",
+    )
+    
+    # Project Count
+    project_count = models.IntegerField(
+        default=0,
+        help_text="Number of projects in this service line",
+    )
+    active_project_count = models.IntegerField(
+        default=0,
+        help_text="Number of active projects",
+    )
+    
+    # Timestamps
+    last_calculated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="When metrics were last calculated",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "finance_service_line_profitability"
+        verbose_name = "Service Line Profitability"
+        verbose_name_plural = "Service Line Profitability Records"
+        unique_together = [["firm", "name", "period_start", "period_end"]]
+        indexes = [
+            models.Index(fields=["firm", "period_start", "period_end"], name="finance_svc_line_period_idx"),
+            models.Index(fields=["firm", "margin_percentage"], name="finance_svc_line_margin_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.name} ({self.period_start} - {self.period_end}): {self.margin_percentage}%"
