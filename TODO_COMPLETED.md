@@ -8,6 +8,50 @@ This file contains all completed tasks that have been migrated from TODO.md.
 
 ## Recently Completed (January 1, 2026)
 
+### High Priority - Critical Blockers (All Migrations Complete)
+
+**All migrations complete - Platform is now deployable**
+- All 8 modules now have initial migrations (snippets, sms, pricing, delivery, knowledge, onboarding, orchestration, support)
+- All Django system check errors fixed (20 duplicate index names, 1 related_name clash)
+- All foreign key references resolved (Contact, EngagementLine models added)
+- All indexes properly named
+- **Effort Completed:** System check fixes + 18 migration files created
+
+### Medium Priority - Integration & Enterprise Features
+
+- [x] **SMS service integration** - ✅ **COMPLETED** (January 1, 2026)
+  - Full Twilio integration with 6 models in src/modules/sms/
+  - Migration: sms/0001_initial.py (6 models, 790 lines)
+  - Two-way SMS conversations, bulk campaigns, templates, and opt-out management
+
+- [x] **RBAC/ABAC policy system** - ✅ **COMPLETED** (January 1, 2026)
+  - 12 module visibility classes, 5 portal scope classes (src/modules/auth/role_permissions.py)
+  - 6 staff roles with least-privilege defaults (firm/models.py)
+  - Build RBAC/ABAC policy system with object-level permissions
+  - See TODO_COMPLETED.md DOC-27.1
+
+- [x] **General automation/workflow engine** - ✅ **COMPLETED** (January 1, 2026)
+  - Orchestration module in src/modules/orchestration/
+  - OrchestrationDefinition, OrchestrationExecution, StepExecution models
+  - Includes retry logic and DLQ (Dead Letter Queue)
+  - Build general automation/workflow engine with rule builder
+
+- [x] **API versioning strategy** - ✅ **COMPLETED** (January 1, 2026)
+  - /api/v1/ prefix implemented (Dec 2025)
+  - API_VERSIONING_POLICY.md and API_DEPRECATION_POLICY.md created
+  - Add API versioning strategy and backward compatibility
+  - See TODO_COMPLETED.md ASSESS-I5.1
+
+### Low Priority - Platform Transformation
+
+- [x] **Operational observability** - ✅ **COMPLETED** (January 1, 2026)
+  - Correlation IDs, metrics collectors for API/Workers/Integrations
+  - Tenant-safe logging (src/modules/core/observability.py)
+  - Add operational observability without content access
+  - See TODO_COMPLETED.md DOC-21.1
+
+---
+
 ### MISSING Features - Critical Migrations Created (MISSING-7 through MISSING-12)
 
 - [x] **MISSING-7** API Layer Completion ✅
