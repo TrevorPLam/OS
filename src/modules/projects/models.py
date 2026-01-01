@@ -1043,3 +1043,233 @@ class TaskTemplate(models.Model):
         )
 
         return task
+
+
+class ResourceAllocation(models.Model):
+    """
+    Resource allocation for project staffing (Task 3.2).
+    
+    Tracks allocation of team members to projects with capacity planning.
+    Supports percentage-based allocation and conflict detection.
+    
+    TIER 0: Belongs to a Firm through Project relationship.
+    """
+    
+    ALLOCATION_TYPE_CHOICES = [
+        ("dedicated", "Dedicated (100%)"),
+        ("part_time", "Part-Time"),
+        ("as_needed", "As Needed"),
+        ("backup", "Backup Resource"),
+    ]
+    
+    STATUS_CHOICES = [
+        ("planned", "Planned"),
+        ("active", "Active"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
+    ]
+    
+    # Relationships
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="resource_allocations",
+        help_text="Project this resource is allocated to"
+    )
+    resource = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="allocations",
+        help_text="Team member allocated to this project"
+    )
+    
+    # Allocation Details
+    allocation_type = models.CharField(
+        max_length=20,
+        choices=ALLOCATION_TYPE_CHOICES,
+        default="part_time",
+        help_text="Type of allocation"
+    )
+    allocation_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00")), MinValueValidator(Decimal("100.00"))],
+        help_text="Percentage of resource's time allocated (0-100)"
+    )
+    hourly_rate = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0.01"))],
+        help_text="Hourly billing rate for this resource on this project"
+    )
+    
+    # Timeline
+    start_date = models.DateField(help_text="When this allocation starts")
+    end_date = models.DateField(help_text="When this allocation ends")
+    
+    # Role Information
+    role = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Role of this resource on the project (e.g., 'Lead Consultant', 'Analyst')"
+    )
+    is_billable = models.BooleanField(
+        default=True,
+        help_text="Whether this resource's time is billable to the client"
+    )
+    
+    # Status
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="planned"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_allocations",
+        help_text="User who created this allocation"
+    )
+    notes = models.TextField(blank=True, help_text="Notes about this allocation")
+    
+    class Meta:
+        db_table = "projects_resource_allocation"
+        ordering = ["start_date", "project"]
+        indexes = [
+            models.Index(fields=["project", "status"], name="proj_res_alloc_proj_status_idx"),
+            models.Index(fields=["resource", "status", "start_date"], name="proj_res_alloc_res_status_idx"),
+            models.Index(fields=["start_date", "end_date"], name="proj_res_alloc_dates_idx"),
+        ]
+    
+    def __str__(self):
+        return f"{self.resource.get_full_name()} - {self.project.name} ({self.allocation_percentage}%)"
+    
+    def clean(self):
+        """Validate allocation data."""
+        from django.core.exceptions import ValidationError
+        
+        errors = {}
+        
+        # Validate end_date is after start_date
+        if self.start_date and self.end_date and self.end_date < self.start_date:
+            errors["end_date"] = "End date must be after start date."
+        
+        # Validate allocation percentage
+        if self.allocation_percentage:
+            if self.allocation_percentage < 0 or self.allocation_percentage > 100:
+                errors["allocation_percentage"] = "Allocation percentage must be between 0 and 100."
+        
+        # Check for overlapping allocations (potential conflicts)
+        if self.resource_id and self.start_date and self.end_date:
+            overlapping = ResourceAllocation.objects.filter(
+                resource=self.resource,
+                status__in=["planned", "active"],
+            ).exclude(pk=self.pk).filter(
+                start_date__lte=self.end_date,
+                end_date__gte=self.start_date,
+            )
+            
+            if overlapping.exists():
+                total_allocation = sum(alloc.allocation_percentage for alloc in overlapping)
+                total_allocation += self.allocation_percentage
+                
+                if total_allocation > 100:
+                    errors["allocation_percentage"] = (
+                        f"This resource is over-allocated ({total_allocation}% total) during this period. "
+                        f"Existing allocations: {', '.join(str(a) for a in overlapping)}"
+                    )
+        
+        if errors:
+            raise ValidationError(errors)
+
+
+class ResourceCapacity(models.Model):
+    """
+    Resource capacity planning (Task 3.2).
+    
+    Tracks available capacity for team members, accounting for leave,
+    holidays, and other unavailability.
+    
+    TIER 0: Belongs to a Firm through User relationship.
+    """
+    
+    UNAVAILABILITY_TYPE_CHOICES = [
+        ("vacation", "Vacation"),
+        ("sick_leave", "Sick Leave"),
+        ("holiday", "Public Holiday"),
+        ("training", "Training/Conference"),
+        ("administrative", "Administrative Time"),
+        ("other", "Other"),
+    ]
+    
+    # Resource
+    resource = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="capacity_entries",
+        help_text="Team member this capacity entry applies to"
+    )
+    
+    # Firm context (for tenant isolation)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="resource_capacities",
+        help_text="Firm this capacity entry belongs to"
+    )
+    
+    # Capacity Details
+    date = models.DateField(help_text="Date of capacity entry")
+    available_hours = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=Decimal("8.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Available hours for this date (default 8 hours)"
+    )
+    unavailable_hours = models.DecimalField(
+        max_digits=4,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Hours unavailable due to leave, holiday, etc."
+    )
+    unavailability_type = models.CharField(
+        max_length=20,
+        choices=UNAVAILABILITY_TYPE_CHOICES,
+        blank=True,
+        help_text="Reason for unavailability"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    notes = models.TextField(blank=True, help_text="Notes about capacity on this date")
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "projects_resource_capacity"
+        ordering = ["date", "resource"]
+        indexes = [
+            models.Index(fields=["firm", "resource", "date"], name="proj_res_cap_firm_res_date_idx"),
+            models.Index(fields=["firm", "date"], name="proj_res_cap_firm_date_idx"),
+        ]
+        unique_together = [["resource", "date"]]
+    
+    def __str__(self):
+        return f"{self.resource.get_full_name()} - {self.date} ({self.available_hours}h available)"
+    
+    @property
+    def net_available_hours(self):
+        """Calculate net available hours after unavailability."""
+        return max(Decimal("0.00"), self.available_hours - self.unavailable_hours)

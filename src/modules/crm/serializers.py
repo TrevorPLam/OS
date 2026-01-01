@@ -4,7 +4,127 @@ Serializers for CRM module (Pre-Sale).
 
 from rest_framework import serializers
 
-from modules.crm.models import Campaign, Contract, Lead, Proposal, Prospect
+from modules.crm.models import (
+    Account,
+    AccountContact,
+    AccountRelationship,
+    Campaign,
+    Contract,
+    Lead,
+    Proposal,
+    Prospect,
+)
+
+
+class AccountSerializer(serializers.ModelSerializer):
+    """Serializer for Account model (Task 3.1)."""
+    
+    owner_name = serializers.SerializerMethodField()
+    parent_account_name = serializers.CharField(source="parent_account.name", read_only=True)
+    contact_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Account
+        fields = [
+            "id",
+            "firm",
+            "name",
+            "legal_name",
+            "account_type",
+            "status",
+            "industry",
+            "website",
+            "employee_count",
+            "annual_revenue",
+            "billing_address_line1",
+            "billing_address_line2",
+            "billing_city",
+            "billing_state",
+            "billing_postal_code",
+            "billing_country",
+            "shipping_address_line1",
+            "shipping_address_line2",
+            "shipping_city",
+            "shipping_state",
+            "shipping_postal_code",
+            "shipping_country",
+            "owner",
+            "owner_name",
+            "parent_account",
+            "parent_account_name",
+            "contact_count",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "contact_count"]
+    
+    def get_owner_name(self, obj):
+        """Get owner's name."""
+        if obj.owner:
+            return f"{obj.owner.first_name} {obj.owner.last_name}".strip()
+        return None
+    
+    def get_contact_count(self, obj):
+        """Get count of contacts for this account."""
+        return obj.contacts.count()
+
+
+class AccountContactSerializer(serializers.ModelSerializer):
+    """Serializer for AccountContact model (Task 3.1)."""
+    
+    account_name = serializers.CharField(source="account.name", read_only=True)
+    full_name = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = AccountContact
+        fields = [
+            "id",
+            "account",
+            "account_name",
+            "first_name",
+            "last_name",
+            "full_name",
+            "email",
+            "phone",
+            "mobile_phone",
+            "job_title",
+            "department",
+            "is_primary_contact",
+            "is_decision_maker",
+            "preferred_contact_method",
+            "opt_out_marketing",
+            "is_active",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "full_name"]
+
+
+class AccountRelationshipSerializer(serializers.ModelSerializer):
+    """Serializer for AccountRelationship model (Task 3.1)."""
+    
+    from_account_name = serializers.CharField(source="from_account.name", read_only=True)
+    to_account_name = serializers.CharField(source="to_account.name", read_only=True)
+    
+    class Meta:
+        model = AccountRelationship
+        fields = [
+            "id",
+            "from_account",
+            "from_account_name",
+            "to_account",
+            "to_account_name",
+            "relationship_type",
+            "status",
+            "start_date",
+            "end_date",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class LeadSerializer(serializers.ModelSerializer):

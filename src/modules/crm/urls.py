@@ -6,6 +6,9 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from modules.crm.views import (
+    AccountContactViewSet,
+    AccountRelationshipViewSet,
+    AccountViewSet,
     CampaignViewSet,
     ContractViewSet,
     LeadViewSet,
@@ -18,6 +21,9 @@ from modules.crm.scoring_views import (
 )
 
 router = DefaultRouter()
+router.register(r"accounts", AccountViewSet, basename="account")
+router.register(r"account-contacts", AccountContactViewSet, basename="account-contact")
+router.register(r"account-relationships", AccountRelationshipViewSet, basename="account-relationship")
 router.register(r"leads", LeadViewSet, basename="lead")
 router.register(r"prospects", ProspectViewSet, basename="prospect")
 router.register(r"campaigns", CampaignViewSet, basename="campaign")

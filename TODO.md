@@ -149,8 +149,18 @@ Do not update or prioritize legacy Tier/checklist items; add new work above as D
 
 ### 🟠 Complex - New Subsystems & Integrations
 
-- [ ] 3.1 Build Account & Contact relationship graph (CRM)
-- [ ] 3.2 Implement resource planning & allocation system (Projects)
+- [x] 3.1 Build Account & Contact relationship graph (CRM) ✅ Completed
+  - Account model for company/organization management
+  - AccountContact model for individual contacts
+  - AccountRelationship model for relationship graph
+  - Full admin interface, serializers, and ViewSets
+  - Documentation: docs/03-reference/crm-module.md
+- [x] 3.2 Implement resource planning & allocation system (Projects) ✅ Completed
+  - ResourceAllocation model for project staffing
+  - ResourceCapacity model for availability tracking
+  - Conflict detection and availability reporting
+  - Full admin interface, serializers, and ViewSets
+  - Documentation: docs/03-reference/resource-planning.md
 - [ ] 3.3 Add profitability reporting with margin analysis (Finance)
 - [ ] 3.4 Build intake form system with qualification logic (CRM)
 - [ ] 3.5 Implement CPQ (Configure-Price-Quote) engine (CRM)

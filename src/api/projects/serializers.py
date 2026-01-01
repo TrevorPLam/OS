@@ -6,7 +6,69 @@ from django.db import models
 from django.utils import timezone
 from rest_framework import serializers
 
-from modules.projects.models import Project, Task, TimeEntry
+from modules.projects.models import Project, ResourceAllocation, ResourceCapacity, Task, TimeEntry
+
+
+class ResourceAllocationSerializer(serializers.ModelSerializer):
+    """Serializer for ResourceAllocation model (Task 3.2)."""
+    
+    resource_name = serializers.SerializerMethodField()
+    project_name = serializers.CharField(source="project.name", read_only=True)
+    
+    class Meta:
+        model = ResourceAllocation
+        fields = [
+            "id",
+            "project",
+            "project_name",
+            "resource",
+            "resource_name",
+            "allocation_type",
+            "allocation_percentage",
+            "hourly_rate",
+            "start_date",
+            "end_date",
+            "role",
+            "is_billable",
+            "status",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+    
+    def get_resource_name(self, obj):
+        """Get resource's full name."""
+        return obj.resource.get_full_name()
+
+
+class ResourceCapacitySerializer(serializers.ModelSerializer):
+    """Serializer for ResourceCapacity model (Task 3.2)."""
+    
+    resource_name = serializers.SerializerMethodField()
+    net_available_hours = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = ResourceCapacity
+        fields = [
+            "id",
+            "firm",
+            "resource",
+            "resource_name",
+            "date",
+            "available_hours",
+            "unavailable_hours",
+            "net_available_hours",
+            "unavailability_type",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "net_available_hours"]
+    
+    def get_resource_name(self, obj):
+        """Get resource's full name."""
+        return obj.resource.get_full_name()
 
 
 class ProjectSerializer(serializers.ModelSerializer):
