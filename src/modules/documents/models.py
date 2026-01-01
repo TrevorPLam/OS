@@ -7,10 +7,13 @@ Supports hierarchical folders and client portal access.
 TIER 0: All documents belong to exactly one Firm for tenant isolation.
 """
 
+import uuid
 from typing import Any
 
+import bcrypt
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 from modules.core.encryption import field_encryption_service
 from modules.firm.utils import FirmScopedManager
@@ -1119,7 +1122,6 @@ class ExternalShare(models.Model):
     def save(self, *args: Any, **kwargs: Any) -> None:
         # Generate share token on creation
         if not self.share_token:
-            import uuid
             self.share_token = uuid.uuid4()
         super().save(*args, **kwargs)
     
@@ -1128,7 +1130,6 @@ class ExternalShare(models.Model):
         """Check if the share has expired."""
         if self.expires_at is None:
             return False
-        from django.utils import timezone
         return timezone.now() > self.expires_at
     
     @property
@@ -1156,7 +1157,6 @@ class ExternalShare(models.Model):
         if not self.require_password:
             return True
         
-        import bcrypt
         return bcrypt.checkpw(
             password.encode('utf-8'),
             self.password_hash.encode('utf-8')
@@ -1169,7 +1169,6 @@ class ExternalShare(models.Model):
         Args:
             password: The plaintext password to hash and store
         """
-        import bcrypt
         self.password_hash = bcrypt.hashpw(
             password.encode('utf-8'),
             bcrypt.gensalt()
@@ -1184,8 +1183,6 @@ class ExternalShare(models.Model):
             user: The user revoking the share
             reason: Optional reason for revocation
         """
-        from django.utils import timezone
-        
         self.revoked = True
         self.revoked_at = timezone.now()
         self.revoked_by = user

@@ -360,7 +360,6 @@ class ExternalShareViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
     
     def get_queryset(self):
         """Override to add select_related for performance."""
-        from modules.documents.models import ExternalShare
         base_queryset = super().get_queryset()
         return base_queryset.select_related(
             "document",
@@ -408,7 +407,6 @@ class ExternalShareViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
         """
         try:
             share = self.get_object()
-            from modules.documents.models import ShareAccess
             
             # Get all access logs for this share
             access_logs = ShareAccess.objects.filter(
@@ -478,7 +476,6 @@ class SharePermissionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelV
     
     def get_queryset(self):
         """Override to add select_related for performance."""
-        from modules.documents.models import SharePermission
         base_queryset = super().get_queryset()
         return base_queryset.select_related(
             "external_share",
@@ -510,7 +507,6 @@ class ShareAccessViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyMo
     
     def get_queryset(self):
         """Override to add select_related for performance."""
-        from modules.documents.models import ShareAccess
         base_queryset = super().get_queryset()
         return base_queryset.select_related(
             "external_share",
