@@ -59,11 +59,13 @@
 
 ### Integration & External Dependencies
 
-- [ ] Slack API integration (`src/modules/core/notifications.py`) - **Deferred** (placeholder implemented)
+- [ ] Slack API integration - **Deferred**
+  - Placeholder implemented in src/modules/core/notifications.py
 - [x] **SMS service integration** - ✅ **COMPLETED**
   - Full Twilio integration in src/modules/sms/
   - Migration: sms/0001_initial.py (6 models, 790 lines)
-- [ ] E-signature workflow (`src/modules/clients/views.py`) - **Deferred**
+- [ ] E-signature workflow - **Deferred**
+  - Placeholder implemented in src/modules/clients/views.py
 - [ ] **Email/calendar sync integration (Google/Outlook)** - ⚠️ **IN PROGRESS**
   - OAuth models exist in calendar/oauth_models.py ✅
   - CalendarConnection model with OAuth credentials implemented ✅
