@@ -57,6 +57,7 @@ const Layout: React.FC = () => {
             <Link to="/projects">📋 Projects</Link>
             <Link to="/time-tracking">⏱️ Time Tracking</Link>
             <Link to="/invoices">💰 Invoices</Link>
+            <Link to="/calendar-sync">📅 Calendar Sync</Link>
           </div>
 
           <div className="nav-section">

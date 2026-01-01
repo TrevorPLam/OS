@@ -21,6 +21,8 @@ import { ClientPortal } from './pages/ClientPortal'
 import { AssetManagement } from './pages/AssetManagement'
 import { KnowledgeCenter } from './pages/KnowledgeCenter'
 import { Communications } from './pages/Communications'
+import CalendarSync from './pages/CalendarSync'
+import CalendarOAuthCallback from './pages/CalendarOAuthCallback'
 
 function App() {
   return (
@@ -32,6 +34,7 @@ function App() {
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/calendar/oauth/callback" element={<CalendarOAuthCallback />} />
 
               {/* Protected routes */}
               <Route
@@ -65,6 +68,9 @@ function App() {
                 <Route path="/assets" element={<AssetManagement />} />
                 <Route path="/knowledge" element={<KnowledgeCenter />} />
                 <Route path="/communications" element={<Communications />} />
+                
+                {/* Calendar Sync Route */}
+                <Route path="/calendar-sync" element={<CalendarSync />} />
               </Route>
 
               {/* Catch all - redirect to home */}
