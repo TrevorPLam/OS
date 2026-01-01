@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - Medium Workflow & Business Logic Features (2.7-2.10)
+- ✅ Document approval workflow (Draft → Review → Approved → Published)
+  - State transition methods: submit_for_review(), approve(), reject(), publish(), deprecate(), archive()
+  - API endpoints: POST /api/documents/documents/{id}/{submit_for_review,approve,reject,publish}/
+  - Audit trail with timestamps and user tracking for each transition
+  - 15 comprehensive tests covering full lifecycle
+- ✅ Client acceptance gate before invoicing
+  - Project acceptance tracking: client_accepted, acceptance_date, accepted_by, acceptance_notes fields
+  - Invoice generation gate: can_generate_invoice() blocks final invoicing for completed projects
+  - API endpoint: POST /api/projects/projects/{id}/mark_client_accepted/
+  - 13 comprehensive tests including invoice generation validation
+- ✅ Utilization tracking and reporting
+  - Project-level metrics: calculate_utilization_metrics() with billable/non-billable hours, utilization rate, budget variance
+  - User-level metrics: calculate_user_utilization() with capacity analysis across projects
+  - API endpoints: GET /api/projects/projects/{id}/utilization/, GET /api/projects/projects/team_utilization/
+  - 16 comprehensive tests covering project and user metrics
+- ✅ Cash application matching (partial/over/under payments)
+  - Payment and PaymentAllocation models for tracking customer payments
+  - Support for partial payments, overpayments, split allocations, multiple payments per invoice
+  - Automatic invoice status updates (sent → partial → paid) with atomic F() expressions
+  - API endpoints: POST /api/finance/payments/, POST /api/finance/payment-allocations/
+  - Database migration: 0009_payment_payment_allocation.py
+  - 17 comprehensive tests covering allocation scenarios
+
+### Documentation
+- Added IMPLEMENTATION_SUMMARY_2.7-2.10.md with comprehensive feature documentation
+- Updated TODO.md to mark Medium features 2.7-2.10 as complete
+
+### Platform Progress
+- **4 out of 10 Medium features complete (40% of Medium tier)** ✅
+
 ### Notes
 - Platform foundation complete: All 6 tiers finished (100%)
 - Constitution compliance: 12/12 tasks complete (100%)
