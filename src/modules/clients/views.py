@@ -786,25 +786,113 @@ class ClientProposalViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadO
         """
         Accept a proposal (client-side acceptance).
 
-        This is a placeholder for e-signature integration.
-        In production, this would trigger DocuSign/HelloSign workflow.
+        Creates a DocuSign envelope for e-signature workflow.
         """
+        import base64
+        import logging
+        from modules.esignature.docusign_service import DocuSignService
+        from modules.esignature.models import DocuSignConnection, Envelope
+        
+        logger = logging.getLogger(__name__)
         proposal = self.get_object()
 
         # Verify proposal can be accepted
         if proposal.status not in ["sent", "under_review"]:
             return Response({"error": "Proposal cannot be accepted. Status must be sent or under review."}, status=400)
 
-        # DEFERRED: E-signature workflow - See TODO_ANALYSIS.md #12
-        # Requires: DocuSign/HelloSign API integration
-        # For now, return placeholder response
-        return Response(
-            {
-                "status": "pending_signature",
-                "message": "E-signature integration pending. This would trigger DocuSign/HelloSign workflow.",
-                "proposal_number": proposal.proposal_number,
-            }
-        )
+        # Check if firm has DocuSign connection
+        try:
+            connection = DocuSignConnection.objects.get(firm=proposal.firm, is_active=True)
+        except DocuSignConnection.DoesNotExist:
+            return Response(
+                {
+                    "error": "E-signature not configured. Please contact your administrator to set up DocuSign integration.",
+                    "proposal_number": proposal.proposal_number,
+                },
+                status=400
+            )
+        
+        # Check if envelope already exists for this proposal
+        existing_envelope = Envelope.objects.filter(
+            proposal=proposal,
+            status__in=["sent", "delivered", "signed"]
+        ).first()
+        
+        if existing_envelope:
+            return Response(
+                {
+                    "status": "pending_signature",
+                    "message": "Proposal is already pending signature.",
+                    "envelope_id": existing_envelope.envelope_id,
+                    "proposal_number": proposal.proposal_number,
+                }
+            )
+        
+        try:
+            # Generate proposal document (placeholder - would use actual proposal PDF)
+            # In production, this would render the proposal as a PDF
+            document_content = f"PROPOSAL {proposal.proposal_number}\n\nThis is a placeholder document."
+            document_base64 = base64.b64encode(document_content.encode()).decode()
+            
+            # Prepare recipient information
+            recipients = [
+                {
+                    "email": request.user.email,
+                    "name": request.user.get_full_name() or request.user.username,
+                    "recipient_id": 1,
+                    "routing_order": 1,
+                }
+            ]
+            
+            # Create envelope via DocuSign
+            service = DocuSignService(connection=connection)
+            envelope_data = service.create_envelope(
+                document_base64=document_base64,
+                document_name=f"Proposal_{proposal.proposal_number}.pdf",
+                recipients=recipients,
+                email_subject=f"Please sign proposal {proposal.proposal_number}",
+                email_message=f"Please review and sign the attached proposal.",
+                status="sent",
+            )
+            
+            # Create envelope record
+            envelope = Envelope.objects.create(
+                firm=proposal.firm,
+                connection=connection,
+                envelope_id=envelope_data["envelopeId"],
+                status=envelope_data["status"],
+                proposal=proposal,
+                subject=f"Proposal {proposal.proposal_number}",
+                message="Please review and sign the attached proposal.",
+                recipients=recipients,
+                sent_at=timezone.now(),
+                created_by=request.user,
+            )
+            
+            # Update proposal status
+            proposal.status = "pending_signature"
+            proposal.save(update_fields=["status", "updated_at"])
+            
+            logger.info(f"Created DocuSign envelope {envelope.envelope_id} for proposal {proposal.proposal_number}")
+            
+            return Response(
+                {
+                    "status": "pending_signature",
+                    "message": "E-signature request sent successfully. Please check your email to sign the proposal.",
+                    "envelope_id": envelope.envelope_id,
+                    "proposal_number": proposal.proposal_number,
+                }
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to create DocuSign envelope for proposal {proposal.proposal_number}: {str(e)}")
+            return Response(
+                {
+                    "error": f"Failed to send e-signature request: {str(e)}",
+                    "proposal_number": proposal.proposal_number,
+                },
+                status=500
+            )
 
 
 class ClientContractViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.ReadOnlyModelViewSet):

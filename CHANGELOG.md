@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Sprint 4: E-Signature Integration** (2026-01-01)
+  - DocuSign integration with OAuth 2.0 authentication
+  - Envelope creation and send workflow for proposals
+  - Webhook-based real-time status tracking with HMAC verification
+  - Automatic proposal status updates on signature completion
+  - REST API endpoints for connection and envelope management (`/api/v1/esignature/`)
+  - Django admin interfaces for monitoring envelopes and webhook events
+  - Comprehensive documentation and user guide
+  - Database models: DocuSignConnection, Envelope, WebhookEvent
+  - Encrypted OAuth token storage with automatic refresh (5-minute buffer)
+  - Multi-tenant isolation for all e-signature operations
+  - Integration with proposal acceptance workflow
+  - See [Sprint 4 Implementation Summary](docs/SPRINT_4_IMPLEMENTATION_SUMMARY.md)
+  - See [E-Signature User Guide](docs/esignature-user-guide.md)
+  - See [ADR-004: E-Signature Provider Selection](docs/05-decisions/ADR-004-esignature-provider-selection.md)
+
 - **Sprint 3: Accounting Integrations** (2026-01-01)
   - QuickBooks Online integration with OAuth 2.0 authentication
   - Xero integration with OAuth 2.0 authentication

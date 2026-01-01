@@ -32,6 +32,7 @@ stripe==7.9.0
 # Utilities
 python-dotenv==1.0.0
 Pillow==10.1.0
+requests==2.31.0  # Sprint 4: HTTP client for DocuSign API
 
 # Production Server (optional, for deployment)
 gunicorn==21.2.0
