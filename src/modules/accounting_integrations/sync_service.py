@@ -6,7 +6,7 @@ accounting systems (QuickBooks Online, Xero).
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Dict, List, Optional
 
@@ -74,7 +74,7 @@ class AccountingSyncService:
                 self.connection.refresh_token = result['refresh_token']
             
             expires_in = result.get('expires_in', 3600)
-            self.connection.token_expires_at = timezone.now() + timezone.timedelta(seconds=expires_in)
+            self.connection.token_expires_at = timezone.now() + timedelta(seconds=expires_in)
             self.connection.status = 'active'
             self.connection.save()
             return True

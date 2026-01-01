@@ -178,7 +178,8 @@ class AccountingOAuthConnection(models.Model):
         if not self.token_expires_at:
             return False
         # Refresh if token expires in less than 5 minutes
-        threshold = timezone.now() + timezone.timedelta(minutes=5)
+        from datetime import timedelta
+        threshold = timezone.now() + timedelta(minutes=5)
         return self.token_expires_at <= threshold
 
 
