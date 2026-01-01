@@ -139,9 +139,6 @@ class ExternalShareSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        extra_kwargs = {
-            "password_hash": {"write_only": True},  # Never expose the hash
-        }
     
     def get_share_url(self, obj):
         """Generate the full share URL."""
