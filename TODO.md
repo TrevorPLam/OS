@@ -58,9 +58,13 @@
 ### Integration & External Dependencies
 
 - [ ] Slack API integration (`src/modules/core/notifications.py`) - **Deferred** (placeholder implemented)
-- [x] **SMS service integration** - ✅ **COMPLETED** (sms/0001_initial.py: 6 models, 790 lines; full Twilio integration in src/modules/sms/)
+- [x] **SMS service integration** - ✅ **COMPLETED**
+  - Full Twilio integration in src/modules/sms/
+  - Migration: sms/0001_initial.py (6 models, 790 lines)
 - [ ] E-signature workflow (`src/modules/clients/views.py`) - **Deferred**
-- [x] **Email/calendar sync integration (Google/Outlook)** - ✅ **PARTIALLY COMPLETED** (OAuth models exist in calendar/oauth_models.py; CalendarConnection model with OAuth credentials)
+- [x] **Email/calendar sync integration (Google/Outlook)** - ✅ **PARTIALLY COMPLETED**
+  - OAuth models exist in calendar/oauth_models.py
+  - CalendarConnection model with OAuth credentials implemented
 - [ ] Document co-authoring with real-time collaboration - **Very High Complexity** (32-48 hours)
 
 ### Enterprise Features
@@ -68,12 +72,21 @@
 - [ ] Implement SSO/OAuth (Google/Microsoft) authentication
 - [ ] Add SAML support for enterprise SSO
 - [ ] Implement Multi-Factor Authentication (MFA)
-- [x] **Build RBAC/ABAC policy system with object-level permissions** - ✅ **COMPLETED** (src/modules/auth/role_permissions.py: 12 module visibility classes, 5 portal scope classes; firm/models.py: 6 staff roles with least-privilege defaults - see TODO_COMPLETED.md DOC-27.1)
+- [x] **Build RBAC/ABAC policy system with object-level permissions** - ✅ **COMPLETED**
+  - 12 module visibility classes, 5 portal scope classes (src/modules/auth/role_permissions.py)
+  - 6 staff roles with least-privilege defaults (firm/models.py)
+  - See TODO_COMPLETED.md DOC-27.1
 - [ ] Add QuickBooks Online integration
 - [ ] Add Xero accounting integration
 - [ ] Implement e-signature integration (DocuSign/HelloSign)
-- [x] **Build general automation/workflow engine with rule builder** - ✅ **COMPLETED** (Orchestration module: src/modules/orchestration/ - OrchestrationDefinition, OrchestrationExecution, StepExecution models with retry/DLQ)
-- [x] **Add API versioning strategy and backward compatibility** - ✅ **COMPLETED** (Dec 2025: /api/v1/ prefix, API_VERSIONING_POLICY.md, API_DEPRECATION_POLICY.md - see TODO_COMPLETED.md ASSESS-I5.1)
+- [x] **Build general automation/workflow engine with rule builder** - ✅ **COMPLETED**
+  - Orchestration module in src/modules/orchestration/
+  - OrchestrationDefinition, OrchestrationExecution, StepExecution models
+  - Includes retry logic and DLQ (Dead Letter Queue)
+- [x] **Add API versioning strategy and backward compatibility** - ✅ **COMPLETED**
+  - /api/v1/ prefix implemented (Dec 2025)
+  - API_VERSIONING_POLICY.md and API_DEPRECATION_POLICY.md created
+  - See TODO_COMPLETED.md ASSESS-I5.1
 - [ ] Implement materialized views for reporting performance
 
 ---
@@ -87,7 +100,10 @@
 - [ ] Add audit review UI with query/filter/export capabilities (backend audit system exists in firm/audit.py, needs admin UI)
 - [ ] Build integration marketplace scaffolding
 - [ ] Implement records management system with immutability
-- [x] **Add operational observability without content access** - ✅ **COMPLETED** (src/modules/core/observability.py: correlation IDs, metrics collectors for API/Workers/Integrations, tenant-safe logging - see TODO_COMPLETED.md DOC-21.1)
+- [x] **Add operational observability without content access** - ✅ **COMPLETED**
+  - Correlation IDs, metrics collectors for API/Workers/Integrations
+  - Tenant-safe logging (src/modules/core/observability.py)
+  - See TODO_COMPLETED.md DOC-21.1
 - [ ] Build custom dashboard builder with widget system
 - [ ] Implement ERP connectors for enterprise customers
 - [ ] Add AI-powered lead scoring and sales automation
