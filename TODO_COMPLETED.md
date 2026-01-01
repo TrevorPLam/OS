@@ -1,8 +1,98 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** December 31, 2025
+**Last Updated:** January 1, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 1, 2026)
+
+### In-Code TODOs - Completed
+
+**High Priority (Feature Completion)**
+- [x] `src/api/portal/views.py` - Implement organization-based multi-account logic (DOC-26.1 account switcher) ✅
+- [x] `src/modules/orchestration/executor.py` - Implement actual step handler dispatch based on step type ✅
+
+**Medium Priority (Implementation Details)**
+- [x] `src/api/portal/views.py` - Link uploaded documents to Contact if available ✅
+- [x] `src/api/portal/views.py` - Notify staff of appointment cancellation ✅
+- [x] `src/modules/firm/provisioning.py` - Implement baseline configuration seeding ✅
+  - Default project templates (General Consulting, Monthly Retainer, Advisory Services)
+  - Default email templates (Welcome Email, Appointment Confirmation, Project Update)
+
+**Low Priority (Future Enhancements)**
+- [x] `src/modules/documents/models.py` - Implement document approval workflow (TODO 2.7) ✅
+- [x] `src/modules/onboarding/models.py` - Trigger email/notification to client on workflow events ✅
+  - OnboardingTask reminder notifications
+  - OnboardingDocument reminder notifications
+
+### MISSING Features - Completed Admin Fixes
+
+- [x] MISSING-1 Support/Ticketing System **⚠️ ADMIN FIXED** - Code exists (632 lines, 5 models) but NO migrations; admin field references fixed (responses→answers); 9+ unnamed indexes FIXED ✅
+- [x] MISSING-2 Meeting Polls **⚠️ ADMIN FIXED** - Code exists but admin field references fixed (organizer→created_by, created_appointment→scheduled_appointment, require_all_responses→require_all_invitees, invitee_emails→invitees) ✅
+- [x] MISSING-3 Meeting Workflow Automation **⚠️ ADMIN FIXED** - Code exists but admin field reference fixed (removed non-existent is_active, uses status) ✅
+- [x] MISSING-4 Email Campaign Templates **⚠️ ADMIN FIXED** - Code exists (marketing module, 655 lines), 1 migration created; admin field references fixed (template→email_template, scheduled_at→scheduled_for) ✅
+- [x] MISSING-5 Tag-based Segmentation **⚠️ ADMIN FIXED** - Code exists (marketing module), 1 migration created; admin field references fixed (auto_tagged→auto_applied, created_at→applied_at) ✅
+- [x] MISSING-6 Client Onboarding Workflows **⚠️ ADMIN FIXED** - Code exists (615 lines, 4 models) but NO migrations; admin references fixed (is_active→status, estimated_days→estimated_duration_days, task_definitions→steps, etc.); unnamed indexes FIXED ✅
+
+### Import & Configuration Fixes
+
+- ✅ Import errors: Changed `modules.firm.managers.FirmScopedManager` → `modules.firm.utils.FirmScopedManager` (4 files)
+- ✅ Import errors: Changed `modules.crm.models.Account/Engagement` → `modules.clients.models.Client`, `modules.projects.models.Project` (email_ingestion/views.py)
+- ✅ URL config: Removed duplicate SMS webhook include
+- ✅ URL config: Fixed SMS urls.py path nesting
+
+### Complex Features - Completed
+
+- [x] 3.1 Build Account & Contact relationship graph (CRM) ✅
+  - Account model for company/organization management
+  - AccountContact model for individual contacts
+  - AccountRelationship model for relationship graph
+  - Full admin interface, serializers, and ViewSets
+  
+- [x] 3.2 Implement resource planning & allocation system (Projects) ✅
+  - ResourceAllocation model for project staffing
+  - ResourceCapacity model for availability tracking
+  - Conflict detection and availability reporting
+  
+- [x] 3.3 Add profitability reporting with margin analysis (Finance) ✅
+  - ProjectProfitability model for individual project analysis
+  - ServiceLineProfitability model for service line aggregation
+  - Real-time margin calculations and forecasting
+  
+- [x] 3.4 Build intake form system with qualification logic (CRM) ✅
+  - IntakeForm model for customizable lead capture forms
+  - IntakeFormField model for dynamic field definitions
+  - IntakeFormSubmission model with automatic scoring
+  - Qualification logic with configurable thresholds
+  
+- [x] 3.5 Implement CPQ (Configure-Price-Quote) engine (CRM) ✅
+  - Product model for product catalog management
+  - ProductOption model for configurable product options
+  - ProductConfiguration model with automatic price calculation
+  
+- [x] 3.6 Add Gantt chart/timeline view for projects (Projects) ✅
+  - ProjectTimeline model for project-level tracking
+  - TaskSchedule model with critical path analysis
+  - TaskDependency model with FS/SS/FF/SF types
+  
+- [x] 3.7 Build general webhook platform (Integration) ✅
+  - WebhookEndpoint model with event subscriptions and HMAC authentication
+  - WebhookDelivery model with retry tracking and status monitoring
+  - HMAC-SHA256 signature generation and verification
+  
+- [x] 3.10 Add secure external document sharing with permissions (Documents) ✅
+  - ExternalShare model with token-based access
+  - SharePermission model for detailed controls
+  - ShareAccess model for comprehensive audit tracking
+
+### Medium Workflow Features - Completed
+
+- [x] 2.7 Add document approval workflow (Draft → Review → Approved → Published) (Documents) ✅
+- [x] 2.8 Add client acceptance gate before invoicing (Projects/Finance) ✅
+- [x] 2.9 Implement utilization tracking and reporting (Projects) ✅
+- [x] 2.10 Add cash application matching (partial/over/under payments) (Finance) ✅
 
 ---
 
