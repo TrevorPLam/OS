@@ -60,7 +60,7 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Webhooks (not versioned - webhook URLs should remain stable)
     path("webhooks/stripe/", stripe_webhook, name="stripe-webhook"),
-    path("webhooks/docusign/", include("modules.esignature.urls")),  # DocuSign webhook endpoint
+    path("webhooks/docusign/", include("modules.esignature.urls")),  # Includes webhook at /webhooks/docusign/webhook/
     # API v1 (current stable version)
     path("api/v1/", include(api_v1_patterns)),
     # Legacy API endpoints (redirect to v1 for backward compatibility during transition)

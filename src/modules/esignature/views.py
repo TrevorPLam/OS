@@ -3,7 +3,6 @@
 import base64
 import logging
 import secrets
-from io import BytesIO
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -192,6 +191,12 @@ def docusign_callback(request):
         user_info = service.get_user_info(token_data["access_token"])
         
         # Extract account info (use first account)
+        if not user_info.get("accounts") or len(user_info["accounts"]) == 0:
+            return Response(
+                {"error": "No DocuSign accounts found for this user"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         account = user_info["accounts"][0]
         
         # Calculate token expiration
