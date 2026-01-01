@@ -221,7 +221,7 @@ This document provides a comprehensive inventory of ConsultantPro's implemented 
 | Webhook platform | ✅ | Outbound webhook system |
 | Recurrence rules | ✅ | Migration: recurrence/0001_initial.py |
 | Recurrence pause/resume | ✅ | Control recurring workflows |
-| General automation engine | 🔜 | Medium priority - rule builder |
+| General automation engine | ✅ | Orchestration module with retry/DLQ/compensation logic |
 | Event bus | 🔜 | Low priority - cross-module automation |
 
 ---
