@@ -85,8 +85,8 @@ This document provides a comprehensive inventory of ConsultantPro's implemented 
 | Booking links | ✅ | Shareable booking URLs |
 | Meeting polls | ✅ | Schedule voting for groups |
 | Meeting workflows | ✅ | Automated meeting orchestration |
-| Calendar sync (Google/Outlook) | ✅ | Migration: calendar/0002_calendar_sync.py, CalendarConnection with OAuth |
-| Email/calendar integration | 🔜 | Medium priority - full sync implementation (24-40 hours) |
+| Calendar sync (Google/Outlook) | ✅ | Migration: calendar/0002_calendar_sync.py, CalendarConnection with OAuth - models exist, full integration implementation in progress |
+| Email/calendar sync integration | 🔜 | Medium priority - complete end-to-end sync implementation (24-40 hours) |
 
 ---
 

@@ -76,6 +76,8 @@ The following features are fully implemented and documented:
 
 - **Email Campaign Sending:** Campaign execution tracking exists, but actual email send jobs are queued (stub implementation)
 
+**Note:** Calendar Sync (previously listed here) was completed in January 2026 with migration calendar/0002_calendar_sync.py providing OAuth-based CalendarConnection models. The feature moved to "Fully Implemented" status.
+
 ### ❌ Not Implemented (Documented as Coming Soon)
 
 - End-to-end encryption (E2EE)
