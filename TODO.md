@@ -16,8 +16,9 @@
 - Access to Google Cloud Console and Azure AD for OAuth setup
 
 **Documentation References:**
-- [Security Model Requirements](docs/SECURITY_MODEL.md) - Section on authentication
+- [Security Policy](SECURITY.md) - Security reporting and policy
 - [Security Compliance](docs/SECURITY_COMPLIANCE.md) - Current security implementation
+- [Threat Model](docs/THREAT_MODEL.md) - STRIDE analysis and threat scenarios
 - [Current Authentication Implementation](src/modules/auth/views.py) - Basic JWT auth
 
 #### SSO/OAuth Authentication (Google/Microsoft) - 16-24 hours
@@ -53,7 +54,7 @@
 - SMS-based OTP (Sprint 1.12) can utilize existing Twilio integration in `src/modules/sms/`
 - Ensure all new authentication methods maintain firm-level tenant isolation
 - All authentication endpoints must implement rate limiting (see existing implementation in `src/modules/auth/views.py`)
-- Follow security guidelines in [Security Model](docs/SECURITY_MODEL.md)
+- Follow security guidelines in [Security Compliance](docs/SECURITY_COMPLIANCE.md) and [Threat Model](docs/THREAT_MODEL.md)
 
 ### Sprint 2: Calendar Integration Completion (High Priority)
 
