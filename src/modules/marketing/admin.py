@@ -123,31 +123,30 @@ class EmailTemplateAdmin(admin.ModelAdmin):
 class CampaignExecutionAdmin(admin.ModelAdmin):
     list_display = [
         "campaign",
-        "template",
+        "email_template",
         "status",
         "emails_sent",
         "open_rate",
         "click_rate",
-        "scheduled_at",
+        "scheduled_for",
     ]
-    list_filter = ["status", "scheduled_at", "sent_at"]
-    search_fields = ["campaign__name", "notes"]
+    list_filter = ["status", "scheduled_for", "started_at"]
+    search_fields = ["campaign__name"]
     readonly_fields = [
         "open_rate",
         "click_rate",
         "bounce_rate",
-        "unsubscribe_rate",
-        "sent_at",
+        "started_at",
         "completed_at",
         "created_at",
         "updated_at",
     ]
-    raw_id_fields = ["campaign", "template", "segment", "created_by"]
+    raw_id_fields = ["campaign", "email_template", "segment", "created_by"]
     fieldsets = (
-        (None, {"fields": ("campaign", "template", "segment")}),
+        (None, {"fields": ("campaign", "email_template", "segment")}),
         (
             "Execution Details",
-            {"fields": ("scheduled_at", "sent_at", "completed_at", "status")},
+            {"fields": ("scheduled_for", "started_at", "completed_at", "status")},
         ),
         (
             "Email Counts",
@@ -169,7 +168,6 @@ class CampaignExecutionAdmin(admin.ModelAdmin):
                     "open_rate",
                     "click_rate",
                     "bounce_rate",
-                    "unsubscribe_rate",
                 ),
                 "classes": ("collapse",),
             },
@@ -177,12 +175,15 @@ class CampaignExecutionAdmin(admin.ModelAdmin):
         (
             "A/B Testing",
             {
-                "fields": ("ab_test_variant",),
+                "fields": ("ab_variant",),
                 "description": "Variant identifier for split testing (e.g., 'A', 'B', 'control')",
                 "classes": ("collapse",),
             },
         ),
-        ("Notes", {"fields": ("notes",), "classes": ("collapse",)}),
+        (
+            "Error Tracking",
+            {"fields": ("error_message",), "classes": ("collapse",)},
+        ),
         ("Metadata", {"fields": ("created_at", "updated_at", "created_by")}),
     )
 
@@ -194,21 +195,21 @@ class EntityTagAdmin(admin.ModelAdmin):
         "entity_type",
         "entity_id",
         "applied_by",
-        "auto_tagged",
-        "created_at",
+        "auto_applied",
+        "applied_at",
     ]
-    list_filter = ["entity_type", "auto_tagged", "created_at"]
+    list_filter = ["entity_type", "auto_applied", "applied_at"]
     search_fields = ["tag__name", "entity_id"]
-    readonly_fields = ["created_at"]
+    readonly_fields = ["applied_at"]
     raw_id_fields = ["tag", "applied_by"]
     fieldsets = (
         (None, {"fields": ("tag", "entity_type", "entity_id")}),
         (
             "Application Details",
             {
-                "fields": ("applied_by", "auto_tagged", "auto_tag_rule"),
-                "description": "auto_tag_rule stores the rule that triggered automatic tagging",
+                "fields": ("applied_by", "auto_applied", "auto_rule_id"),
+                "description": "auto_rule_id stores the ID of automation rule that applied the tag",
             },
         ),
-        ("Metadata", {"fields": ("created_at",)}),
+        ("Metadata", {"fields": ("applied_at",)}),
     )

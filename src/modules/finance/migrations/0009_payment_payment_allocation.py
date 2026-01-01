@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('firm', '0007_provisioninglog'),
-        ('clients', '0002_clientengagement_clientportaluser'),
+        ('clients', '0003_initial'),
         ('finance', '0008_billing_ledger'),
     ]
 

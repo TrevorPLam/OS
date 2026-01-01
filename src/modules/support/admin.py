@@ -194,8 +194,8 @@ class SurveyResponseAdmin(admin.ModelAdmin):
         (
             "Responses",
             {
-                "fields": ("responses", "nps_score", "nps_category"),
-                "description": "Responses is a JSON object of question_id: answer pairs",
+                "fields": ("answers", "nps_score", "nps_category"),
+                "description": "Answers is a JSON object of question_id: answer pairs",
             },
         ),
         ("Metadata", {"fields": ("submitted_at",)}),
