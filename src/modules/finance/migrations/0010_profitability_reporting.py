@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('finance', '0009_payment_payment_allocation'),
         ('firm', '0012_user_profiles'),
-        ('projects', '0012_resource_planning'),
+        ('projects', '0004_add_resource_planning_models'),
     ]
 
     operations = [

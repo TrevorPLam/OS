@@ -1273,3 +1273,379 @@ class ResourceCapacity(models.Model):
     def net_available_hours(self):
         """Calculate net available hours after unavailability."""
         return max(Decimal("0.00"), self.available_hours - self.unavailable_hours)
+
+
+# ============================================================================
+# Gantt Chart / Timeline View - Task 3.6
+# ============================================================================
+
+
+class ProjectTimeline(models.Model):
+    """
+    ProjectTimeline model for Gantt chart view (Task 3.6).
+    
+    Stores timeline configuration and calculated critical path for a project.
+    This is a cached view of the project schedule for performance.
+    
+    TIER 0: Inherits firm from project.
+    """
+    
+    # Project reference
+    project = models.OneToOneField(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="timeline",
+        help_text="Project this timeline belongs to"
+    )
+    
+    # Timeline Dates
+    planned_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Planned project start date"
+    )
+    planned_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Planned project end date"
+    )
+    actual_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Actual project start date"
+    )
+    actual_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Actual project end date"
+    )
+    
+    # Critical Path
+    critical_path_task_ids = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of task IDs on the critical path"
+    )
+    critical_path_duration_days = models.IntegerField(
+        default=0,
+        help_text="Duration of critical path in days"
+    )
+    
+    # Gantt Metadata
+    total_tasks = models.IntegerField(default=0, help_text="Total number of tasks")
+    completed_tasks = models.IntegerField(default=0, help_text="Number of completed tasks")
+    milestone_count = models.IntegerField(default=0, help_text="Number of milestones")
+    
+    # Calculation Cache
+    last_calculated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When timeline was last calculated"
+    )
+    calculation_metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Metadata about timeline calculation"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "projects_timeline"
+        ordering = ["project"]
+    
+    def __str__(self):
+        return f"Timeline for {self.project.project_code}"
+    
+    @property
+    def completion_percentage(self):
+        """Calculate project completion percentage."""
+        if self.total_tasks == 0:
+            return Decimal("0.00")
+        return Decimal(self.completed_tasks) / Decimal(self.total_tasks) * Decimal("100.00")
+    
+    @property
+    def is_on_critical_path_risk(self):
+        """Check if project is at risk based on critical path."""
+        if not self.planned_end_date or not self.critical_path_duration_days:
+            return False
+        
+        from datetime import date, timedelta
+        if self.actual_start_date:
+            start = self.actual_start_date
+        else:
+            start = self.planned_start_date or date.today()
+        
+        projected_end = start + timedelta(days=self.critical_path_duration_days)
+        return projected_end > self.planned_end_date
+
+
+class TaskSchedule(models.Model):
+    """
+    TaskSchedule model for Gantt chart view (Task 3.6).
+    
+    Stores scheduling information for individual tasks including calculated
+    dates based on dependencies and constraints.
+    
+    TIER 0: Inherits firm from task.project.
+    """
+    
+    CONSTRAINT_TYPE_CHOICES = [
+        ("asap", "As Soon As Possible"),
+        ("alap", "As Late As Possible"),
+        ("must_start_on", "Must Start On"),
+        ("must_finish_on", "Must Finish On"),
+        ("start_no_earlier", "Start No Earlier Than"),
+        ("start_no_later", "Start No Later Than"),
+        ("finish_no_earlier", "Finish No Earlier Than"),
+        ("finish_no_later", "Finish No Later Than"),
+    ]
+    
+    # Task reference
+    task = models.OneToOneField(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="schedule",
+        help_text="Task this schedule belongs to"
+    )
+    
+    # Planned Dates (manually set or calculated)
+    planned_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Planned start date"
+    )
+    planned_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Planned end date"
+    )
+    planned_duration_days = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        help_text="Planned duration in days"
+    )
+    
+    # Actual Dates
+    actual_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Actual start date"
+    )
+    actual_end_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Actual end date"
+    )
+    actual_duration_days = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Actual duration in days"
+    )
+    
+    # Scheduling Constraints
+    constraint_type = models.CharField(
+        max_length=20,
+        choices=CONSTRAINT_TYPE_CHOICES,
+        default="asap",
+        help_text="Scheduling constraint type"
+    )
+    constraint_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date for constraint (if applicable)"
+    )
+    
+    # Critical Path Analysis
+    is_on_critical_path = models.BooleanField(
+        default=False,
+        help_text="Whether this task is on the critical path"
+    )
+    total_slack_days = models.IntegerField(
+        default=0,
+        help_text="Total slack/float in days (can delay without affecting project)"
+    )
+    free_slack_days = models.IntegerField(
+        default=0,
+        help_text="Free slack in days (can delay without affecting successor tasks)"
+    )
+    
+    # Calculated Dates (from critical path analysis)
+    early_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Earliest possible start date"
+    )
+    early_finish_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Earliest possible finish date"
+    )
+    late_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Latest possible start date without delaying project"
+    )
+    late_finish_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Latest possible finish date without delaying project"
+    )
+    
+    # Progress
+    completion_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Task completion percentage (0-100)"
+    )
+    
+    # Milestone
+    is_milestone = models.BooleanField(
+        default=False,
+        help_text="Whether this task is a milestone (zero duration marker)"
+    )
+    milestone_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date for milestone"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "projects_task_schedule"
+        ordering = ["planned_start_date", "task"]
+        indexes = [
+            models.Index(fields=["task"], name="proj_sch_task_idx"),
+            models.Index(fields=["is_on_critical_path"], name="proj_sch_crit_idx"),
+            models.Index(fields=["is_milestone"], name="proj_sch_mile_idx"),
+            models.Index(fields=["planned_start_date"], name="proj_sch_start_idx"),
+        ]
+    
+    def __str__(self):
+        return f"Schedule for {self.task.title}"
+    
+    @property
+    def is_behind_schedule(self):
+        """Check if task is behind schedule."""
+        from datetime import date
+        if not self.planned_end_date or self.actual_end_date:
+            return False
+        return date.today() > self.planned_end_date and self.completion_percentage < Decimal("100.00")
+    
+    @property
+    def days_remaining(self):
+        """Calculate days remaining until planned end date."""
+        from datetime import date
+        if not self.planned_end_date or self.actual_end_date:
+            return None
+        delta = self.planned_end_date - date.today()
+        return delta.days
+    
+    def calculate_duration_from_dates(self):
+        """Calculate planned duration from start and end dates."""
+        if self.planned_start_date and self.planned_end_date:
+            delta = self.planned_end_date - self.planned_start_date
+            self.planned_duration_days = max(1, delta.days + 1)  # +1 to include both days
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Override save to calculate duration if dates are set."""
+        # Calculate duration from dates if both are set
+        if self.planned_start_date and self.planned_end_date and not self.planned_duration_days:
+            self.calculate_duration_from_dates()
+        
+        # Set milestone date from planned start if milestone
+        if self.is_milestone and not self.milestone_date and self.planned_start_date:
+            self.milestone_date = self.planned_start_date
+        
+        super().save(*args, **kwargs)
+
+
+class TaskDependency(models.Model):
+    """
+    TaskDependency model for Gantt chart view (Task 3.6).
+    
+    Explicit representation of task dependencies with dependency types
+    for more sophisticated Gantt chart visualizations.
+    
+    TIER 0: Inherits firm from predecessor/successor tasks.
+    """
+    
+    DEPENDENCY_TYPE_CHOICES = [
+        ("finish_to_start", "Finish-to-Start (FS)"),  # Most common
+        ("start_to_start", "Start-to-Start (SS)"),
+        ("finish_to_finish", "Finish-to-Finish (FF)"),
+        ("start_to_finish", "Start-to-Finish (SF)"),  # Rarely used
+    ]
+    
+    # Task references
+    predecessor = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="successor_dependencies",
+        help_text="Task that must be completed first (or started first, depending on type)"
+    )
+    successor = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name="predecessor_dependencies",
+        help_text="Task that depends on the predecessor"
+    )
+    
+    # Dependency Configuration
+    dependency_type = models.CharField(
+        max_length=20,
+        choices=DEPENDENCY_TYPE_CHOICES,
+        default="finish_to_start",
+        help_text="Type of dependency relationship"
+    )
+    lag_days = models.IntegerField(
+        default=0,
+        help_text="Lag time in days (positive = delay, negative = lead)"
+    )
+    
+    # Metadata
+    notes = models.TextField(
+        blank=True,
+        help_text="Notes about this dependency"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "projects_task_dependency"
+        ordering = ["predecessor", "successor"]
+        indexes = [
+            models.Index(fields=["predecessor"], name="proj_dep_pred_idx"),
+            models.Index(fields=["successor"], name="proj_dep_succ_idx"),
+        ]
+        unique_together = [["predecessor", "successor"]]
+    
+    def __str__(self):
+        return f"{self.predecessor.title} → {self.successor.title} ({self.get_dependency_type_display()})"
+    
+    def clean(self):
+        """Validate dependency."""
+        from django.core.exceptions import ValidationError
+        
+        errors = {}
+        
+        # Cannot depend on self
+        if self.predecessor_id == self.successor_id:
+            errors["successor"] = "A task cannot depend on itself"
+        
+        # Must be in same project
+        if self.predecessor_id and self.successor_id:
+            if self.predecessor.project_id != self.successor.project_id:
+                errors["successor"] = "Dependencies must be within the same project"
+        
+        if errors:
+            raise ValidationError(errors)

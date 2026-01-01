@@ -14,6 +14,9 @@ from modules.crm.models import (
     IntakeFormField,
     IntakeFormSubmission,
     Lead,
+    Product,
+    ProductConfiguration,
+    ProductOption,
     Proposal,
     Prospect,
 )
@@ -490,3 +493,140 @@ class IntakeFormSubmissionSerializer(serializers.ModelSerializer):
         if not isinstance(value, dict):
             raise serializers.ValidationError("Responses must be a dictionary")
         return value
+
+
+# ============================================================================
+# CPQ (Configure-Price-Quote) Serializers - Task 3.5
+# ============================================================================
+
+
+class ProductOptionSerializer(serializers.ModelSerializer):
+    """Serializer for ProductOption model (CPQ)."""
+    
+    class Meta:
+        model = ProductOption
+        fields = [
+            "id",
+            "product",
+            "code",
+            "label",
+            "description",
+            "option_type",
+            "required",
+            "display_order",
+            "values",
+            "price_modifier",
+            "price_multiplier",
+            "dependency_rules",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """Serializer for Product model (CPQ)."""
+    
+    options = ProductOptionSerializer(many=True, read_only=True)
+    options_count = serializers.SerializerMethodField()
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+    
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "firm",
+            "code",
+            "name",
+            "description",
+            "product_type",
+            "status",
+            "base_price",
+            "currency",
+            "is_configurable",
+            "configuration_schema",
+            "category",
+            "tags",
+            "options",
+            "options_count",
+            "created_at",
+            "created_by",
+            "created_by_name",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "created_by", "updated_at"]
+    
+    def get_options_count(self, obj):
+        """Get count of product options."""
+        return obj.options.count()
+
+
+class ProductConfigurationSerializer(serializers.ModelSerializer):
+    """Serializer for ProductConfiguration model (CPQ)."""
+    
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    product_code = serializers.CharField(source="product.code", read_only=True)
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+    quote_number = serializers.CharField(source="quote.quote_number", read_only=True)
+    
+    class Meta:
+        model = ProductConfiguration
+        fields = [
+            "id",
+            "product",
+            "product_name",
+            "product_code",
+            "configuration_name",
+            "selected_options",
+            "base_price",
+            "configuration_price",
+            "price_breakdown",
+            "discount_percentage",
+            "discount_amount",
+            "status",
+            "validation_errors",
+            "quote",
+            "quote_number",
+            "created_at",
+            "created_by",
+            "created_by_name",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "base_price",
+            "configuration_price",
+            "price_breakdown",
+            "discount_amount",
+            "validation_errors",
+            "created_at",
+            "created_by",
+            "updated_at",
+        ]
+    
+    def validate_selected_options(self, value):
+        """Validate selected options against product's available options."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Selected options must be a dictionary")
+        return value
+
+
+class ProductConfigurationCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating ProductConfiguration with validation."""
+    
+    class Meta:
+        model = ProductConfiguration
+        fields = [
+            "product",
+            "configuration_name",
+            "selected_options",
+            "discount_percentage",
+        ]
+    
+    def create(self, validated_data):
+        """Create configuration and validate it."""
+        configuration = ProductConfiguration(**validated_data)
+        configuration.base_price = configuration.product.base_price
+        configuration.save()  # This triggers price calculation
+        configuration.validate_configuration()
+        configuration.save()
+        return configuration
