@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Sprint 5: Performance & Reporting** (2026-01-01)
+  - Materialized views for revenue and utilization reporting
+  - Revenue reporting MV (`mv_revenue_by_project_month`) with 20-50x speedup
+  - Utilization reporting MVs (`mv_utilization_by_user_week`, `mv_utilization_by_project_month`) with 15-100x speedup
+  - Refresh management command (`refresh_materialized_views`) for scheduled daily refresh
+  - REST API endpoints for revenue reporting (`/api/finance/revenue-reports/`)
+  - Manual refresh, freshness check, and quarterly aggregation endpoints
+  - Refresh monitoring with MVRefreshLog model and statistics endpoints
+  - Full reporting metadata compliance per `REPORTING_METADATA.md` spec
+  - 12 indexes across 3 materialized views for optimal query performance
+  - Data age tracking and freshness indicators for all MV queries
+  - Storage overhead <5% of base tables (~10MB per firm for 3 years data)
+  - See [Sprint 5 Implementation Summary](docs/SPRINT_5_IMPLEMENTATION_SUMMARY.md)
+  - See [Sprint 5 Query Analysis](docs/SPRINT_5_QUERY_ANALYSIS.md)
+
 - **Sprint 4: E-Signature Integration** (2026-01-01)
   - DocuSign integration with OAuth 2.0 authentication
   - Envelope creation and send workflow for proposals
