@@ -747,3 +747,288 @@
 - [Contributing Guidelines](CONTRIBUTING.md)
 - [Implementation Assessment](docs/ARCHIVE/roadmap-legacy-2025-12-30/IMPLEMENTATION_ASSESSMENT.md)
 - [Completed Tasks Archive](TODO_COMPLETED.md)
+## Missing Features from CHECKLIST2.md Analysis
+
+**Date Added:** January 1, 2026
+**Source:** CHECKLIST2.md comprehensive feature analysis
+**Total Features:** 213
+
+These features exist in CHECKLIST2.md but are not currently implemented in the codebase and are not planned in TODO.md. They represent gaps in the platform compared to comprehensive practice management systems like Karbon.
+
+---
+
+### Core Practice Management - Work Items (10 features)
+
+- [ ] Priority Levels: High, Medium, Low with visual indicators
+- [ ] Client Association: Link to one or multiple client contacts/companies
+- [ ] Service Type: Tax, Bookkeeping, Advisory, Payroll, etc.
+- [ ] Due Date: Hard deadlines with grace period alerts
+- [ ] Progress %: Manual or auto-calculated from checklist completion
+- [ ] Budget vs Actual: Real-time time and cost variance
+- [ ] Tags/Categories: Custom categorization (industry, complexity, partner)
+- [ ] Task Dependencies: Sequential tasks (can't start until prior completes)
+- [ ] Task Templates: Reusable task lists per service type
+- [ ] Task Notes: Per-task comments and notes
+
+### Core Practice Management - Client CRM (9 features)
+
+- [ ] Entity Type: Corp, LLC, Partnership, Sole Prop, Nonprofit
+- [ ] Tax ID/EIN: Encrypted storage
+- [ ] Fiscal Year End: Date field
+- [ ] Annual Revenue: Currency field
+- [ ] Employee Count: Number field
+- [ ] Services Engaged: Multi-select (Tax, Bookkeeping, Payroll)
+- [ ] Billing Terms: Net 15, Net 30, recurring billing date
+- [ ] Risk Profile: High/Medium/Low (for audit purposes)
+- [ ] Proposal Integration: Link to proposal software (Practice Ignition, GoProposal)
+
+### Core Practice Management - Capacity & Resources (10 features)
+
+- [ ] Team Capacity Dashboard
+- [ ] Workload Visualization: Kanban or calendar view of assigned work
+- [ ] Hours Assigned: Sum of work item budgets assigned
+- [ ] Overallocation Alerts: Visual red flags when over capacity
+- [ ] Realization Rate: Billed hours / billable hours worked
+- [ ] Resource Allocation
+- [ ] Skill-Based Assignment: Assign work based on staff certifications (CPA, EA)
+- [ ] Role-Based Capacity: Staff, Senior, Manager, Partner level capacity
+- [ ] Work Redistribution: Drag-and-drop reassignment
+- [ ] Capacity Forecasting: Predict future capacity based on recurring work
+
+### Email & Communication (11 features)
+
+- [ ] IMAP/SMTP Fallback: For other email providers
+- [ ] Auto-Responses: Trigger based on sender, subject, keywords
+- [ ] Client Chase Reminders: Automated follow-ups for missing documents
+- [ ] Status Updates: Auto-send work status updates to clients
+- [ ] Mention History: Track all mentions per user
+- [ ] Mention Etiquette: Configurable mention permissions
+- [ ] Rich Text Editor: Bold, italics, links, bullet points
+- [ ] Comment Threads: Nested replies
+- [ ] Comment Visibility: Internal only vs client-facing
+- [ ] Comment Notifications: Subscribe/unsubscribe from comment threads
+- [ ] Activity Timeline filtering and export
+
+### Document Management (13 features)
+
+- [ ] Client Folders: Auto-created folder per client
+- [ ] Work Folders: Sub-folders per work item
+- [ ] Template Folders: Pre-built folder structures
+- [ ] Shared Folders: Cross-client folders
+- [ ] Folder Permissions: Role-based access per folder
+- [ ] Virus Scanning: Automatic malware detection
+- [ ] Two-Way Cloud Sync: Dropbox, OneDrive, Google Drive
+- [ ] Selective Sync: Choose which folders sync
+- [ ] OAuth Authentication for cloud providers
+- [ ] Document Request Escalation: Day 1, 3, 7, 14 auto-reminders
+- [ ] Snooze Function: Pause reminders
+- [ ] Review Workflow: Staff review before marking complete
+- [ ] Rejection Reason: Flag incomplete/wrong docs
+
+### E-Signature Enhancements (6 features)
+
+- [ ] Document Preparation: Upload PDF, place signature fields
+- [ ] Multiple Signers: Client, spouse, business partner signatures
+- [ ] Signing Order: Sequential or parallel signing
+- [ ] Reminder Sequence: Auto-remind unsigned documents
+- [ ] Signature Status: Pending, Signed, Declined
+- [ ] Signed Document Storage: Auto-save to client folder
+
+### Time Tracking & Billing (14 features)
+
+- [ ] Time Approvals: Supervisor review workflow
+- [ ] Reject/Edit: Return time entries for correction
+- [ ] Approval Workflow: Manager → Partner approval chain
+- [ ] Approval Bulk Actions: Approve multiple entries at once
+- [ ] Rate Management: Effective dates for rate changes
+- [ ] Invoice Grouping: Combine multiple work items
+- [ ] WIP Balances: Show work in progress on invoice
+- [ ] Retainer/Trust Application: Apply client retainer balances
+- [ ] Payment Plans: Installment billing arrangements
+- [ ] Partial Payments: Accept partial invoice payments
+- [ ] Late Fees: Automatic late fee calculation
+- [ ] Collections Workflow: Escalation for overdue invoices
+- [ ] WIP Reports: Work in progress valuation
+- [ ] Revenue Forecasting: Projected revenue from pipeline
+
+### Workflow Automation (22 features)
+
+- [ ] Template Versioning: Track changes to templates
+- [ ] Template Sharing: Share across firm or with community
+- [ ] Regional Templates: Location-specific compliance tasks
+- [ ] Variable Substitution: Dynamic client/work data in templates
+- [ ] Conditional Tasks: Show/hide tasks based on client data
+- [ ] Date-Based Triggers: Relative to work start/due date
+- [ ] Document Received Triggers: When client uploads file
+- [ ] Client Action Triggers: Client portal activity
+- [ ] Email Received Triggers: Keyword or sender-based
+- [ ] IF/Else Logic: Branch based on conditions
+- [ ] Multiple Conditions: AND/OR logic
+- [ ] Custom Field Triggers: Based on client custom fields
+- [ ] Score Thresholds: Based on lead/client scoring
+- [ ] Create Follow-Up Work: Spawn new work item
+- [ ] Send Notification: In-app, email, mobile push
+- [ ] Recurring Queue Management: View all upcoming recurring work
+- [ ] Pause/Resume: Temporarily pause recurring creation
+- [ ] Bulk Edit: Update due dates, assignees across series
+- [ ] Exception Handling: Handle one-off changes
+- [ ] Relative Dates: 'Last day of month', '30 days after year-end'
+- [ ] Skip Rules: Skip if falls on weekend/holiday
+- [ ] Lead Time: Create work X days before due date
+
+### Client Portal (13 features)
+
+- [ ] Password Policies: Enforce complexity, expiration
+- [ ] Account Lockout: After failed login attempts
+- [ ] Magic Link: Email-based passwordless login
+- [ ] Portal Branding: White Label (custom logo, colors, domain)
+- [ ] Welcome Message: Custom greeting per client
+- [ ] Custom Navigation: Show/hide portal sections
+- [ ] Recent Activity: Last email, document shared, comment
+- [ ] Upcoming Deadlines: Document requests, meetings
+- [ ] Quick Actions: Upload document, send message, pay invoice
+- [ ] Version History: See previous versions of documents
+- [ ] Read Receipts: Know when firm read message
+- [ ] Retainer Balance: View available retainer funds
+- [ ] Authorized Users: Manage who can access portal
+
+### Reporting & Analytics (28 features)
+
+- [ ] Revenue KPIs: MTD, YTD revenue vs target
+- [ ] Profitability: Net profit margin, profit per partner
+- [ ] Work in Progress: Total WIP value, aging
+- [ ] Accounts Receivable: Total AR, collections rate
+- [ ] Client Count: Active clients, new clients, churned clients
+- [ ] Work Completion: On-time delivery rate
+- [ ] Individual Utilization: Per staff member billable %
+- [ ] Hours Worked: Billable, non-billable, total hours
+- [ ] Work Completed: Number of work items finished
+- [ ] Average Time per Work Type: Benchmarking
+- [ ] Overtime Tracking: Hours over standard work week
+- [ ] Client Profitability: Revenue by Client, Profitability by Client
+- [ ] Average Invoice Value: Per client or service type
+- [ ] Collection Days: Average days to pay
+- [ ] Client Lifetime Value: Total revenue per client over time
+- [ ] Client Acquisition Cost: Marketing cost per new client
+- [ ] Client Segmentation: Profitability tiers (A, B, C clients)
+- [ ] Efficiency Metrics: Average completion time, on-time delivery %
+- [ ] Realization & Billing: Realization rate, collection rate
+- [ ] Write-Off Report: Reasons and amounts written off
+- [ ] Invoice Aging: Outstanding invoices by age bucket
+- [ ] Payment Trends: Average days to pay by client
+- [ ] Custom Report Builder: Drag-drop interface, multiple data sources
+- [ ] Report Filters: Date range, client, staff, service type, status
+- [ ] Report Grouping: Summarize by client, staff, service, month
+- [ ] Calculated Fields: Custom formulas
+- [ ] Visual Charts: Bar, line, pie, pivot tables
+- [ ] Export Formats: PDF, Excel, CSV
+
+### Integrations (12 features)
+
+- [ ] Sage API integration
+- [ ] MYOB API integration
+- [ ] Account Mapping: Map clients between systems
+- [ ] Transaction Sync: Pull transaction data for reporting
+- [ ] Bill Payment Sync: Sync payment status
+- [ ] Practice Ignition: Auto-create work when proposal signed
+- [ ] GoProposal: Sync proposal terms to work budgets
+- [ ] Ignition API: Listen for proposal events via webhook
+- [ ] Terms Sync: Service scope, pricing, billing schedule
+- [ ] Meeting Scheduling: Calendly, Acuity Scheduling integration
+- [ ] Zapier: 1000+ app integrations via triggers/actions
+- [ ] Microsoft Power Automate: For M365 ecosystem
+
+### API & Webhooks (12 features)
+
+- [ ] RESTful API with OAuth 2.0 for apps
+- [ ] API Keys for authentication
+- [ ] Rate Limiting: 100 requests/second per account
+- [ ] API Versioning: v1, v2 with deprecation policy
+- [ ] Contact Management CRUD via API
+- [ ] Work Management: Create, update, query work items via API
+- [ ] Time Tracking: Log time, query time entries via API
+- [ ] Invoice Management: Create, send, query invoices via API
+- [ ] Document Management: Upload, download, list files via API
+- [ ] Webhook Retry Logic: Exponential backoff for failed deliveries
+- [ ] Webhook Security: HMAC-SHA256 signature verification
+- [ ] Webhook Filtering: Subscribe to specific event types or clients
+
+### AI & Machine Learning (10 features)
+
+- [ ] Email Tone Adjustment: Formal, friendly, urgent tone options
+- [ ] Response Suggestions: Quick reply options based on context
+- [ ] Smart Task Assignment: Suggest assignee based on workload and expertise
+- [ ] Smart Due Dates: Predict realistic due dates based on historical data
+- [ ] Anomaly Detection: Flag unusual time entries or billing patterns
+- [ ] Duplicate Detection: Identify duplicate clients or work items
+- [ ] Churn Prediction: Identify at-risk clients based on engagement
+- [ ] Work Duration Prediction: Forecast hours needed based on similar work
+- [ ] Collection Prediction: Predict which invoices will be late
+- [ ] Capacity Forecasting: Predict future staffing needs
+
+### Security & Compliance (18 features)
+
+- [ ] SOC 2 Type II: Annual audit report
+- [ ] ISO 27001: Information security management certification
+- [ ] CCPA Compliance: California privacy act
+- [ ] TLS 1.3: For all communications in transit
+- [ ] Field-Level Security: Restrict access to sensitive fields (SSN, EIN)
+- [ ] IP Whitelisting: Restrict login by IP range
+- [ ] Session Management: Auto-timeout after inactivity
+- [ ] Audit Logs: Log all logins, data access, exports
+- [ ] Data Residency: Choose data storage region (US, EU, AU)
+- [ ] Right to Erasure: Complete client data deletion
+- [ ] Data Portability: Export all client data in standard format
+- [ ] Privacy by Design: Default privacy settings
+- [ ] User Actions Logging: Log CRUD operations with UTC timestamps
+- [ ] User Attribution: Track who performed each action
+- [ ] Auto-Archive: Move old work to cold storage
+- [ ] Data Retention Rules: Delete data after X years (configurable)
+- [ ] Backup Retention: 30-day rolling backups
+- [ ] Version History: Keep document versions for X years
+
+### Mobile Application (10 features)
+
+- [ ] Work Management: View and update work status
+- [ ] Time Tracking: Start/stop timer, log time manually
+- [ ] Task Completion: Check off completed tasks
+- [ ] Client Access: View client info, send message
+- [ ] Document Upload: Upload receipt, photo from phone
+- [ ] Push Notifications: Work assigned, mention, deadline
+- [ ] Offline Mode: View cached data when offline
+- [ ] Quick Actions: Swipe gestures for common actions
+- [ ] Voice Notes: Record audio notes
+- [ ] Camera Integration: Scan documents, receipts
+
+### User Experience & Navigation (9 features)
+
+- [ ] Triage: Inbox-style view of assigned items
+- [ ] My Week: Personal task list and calendar
+- [ ] Work: All work items with filtering
+- [ ] Clients: Client directory
+- [ ] Team: Staff capacity and work assignment
+- [ ] Reports: Analytics and dashboards
+- [ ] Default Views: Save custom filtered views
+- [ ] Timezone/Language: Individual settings
+- [ ] Dashboard Customization: Choose which widgets to show
+
+### Platform & Vendor Excellence (6 features)
+
+- [ ] Accounting-Specific Design: Every feature purpose-built for accounting
+- [ ] Continuous Innovation: Public roadmap with quarterly deliveries
+- [ ] Industry Thought Leadership: Blog, webinars, templates by accounting experts
+- [ ] API-First: All features accessible via API
+- [ ] Partner Ecosystem: Certified integration partners
+- [ ] Transparency: Public status page, clear pricing, open security posture
+
+
+---
+
+## Implementation Priority Notes
+
+These features should be prioritized based on:
+1. **High Priority:** Core features needed for MVP (Work Items, CRM, Billing)
+2. **Medium Priority:** Differentiating features (Automation, Reporting, Portal)
+3. **Low Priority:** Advanced features (AI/ML, Mobile, Advanced Analytics)
+4. **Long-term:** Platform excellence (Certifications, Partner Ecosystem)
+
