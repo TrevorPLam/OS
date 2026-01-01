@@ -41,6 +41,7 @@ api_v1_patterns = [
     path("marketing/", include("modules.marketing.urls")),  # Marketing automation (tags, segments, templates)
     path("snippets/", include("modules.snippets.urls")),  # Quick text insertion (HubSpot-style snippets)
     path("sms/", include("modules.sms.urls")),  # SMS messaging (Twilio integration, campaigns, conversations)
+    path("webhooks/", include("api.webhooks.urls")),  # General webhook platform (Task 3.7)
 ]
 
 urlpatterns = [
@@ -80,6 +81,7 @@ urlpatterns = [
     path("api/marketing/", RedirectView.as_view(url="/api/v1/marketing/", permanent=False)),
     path("api/snippets/", RedirectView.as_view(url="/api/v1/snippets/", permanent=False)),
     path("api/sms/", RedirectView.as_view(url="/api/v1/sms/", permanent=False)),
+    path("api/webhooks/", RedirectView.as_view(url="/api/v1/webhooks/", permanent=False)),
 ]
 
 # Serve media files in development
