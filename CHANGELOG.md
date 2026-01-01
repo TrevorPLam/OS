@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Sprint 3: Accounting Integrations** (2026-01-01)
+  - QuickBooks Online integration with OAuth 2.0 authentication
+  - Xero integration with OAuth 2.0 authentication
+  - Invoice sync - push invoices from ConsultantPro to accounting systems
+  - Payment sync - pull payment data from accounting systems to update invoice status
+  - Customer/Contact bidirectional sync between systems
+  - REST API endpoints for connection management (`/api/v1/accounting/`)
+  - Django admin interfaces for monitoring sync status
+  - Comprehensive documentation and user guide
+  - Database models: AccountingOAuthConnection, InvoiceSyncMapping, CustomerSyncMapping
+  - Encrypted OAuth token storage with automatic refresh
+  - Multi-tenant isolation for all accounting operations
+  - See [Sprint 3 Implementation Summary](docs/SPRINT_3_IMPLEMENTATION_SUMMARY.md)
+
 ### Changed - Documentation Updates
 
 - **TODO.md Maintenance Update** (January 1, 2026)
