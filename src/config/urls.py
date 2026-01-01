@@ -43,6 +43,7 @@ api_v1_patterns = [
     path("sms/", include("modules.sms.urls")),  # SMS messaging (Twilio integration, campaigns, conversations)
     path("webhooks/", include("api.webhooks.urls")),  # General webhook platform (Task 3.7)
     path("accounting/", include("modules.accounting_integrations.urls")),  # Sprint 3: QuickBooks/Xero integrations
+    path("esignature/", include("modules.esignature.urls")),  # Sprint 4: DocuSign e-signature integration
 ]
 
 urlpatterns = [
@@ -59,6 +60,7 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     # Webhooks (not versioned - webhook URLs should remain stable)
     path("webhooks/stripe/", stripe_webhook, name="stripe-webhook"),
+    path("webhooks/docusign/", include("modules.esignature.urls")),  # DocuSign webhook endpoint
     # API v1 (current stable version)
     path("api/v1/", include(api_v1_patterns)),
     # Legacy API endpoints (redirect to v1 for backward compatibility during transition)
@@ -84,6 +86,7 @@ urlpatterns = [
     path("api/sms/", RedirectView.as_view(url="/api/v1/sms/", permanent=False)),
     path("api/webhooks/", RedirectView.as_view(url="/api/v1/webhooks/", permanent=False)),
     path("api/accounting/", RedirectView.as_view(url="/api/v1/accounting/", permanent=False)),
+    path("api/esignature/", RedirectView.as_view(url="/api/v1/esignature/", permanent=False)),
 ]
 
 # Serve media files in development

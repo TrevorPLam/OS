@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "modules.sms",  # SMS messaging integration (Twilio, campaigns, two-way conversations)
     "modules.webhooks",  # General webhook platform for external integrations (Task 3.7)
     "modules.accounting_integrations",  # Sprint 3: QuickBooks and Xero integrations
+    "modules.esignature",  # Sprint 4: DocuSign e-signature integration
 ]
 
 MIDDLEWARE = [
@@ -346,6 +347,15 @@ SPECTACULAR_SETTINGS = {
         "StatusEnum": "modules.crm.models.Client.STATUS_CHOICES",
     },
 }
+
+# =============================================================================
+# E-Signature Integration (DocuSign) - Sprint 4
+# =============================================================================
+DOCUSIGN_CLIENT_ID = os.environ.get("DOCUSIGN_CLIENT_ID")
+DOCUSIGN_CLIENT_SECRET = os.environ.get("DOCUSIGN_CLIENT_SECRET")
+DOCUSIGN_REDIRECT_URI = os.environ.get("DOCUSIGN_REDIRECT_URI")
+DOCUSIGN_WEBHOOK_SECRET = os.environ.get("DOCUSIGN_WEBHOOK_SECRET")
+DOCUSIGN_ENVIRONMENT = os.environ.get("DOCUSIGN_ENVIRONMENT", "production")  # "sandbox" or "production"
 
 # Logging Configuration
 LOGGING = {
