@@ -8,6 +8,18 @@
 
 ### Sprint 1: Authentication & Security (High Priority)
 
+**Status:** Ready to Start  
+**Total Estimated Time:** 44-64 hours  
+**Prerequisites:**
+- Current basic JWT authentication (see `src/modules/auth/views.py`)
+- Django REST Framework with Simple JWT installed
+- Access to Google Cloud Console and Azure AD for OAuth setup
+
+**Documentation References:**
+- [Security Model Requirements](docs/SECURITY_MODEL.md) - Section on authentication
+- [Security Compliance](docs/SECURITY_COMPLIANCE.md) - Current security implementation
+- [Current Authentication Implementation](src/modules/auth/views.py) - Basic JWT auth
+
 #### SSO/OAuth Authentication (Google/Microsoft) - 16-24 hours
 - [ ] **Sprint 1.1** Research and select OAuth library (django-allauth or python-social-auth) - 2-4 hours
 - [ ] **Sprint 1.2** Implement Google OAuth provider integration - 4-6 hours
@@ -34,7 +46,14 @@
 - [ ] **Sprint 1.10** Select MFA library (django-otp or django-two-factor-auth) - 2-3 hours
 - [ ] **Sprint 1.11** Implement TOTP (Time-based OTP) authentication - 4-5 hours
 - [ ] **Sprint 1.12** Add SMS-based OTP as backup method - 4-5 hours
+  - Leverage existing SMS infrastructure (see `src/modules/sms/`)
 - [ ] **Sprint 1.13** Create MFA enrollment and management UI - 2-3 hours
+
+**Notes:**
+- SMS-based OTP (Sprint 1.12) can utilize existing Twilio integration in `src/modules/sms/`
+- Ensure all new authentication methods maintain firm-level tenant isolation
+- All authentication endpoints must implement rate limiting (see existing implementation in `src/modules/auth/views.py`)
+- Follow security guidelines in [Security Model](docs/SECURITY_MODEL.md)
 
 ### Sprint 2: Calendar Integration Completion (High Priority)
 
