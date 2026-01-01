@@ -1175,7 +1175,7 @@ class ExternalShare(models.Model):
         ).decode('utf-8')
         self.require_password = True
     
-    def revoke(self, user, reason: str = "") -> None:
+    def revoke(self, user: Any, reason: str = "") -> None:
         """
         Revoke this share.
         
@@ -1436,10 +1436,10 @@ class ShareAccess(models.Model):
         external_share: ExternalShare,
         action: str,
         success: bool,
-        ip_address: str = None,
+        ip_address: str | None = None,
         user_agent: str = "",
         referer: str = "",
-        metadata: dict = None,
+        metadata: dict | None = None,
     ):
         """
         Convenience method to log a share access attempt.
