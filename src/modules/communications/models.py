@@ -224,7 +224,7 @@ class Participant(models.Model):
     class Meta:
         db_table = "communications_participant"
         indexes = [
-            models.Index(fields=["firm", "conversation"], name="communicat_fir_con_idx"),
+            models.Index(fields=["firm", "conversation"], name="communicat_par_fir_con_idx"),
             models.Index(fields=["firm", "staff_user"], name="communicat_fir_sta_idx"),
             models.Index(fields=["firm", "portal_user_id"], name="communicat_fir_por_idx"),
         ]
@@ -607,7 +607,7 @@ class ConversationLink(models.Model):
     class Meta:
         db_table = "communications_conversation_link"
         indexes = [
-            models.Index(fields=["firm", "conversation"], name="communicat_fir_con_idx"),
+            models.Index(fields=["firm", "conversation"], name="communicat_lnk_fir_con_idx"),
             models.Index(fields=["firm", "object_type", "object_id"], name="communicat_fir_obj_obj_idx"),
         ]
         unique_together = [["conversation", "object_type", "object_id"]]

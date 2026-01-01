@@ -135,7 +135,7 @@ class AppointmentType(models.Model):
         db_table = "calendar_appointment_types"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="calendar_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="calendar_apt_fir_sta_idx"),
         ]
 
     def __str__(self):
@@ -388,7 +388,7 @@ class BookingLink(models.Model):
         db_table = "calendar_booking_links"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="calendar_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="calendar_bkl_fir_sta_idx"),
             models.Index(fields=["slug"], name="calendar_slu_idx"),
             models.Index(fields=["token"], name="calendar_tok_idx"),
         ]
@@ -519,7 +519,7 @@ class Appointment(models.Model):
         indexes = [
             models.Index(fields=["firm", "staff_user", "start_time"], name="calendar_fir_sta_sta_idx"),
             models.Index(fields=["firm", "account"], name="calendar_fir_acc_idx"),
-            models.Index(fields=["firm", "status"], name="calendar_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="calendar_app_fir_sta_idx"),
             models.Index(fields=["calendar_connection", "external_event_id"], name="calendar_cal_ext_idx"),
         ]
         constraints = [
@@ -894,7 +894,7 @@ class MeetingPoll(models.Model):
         db_table = "calendar_meeting_polls"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="calendar_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="calendar_pol_fir_sta_idx"),
             models.Index(fields=["firm", "-created_at"], name="calendar_fir_cre_idx"),
             models.Index(fields=["created_by", "status"], name="calendar_cre_sta_idx"),
         ]
@@ -1100,9 +1100,9 @@ class MeetingWorkflow(models.Model):
         db_table = "calendar_meeting_workflows"
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="calendar_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="calendar_wfl_fir_sta_idx"),
             models.Index(fields=["firm", "trigger"], name="calendar_fir_tri_idx"),
-            models.Index(fields=["appointment_type", "status"], name="calendar_app_sta_idx"),
+            models.Index(fields=["appointment_type", "status"], name="calendar_wfl_app_sta_idx"),
         ]
 
     def __str__(self):
@@ -1176,7 +1176,7 @@ class MeetingWorkflowExecution(models.Model):
         ordering = ["scheduled_for"]
         indexes = [
             models.Index(fields=["workflow", "status"], name="calendar_wor_sta_idx"),
-            models.Index(fields=["appointment", "status"], name="calendar_app_sta_idx"),
+            models.Index(fields=["appointment", "status"], name="calendar_exe_app_sta_idx"),
             models.Index(fields=["status", "scheduled_for"], name="calendar_sta_sch_idx"),
         ]
 

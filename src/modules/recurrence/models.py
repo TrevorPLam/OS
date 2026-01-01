@@ -218,7 +218,7 @@ class RecurrenceRule(models.Model):
         db_table = "recurrence_rule"
         ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["firm", "status"], name="recurrence_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="recurrence_rul_fir_sta_idx"),
             models.Index(fields=["firm", "scope"], name="recurrence_fir_sco_idx"),
             models.Index(fields=["target_delivery_template"], name="recurrence_tar_del_idx"),
             models.Index(fields=["target_engagement"], name="recurrence_tar_eng_idx"),
@@ -455,7 +455,7 @@ class RecurrenceGeneration(models.Model):
         ordering = ["-period_starts_at"]
         indexes = [
             models.Index(fields=["firm", "recurrence_rule", "-period_starts_at"], name="recurrence_fir_rec_per_idx"),
-            models.Index(fields=["firm", "status"], name="recurrence_fir_sta_idx"),
+            models.Index(fields=["firm", "status"], name="recurrence_gen_fir_sta_idx"),
             models.Index(fields=["idempotency_key"], name="recurrence_ide_idx"),
             models.Index(fields=["target_object_type", "target_object_id"], name="recurrence_tar_tar_idx"),
             models.Index(fields=["correlation_id"], name="recurrence_cor_idx"),

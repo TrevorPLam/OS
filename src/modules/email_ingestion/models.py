@@ -373,7 +373,7 @@ class EmailAttachment(models.Model):
         db_table = "email_ingestion_attachments"
         ordering = ["email_artifact", "attachment_index"]
         indexes = [
-            models.Index(fields=["email_artifact"], name="emailinges_ema_idx"),
+            models.Index(fields=["email_artifact"], name="emailinges_att_ema_idx"),
             models.Index(fields=["document"], name="emailinges_doc_idx"),
         ]
         unique_together = [["email_artifact", "attachment_index"]]
@@ -482,7 +482,7 @@ class IngestionAttempt(models.Model):
         indexes = [
             models.Index(fields=["firm", "occurred_at"], name="emailinges_fir_occ_idx"),
             models.Index(fields=["connection", "status"], name="emailinges_con_sta_idx"),
-            models.Index(fields=["email_artifact"], name="emailinges_ema_idx"),
+            models.Index(fields=["email_artifact"], name="emailinges_ing_ema_idx"),
             models.Index(fields=["correlation_id"], name="emailinges_cor_idx"),
             models.Index(fields=["status", "error_class"], name="emailinges_sta_err_idx"),
             models.Index(fields=["next_retry_at"], name="emailinges_nex_idx"),
