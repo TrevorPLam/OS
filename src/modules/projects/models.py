@@ -1649,3 +1649,539 @@ class TaskDependency(models.Model):
         
         if errors:
             raise ValidationError(errors)
+
+
+class UtilizationByUserWeekMV(models.Model):
+    """
+    Materialized View: Utilization reporting by user and week (Sprint 5.3).
+    
+    Pre-aggregated utilization metrics for fast team capacity and performance reporting.
+    This is a READ-ONLY model backed by a PostgreSQL materialized view.
+    
+    Refresh Strategy:
+    - Scheduled: Daily at 2 AM
+    - On-demand: Via management command or API endpoint
+    - Event-driven: On time entry approval
+    
+    TIER 0: Scoped to Firm for tenant isolation.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.DO_NOTHING,  # MV is read-only
+        related_name="+",  # No reverse relation needed
+        help_text="Firm this utilization record belongs to",
+        db_column="firm_id",
+    )
+    
+    # User information
+    user_id = models.IntegerField(help_text="User ID (not a foreign key - MV denormalized)")
+    
+    # Time dimension
+    week_start = models.DateField(help_text="Week start date (Monday)")
+    
+    # Hour metrics
+    total_hours = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Total hours logged",
+    )
+    billable_hours = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Billable hours logged",
+    )
+    non_billable_hours = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Non-billable hours logged",
+    )
+    
+    # Project metrics
+    projects_worked = models.IntegerField(help_text="Unique projects worked on")
+    days_worked = models.IntegerField(help_text="Unique days with time entries")
+    
+    # Cost metrics
+    total_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Total cost (hours × rates)",
+    )
+    billable_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Billable cost (billable hours × rates)",
+    )
+    
+    # Metadata
+    refreshed_at = models.DateTimeField(help_text="When this MV was last refreshed")
+    
+    objects = models.Manager()
+    
+    class Meta:
+        managed = False  # Django doesn't manage MV schema
+        db_table = "mv_utilization_by_user_week"
+        verbose_name = "Utilization by User Week (MV)"
+        verbose_name_plural = "Utilization by User Week (MV)"
+        ordering = ["-week_start", "user_id"]
+    
+    def __str__(self) -> str:
+        return f"User {self.user_id} - Week {self.week_start}: {self.total_hours}h"
+    
+    @property
+    def utilization_rate(self) -> Decimal:
+        """Calculate utilization rate (billable / total hours)."""
+        if self.total_hours > 0:
+            return (self.billable_hours / self.total_hours) * 100
+        return Decimal("0.00")
+    
+    @property
+    def capacity_utilization(self) -> Decimal:
+        """
+        Calculate capacity utilization (total hours / 40 expected hours).
+        Assumes 40-hour work week.
+        """
+        expected_hours = Decimal("40.00")
+        if expected_hours > 0:
+            return (self.total_hours / expected_hours) * 100
+        return Decimal("0.00")
+    
+    @property
+    def avg_hours_per_day(self) -> Decimal:
+        """Calculate average hours per working day."""
+        if self.days_worked > 0:
+            return self.total_hours / Decimal(str(self.days_worked))
+        return Decimal("0.00")
+    
+    @property
+    def data_age_minutes(self) -> int:
+        """Calculate how old the data is in minutes."""
+        from django.utils import timezone
+        delta = timezone.now() - self.refreshed_at
+        return int(delta.total_seconds() / 60)
+    
+    @classmethod
+    def refresh(cls, firm_id: int = None, concurrently: bool = True) -> dict:
+        """
+        Refresh the materialized view.
+        
+        Args:
+            firm_id: If provided, only refresh data for this firm (not supported by PostgreSQL MV)
+            concurrently: If True, use CONCURRENT refresh (allows reads during refresh)
+        
+        Returns:
+            dict with refresh status and metadata
+        """
+        from django.db import connection
+        from django.utils import timezone
+        import time
+        
+        # Import MVRefreshLog from finance (centralized logging)
+        from modules.finance.models import MVRefreshLog
+        
+        start_time = time.time()
+        started_at = timezone.now()
+        
+        # Log refresh start
+        MVRefreshLog.objects.create(
+            view_name="mv_utilization_by_user_week",
+            firm_id=firm_id,
+            refresh_started_at=started_at,
+            refresh_status="running",
+            triggered_by="manual",
+        )
+        
+        try:
+            with connection.cursor() as cursor:
+                refresh_sql = "REFRESH MATERIALIZED VIEW"
+                if concurrently:
+                    refresh_sql += " CONCURRENTLY"
+                refresh_sql += " mv_utilization_by_user_week"
+                
+                cursor.execute(refresh_sql)
+                
+                cursor.execute("SELECT COUNT(*) FROM mv_utilization_by_user_week")
+                row_count = cursor.fetchone()[0]
+            
+            duration = time.time() - start_time
+            completed_at = timezone.now()
+            
+            MVRefreshLog.objects.filter(
+                view_name="mv_utilization_by_user_week",
+                refresh_started_at=started_at,
+            ).update(
+                refresh_completed_at=completed_at,
+                refresh_status="success",
+                rows_affected=row_count,
+            )
+            
+            return {
+                "status": "success",
+                "view_name": "mv_utilization_by_user_week",
+                "rows_affected": row_count,
+                "duration_seconds": round(duration, 2),
+                "completed_at": completed_at.isoformat(),
+            }
+        
+        except Exception as e:
+            completed_at = timezone.now()
+            
+            MVRefreshLog.objects.filter(
+                view_name="mv_utilization_by_user_week",
+                refresh_started_at=started_at,
+            ).update(
+                refresh_completed_at=completed_at,
+                refresh_status="failed",
+                error_message=str(e),
+            )
+            
+            return {
+                "status": "failed",
+                "view_name": "mv_utilization_by_user_week",
+                "error": str(e),
+                "completed_at": completed_at.isoformat(),
+            }
+
+
+class UtilizationByProjectMonthMV(models.Model):
+    """
+    Materialized View: Utilization reporting by project and month (Sprint 5.3).
+    
+    Pre-aggregated utilization metrics for fast project performance reporting.
+    This is a READ-ONLY model backed by a PostgreSQL materialized view.
+    
+    Refresh Strategy:
+    - Scheduled: Daily at 2 AM
+    - On-demand: Via management command or API endpoint
+    - Event-driven: On time entry approval
+    
+    TIER 0: Scoped to Firm for tenant isolation.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.DO_NOTHING,  # MV is read-only
+        related_name="+",  # No reverse relation needed
+        help_text="Firm this utilization record belongs to",
+        db_column="firm_id",
+    )
+    
+    # Project information
+    project_id = models.IntegerField(help_text="Project ID (not a foreign key - MV denormalized)")
+    project_name = models.CharField(max_length=255, help_text="Project name (denormalized)")
+    project_code = models.CharField(max_length=50, help_text="Project code (denormalized)")
+    client_id = models.IntegerField(help_text="Client ID (denormalized)")
+    
+    # Time dimension
+    month = models.DateField(help_text="Month start date (YYYY-MM-01)")
+    
+    # Hour metrics
+    total_hours = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Total hours logged",
+    )
+    billable_hours = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Billable hours logged",
+    )
+    non_billable_hours = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Non-billable hours logged",
+    )
+    
+    # Team metrics
+    team_members = models.IntegerField(help_text="Unique team members with time entries")
+    days_worked = models.IntegerField(help_text="Unique days with time entries")
+    
+    # Cost metrics
+    total_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Total cost (hours × rates)",
+    )
+    billable_cost = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        help_text="Billable cost (billable hours × rates)",
+    )
+    
+    # Task metrics
+    tasks_worked = models.IntegerField(help_text="Unique tasks worked on")
+    
+    # Metadata
+    refreshed_at = models.DateTimeField(help_text="When this MV was last refreshed")
+    
+    objects = models.Manager()
+    
+    class Meta:
+        managed = False  # Django doesn't manage MV schema
+        db_table = "mv_utilization_by_project_month"
+        verbose_name = "Utilization by Project Month (MV)"
+        verbose_name_plural = "Utilization by Project Month (MV)"
+        ordering = ["-month", "project_name"]
+    
+    def __str__(self) -> str:
+        return f"{self.project_name} ({self.month.strftime('%Y-%m')}): {self.total_hours}h"
+    
+    @property
+    def utilization_rate(self) -> Decimal:
+        """Calculate utilization rate (billable / total hours)."""
+        if self.total_hours > 0:
+            return (self.billable_hours / self.total_hours) * 100
+        return Decimal("0.00")
+    
+    @property
+    def avg_hours_per_member(self) -> Decimal:
+        """Calculate average hours per team member."""
+        if self.team_members > 0:
+            return self.total_hours / Decimal(str(self.team_members))
+        return Decimal("0.00")
+    
+    @property
+    def avg_hours_per_day(self) -> Decimal:
+        """Calculate average hours per working day."""
+        if self.days_worked > 0:
+            return self.total_hours / Decimal(str(self.days_worked))
+        return Decimal("0.00")
+    
+    @property
+    def data_age_minutes(self) -> int:
+        """Calculate how old the data is in minutes."""
+        from django.utils import timezone
+        delta = timezone.now() - self.refreshed_at
+        return int(delta.total_seconds() / 60)
+    
+    @classmethod
+    def refresh(cls, firm_id: int = None, concurrently: bool = True) -> dict:
+        """
+        Refresh the materialized view.
+        
+        Args:
+            firm_id: If provided, only refresh data for this firm (not supported by PostgreSQL MV)
+            concurrently: If True, use CONCURRENT refresh (allows reads during refresh)
+        
+        Returns:
+            dict with refresh status and metadata
+        """
+        from django.db import connection
+        from django.utils import timezone
+        import time
+        
+        # Import MVRefreshLog from finance (centralized logging)
+        from modules.finance.models import MVRefreshLog
+        
+        start_time = time.time()
+        started_at = timezone.now()
+        
+        # Log refresh start
+        MVRefreshLog.objects.create(
+            view_name="mv_utilization_by_project_month",
+            firm_id=firm_id,
+            refresh_started_at=started_at,
+            refresh_status="running",
+            triggered_by="manual",
+        )
+        
+        try:
+            with connection.cursor() as cursor:
+                refresh_sql = "REFRESH MATERIALIZED VIEW"
+                if concurrently:
+                    refresh_sql += " CONCURRENTLY"
+                refresh_sql += " mv_utilization_by_project_month"
+                
+                cursor.execute(refresh_sql)
+                
+                cursor.execute("SELECT COUNT(*) FROM mv_utilization_by_project_month")
+                row_count = cursor.fetchone()[0]
+            
+            duration = time.time() - start_time
+            completed_at = timezone.now()
+            
+            MVRefreshLog.objects.filter(
+                view_name="mv_utilization_by_project_month",
+                refresh_started_at=started_at,
+            ).update(
+                refresh_completed_at=completed_at,
+                refresh_status="success",
+                rows_affected=row_count,
+            )
+            
+            return {
+                "status": "success",
+                "view_name": "mv_utilization_by_project_month",
+                "rows_affected": row_count,
+                "duration_seconds": round(duration, 2),
+                "completed_at": completed_at.isoformat(),
+            }
+        
+        except Exception as e:
+            completed_at = timezone.now()
+            
+            MVRefreshLog.objects.filter(
+                view_name="mv_utilization_by_project_month",
+                refresh_started_at=started_at,
+            ).update(
+                refresh_completed_at=completed_at,
+                refresh_status="failed",
+                error_message=str(e),
+            )
+            
+            return {
+                "status": "failed",
+                "view_name": "mv_utilization_by_project_month",
+                "error": str(e),
+                "completed_at": completed_at.isoformat(),
+            }
+
+
+class UtilizationByUserWeekMV(models.Model):
+    """
+    Materialized View: Utilization reporting by user and week (Sprint 5.3).
+    
+    Pre-aggregated utilization metrics for fast team capacity and performance reporting.
+    This is a READ-ONLY model backed by a PostgreSQL materialized view.
+    
+    TIER 0: Scoped to Firm for tenant isolation.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.DO_NOTHING,  # MV is read-only
+        related_name="+",  # No reverse relation needed
+        help_text="Firm this utilization record belongs to",
+        db_column="firm_id",
+    )
+    
+    # User information
+    user_id = models.IntegerField(help_text="User ID (not a foreign key - MV denormalized)")
+    
+    # Time dimension
+    week_start = models.DateField(help_text="Week start date (Monday)")
+    
+    # Hour metrics
+    total_hours = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total hours logged")
+    billable_hours = models.DecimalField(max_digits=10, decimal_places=2, help_text="Billable hours logged")
+    non_billable_hours = models.DecimalField(max_digits=10, decimal_places=2, help_text="Non-billable hours logged")
+    
+    # Project metrics
+    projects_worked = models.IntegerField(help_text="Unique projects worked on")
+    days_worked = models.IntegerField(help_text="Unique days with time entries")
+    
+    # Cost metrics
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="Total cost (hours × rates)")
+    billable_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="Billable cost (billable hours × rates)")
+    
+    # Metadata
+    refreshed_at = models.DateTimeField(help_text="When this MV was last refreshed")
+    
+    objects = models.Manager()
+    
+    class Meta:
+        managed = False  # Django doesn't manage MV schema
+        db_table = "mv_utilization_by_user_week"
+        verbose_name = "Utilization by User Week (MV)"
+        verbose_name_plural = "Utilization by User Week (MV)"
+        ordering = ["-week_start", "user_id"]
+    
+    def __str__(self) -> str:
+        return f"User {self.user_id} - Week {self.week_start}: {self.total_hours}h"
+    
+    @property
+    def utilization_rate(self) -> Decimal:
+        """Calculate utilization rate (billable / total hours)."""
+        if self.total_hours > 0:
+            return (self.billable_hours / self.total_hours) * 100
+        return Decimal("0.00")
+    
+    @property
+    def capacity_utilization(self) -> Decimal:
+        """Calculate capacity utilization (total hours / 40 expected hours)."""
+        expected_hours = Decimal("40.00")
+        return (self.total_hours / expected_hours) * 100 if expected_hours > 0 else Decimal("0.00")
+    
+    @property
+    def data_age_minutes(self) -> int:
+        """Calculate how old the data is in minutes."""
+        from django.utils import timezone
+        delta = timezone.now() - self.refreshed_at
+        return int(delta.total_seconds() / 60)
+
+
+class UtilizationByProjectMonthMV(models.Model):
+    """
+    Materialized View: Utilization reporting by project and month (Sprint 5.3).
+    
+    Pre-aggregated utilization metrics for fast project performance reporting.
+    This is a READ-ONLY model backed by a PostgreSQL materialized view.
+    
+    TIER 0: Scoped to Firm for tenant isolation.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.DO_NOTHING,  # MV is read-only
+        related_name="+",  # No reverse relation needed
+        help_text="Firm this utilization record belongs to",
+        db_column="firm_id",
+    )
+    
+    # Project information
+    project_id = models.IntegerField(help_text="Project ID (not a foreign key - MV denormalized)")
+    project_name = models.CharField(max_length=255, help_text="Project name (denormalized)")
+    project_code = models.CharField(max_length=50, help_text="Project code (denormalized)")
+    client_id = models.IntegerField(help_text="Client ID (denormalized)")
+    
+    # Time dimension
+    month = models.DateField(help_text="Month start date (YYYY-MM-01)")
+    
+    # Hour metrics
+    total_hours = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total hours logged")
+    billable_hours = models.DecimalField(max_digits=10, decimal_places=2, help_text="Billable hours logged")
+    non_billable_hours = models.DecimalField(max_digits=10, decimal_places=2, help_text="Non-billable hours logged")
+    
+    # Team metrics
+    team_members = models.IntegerField(help_text="Unique team members with time entries")
+    days_worked = models.IntegerField(help_text="Unique days with time entries")
+    
+    # Cost metrics
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="Total cost (hours × rates)")
+    billable_cost = models.DecimalField(max_digits=12, decimal_places=2, help_text="Billable cost (billable hours × rates)")
+    
+    # Task metrics
+    tasks_worked = models.IntegerField(help_text="Unique tasks worked on")
+    
+    # Metadata
+    refreshed_at = models.DateTimeField(help_text="When this MV was last refreshed")
+    
+    objects = models.Manager()
+    
+    class Meta:
+        managed = False  # Django doesn't manage MV schema
+        db_table = "mv_utilization_by_project_month"
+        verbose_name = "Utilization by Project Month (MV)"
+        verbose_name_plural = "Utilization by Project Month (MV)"
+        ordering = ["-month", "project_name"]
+    
+    def __str__(self) -> str:
+        return f"{self.project_name} ({self.month.strftime('%Y-%m')}): {self.total_hours}h"
+    
+    @property
+    def utilization_rate(self) -> Decimal:
+        """Calculate utilization rate (billable / total hours)."""
+        if self.total_hours > 0:
+            return (self.billable_hours / self.total_hours) * 100
+        return Decimal("0.00")
+    
+    @property
+    def data_age_minutes(self) -> int:
+        """Calculate how old the data is in minutes."""
+        from django.utils import timezone
+        delta = timezone.now() - self.refreshed_at
+        return int(delta.total_seconds() / 60)

@@ -4,7 +4,17 @@ DRF Serializers for Finance module.
 
 from rest_framework import serializers
 
-from modules.finance.models import Bill, Invoice, LedgerEntry, Payment, PaymentAllocation, ProjectProfitability, ServiceLineProfitability
+from modules.finance.models import (
+    Bill,
+    Invoice,
+    LedgerEntry,
+    MVRefreshLog,
+    Payment,
+    PaymentAllocation,
+    ProjectProfitability,
+    RevenueByProjectMonthMV,
+    ServiceLineProfitability,
+)
 
 
 class InvoiceSerializer(serializers.ModelSerializer):
@@ -141,3 +151,106 @@ class ServiceLineProfitabilitySerializer(serializers.ModelSerializer):
             "last_calculated_at",
             "created_at",
         ]
+
+
+class RevenueByProjectMonthMVSerializer(serializers.ModelSerializer):
+    """
+    Serializer for RevenueByProjectMonthMV materialized view (Sprint 5.2).
+    
+    Provides pre-aggregated revenue reporting data for fast dashboard queries.
+    All fields are read-only as this is a materialized view.
+    """
+    
+    # Computed properties exposed as fields
+    gross_margin = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    gross_margin_percentage = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    net_margin = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    net_margin_percentage = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    utilization_rate = serializers.DecimalField(max_digits=5, decimal_places=2, read_only=True)
+    data_age_minutes = serializers.IntegerField(read_only=True)
+    
+    # Metadata for reporting compliance (REPORTING_METADATA.md)
+    metadata = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = RevenueByProjectMonthMV
+        fields = [
+            # Identifiers
+            "firm",
+            "project_id",
+            "project_name",
+            "project_code",
+            "client_id",
+            "month",
+            # Revenue metrics
+            "total_revenue",
+            "labor_cost",
+            "expense_cost",
+            "overhead_cost",
+            "gross_margin",
+            "gross_margin_percentage",
+            "net_margin",
+            "net_margin_percentage",
+            # Team metrics
+            "team_members",
+            "total_hours",
+            "billable_hours",
+            "utilization_rate",
+            # Invoice metrics
+            "invoice_count",
+            "paid_invoice_count",
+            # Metadata
+            "refreshed_at",
+            "data_age_minutes",
+            "metadata",
+        ]
+        read_only_fields = "__all__"  # All fields are read-only (MV)
+    
+    def get_metadata(self, obj):
+        """
+        Add required reporting metadata per REPORTING_METADATA.md.
+        
+        Reports must include metadata about sources, freshness, and non-authoritative nature.
+        """
+        return {
+            "source_modules": ["finance", "projects"],
+            "generated_at": obj.refreshed_at.isoformat(),
+            "freshness_window": f"{obj.data_age_minutes} minutes",
+            "join_keys_used": ["project_id", "firm_id"],
+            "coverage_notes": "Last 5 years of data; includes paid/partial invoices and approved expenses",
+            "non_authoritative": True,
+            "provenance_pointers": {
+                "invoices": f"finance.Invoice (project_id={obj.project_id})",
+                "time_entries": f"projects.TimeEntry (project_id={obj.project_id})",
+                "expenses": f"projects.Expense (project_id={obj.project_id})",
+            },
+            "disclaimer": "This report is derived from multiple modules and is provided for informational purposes only. "
+                         "It is non-authoritative and does not supersede the underlying source records. "
+                         "Refer to the source systems for official values.",
+        }
+
+
+class MVRefreshLogSerializer(serializers.ModelSerializer):
+    """
+    Serializer for MVRefreshLog model (Sprint 5.5).
+    
+    Provides refresh history and monitoring data for materialized views.
+    """
+    
+    duration_seconds = serializers.FloatField(read_only=True)
+    
+    class Meta:
+        model = MVRefreshLog
+        fields = [
+            "id",
+            "view_name",
+            "firm_id",
+            "refresh_started_at",
+            "refresh_completed_at",
+            "refresh_status",
+            "rows_affected",
+            "error_message",
+            "triggered_by",
+            "duration_seconds",
+        ]
+        read_only_fields = "__all__"  # Log entries are read-only

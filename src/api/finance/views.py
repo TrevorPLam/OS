@@ -8,6 +8,7 @@ TIER 2.5: Portal users are explicitly denied access to firm admin endpoints.
 
 from decimal import Decimal
 
+from django.db import models
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
@@ -17,16 +18,28 @@ from rest_framework.response import Response
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import DenyPortalAccess
-from modules.finance.models import Bill, Invoice, LedgerEntry, Payment, PaymentAllocation, ProjectProfitability, ServiceLineProfitability
+from modules.finance.models import (
+    Bill,
+    Invoice,
+    LedgerEntry,
+    MVRefreshLog,
+    Payment,
+    PaymentAllocation,
+    ProjectProfitability,
+    RevenueByProjectMonthMV,
+    ServiceLineProfitability,
+)
 from modules.firm.utils import FirmScopedMixin
 
 from .serializers import (
     BillSerializer,
     InvoiceSerializer,
     LedgerEntrySerializer,
-    PaymentSerializer,
+    MVRefreshLogSerializer,
     PaymentAllocationSerializer,
+    PaymentSerializer,
     ProjectProfitabilitySerializer,
+    RevenueByProjectMonthMVSerializer,
     ServiceLineProfitabilitySerializer,
 )
 
@@ -273,3 +286,261 @@ class ServiceLineProfitabilityViewSet(QueryTimeoutMixin, FirmScopedMixin, viewse
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
         return base_queryset.select_related("firm")
+
+
+class RevenueByProjectMonthMVViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for Revenue by Project Month Materialized View (Sprint 5.2).
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    
+    Provides fast, pre-aggregated revenue reporting data.
+    This is READ-ONLY as it's backed by a materialized view.
+    
+    Use Cases:
+    - Revenue dashboards by month/quarter/year
+    - Project profitability analysis
+    - Client revenue analysis
+    - Service line revenue reporting (via grouping)
+    
+    Data Freshness:
+    - Refreshed daily at 2 AM (scheduled)
+    - Can be refreshed on-demand via /refresh/ endpoint
+    - Check 'data_age_minutes' field for staleness
+    """
+    
+    model = RevenueByProjectMonthMV
+    serializer_class = RevenueByProjectMonthMVSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["project_id", "client_id", "month"]
+    search_fields = ["project_name", "project_code"]
+    ordering_fields = ["month", "total_revenue", "gross_margin", "net_margin", "utilization_rate"]
+    ordering = ["-month", "project_name"]
+    
+    def get_queryset(self):
+        """
+        Override to optimize queryset.
+        
+        Note: No select_related needed - MV is denormalized.
+        """
+        return super().get_queryset()
+    
+    @action(detail=False, methods=["post"], permission_classes=[IsAuthenticated, DenyPortalAccess])
+    def refresh(self, request):
+        """
+        Manually refresh the materialized view.
+        
+        Triggers an on-demand refresh of all revenue data.
+        Use sparingly - scheduled refresh is preferred.
+        
+        Request body (optional):
+        - concurrently: bool (default: True) - Use CONCURRENT refresh
+        
+        Response:
+        - status: "success" or "failed"
+        - duration_seconds: Time taken to refresh
+        - rows_affected: Number of rows in refreshed view
+        """
+        concurrently = request.data.get("concurrently", True)
+        result = RevenueByProjectMonthMV.refresh(concurrently=concurrently)
+        
+        if result["status"] == "success":
+            return Response(result, status=status.HTTP_200_OK)
+        else:
+            return Response(result, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    @action(detail=False, methods=["get"])
+    def freshness(self, request):
+        """
+        Check data freshness of the materialized view.
+        
+        Returns:
+        - last_refresh: When MV was last refreshed
+        - data_age_minutes: How old the data is
+        - refresh_count_24h: Number of refreshes in last 24 hours
+        - last_refresh_status: Status of last refresh attempt
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Get most recent refresh from any row (they all have same refreshed_at)
+        queryset = self.get_queryset()
+        if queryset.exists():
+            latest_record = queryset.first()
+            last_refresh = latest_record.refreshed_at
+            data_age_minutes = latest_record.data_age_minutes
+        else:
+            last_refresh = None
+            data_age_minutes = None
+        
+        # Get refresh logs for last 24 hours
+        last_24h = timezone.now() - timedelta(hours=24)
+        recent_refreshes = MVRefreshLog.objects.filter(
+            view_name="mv_revenue_by_project_month",
+            refresh_started_at__gte=last_24h,
+        ).order_by("-refresh_started_at")
+        
+        refresh_count_24h = recent_refreshes.count()
+        last_refresh_log = recent_refreshes.first()
+        
+        return Response({
+            "view_name": "mv_revenue_by_project_month",
+            "last_refresh": last_refresh.isoformat() if last_refresh else None,
+            "data_age_minutes": data_age_minutes,
+            "refresh_count_24h": refresh_count_24h,
+            "last_refresh_status": last_refresh_log.refresh_status if last_refresh_log else None,
+            "last_refresh_duration_seconds": last_refresh_log.duration_seconds if last_refresh_log else None,
+        })
+    
+    @action(detail=False, methods=["get"])
+    def aggregate_by_quarter(self, request):
+        """
+        Aggregate revenue by quarter for the current year.
+        
+        Query params:
+        - year: int (default: current year)
+        
+        Returns quarterly aggregates:
+        - Q1: Jan-Mar
+        - Q2: Apr-Jun
+        - Q3: Jul-Sep
+        - Q4: Oct-Dec
+        """
+        from django.db.models import Sum, Avg, Count
+        from datetime import date
+        
+        year = int(request.query_params.get("year", date.today().year))
+        
+        queryset = self.get_queryset().filter(month__year=year)
+        
+        # Group by quarter
+        results = []
+        for quarter in range(1, 5):
+            start_month = (quarter - 1) * 3 + 1
+            end_month = quarter * 3
+            
+            q_data = queryset.filter(
+                month__month__gte=start_month,
+                month__month__lte=end_month,
+            ).aggregate(
+                total_revenue=Sum("total_revenue"),
+                total_labor_cost=Sum("labor_cost"),
+                total_expense_cost=Sum("expense_cost"),
+                total_overhead_cost=Sum("overhead_cost"),
+                total_hours=Sum("total_hours"),
+                total_billable_hours=Sum("billable_hours"),
+                avg_team_size=Avg("team_members"),
+                project_count=Count("project_id", distinct=True),
+            )
+            
+            # Calculate derived metrics
+            total_revenue = q_data["total_revenue"] or Decimal("0.00")
+            total_costs = (
+                (q_data["total_labor_cost"] or Decimal("0.00")) +
+                (q_data["total_expense_cost"] or Decimal("0.00")) +
+                (q_data["total_overhead_cost"] or Decimal("0.00"))
+            )
+            gross_margin = total_revenue - total_costs
+            margin_pct = (gross_margin / total_revenue * 100) if total_revenue > 0 else Decimal("0.00")
+            
+            total_hours = q_data["total_hours"] or Decimal("0.00")
+            billable_hours = q_data["total_billable_hours"] or Decimal("0.00")
+            utilization = (billable_hours / total_hours * 100) if total_hours > 0 else Decimal("0.00")
+            
+            results.append({
+                "quarter": f"Q{quarter}",
+                "year": year,
+                "total_revenue": float(total_revenue),
+                "total_costs": float(total_costs),
+                "gross_margin": float(gross_margin),
+                "margin_percentage": float(margin_pct),
+                "total_hours": float(total_hours),
+                "billable_hours": float(billable_hours),
+                "utilization_rate": float(utilization),
+                "avg_team_size": float(q_data["avg_team_size"] or 0),
+                "project_count": q_data["project_count"],
+            })
+        
+        return Response({
+            "year": year,
+            "quarters": results,
+            "metadata": {
+                "source": "mv_revenue_by_project_month",
+                "non_authoritative": True,
+            }
+        })
+
+
+class MVRefreshLogViewSet(QueryTimeoutMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for MV Refresh Log (Sprint 5.5).
+    
+    Provides monitoring and troubleshooting data for materialized view refreshes.
+    READ-ONLY - logs are immutable.
+    
+    No firm scoping - platform operators can view all logs.
+    """
+    
+    queryset = MVRefreshLog.objects.all()
+    serializer_class = MVRefreshLogSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]  # TIER 2.5: Deny portal access
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["view_name", "refresh_status", "triggered_by"]
+    ordering_fields = ["refresh_started_at", "duration_seconds", "rows_affected"]
+    ordering = ["-refresh_started_at"]
+    
+    @action(detail=False, methods=["get"])
+    def statistics(self, request):
+        """
+        Get refresh statistics across all views.
+        
+        Query params:
+        - view_name: filter to specific view
+        - days: number of days to look back (default: 7)
+        
+        Returns:
+        - total_refreshes
+        - success_rate
+        - avg_duration_seconds
+        - failure_count
+        - recent_failures
+        """
+        from django.db.models import Avg, Count
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        view_name = request.query_params.get("view_name")
+        days = int(request.query_params.get("days", 7))
+        
+        since = timezone.now() - timedelta(days=days)
+        queryset = self.get_queryset().filter(refresh_started_at__gte=since)
+        
+        if view_name:
+            queryset = queryset.filter(view_name=view_name)
+        
+        stats = queryset.aggregate(
+            total_refreshes=Count("id"),
+            success_count=Count("id", filter=models.Q(refresh_status="success")),
+            failed_count=Count("id", filter=models.Q(refresh_status="failed")),
+            avg_duration=Avg("duration_seconds"),
+        )
+        
+        total = stats["total_refreshes"] or 0
+        success = stats["success_count"] or 0
+        success_rate = (success / total * 100) if total > 0 else 0
+        
+        # Get recent failures
+        recent_failures = queryset.filter(refresh_status="failed").order_by("-refresh_started_at")[:5]
+        failure_data = MVRefreshLogSerializer(recent_failures, many=True).data
+        
+        return Response({
+            "period_days": days,
+            "view_name": view_name or "all",
+            "total_refreshes": total,
+            "success_count": success,
+            "failed_count": stats["failed_count"] or 0,
+            "success_rate_percentage": round(success_rate, 2),
+            "avg_duration_seconds": round(stats["avg_duration"] or 0, 2),
+            "recent_failures": failure_data,
+        })
