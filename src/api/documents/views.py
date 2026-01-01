@@ -16,11 +16,25 @@ from rest_framework.response import Response
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import DenyPortalAccess
-from modules.documents.models import Document, Folder, Version
+from modules.documents.models import (
+    Document,
+    ExternalShare,
+    Folder,
+    ShareAccess,
+    SharePermission,
+    Version,
+)
 from modules.documents.services import S3Service
 from modules.firm.utils import FirmScopedMixin, get_request_firm
 
-from .serializers import DocumentSerializer, FolderSerializer, VersionSerializer
+from .serializers import (
+    DocumentSerializer,
+    ExternalShareSerializer,
+    FolderSerializer,
+    ShareAccessSerializer,
+    SharePermissionSerializer,
+    VersionSerializer,
+)
 
 
 class FolderViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -323,3 +337,182 @@ class VersionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ExternalShareViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for ExternalShare model (Task 3.10).
+    
+    Provides CRUD operations for creating and managing external document shares.
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2: Requires authentication and denies portal access.
+    """
+    
+    model = ExternalShare
+    serializer_class = ExternalShareSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["document", "access_type", "revoked", "created_by"]
+    search_fields = ["document__name", "share_token"]
+    ordering_fields = ["created_at", "expires_at", "download_count"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        from modules.documents.models import ExternalShare
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related(
+            "document",
+            "document__folder",
+            "document__client",
+            "created_by",
+            "revoked_by"
+        )
+    
+    def perform_create(self, serializer):
+        """Set firm and created_by on creation."""
+        firm = get_request_firm(self.request)
+        serializer.save(
+            firm=firm,
+            created_by=self.request.user
+        )
+    
+    @action(detail=True, methods=["post"])
+    def revoke(self, request, pk=None):
+        """
+        Revoke a share.
+        
+        POST /api/documents/external-shares/{id}/revoke/
+        Body: { "reason": "Optional revocation reason" }
+        
+        Immediately revokes the share and prevents further access.
+        """
+        try:
+            share = self.get_object()
+            reason = request.data.get("reason", "")
+            share.revoke(user=request.user, reason=reason)
+            serializer = self.get_serializer(share)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=["get"])
+    def statistics(self, request, pk=None):
+        """
+        Get access statistics for a share.
+        
+        GET /api/documents/external-shares/{id}/statistics/
+        
+        Returns access counts, success/failure rates, and recent activity.
+        """
+        try:
+            share = self.get_object()
+            from modules.documents.models import ShareAccess
+            
+            # Get all access logs for this share
+            access_logs = ShareAccess.objects.filter(
+                firm=share.firm,
+                external_share=share
+            )
+            
+            # Calculate statistics
+            total_accesses = access_logs.count()
+            successful_accesses = access_logs.filter(success=True).count()
+            failed_accesses = access_logs.filter(success=False).count()
+            
+            # Group by action
+            action_counts = {}
+            for action, _ in ShareAccess.ACTION_CHOICES:
+                count = access_logs.filter(action=action).count()
+                if count > 0:
+                    action_counts[action] = count
+            
+            # Recent activity (last 10)
+            recent_activity = ShareAccessSerializer(
+                access_logs[:10],
+                many=True,
+                context={"request": request}
+            ).data
+            
+            return Response({
+                "share_id": share.id,
+                "share_token": str(share.share_token),
+                "document_name": share.document.name,
+                "statistics": {
+                    "total_accesses": total_accesses,
+                    "successful_accesses": successful_accesses,
+                    "failed_accesses": failed_accesses,
+                    "download_count": share.download_count,
+                    "max_downloads": share.max_downloads,
+                    "action_counts": action_counts,
+                },
+                "status": {
+                    "is_active": share.is_active,
+                    "is_expired": share.is_expired,
+                    "is_revoked": share.revoked,
+                    "is_download_limit_reached": share.is_download_limit_reached,
+                },
+                "recent_activity": recent_activity,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SharePermissionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for SharePermission model (Task 3.10).
+    
+    Manages detailed permissions for external shares.
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    
+    model = SharePermission
+    serializer_class = SharePermissionSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["external_share", "allow_print", "allow_copy", "apply_watermark"]
+    ordering_fields = ["created_at"]
+    ordering = ["-created_at"]
+    
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        from modules.documents.models import SharePermission
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related(
+            "external_share",
+            "external_share__document"
+        )
+    
+    def perform_create(self, serializer):
+        """Set firm on creation."""
+        firm = get_request_firm(self.request)
+        serializer.save(firm=firm)
+
+
+class ShareAccessViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for ShareAccess model (Task 3.10).
+    
+    Provides read-only access to share access logs for audit purposes.
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+    
+    model = ShareAccess
+    serializer_class = ShareAccessSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["external_share", "action", "success", "ip_address"]
+    ordering_fields = ["accessed_at"]
+    ordering = ["-accessed_at"]
+    
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        from modules.documents.models import ShareAccess
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related(
+            "external_share",
+            "external_share__document"
+        )

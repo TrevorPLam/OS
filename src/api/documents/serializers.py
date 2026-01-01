@@ -4,7 +4,14 @@ DRF Serializers for Documents module.
 
 from rest_framework import serializers
 
-from modules.documents.models import Document, Folder, Version
+from modules.documents.models import (
+    Document,
+    ExternalShare,
+    Folder,
+    ShareAccess,
+    SharePermission,
+    Version,
+)
 from modules.firm.utils import has_active_break_glass_session
 
 
@@ -84,3 +91,207 @@ class VersionSerializer(serializers.ModelSerializer):
             firm = getattr(request, "firm", None)
             return has_active_break_glass_session(firm) if firm else False
         return True
+
+
+class ExternalShareSerializer(serializers.ModelSerializer):
+    """Serializer for ExternalShare model (Task 3.10)."""
+    
+    document_name = serializers.CharField(source="document.name", read_only=True)
+    is_active = serializers.BooleanField(read_only=True)
+    is_expired = serializers.BooleanField(read_only=True)
+    is_download_limit_reached = serializers.BooleanField(read_only=True)
+    share_url = serializers.SerializerMethodField()
+    
+    # Password field for setting (write-only)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    
+    class Meta:
+        model = ExternalShare
+        fields = [
+            "id",
+            "document",
+            "document_name",
+            "share_token",
+            "access_type",
+            "require_password",
+            "password",  # write-only
+            "expires_at",
+            "max_downloads",
+            "download_count",
+            "revoked",
+            "revoked_at",
+            "revoked_by",
+            "revoke_reason",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "is_active",
+            "is_expired",
+            "is_download_limit_reached",
+            "share_url",
+        ]
+        read_only_fields = [
+            "share_token",
+            "download_count",
+            "revoked_at",
+            "revoked_by",
+            "revoke_reason",
+            "created_at",
+            "updated_at",
+        ]
+        extra_kwargs = {
+            "password_hash": {"write_only": True},  # Never expose the hash
+        }
+    
+    def get_share_url(self, obj):
+        """Generate the full share URL."""
+        if obj.share_token:
+            request = self.context.get("request")
+            if request:
+                # Use request to build absolute URI
+                return request.build_absolute_uri(f"/api/public/shares/{obj.share_token}/")
+            return f"/api/public/shares/{obj.share_token}/"
+        return None
+    
+    def create(self, validated_data):
+        """Handle password setting during creation."""
+        password = validated_data.pop("password", None)
+        share = super().create(validated_data)
+        
+        if password:
+            share.set_password(password)
+            share.save()
+        
+        return share
+    
+    def update(self, instance, validated_data):
+        """Handle password updates."""
+        password = validated_data.pop("password", None)
+        
+        # If password is provided, update it
+        if password:
+            instance.set_password(password)
+        # If password is empty string and require_password is False, clear it
+        elif password == "" and not validated_data.get("require_password", instance.require_password):
+            instance.password_hash = ""
+            instance.require_password = False
+        
+        return super().update(instance, validated_data)
+    
+    def validate(self, data):
+        """Validate external share data."""
+        # If require_password is True, password must be provided on creation
+        if data.get("require_password") and not self.instance:
+            if not data.get("password"):
+                raise serializers.ValidationError({
+                    "password": "Password is required when password protection is enabled."
+                })
+        
+        # Validate max_downloads
+        if "max_downloads" in data and data["max_downloads"] is not None:
+            if data["max_downloads"] < 0:
+                raise serializers.ValidationError({
+                    "max_downloads": "Max downloads must be non-negative."
+                })
+        
+        return data
+
+
+class SharePermissionSerializer(serializers.ModelSerializer):
+    """Serializer for SharePermission model (Task 3.10)."""
+    
+    class Meta:
+        model = SharePermission
+        fields = [
+            "id",
+            "external_share",
+            "allow_print",
+            "allow_copy",
+            "apply_watermark",
+            "watermark_text",
+            "watermark_settings",
+            "allowed_ip_addresses",
+            "notify_on_access",
+            "notification_emails",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+    
+    def validate(self, data):
+        """Validate share permission data."""
+        # If watermark is enabled, text must be provided
+        if data.get("apply_watermark"):
+            if not data.get("watermark_text"):
+                raise serializers.ValidationError({
+                    "watermark_text": "Watermark text is required when watermark is enabled."
+                })
+        
+        return data
+
+
+class ShareAccessSerializer(serializers.ModelSerializer):
+    """Serializer for ShareAccess model (Task 3.10)."""
+    
+    document_name = serializers.CharField(
+        source="external_share.document.name",
+        read_only=True
+    )
+    
+    class Meta:
+        model = ShareAccess
+        fields = [
+            "id",
+            "external_share",
+            "document_name",
+            "action",
+            "success",
+            "accessed_at",
+            "ip_address",
+            "user_agent",
+            "referer",
+            "metadata",
+        ]
+        read_only_fields = ["accessed_at"]
+
+
+class ExternalShareCreateSerializer(serializers.ModelSerializer):
+    """Simplified serializer for creating external shares (Task 3.10)."""
+    
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    permissions = SharePermissionSerializer(required=False)
+    
+    class Meta:
+        model = ExternalShare
+        fields = [
+            "document",
+            "access_type",
+            "require_password",
+            "password",
+            "expires_at",
+            "max_downloads",
+            "permissions",
+        ]
+    
+    def create(self, validated_data):
+        """Create share with optional permissions."""
+        permissions_data = validated_data.pop("permissions", None)
+        password = validated_data.pop("password", None)
+        
+        # Create the share
+        share = ExternalShare.objects.create(**validated_data)
+        
+        # Set password if provided
+        if password:
+            share.set_password(password)
+            share.save()
+        
+        # Create permissions if provided
+        if permissions_data:
+            SharePermission.objects.create(
+                firm_id=share.firm_id,
+                external_share=share,
+                **permissions_data
+            )
+        
+        return share
