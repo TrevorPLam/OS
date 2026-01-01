@@ -79,8 +79,8 @@ const CalendarSync: React.FC = () => {
   const handleEditConnection = (connection: OAuthConnection) => {
     setEditingConnection(connection.connection_id)
     setEditData({
-      sync_enabled: connection.sync_enabled,
-      sync_window_days: connection.sync_window_days,
+      sync_enabled: connection.sync_enabled ?? true,
+      sync_window_days: connection.sync_window_days ?? 30,
     })
   }
 
@@ -209,7 +209,7 @@ const CalendarSync: React.FC = () => {
                         <label>
                           <input
                             type="checkbox"
-                            checked={editData.sync_enabled}
+                            checked={editData.sync_enabled ?? true}
                             onChange={(e) =>
                               setEditData({ ...editData, sync_enabled: e.target.checked })
                             }
