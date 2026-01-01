@@ -1525,15 +1525,17 @@ class IntakeFormSubmission(models.Model):
                 continue
             
             # Calculate score based on scoring rules
-            # Scoring rules format: {value: points, ...} or {"range": {"min": 0, "max": 10, "points": 5}}
+            # Scoring rules format: {value: points, ...} or {"ranges": [{"min": 0, "max": 10, "points": 5}]}
             if isinstance(field.scoring_rules, dict):
                 # Check for exact match
                 if str(response_value) in field.scoring_rules:
                     points = field.scoring_rules[str(response_value)]
                     total_score += points
-                    max_score += max(field.scoring_rules.values())
+                    # Safely get max score
+                    if field.scoring_rules.values():
+                        max_score += max(field.scoring_rules.values())
                 # Check for range-based scoring (for number fields)
-                elif "range" in field.scoring_rules:
+                elif "ranges" in field.scoring_rules:
                     try:
                         value = float(response_value)
                         for range_def in field.scoring_rules.get("ranges", []):
@@ -1541,6 +1543,8 @@ class IntakeFormSubmission(models.Model):
                             max_val = range_def.get("max", float("inf"))
                             if min_val <= value <= max_val:
                                 total_score += range_def.get("points", 0)
+                                # Track max possible score from ranges
+                                max_score += range_def.get("points", 0)
                                 break
                     except (ValueError, TypeError):
                         pass
@@ -1573,12 +1577,17 @@ class IntakeFormSubmission(models.Model):
         phone = self.submitter_phone
         company = self.submitter_company
         
+        # Safely parse name into first and last
+        name_parts = name.split() if name else []
+        first_name = name_parts[0] if name_parts else ""
+        last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
+        
         # Create lead
         lead = Lead.objects.create(
             firm=self.form.firm,
             email=email,
-            first_name=name.split()[0] if name else "",
-            last_name=" ".join(name.split()[1:]) if name and len(name.split()) > 1 else "",
+            first_name=first_name,
+            last_name=last_name,
             phone=phone,
             company=company,
             source="intake_form",

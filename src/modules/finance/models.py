@@ -1740,16 +1740,30 @@ class ProjectProfitability(models.Model):
             self.recognized_revenue = self.total_revenue
         else:
             # Use percentage complete if available
-            completion_pct = getattr(self.project, "completion_percentage", 0) / 100
-            self.recognized_revenue = self.total_revenue * Decimal(str(completion_pct))
+            completion_pct = getattr(self.project, "completion_percentage", 0)
+            if completion_pct > 0:
+                self.recognized_revenue = self.total_revenue * (Decimal(str(completion_pct)) / 100)
+            else:
+                self.recognized_revenue = Decimal("0.00")
         
-        # Calculate labor costs
-        time_entries = TimeEntry.objects.filter(project=self.project)
-        self.labor_cost = sum(
-            te.hours * (te.hourly_rate or Decimal("0.00"))
-            for te in time_entries
+        # Calculate labor costs using database aggregation for performance
+        from django.db.models import Sum, F, DecimalField
+        from django.db.models.functions import Coalesce
+        
+        time_entry_aggregates = TimeEntry.objects.filter(project=self.project).aggregate(
+            total_cost=Coalesce(
+                Sum(F('hours') * F('hourly_rate'), output_field=DecimalField()),
+                Decimal('0.00')
+            ),
+            total_hours=Coalesce(Sum('hours'), Decimal('0.00')),
+            billable_hours=Coalesce(
+                Sum('hours', filter=models.Q(is_billable=True)),
+                Decimal('0.00')
+            )
         )
-        self.hours_logged = sum(te.hours for te in time_entries)
+        
+        self.labor_cost = time_entry_aggregates['total_cost']
+        self.hours_logged = time_entry_aggregates['total_hours']
         
         # Calculate expense costs
         expenses = Expense.objects.filter(project=self.project, status="approved")
@@ -1774,8 +1788,8 @@ class ProjectProfitability(models.Model):
         else:
             self.net_margin_percentage = Decimal("0.00")
         
-        # Calculate billable utilization
-        billable_hours = sum(te.hours for te in time_entries if te.is_billable)
+        # Calculate billable utilization using aggregated data
+        billable_hours = time_entry_aggregates['billable_hours']
         if self.hours_logged > 0:
             self.billable_utilization = (billable_hours / self.hours_logged) * 100
         else:
