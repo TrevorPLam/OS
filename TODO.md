@@ -34,6 +34,9 @@
 - ✅ General automation/workflow engine (Orchestration module with retry/DLQ)
 - ✅ API versioning strategy (v1 API with versioning and deprecation policies)
 
+**Low Priority:** 1 of 10 Platform Transformation features completed (10%)
+- ✅ Operational observability (Correlation IDs, metrics collectors, tenant-safe logging)
+
 **Remaining High-Value Items:**
 - SSO/OAuth authentication (Google/Microsoft)
 - SAML support for enterprise SSO
@@ -81,10 +84,10 @@
 
 - [ ] Build unified event bus for cross-module automation
 - [ ] Implement SCIM provisioning for automated user management
-- [ ] Add audit review UI with query/filter/export capabilities
+- [ ] Add audit review UI with query/filter/export capabilities (backend audit system exists in firm/audit.py, needs admin UI)
 - [ ] Build integration marketplace scaffolding
 - [ ] Implement records management system with immutability
-- [ ] Add operational observability without content access
+- [x] **Add operational observability without content access** - ✅ **COMPLETED** (src/modules/core/observability.py: correlation IDs, metrics collectors for API/Workers/Integrations, tenant-safe logging - see TODO_COMPLETED.md DOC-21.1)
 - [ ] Build custom dashboard builder with widget system
 - [ ] Implement ERP connectors for enterprise customers
 - [ ] Add AI-powered lead scoring and sales automation
