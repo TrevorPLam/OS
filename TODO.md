@@ -127,19 +127,23 @@
 ### 🔥 Core Business Features
 
 #### Pipeline & Deal Management (HIGH - 40-56 hours)
-**Status:** Core CRM feature missing - required for sales pipeline  
+**Status:** ✅ PARTIAL - Core models and API complete, UI and analytics pending  
 **Dependencies:** None
 
-- [ ] **DEAL-1:** Design Pipeline and Deal models (4-6 hours)
-  - Pipeline model with configurable stages
-  - Deal model with value, probability, associations
-  - Deal-to-Project conversion workflow design
+- [x] **DEAL-1:** Design Pipeline and Deal models (4-6 hours) ✅ COMPLETE
+  - ✅ Pipeline model with configurable stages
+  - ✅ Deal model with value, probability, associations
+  - ✅ Deal-to-Project conversion workflow design
+  - Models: `Pipeline`, `PipelineStage`, `Deal`, `DealTask` in `src/modules/crm/models.py`
+  - Migration: `0007_add_pipeline_and_deal_models.py`
   
-- [ ] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours)
-  - Deal creation, update, delete endpoints
-  - Deal stage transition logic
-  - Deal associations (contacts, accounts, tasks)
-  - Validation rules and constraints
+- [x] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours) ✅ COMPLETE
+  - ✅ Deal creation, update, delete endpoints
+  - ✅ Deal stage transition logic
+  - ✅ Deal associations (contacts, accounts, tasks)
+  - ✅ Validation rules and constraints
+  - ViewSets: `PipelineViewSet`, `PipelineStageViewSet`, `DealViewSet`, `DealTaskViewSet`
+  - Serializers: Full CRUD with validation in `src/modules/crm/serializers.py`
   
 - [ ] **DEAL-3:** Build Pipeline visualization UI (8-12 hours)
   - Kanban board view of deals by stage
