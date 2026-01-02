@@ -25,6 +25,7 @@ class OAuthConnection(models.Model):
         ('google', 'Google Calendar'),
         ('microsoft', 'Microsoft Outlook/Office 365'),
         ('apple', 'Apple Calendar (iCloud)'),
+        ('ical', 'iCal/vCal Feed (Generic)'),
     ]
 
     STATUS_CHOICES = [
@@ -98,6 +99,21 @@ class OAuthConnection(models.Model):
         help_text='Additional provider-specific metadata'
     )
 
+    # AVAIL-1: iCal/vCal feed support
+    ical_feed_url = models.URLField(
+        max_length=512,
+        blank=True,
+        help_text='iCal/vCal feed URL (for apple and ical providers)'
+    )
+    treat_all_day_as_busy = models.BooleanField(
+        default=False,
+        help_text='Whether to treat all-day events as busy (default: False)'
+    )
+    treat_tentative_as_busy = models.BooleanField(
+        default=True,
+        help_text='Whether to treat tentative/optional events as busy (default: True)'
+    )
+
     # Sync Configuration
     sync_enabled = models.BooleanField(
         default=True,
@@ -145,8 +161,8 @@ class OAuthConnection(models.Model):
             models.Index(fields=['firm', 'status']),
             models.Index(fields=['provider', 'status']),
         ]
-        # One connection per user per provider per firm
-        unique_together = [('firm', 'user', 'provider')]
+        # AVAIL-1: Removed unique_together constraint to allow multiple calendar connections
+        # per user (e.g., multiple Google calendars, multiple iCal feeds)
 
     def __str__(self):
         return f"{self.provider} - {self.user.username} ({self.firm.name})"

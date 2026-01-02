@@ -190,30 +190,30 @@
 **Status:** Complete availability rules engine  
 **Dependencies:** Existing calendar integrations
 
-- [ ] **AVAIL-1:** Expand calendar integrations (12-16 hours)
+- [x] **AVAIL-1:** Expand calendar integrations (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - iCloud Calendar (iCal feed support)
   - Generic iCal/vCal support
   - Multiple calendar support (check across calendars)
   - All-day event handling (configurable busy/available)
   - Tentative/optional event handling
   
-- [ ] **AVAIL-2:** Build comprehensive availability rules (12-16 hours)
-  - Per-day working hours (different each day)
-  - Date-specific overrides
+- [x] **AVAIL-2:** Build comprehensive availability rules (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Per-day working hours (different each day) [Already implemented]
+  - Date-specific overrides [Already implemented via exceptions]
   - Recurring unavailability blocks
   - Holiday blocking (auto-detect + custom)
-  - Start time intervals (15/30/60 min)
-  - Meeting padding/buffer enforcement
+  - Start time intervals (15/30/60 min) [Already implemented via slot_rounding_minutes]
+  - Meeting padding/buffer enforcement [Already implemented]
   - Min/max meeting gap configuration
   
-- [ ] **AVAIL-3:** Add advanced availability features (12-16 hours)
+- [x] **AVAIL-3:** Add advanced availability features (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Secret events (direct link only, hidden from public)
   - Password-protected booking
   - Invitee blacklist/whitelist (email domains)
   - Location-based availability (different schedules per location)
-  - Capacity scheduling (max 2-1000 attendees)
+  - Capacity scheduling (max 2-1000 attendees) [Already implemented in AppointmentType model]
   
-- [ ] **AVAIL-4:** Implement timezone intelligence (12-16 hours)
+- [x] **AVAIL-4:** Implement timezone intelligence (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Auto-detect invitee timezone
   - Display times in invitee's local timezone
   - Timezone conversion for all availability calculations

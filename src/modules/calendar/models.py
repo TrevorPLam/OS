@@ -518,6 +518,40 @@ class AvailabilityProfile(models.Model):
         help_text="Exception dates (JSON array of {date: 'YYYY-MM-DD', reason: 'Holiday'})",
     )
 
+    # AVAIL-2: Recurring unavailability blocks
+    recurring_unavailability = models.JSONField(
+        default=list,
+        help_text="Recurring unavailability blocks (JSON array of {day_of_week: 'monday', start: '12:00', end: '13:00', reason: 'Lunch'})",
+    )
+
+    # AVAIL-2: Holiday blocking
+    auto_detect_holidays = models.BooleanField(
+        default=False,
+        help_text="Automatically block common holidays based on timezone/country",
+    )
+    custom_holidays = models.JSONField(
+        default=list,
+        help_text="Custom holiday dates (JSON array of {date: 'YYYY-MM-DD', name: 'Company Holiday'})",
+    )
+
+    # AVAIL-2: Meeting gap configuration
+    min_gap_between_meetings_minutes = models.IntegerField(
+        default=0,
+        help_text="Minimum gap between meetings (minutes). 0 means back-to-back allowed.",
+    )
+    max_gap_between_meetings_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum gap between meetings (minutes). Null means no limit.",
+    )
+
+    # AVAIL-3: Location-based availability
+    location_based_schedules = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Different schedules per location (JSON: {location_name: {weekly_hours: {...}, timezone: '...'}})",
+    )
+
     # Booking constraints (per docs/34 section 2.2)
     min_notice_minutes = models.IntegerField(default=60, help_text="Minimum notice required before booking (minutes)")
     max_future_days = models.IntegerField(default=60, help_text="Maximum days in advance for booking")
@@ -647,6 +681,35 @@ class BookingLink(models.Model):
     slug = models.SlugField(max_length=100, unique=True, help_text="URL slug for this booking link")
     token = models.UUIDField(default=uuid.uuid4, unique=True, help_text="Unique token for security")
 
+    # AVAIL-3: Secret events (direct link only, hidden from public)
+    is_secret = models.BooleanField(
+        default=False,
+        help_text="Secret events are only accessible via direct link, not listed publicly",
+    )
+
+    # AVAIL-3: Password protection
+    password_protected = models.BooleanField(
+        default=False,
+        help_text="Require password to book",
+    )
+    password_hash = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Hashed password for protected booking links",
+    )
+
+    # AVAIL-3: Email domain restrictions
+    allowed_email_domains = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Whitelist of allowed email domains (e.g., ['example.com', 'partner.com']). Empty means all allowed.",
+    )
+    blocked_email_domains = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Blacklist of blocked email domains (e.g., ['spam.com'])",
+    )
+
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive")
 
@@ -748,6 +811,18 @@ class Appointment(models.Model):
     start_time = models.DateTimeField(help_text="Appointment start time (UTC)")
     end_time = models.DateTimeField(help_text="Appointment end time (UTC)")
     timezone = models.CharField(max_length=100, default="UTC", help_text="Timezone for display")
+
+    # AVAIL-4: Invitee timezone auto-detection
+    invitee_timezone = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Auto-detected timezone of the invitee/booker",
+    )
+    invitee_timezone_offset_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Browser timezone offset in minutes (for DST handling)",
+    )
 
     # CAL-2: Selected duration (for multiple duration options)
     selected_duration_minutes = models.IntegerField(
