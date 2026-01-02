@@ -676,7 +676,7 @@
 #### Document Intelligence Features (MEDIUM - 40-56 hours)
 **Status:** AI-powered document management  
 **Dependencies:** DOC-1 through DOC-11  
-**🔬 Research:** Document AI services (AWS Textract, Google Document AI)
+**✅ Research Complete:** Document AI services - Hybrid approach: AWS Textract + Google Document AI (see [docs/research/document-ai-research.md](docs/research/document-ai-research.md))
 
 - [ ] **DOC-INT-1:** Implement Smart Retention Policies (12-16 hours)
   - AI-suggested retention periods based on document content
@@ -1283,7 +1283,7 @@ The following tasks require additional research before implementation planning:
 - ✅ **ML Framework:** scikit-learn vs TensorFlow for lead scoring and predictions - COMPLETE (scikit-learn + XGBoost selected - see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
 
 #### Medium Priority Research
-- **Document AI:** AWS Textract vs Google Document AI for intelligent document processing
+- ✅ **Document AI:** AWS Textract vs Google Document AI for intelligent document processing - COMPLETE (Hybrid approach: AWS Textract + Google Document AI - see [docs/research/document-ai-research.md](docs/research/document-ai-research.md))
 - **LLM Integration:** GPT-4 API integration strategy for meeting prep and content generation
 - **Workflow Engine Architecture:** Event-driven vs polling-based automation execution
 
