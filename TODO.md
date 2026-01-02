@@ -162,7 +162,7 @@
   - Duration selection UI for bookers
   - Duration-based pricing (if applicable)
   
-- [ ] **CAL-3:** Implement rich event descriptions (6-8 hours)
+- [x] **CAL-3:** Implement rich event descriptions (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
   - WYSIWYG editor with formatting
   - Link embedding
   - Image upload and display

@@ -5,16 +5,16 @@ Tests slot calculation, DST handling, race conditions, permissions, and routing.
 Implements docs/34 section 8 testing requirements.
 """
 
-from datetime import datetime, date, timedelta
+from datetime import date, datetime, timedelta
+
+import pytz
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
-from django.contrib.auth import get_user_model
-import pytz
 
-from modules.firm.models import Firm
-from modules.crm.models import Account
-from modules.calendar.models import AppointmentType, AvailabilityProfile, Appointment
+from modules.calendar.models import Appointment, AppointmentType, AvailabilityProfile
 from modules.calendar.services import AvailabilityService, BookingService, RoutingService
+from modules.firm.models import Firm
 
 User = get_user_model()
 
@@ -63,9 +63,7 @@ class SlotCalculationTest(TestCase):
         service = AvailabilityService()
 
         # Create an existing appointment at 10:00-10:30
-        existing_start = timezone.make_aware(
-            datetime(2025, 12, 15, 10, 0, 0), pytz.timezone("America/New_York")
-        )
+        existing_start = timezone.make_aware(datetime(2025, 12, 15, 10, 0, 0), pytz.timezone("America/New_York"))
         existing_end = existing_start + timedelta(minutes=30)
 
         Appointment.objects.create(
@@ -106,16 +104,14 @@ class SlotCalculationTest(TestCase):
 
             self.assertFalse(
                 start < buffered_end and end > buffered_start,
-                f"Slot {start_ny}-{end_ny} overlaps with buffered appointment"
+                f"Slot {start_ny}-{end_ny} overlaps with buffered appointment",
             )
 
     def test_exception_dates_excluded(self):
         """Test that exception dates are excluded from availability."""
         # Add an exception for a specific date
         exception_date = date(2025, 12, 16)
-        self.profile.exceptions = [
-            {"date": exception_date.strftime("%Y-%m-%d"), "reason": "Holiday"}
-        ]
+        self.profile.exceptions = [{"date": exception_date.strftime("%Y-%m-%d"), "reason": "Holiday"}]
         self.profile.save()
 
         service = AvailabilityService()
@@ -270,10 +266,7 @@ class RoutingPolicyTest(TestCase):
         service = RoutingService()
 
         # Run routing multiple times
-        results = [
-            service.route_appointment(self.appointment_type)
-            for _ in range(5)
-        ]
+        results = [service.route_appointment(self.appointment_type) for _ in range(5)]
 
         # All results should be identical
         staff_users = [r[0] for r in results]
@@ -366,3 +359,83 @@ class ApprovalFlowTest(TestCase):
 
         self.assertEqual(appointment.status, "confirmed")
         self.assertEqual(appointment.status_history.count(), 2)  # Initial + confirmation
+
+
+class RichEventDescriptionTest(TestCase):
+    """Test rich event descriptions (CAL-3)."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.firm = Firm.objects.create(name="Test Firm", slug="test-firm")
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+
+    def test_create_appointment_type_with_rich_description(self):
+        """Test creating an appointment type with rich HTML description."""
+        rich_html = """
+            <h2>What to Expect</h2>
+            <p>In this <strong>60-minute session</strong>, we'll:</p>
+            <ul>
+                <li>Review your current business challenges</li>
+                <li>Identify growth opportunities</li>
+                <li>Create an actionable roadmap</li>
+            </ul>
+            <p>Learn more at <a href="https://example.com">our website</a></p>
+        """
+
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Strategy Session",
+            internal_name="STRAT-01 - Strategy Session (Premium)",
+            description="Quick strategy consultation",
+            rich_description=rich_html,
+            duration_minutes=60,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        # Verify fields are saved correctly
+        self.assertEqual(appointment_type.name, "Strategy Session")
+        self.assertEqual(appointment_type.internal_name, "STRAT-01 - Strategy Session (Premium)")
+        self.assertEqual(appointment_type.description, "Quick strategy consultation")
+        self.assertIn("<h2>What to Expect</h2>", appointment_type.rich_description)
+        self.assertIn("<strong>60-minute session</strong>", appointment_type.rich_description)
+
+    def test_rich_description_fields_optional(self):
+        """Test that rich description fields are optional (backward compatibility)."""
+        # Create appointment type without rich fields
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Basic Consultation",
+            description="Simple consultation",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        # Verify it works without rich fields
+        self.assertEqual(appointment_type.name, "Basic Consultation")
+        self.assertEqual(appointment_type.internal_name, "")
+        self.assertEqual(appointment_type.rich_description, "")
+        self.assertIsNone(appointment_type.description_image.name if appointment_type.description_image else None)
+
+    def test_internal_name_separate_from_public_name(self):
+        """Test that internal name can differ from public display name."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Discovery Call",  # Public name
+            internal_name="DISCO-STD-2024",  # Internal reference
+            description="Initial discovery call",
+            duration_minutes=15,
+            location_mode="phone",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.name, "Discovery Call")
+        self.assertEqual(appointment_type.internal_name, "DISCO-STD-2024")
+        self.assertNotEqual(appointment_type.name, appointment_type.internal_name)

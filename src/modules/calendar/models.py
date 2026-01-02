@@ -6,10 +6,10 @@ Complies with docs/34 CALENDAR_SPEC.
 """
 
 import uuid
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone
 
 from modules.firm.utils import FirmScopedManager
 
@@ -56,6 +56,23 @@ class AppointmentType(models.Model):
     name = models.CharField(max_length=255, help_text="Display name for this appointment type")
     description = models.TextField(blank=True, help_text="Description shown to bookers")
 
+    # CAL-3: Rich event descriptions
+    internal_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Internal name for staff use (if different from public display name)",
+    )
+    rich_description = models.TextField(
+        blank=True,
+        help_text="Rich HTML description with formatting, links, and embedded content",
+    )
+    description_image = models.ImageField(
+        upload_to="calendar/event_images/",
+        blank=True,
+        null=True,
+        help_text="Image to display in event description",
+    )
+
     # CAL-1: Event category
     event_category = models.CharField(
         max_length=20,
@@ -98,8 +115,10 @@ class AppointmentType(models.Model):
     )
 
     # Duration and buffers (per docs/34 section 2.1)
-    duration_minutes = models.IntegerField(help_text="Meeting duration in minutes (default if multiple options not enabled)")
-    
+    duration_minutes = models.IntegerField(
+        help_text="Meeting duration in minutes (default if multiple options not enabled)"
+    )
+
     # CAL-2: Multiple duration options
     enable_multiple_durations = models.BooleanField(
         default=False,
@@ -112,16 +131,12 @@ class AppointmentType(models.Model):
             "Array of duration options in minutes (e.g., [15, 30, 60]). "
             "If enabled, booker can select from these options. Each option can optionally include "
             "pricing if duration-based pricing is used: "
-            "[{\"minutes\": 30, \"price\": 50.00, \"label\": \"30 min session\"}, ...]"
+            '[{"minutes": 30, "price": 50.00, "label": "30 min session"}, ...]'
         ),
     )
-    
-    buffer_before_minutes = models.IntegerField(
-        default=0, help_text="Buffer time before meeting (minutes)"
-    )
-    buffer_after_minutes = models.IntegerField(
-        default=0, help_text="Buffer time after meeting (minutes)"
-    )
+
+    buffer_before_minutes = models.IntegerField(default=0, help_text="Buffer time before meeting (minutes)")
+    buffer_after_minutes = models.IntegerField(default=0, help_text="Buffer time after meeting (minutes)")
 
     # Location
     location_mode = models.CharField(
@@ -130,20 +145,12 @@ class AppointmentType(models.Model):
         default="video",
         help_text="How the meeting will be conducted",
     )
-    location_details = models.TextField(
-        blank=True, help_text="Additional location info (e.g., Zoom link, address)"
-    )
+    location_details = models.TextField(blank=True, help_text="Additional location info (e.g., Zoom link, address)")
 
     # Booking channels (per docs/34 section 2.1)
-    allow_portal_booking = models.BooleanField(
-        default=True, help_text="Can portal users book this type?"
-    )
-    allow_staff_booking = models.BooleanField(
-        default=True, help_text="Can staff book this type?"
-    )
-    allow_public_prospect_booking = models.BooleanField(
-        default=False, help_text="Can public prospects book this type?"
-    )
+    allow_portal_booking = models.BooleanField(default=True, help_text="Can portal users book this type?")
+    allow_staff_booking = models.BooleanField(default=True, help_text="Can staff book this type?")
+    allow_public_prospect_booking = models.BooleanField(default=False, help_text="Can public prospects book this type?")
 
     # Approval workflow
     requires_approval = models.BooleanField(
@@ -180,9 +187,7 @@ class AppointmentType(models.Model):
     )
 
     # Status
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive")
 
     # Audit
     created_by = models.ForeignKey(
@@ -278,22 +283,24 @@ class AppointmentType(models.Model):
 
         if errors:
             raise ValidationError(errors)
-    
+
     def get_available_durations(self):
         """
         Get list of available durations for this appointment type (CAL-2).
-        
+
         Returns:
             List of duration options, each as a dict with 'minutes', 'label', and optionally 'price'
         """
         if not self.enable_multiple_durations or not self.duration_options:
             # Single duration mode
-            return [{
-                "minutes": self.duration_minutes,
-                "label": f"{self.duration_minutes} minutes",
-                "price": None,
-            }]
-        
+            return [
+                {
+                    "minutes": self.duration_minutes,
+                    "label": f"{self.duration_minutes} minutes",
+                    "price": None,
+                }
+            ]
+
         # Multiple duration mode
         result = []
         for option in self.duration_options:
@@ -302,19 +309,23 @@ class AppointmentType(models.Model):
                 minutes = option.get("minutes")
                 label = option.get("label", f"{minutes} minutes")
                 price = option.get("price")
-                result.append({
-                    "minutes": minutes,
-                    "label": label,
-                    "price": price,
-                })
+                result.append(
+                    {
+                        "minutes": minutes,
+                        "label": label,
+                        "price": price,
+                    }
+                )
             elif isinstance(option, int):
                 # Simple format (just minutes)
-                result.append({
-                    "minutes": option,
-                    "label": f"{option} minutes",
-                    "price": None,
-                })
-        
+                result.append(
+                    {
+                        "minutes": option,
+                        "label": f"{option} minutes",
+                        "price": None,
+                    }
+                )
+
         return result
 
 
@@ -347,9 +358,7 @@ class AvailabilityProfile(models.Model):
     )
 
     # Owner (per docs/34 section 2.2)
-    owner_type = models.CharField(
-        max_length=20, choices=OWNER_TYPE_CHOICES, default="staff", help_text="Staff or team"
-    )
+    owner_type = models.CharField(max_length=20, choices=OWNER_TYPE_CHOICES, default="staff", help_text="Staff or team")
     owner_staff_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -366,9 +375,7 @@ class AvailabilityProfile(models.Model):
 
     # Basic info
     name = models.CharField(max_length=255, help_text="Profile name")
-    timezone = models.CharField(
-        max_length=100, default="UTC", help_text="Timezone for availability computation"
-    )
+    timezone = models.CharField(max_length=100, default="UTC", help_text="Timezone for availability computation")
 
     # Weekly hours (JSON: {day: [{start, end}]} per docs/34 section 2.2)
     weekly_hours = models.JSONField(
@@ -383,20 +390,12 @@ class AvailabilityProfile(models.Model):
     )
 
     # Booking constraints (per docs/34 section 2.2)
-    min_notice_minutes = models.IntegerField(
-        default=60, help_text="Minimum notice required before booking (minutes)"
-    )
-    max_future_days = models.IntegerField(
-        default=60, help_text="Maximum days in advance for booking"
-    )
-    slot_rounding_minutes = models.IntegerField(
-        default=15, help_text="Round slots to nearest N minutes"
-    )
+    min_notice_minutes = models.IntegerField(default=60, help_text="Minimum notice required before booking (minutes)")
+    max_future_days = models.IntegerField(default=60, help_text="Maximum days in advance for booking")
+    slot_rounding_minutes = models.IntegerField(default=15, help_text="Round slots to nearest N minutes")
 
     # Status
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive")
 
     # Audit
     created_by = models.ForeignKey(
@@ -516,17 +515,11 @@ class BookingLink(models.Model):
         default="portal_only",
         help_text="Who can access this link",
     )
-    slug = models.SlugField(
-        max_length=100, unique=True, help_text="URL slug for this booking link"
-    )
-    token = models.UUIDField(
-        default=uuid.uuid4, unique=True, help_text="Unique token for security"
-    )
+    slug = models.SlugField(max_length=100, unique=True, help_text="URL slug for this booking link")
+    token = models.UUIDField(default=uuid.uuid4, unique=True, help_text="Unique token for security")
 
     # Status
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive")
 
     # Audit
     created_by = models.ForeignKey(
@@ -623,10 +616,8 @@ class Appointment(models.Model):
     # Timing (internal authority per docs/34 section 6)
     start_time = models.DateTimeField(help_text="Appointment start time (UTC)")
     end_time = models.DateTimeField(help_text="Appointment end time (UTC)")
-    timezone = models.CharField(
-        max_length=100, default="UTC", help_text="Timezone for display"
-    )
-    
+    timezone = models.CharField(max_length=100, default="UTC", help_text="Timezone for display")
+
     # CAL-2: Selected duration (for multiple duration options)
     selected_duration_minutes = models.IntegerField(
         null=True,
@@ -642,17 +633,13 @@ class Appointment(models.Model):
     )
 
     # Intake responses (JSON)
-    intake_responses = models.JSONField(
-        default=dict, blank=True, help_text="Responses to intake questions (JSON)"
-    )
+    intake_responses = models.JSONField(default=dict, blank=True, help_text="Responses to intake questions (JSON)")
 
     # Status
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="confirmed", help_text="Appointment status"
     )
-    status_reason = models.TextField(
-        blank=True, help_text="Reason for status (e.g., cancellation reason)"
-    )
+    status_reason = models.TextField(blank=True, help_text="Reason for status (e.g., cancellation reason)")
 
     # External sync reference (for docs/16 CALENDAR_SYNC_SPEC)
     calendar_connection = models.ForeignKey(
@@ -718,8 +705,7 @@ class Appointment(models.Model):
             actual_duration_minutes = int((self.end_time - self.start_time).total_seconds() / 60)
             if actual_duration_minutes != expected_duration_minutes:
                 errors["end_time"] = (
-                    f"Duration must be {expected_duration_minutes} minutes "
-                    f"(got {actual_duration_minutes} minutes)"
+                    f"Duration must be {expected_duration_minutes} minutes " f"(got {actual_duration_minutes} minutes)"
                 )
 
         if errors:
@@ -790,9 +776,7 @@ class CalendarConnection(models.Model):
     )
 
     # Provider and owner (per docs/16 section 2.1)
-    provider = models.CharField(
-        max_length=20, choices=PROVIDER_CHOICES, help_text="Calendar provider"
-    )
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, help_text="Calendar provider")
     owner_staff_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -801,23 +785,15 @@ class CalendarConnection(models.Model):
     )
 
     # OAuth credentials (encrypted at rest)
-    credentials_encrypted = models.TextField(
-        blank=True, help_text="Encrypted OAuth credentials"
-    )
-    scopes_granted = models.TextField(
-        blank=True, help_text="Scopes granted by the provider"
-    )
+    credentials_encrypted = models.TextField(blank=True, help_text="Encrypted OAuth credentials")
+    scopes_granted = models.TextField(blank=True, help_text="Scopes granted by the provider")
 
     # Sync state
-    last_sync_cursor = models.TextField(
-        blank=True, help_text="Last sync cursor/token from provider"
-    )
+    last_sync_cursor = models.TextField(blank=True, help_text="Last sync cursor/token from provider")
     last_sync_at = models.DateTimeField(null=True, blank=True)
 
     # Status
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="active", help_text="Connection status"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Connection status")
 
     # Audit
     created_at = models.DateTimeField(auto_now_add=True)
@@ -894,45 +870,29 @@ class SyncAttemptLog(models.Model):
     )
 
     # Attempt details (per docs/16 section 2.3)
-    direction = models.CharField(
-        max_length=10, choices=DIRECTION_CHOICES, help_text="Sync direction"
-    )
-    operation = models.CharField(
-        max_length=20, choices=OPERATION_CHOICES, help_text="Sync operation"
-    )
-    status = models.CharField(
-        max_length=10, choices=STATUS_CHOICES, help_text="Attempt status"
-    )
+    direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES, help_text="Sync direction")
+    operation = models.CharField(max_length=20, choices=OPERATION_CHOICES, help_text="Sync operation")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, help_text="Attempt status")
     error_class = models.CharField(
         max_length=20,
         choices=ERROR_CLASS_CHOICES,
         blank=True,
         help_text="Error classification (if failed)",
     )
-    error_summary = models.TextField(
-        blank=True, help_text="Redacted error summary (no PII, no content)"
-    )
+    error_summary = models.TextField(blank=True, help_text="Redacted error summary (no PII, no content)")
 
     # Retry tracking (DOC-16.2)
-    retry_count = models.IntegerField(
-        default=0, help_text="Number of times this operation has been retried"
-    )
+    retry_count = models.IntegerField(default=0, help_text="Number of times this operation has been retried")
     next_retry_at = models.DateTimeField(
         null=True, blank=True, help_text="Scheduled time for next retry (if applicable)"
     )
-    max_retries_reached = models.BooleanField(
-        default=False, help_text="Whether max retry attempts have been exhausted"
-    )
+    max_retries_reached = models.BooleanField(default=False, help_text="Whether max retry attempts have been exhausted")
 
     # Observability (per docs/16 section 6)
-    correlation_id = models.UUIDField(
-        null=True, blank=True, help_text="Correlation ID for tracing"
-    )
+    correlation_id = models.UUIDField(null=True, blank=True, help_text="Correlation ID for tracing")
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
-    duration_ms = models.IntegerField(
-        null=True, blank=True, help_text="Operation duration in milliseconds"
-    )
+    duration_ms = models.IntegerField(null=True, blank=True, help_text="Operation duration in milliseconds")
 
     objects = models.Manager()
     firm_scoped = FirmScopedManager()
@@ -988,9 +948,7 @@ class MeetingPoll(models.Model):
         default="video",
         help_text="How the meeting will be conducted",
     )
-    location_details = models.TextField(
-        blank=True, help_text="Additional location info"
-    )
+    location_details = models.TextField(blank=True, help_text="Additional location info")
 
     # Organizer
     created_by = models.ForeignKey(

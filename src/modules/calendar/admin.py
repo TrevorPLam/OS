@@ -1,22 +1,23 @@
 """Admin configuration for calendar module."""
 
 from django.contrib import admin
+
 from .models import (
+    Appointment,
+    AppointmentStatusHistory,
     AppointmentType,
     AvailabilityProfile,
     BookingLink,
-    Appointment,
-    AppointmentStatusHistory,
     CalendarConnection,
-    SyncAttemptLog,
     MeetingPoll,
     MeetingPollVote,
     MeetingWorkflow,
     MeetingWorkflowExecution,
+    SyncAttemptLog,
 )
 from .oauth_models import (
-    OAuthConnection,
     OAuthAuthorizationCode,
+    OAuthConnection,
 )
 
 
@@ -34,59 +35,78 @@ class AppointmentTypeAdmin(admin.ModelAdmin):
         "firm",
     ]
     list_filter = ["status", "event_category", "location_mode", "routing_policy", "firm"]
-    search_fields = ["name", "description"]
+    search_fields = ["name", "internal_name", "description"]
     readonly_fields = ["appointment_type_id", "created_at", "updated_at"]
     filter_horizontal = ["required_hosts", "optional_hosts", "round_robin_pool"]
-    
+
     fieldsets = (
-        (None, {
-            "fields": ("firm", "name", "description", "status")
-        }),
-        ("Event Category (CAL-1)", {
-            "fields": ("event_category",),
-            "description": "Event type: one-on-one, group, collective, or round robin"
-        }),
-        ("Group Event Settings (CAL-1)", {
-            "fields": ("max_attendees", "enable_waitlist"),
-            "description": "Required for group events",
-            "classes": ("collapse",),
-        }),
-        ("Collective Event Settings (CAL-1)", {
-            "fields": ("required_hosts", "optional_hosts"),
-            "description": "Configure hosts for collective events (multiple hosts, overlapping availability)",
-            "classes": ("collapse",),
-        }),
-        ("Round Robin Settings (CAL-1)", {
-            "fields": ("round_robin_pool",),
-            "description": "Configure staff pool for round robin distribution",
-            "classes": ("collapse",),
-        }),
-        ("Duration & Buffers", {
-            "fields": ("duration_minutes", "buffer_before_minutes", "buffer_after_minutes")
-        }),
-        ("Multiple Durations (CAL-2)", {
-            "fields": ("enable_multiple_durations", "duration_options"),
-            "description": "Allow bookers to select from multiple duration options with optional pricing",
-            "classes": ("collapse",),
-        }),
-        ("Location", {
-            "fields": ("location_mode", "location_details")
-        }),
-        ("Booking Channels", {
-            "fields": ("allow_portal_booking", "allow_staff_booking", "allow_public_prospect_booking")
-        }),
-        ("Routing", {
-            "fields": ("routing_policy", "fixed_staff_user", "requires_approval")
-        }),
-        ("Intake Questions", {
-            "fields": ("intake_questions",),
-            "description": "JSON array of intake questions",
-            "classes": ("collapse",),
-        }),
-        ("Metadata", {
-            "fields": ("appointment_type_id", "created_by", "created_at", "updated_at"),
-            "classes": ("collapse",),
-        }),
+        (None, {"fields": ("firm", "name", "description", "status")}),
+        (
+            "Rich Event Description (CAL-3)",
+            {
+                "fields": ("internal_name", "rich_description", "description_image"),
+                "description": "Internal name for staff, rich HTML description with formatting, and optional image",
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Event Category (CAL-1)",
+            {"fields": ("event_category",), "description": "Event type: one-on-one, group, collective, or round robin"},
+        ),
+        (
+            "Group Event Settings (CAL-1)",
+            {
+                "fields": ("max_attendees", "enable_waitlist"),
+                "description": "Required for group events",
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Collective Event Settings (CAL-1)",
+            {
+                "fields": ("required_hosts", "optional_hosts"),
+                "description": "Configure hosts for collective events (multiple hosts, overlapping availability)",
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Round Robin Settings (CAL-1)",
+            {
+                "fields": ("round_robin_pool",),
+                "description": "Configure staff pool for round robin distribution",
+                "classes": ("collapse",),
+            },
+        ),
+        ("Duration & Buffers", {"fields": ("duration_minutes", "buffer_before_minutes", "buffer_after_minutes")}),
+        (
+            "Multiple Durations (CAL-2)",
+            {
+                "fields": ("enable_multiple_durations", "duration_options"),
+                "description": "Allow bookers to select from multiple duration options with optional pricing",
+                "classes": ("collapse",),
+            },
+        ),
+        ("Location", {"fields": ("location_mode", "location_details")}),
+        (
+            "Booking Channels",
+            {"fields": ("allow_portal_booking", "allow_staff_booking", "allow_public_prospect_booking")},
+        ),
+        ("Routing", {"fields": ("routing_policy", "fixed_staff_user", "requires_approval")}),
+        (
+            "Intake Questions",
+            {
+                "fields": ("intake_questions",),
+                "description": "JSON array of intake questions",
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": ("appointment_type_id", "created_by", "created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
     )
 
 
@@ -248,10 +268,13 @@ class MeetingPollVoteAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("poll",)}),
         ("Voter", {"fields": ("voter_user", "voter_email", "voter_name")}),
-        ("Responses", {
-            "fields": ("responses", "notes"),
-            "description": "responses is a JSON array of vote choices (yes/no/maybe) for each proposed slot"
-        }),
+        (
+            "Responses",
+            {
+                "fields": ("responses", "notes"),
+                "description": "responses is a JSON array of vote choices (yes/no/maybe) for each proposed slot",
+            },
+        ),
         ("Metadata", {"fields": ("created_at", "updated_at")}),
     )
 
@@ -336,32 +359,40 @@ class OAuthConnectionAdmin(admin.ModelAdmin):
     raw_id_fields = ["firm", "user"]
 
     fieldsets = (
-        (None, {
-            "fields": ("firm", "user", "provider", "status")
-        }),
-        ("Provider Details", {
-            "fields": ("provider_user_id", "provider_email", "provider_metadata")
-        }),
-        ("OAuth Tokens", {
-            "fields": ("access_token", "refresh_token", "token_expires_at", "scopes"),
-            "classes": ("collapse",),
-        }),
-        ("Sync Configuration", {
-            "fields": (
-                "sync_enabled",
-                "sync_window_days",
-                "last_sync_at",
-                "last_sync_cursor",
-            )
-        }),
-        ("Error Info", {
-            "fields": ("error_message",),
-            "classes": ("collapse",),
-        }),
-        ("Metadata", {
-            "fields": ("created_at", "updated_at"),
-            "classes": ("collapse",),
-        }),
+        (None, {"fields": ("firm", "user", "provider", "status")}),
+        ("Provider Details", {"fields": ("provider_user_id", "provider_email", "provider_metadata")}),
+        (
+            "OAuth Tokens",
+            {
+                "fields": ("access_token", "refresh_token", "token_expires_at", "scopes"),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Sync Configuration",
+            {
+                "fields": (
+                    "sync_enabled",
+                    "sync_window_days",
+                    "last_sync_at",
+                    "last_sync_cursor",
+                )
+            },
+        ),
+        (
+            "Error Info",
+            {
+                "fields": ("error_message",),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
     )
 
 
@@ -389,18 +420,20 @@ class OAuthAuthorizationCodeAdmin(admin.ModelAdmin):
     raw_id_fields = ["firm", "user", "connection"]
 
     fieldsets = (
-        (None, {
-            "fields": ("firm", "user", "provider", "state", "state_token")
-        }),
-        ("Authorization Data", {
-            "fields": ("authorization_code", "redirect_uri")
-        }),
-        ("Result", {
-            "fields": ("connection", "error_message"),
-            "classes": ("collapse",),
-        }),
-        ("Timing", {
-            "fields": ("expires_at", "created_at", "exchanged_at"),
-            "classes": ("collapse",),
-        }),
+        (None, {"fields": ("firm", "user", "provider", "state", "state_token")}),
+        ("Authorization Data", {"fields": ("authorization_code", "redirect_uri")}),
+        (
+            "Result",
+            {
+                "fields": ("connection", "error_message"),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Timing",
+            {
+                "fields": ("expires_at", "created_at", "exchanged_at"),
+                "classes": ("collapse",),
+            },
+        ),
     )
