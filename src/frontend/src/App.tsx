@@ -25,6 +25,8 @@ import { KnowledgeCenter } from './pages/KnowledgeCenter'
 import { Communications } from './pages/Communications'
 import CalendarSync from './pages/CalendarSync'
 import CalendarOAuthCallback from './pages/CalendarOAuthCallback'
+import Automation from './pages/Automation'
+import WorkflowBuilder from './pages/WorkflowBuilder'
 
 function App() {
   return (
@@ -75,6 +77,10 @@ function App() {
                 
                 {/* Calendar Sync Route */}
                 <Route path="/calendar-sync" element={<CalendarSync />} />
+
+                {/* Automation Routes */}
+                <Route path="/automation" element={<Automation />} />
+                <Route path="/automation/builder/:id" element={<WorkflowBuilder />} />
               </Route>
 
               {/* Catch all - redirect to home */}

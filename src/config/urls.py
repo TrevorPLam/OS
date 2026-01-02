@@ -39,6 +39,7 @@ api_v1_patterns = [
     path("support/", include("modules.support.urls")),  # Support/ticketing system (SLA, surveys, NPS)
     path("onboarding/", include("modules.onboarding.urls")),  # Client onboarding workflows
     path("marketing/", include("modules.marketing.urls")),  # Marketing automation (tags, segments, templates)
+    path("automation/", include("modules.automation.urls")),  # Automation workflow system (triggers, actions, visual builder)
     path("snippets/", include("modules.snippets.urls")),  # Quick text insertion (HubSpot-style snippets)
     path("sms/", include("modules.sms.urls")),  # SMS messaging (Twilio integration, campaigns, conversations)
     path("webhooks/", include("api.webhooks.urls")),  # General webhook platform (Task 3.7)
@@ -83,6 +84,7 @@ urlpatterns = [
     path("api/support/", RedirectView.as_view(url="/api/v1/support/", permanent=False)),
     path("api/onboarding/", RedirectView.as_view(url="/api/v1/onboarding/", permanent=False)),
     path("api/marketing/", RedirectView.as_view(url="/api/v1/marketing/", permanent=False)),
+    path("api/automation/", RedirectView.as_view(url="/api/v1/automation/", permanent=False)),
     path("api/snippets/", RedirectView.as_view(url="/api/v1/snippets/", permanent=False)),
     path("api/sms/", RedirectView.as_view(url="/api/v1/sms/", permanent=False)),
     path("api/webhooks/", RedirectView.as_view(url="/api/v1/webhooks/", permanent=False)),
