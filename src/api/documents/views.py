@@ -19,6 +19,8 @@ from modules.clients.permissions import DenyPortalAccess
 from modules.documents.models import (
     Document,
     ExternalShare,
+    FileRequest,
+    FileRequestReminder,
     Folder,
     ShareAccess,
     SharePermission,
@@ -30,6 +32,8 @@ from modules.firm.utils import FirmScopedMixin, get_request_firm
 from .serializers import (
     DocumentSerializer,
     ExternalShareSerializer,
+    FileRequestReminderSerializer,
+    FileRequestSerializer,
     FolderSerializer,
     ShareAccessSerializer,
     SharePermissionSerializer,
@@ -491,12 +495,12 @@ class SharePermissionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelV
 class ShareAccessViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for ShareAccess model (Task 3.10).
-    
+
     Provides read-only access to share access logs for audit purposes.
-    
+
     TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
     """
-    
+
     model = ShareAccess
     serializer_class = ShareAccessSerializer
     permission_classes = [IsAuthenticated, DenyPortalAccess]
@@ -504,7 +508,7 @@ class ShareAccessViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyMo
     filterset_fields = ["external_share", "action", "success", "ip_address"]
     ordering_fields = ["accessed_at"]
     ordering = ["-accessed_at"]
-    
+
     def get_queryset(self):
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
@@ -512,3 +516,217 @@ class ShareAccessViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyMo
             "external_share",
             "external_share__document"
         )
+
+
+class FileRequestViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for FileRequest model (FILE-1).
+
+    Provides CRUD operations for creating and managing file requests with upload-only links.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2: Requires authentication and denies portal access.
+    """
+
+    model = FileRequest
+    serializer_class = FileRequestSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = ["client", "status", "template_type", "created_by"]
+    search_fields = ["title", "recipient_email", "recipient_name"]
+    ordering_fields = ["created_at", "expires_at", "status"]
+    ordering = ["-created_at"]
+
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related(
+            "client",
+            "external_share",
+            "destination_folder",
+            "created_by",
+            "reviewed_by"
+        )
+
+    def perform_create(self, serializer):
+        """
+        Create file request with associated external share.
+
+        Automatically creates an upload-only external share for the request.
+        """
+        from datetime import timedelta
+
+        firm = get_request_firm(self.request)
+
+        # Get data from validated serializer
+        destination_folder = serializer.validated_data.get("destination_folder")
+        expires_at = serializer.validated_data.get("expires_at")
+
+        # Create a placeholder document for the external share
+        # (Files will be uploaded to the destination folder)
+        # For upload-only shares, we don't need an actual document yet
+        # Instead, we'll create the share without a document initially
+        # and associate uploaded documents with the request
+
+        # Actually, we need to create an external share with upload access type
+        # Let's create it properly
+        external_share = ExternalShare.objects.create(
+            firm=firm,
+            document=None,  # Upload-only shares don't have a pre-existing document
+            access_type="upload",
+            expires_at=expires_at,
+            created_by=self.request.user
+        )
+
+        # Save the file request with the external share
+        file_request = serializer.save(
+            firm=firm,
+            created_by=self.request.user,
+            external_share=external_share
+        )
+
+        # Create default reminder sequence if reminders are enabled
+        if file_request.enable_reminders:
+            self._create_default_reminders(file_request)
+
+    def _create_default_reminders(self, file_request):
+        """Create default reminder sequence (Day 1, 3, 7, 14)."""
+        from datetime import timedelta
+        from django.utils import timezone
+
+        reminder_schedule = [
+            {"days": 1, "type": "initial", "subject": "Reminder: File Upload Request"},
+            {"days": 3, "type": "followup", "subject": "Follow-up: File Upload Request"},
+            {"days": 7, "type": "followup", "subject": "Second Follow-up: File Upload Request"},
+            {"days": 14, "type": "escalation", "subject": "Final Reminder: File Upload Request"},
+        ]
+
+        for config in reminder_schedule:
+            scheduled_time = file_request.created_at + timedelta(days=config["days"])
+
+            # Skip if scheduled time is after expiration
+            if file_request.expires_at and scheduled_time > file_request.expires_at:
+                continue
+
+            message = f"""
+            Hello {file_request.recipient_name or 'there'},
+
+            This is a reminder that we are still waiting for the following documents:
+
+            {file_request.title}
+
+            {file_request.description}
+
+            Please upload your documents using the link provided in the original email.
+
+            If you have any questions, please don't hesitate to contact us.
+
+            Thank you!
+            """
+
+            FileRequestReminder.objects.create(
+                firm=file_request.firm,
+                file_request=file_request,
+                reminder_type=config["type"],
+                days_after_creation=config["days"],
+                subject=config["subject"],
+                message=message.strip(),
+                scheduled_for=scheduled_time,
+                escalate_to_team=(config["type"] == "escalation"),
+                escalation_emails=file_request.notification_emails if config["type"] == "escalation" else []
+            )
+
+    @action(detail=True, methods=["post"])
+    def mark_completed(self, request, pk=None):
+        """
+        Mark a file request as completed.
+
+        POST /api/documents/file-requests/{id}/mark_completed/
+
+        Marks the request as reviewed and completed.
+        """
+        try:
+            file_request = self.get_object()
+            file_request.mark_as_completed(request.user)
+            serializer = self.get_serializer(file_request)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["get"])
+    def statistics(self, request, pk=None):
+        """
+        Get statistics for a file request.
+
+        GET /api/documents/file-requests/{id}/statistics/
+
+        Returns upload counts, reminder status, and access logs.
+        """
+        try:
+            file_request = self.get_object()
+
+            # Get reminders
+            reminders = FileRequestReminder.objects.filter(
+                firm=file_request.firm,
+                file_request=file_request
+            )
+
+            # Get share access logs
+            access_logs = ShareAccess.objects.filter(
+                firm=file_request.firm,
+                external_share=file_request.external_share
+            )[:10]  # Last 10 accesses
+
+            return Response({
+                "request_id": file_request.id,
+                "title": file_request.title,
+                "status": file_request.status,
+                "statistics": {
+                    "uploaded_file_count": file_request.uploaded_file_count,
+                    "max_files": file_request.max_files,
+                    "reminder_sent_count": file_request.reminder_sent_count,
+                    "total_reminders_scheduled": reminders.filter(status="scheduled").count(),
+                    "total_reminders_sent": reminders.filter(status="sent").count(),
+                    "access_count": access_logs.count(),
+                },
+                "status_info": {
+                    "is_active": file_request.is_active,
+                    "is_expired": file_request.is_expired,
+                    "is_file_limit_reached": file_request.is_file_limit_reached,
+                },
+                "recent_activity": ShareAccessSerializer(
+                    access_logs,
+                    many=True,
+                    context={"request": request}
+                ).data,
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class FileRequestReminderViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for FileRequestReminder model (FILE-2).
+
+    Manages automated reminder sequences for file requests.
+
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    """
+
+    model = FileRequestReminder
+    serializer_class = FileRequestReminderSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["file_request", "reminder_type", "status"]
+    ordering_fields = ["scheduled_for", "sent_at"]
+    ordering = ["scheduled_for"]
+
+    def get_queryset(self):
+        """Override to add select_related for performance."""
+        base_queryset = super().get_queryset()
+        return base_queryset.select_related("file_request")
+
+    def perform_create(self, serializer):
+        """Set firm on creation."""
+        firm = get_request_firm(self.request)
+        serializer.save(firm=firm)
