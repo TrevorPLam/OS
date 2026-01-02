@@ -1074,3 +1074,74 @@ class PotentialDuplicateSerializer(serializers.Serializer):
     contact2_email = serializers.EmailField()
     similarity_score = serializers.FloatField()
 
+
+# Segmentation Serializers
+
+class SegmentConditionSerializer(serializers.Serializer):
+    """Serializer for a segment condition."""
+    
+    field = serializers.CharField(help_text="Field name to filter on")
+    operator = serializers.ChoiceField(
+        choices=[
+            'equals', 'not_equals', 'contains', 'not_contains',
+            'starts_with', 'ends_with', 'in', 'not_in',
+            'greater_than', 'greater_than_or_equal',
+            'less_than', 'less_than_or_equal',
+            'is_null', 'is_not_null', 'between',
+        ],
+        help_text="Comparison operator",
+    )
+    value = serializers.JSONField(help_text="Value to compare against")
+
+
+class SegmentGroupSerializer(serializers.Serializer):
+    """Serializer for a segment group with nested conditions."""
+    
+    logic = serializers.ChoiceField(
+        choices=['AND', 'OR'],
+        default='AND',
+        help_text="Logical operator for combining conditions",
+    )
+    conditions = SegmentConditionSerializer(many=True, required=False)
+    groups = serializers.ListField(
+        child=serializers.JSONField(),  # Recursive, will be SegmentGroupSerializer
+        required=False,
+        help_text="Nested segment groups",
+    )
+
+
+class ContactSegmentSerializer(serializers.Serializer):
+    """Serializer for contact segment definition."""
+    
+    name = serializers.CharField(max_length=255, help_text="Segment name")
+    client_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Client ID to scope segment to",
+    )
+    conditions = SegmentGroupSerializer(help_text="Root condition group")
+    
+    def validate_conditions(self, value):
+        """Validate that conditions are properly structured."""
+        if not value:
+            raise serializers.ValidationError("Segment must have at least one condition")
+        return value
+
+
+class SegmentEvaluationSerializer(serializers.Serializer):
+    """Serializer for segment evaluation results."""
+    
+    segment_name = serializers.CharField()
+    total_contacts = serializers.IntegerField()
+    matching_contacts = serializers.IntegerField()
+    execution_time_ms = serializers.FloatField()
+
+
+class PrebuiltSegmentSerializer(serializers.Serializer):
+    """Serializer for listing available pre-built segments."""
+    
+    id = serializers.CharField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    parameters = serializers.JSONField(required=False)
+
