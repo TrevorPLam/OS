@@ -804,3 +804,210 @@ class ClientEngagementDetailSerializer(serializers.ModelSerializer):
     def get_has_renewals(self, obj):
         """Check if this engagement has been renewed."""
         return obj.renewals.exists()
+
+
+# Bulk Operations Serializers
+
+class ContactImportSerializer(serializers.ModelSerializer):
+    """Serializer for ContactImport model."""
+    
+    created_by_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        from modules.clients.models import ContactImport
+        model = ContactImport
+        fields = [
+            "id",
+            "firm",
+            "status",
+            "filename",
+            "file_path",
+            "total_rows",
+            "successful_imports",
+            "failed_imports",
+            "skipped_rows",
+            "duplicates_found",
+            "field_mapping",
+            "duplicate_strategy",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+            "completed_at",
+        ]
+        read_only_fields = [
+            "firm",
+            "status",
+            "total_rows",
+            "successful_imports",
+            "failed_imports",
+            "skipped_rows",
+            "duplicates_found",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "completed_at",
+        ]
+    
+    def get_created_by_name(self, obj):
+        """Return creator's full name."""
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.email
+        return None
+
+
+class ContactImportCreateSerializer(serializers.Serializer):
+    """Serializer for creating a new contact import."""
+    
+    file = serializers.FileField(required=True, help_text="CSV file to import")
+    client_id = serializers.IntegerField(required=True, help_text="Client ID for imported contacts")
+    duplicate_strategy = serializers.ChoiceField(
+        choices=["skip", "update", "create_new"],
+        default="skip",
+        help_text="How to handle duplicate contacts",
+    )
+    field_mapping = serializers.JSONField(
+        required=True,
+        help_text="Mapping of CSV columns to Contact model fields",
+    )
+    
+    def validate_file(self, value):
+        """Validate uploaded file."""
+        # Check file extension
+        if not value.name.endswith(('.csv', '.CSV')):
+            raise serializers.ValidationError("Only CSV files are supported")
+        
+        # Check file size (max 10MB)
+        if value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError("File size cannot exceed 10MB")
+        
+        return value
+    
+    def validate_field_mapping(self, value):
+        """Validate field mapping configuration."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Field mapping must be a dictionary")
+        
+        # Check that at least email or first_name+last_name are mapped
+        required_fields_met = (
+            'email' in value.values() or
+            ('first_name' in value.values() and 'last_name' in value.values())
+        )
+        
+        if not required_fields_met:
+            raise serializers.ValidationError(
+                "Field mapping must include 'email' or both 'first_name' and 'last_name'"
+            )
+        
+        return value
+
+
+class ContactBulkUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for ContactBulkUpdate model."""
+    
+    created_by_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        from modules.clients.models import ContactBulkUpdate
+        model = ContactBulkUpdate
+        fields = [
+            "id",
+            "firm",
+            "status",
+            "operation_type",
+            "update_data",
+            "filter_criteria",
+            "total_contacts",
+            "successful_updates",
+            "failed_updates",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+            "completed_at",
+        ]
+        read_only_fields = [
+            "firm",
+            "status",
+            "total_contacts",
+            "successful_updates",
+            "failed_updates",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "completed_at",
+        ]
+    
+    def get_created_by_name(self, obj):
+        """Return creator's full name."""
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.email
+        return None
+
+
+class ContactBulkUpdateCreateSerializer(serializers.Serializer):
+    """Serializer for creating a new bulk update operation."""
+    
+    contact_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        help_text="List of contact IDs to update",
+    )
+    update_data = serializers.JSONField(
+        required=True,
+        help_text="Fields and values to update",
+    )
+    operation_type = serializers.CharField(
+        max_length=50,
+        default="bulk_update",
+        help_text="Type of operation being performed",
+    )
+    
+    def validate_contact_ids(self, value):
+        """Validate contact IDs list."""
+        if not value:
+            raise serializers.ValidationError("At least one contact ID is required")
+        
+        if len(value) > 1000:
+            raise serializers.ValidationError("Cannot update more than 1000 contacts at once")
+        
+        return value
+    
+    def validate_update_data(self, value):
+        """Validate update data."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Update data must be a dictionary")
+        
+        if not value:
+            raise serializers.ValidationError("Update data cannot be empty")
+        
+        # List of fields that can be bulk updated
+        allowed_fields = [
+            'job_title',
+            'department',
+            'preferred_contact_method',
+            'opt_out_marketing',
+            'opt_out_sms',
+            'receives_billing_emails',
+            'receives_project_updates',
+            'status',
+            'notes',
+        ]
+        
+        for field in value.keys():
+            if field not in allowed_fields:
+                raise serializers.ValidationError(
+                    f"Field '{field}' is not allowed for bulk update. "
+                    f"Allowed fields: {', '.join(allowed_fields)}"
+                )
+        
+        return value
+
