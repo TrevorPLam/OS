@@ -150,6 +150,117 @@ class AvailabilityService:
 
         return slots
 
+    def compute_collective_available_slots(
+        self,
+        appointment_type: AppointmentType,
+        start_date: datetime.date,
+        end_date: datetime.date,
+    ) -> List[Tuple[datetime, datetime, List[any]]]:
+        """
+        Compute available slots for collective events (multiple hosts, overlapping availability).
+
+        TEAM-1: Implements Venn diagram availability logic where slots are only available
+        when ALL required hosts are free. Optional hosts are not required for availability.
+
+        Args:
+            appointment_type: AppointmentType with event_category="collective"
+            start_date: Start date for availability search
+            end_date: End date for availability search
+
+        Returns:
+            List of (start_time, end_time, available_hosts) tuples in UTC.
+            available_hosts includes all required hosts plus any optional hosts who are available.
+        """
+        if appointment_type.event_category != "collective":
+            raise ValueError("compute_collective_available_slots only works with collective event types")
+
+        # Get required and optional hosts
+        required_hosts = list(appointment_type.required_hosts.all())
+        optional_hosts = list(appointment_type.optional_hosts.all())
+
+        if not required_hosts:
+            logger.warning(f"Collective event {appointment_type.name} has no required hosts")
+            return []
+
+        # Get availability profiles for all hosts
+        host_profiles = {}
+        for host in required_hosts + optional_hosts:
+            try:
+                profile = AvailabilityProfile.objects.get(
+                    firm=appointment_type.firm,
+                    owner_type="staff",
+                    owner_staff_user=host,
+                )
+                host_profiles[host.id] = profile
+            except AvailabilityProfile.DoesNotExist:
+                if host in required_hosts:
+                    # Required host has no profile - cannot find availability
+                    logger.warning(
+                        f"Required host {host.username} has no availability profile "
+                        f"for collective event {appointment_type.name}"
+                    )
+                    return []
+
+        # Compute slots for each required host
+        required_host_slots = {}
+        for host in required_hosts:
+            profile = host_profiles.get(host.id)
+            if not profile:
+                return []  # Already logged warning above
+
+            slots = self.compute_available_slots(
+                profile=profile,
+                appointment_type=appointment_type,
+                start_date=start_date,
+                end_date=end_date,
+                staff_user=host,
+            )
+            required_host_slots[host.id] = set(slots)
+
+        if not required_host_slots:
+            return []
+
+        # Find overlapping slots (Venn diagram intersection) for all required hosts
+        # Start with first host's slots
+        first_host_id = list(required_host_slots.keys())[0]
+        overlapping_slots = required_host_slots[first_host_id].copy()
+
+        # Intersect with each other required host's slots
+        for host_id, host_slots in required_host_slots.items():
+            if host_id == first_host_id:
+                continue
+            overlapping_slots = overlapping_slots.intersection(host_slots)
+
+        if not overlapping_slots:
+            logger.debug(f"No overlapping slots found for collective event {appointment_type.name}")
+            return []
+
+        # For each overlapping slot, determine which optional hosts are also available
+        result = []
+        for slot_start, slot_end in sorted(overlapping_slots):
+            available_hosts = required_hosts.copy()
+
+            # Check optional hosts
+            for opt_host in optional_hosts:
+                profile = host_profiles.get(opt_host.id)
+                if not profile:
+                    continue
+
+                # Check if optional host is available for this slot
+                if not self._has_conflict(
+                    opt_host, slot_start, slot_end, appointment_type, profile
+                ):
+                    available_hosts.append(opt_host)
+
+            result.append((slot_start, slot_end, available_hosts))
+
+        logger.info(
+            f"Found {len(result)} overlapping slots for collective event {appointment_type.name} "
+            f"with {len(required_hosts)} required hosts"
+        )
+
+        return result
+
     def _is_exception_date(self, date: datetime.date, exceptions: list) -> bool:
         """Check if date is in exception list."""
         date_str = date.strftime("%Y-%m-%d")
@@ -703,6 +814,114 @@ class BookingService:
         return appointment
 
     @transaction.atomic
+    def book_collective_appointment(
+        self,
+        appointment_type: AppointmentType,
+        start_time: datetime,
+        end_time: datetime,
+        collective_hosts: List[any],
+        booked_by,
+        account=None,
+        contact=None,
+        engagement=None,
+        intake_responses=None,
+        booking_link=None,
+    ) -> Appointment:
+        """
+        Book a collective event appointment with multiple hosts.
+
+        TEAM-1: Implements collective event booking with Venn diagram availability.
+        Ensures all required hosts are available and books with all hosts atomically.
+
+        Args:
+            appointment_type: AppointmentType with event_category="collective"
+            start_time: Start time for appointment
+            end_time: End time for appointment
+            collective_hosts: List of host users (required + available optional)
+            booked_by: User who is booking the appointment
+            account: Optional client account
+            contact: Optional contact
+            engagement: Optional engagement
+            intake_responses: Optional intake question responses
+            booking_link: Optional booking link used
+
+        Returns:
+            Created Appointment instance
+
+        Raises:
+            ValueError: If conflicts detected for any host
+        """
+        if appointment_type.event_category != "collective":
+            raise ValueError("book_collective_appointment only works with collective event types")
+
+        if not collective_hosts:
+            raise ValueError("Collective events require at least one host")
+
+        # Check for conflicts for ALL hosts within transaction (race condition protection)
+        for host in collective_hosts:
+            conflicts = Appointment.objects.select_for_update().filter(
+                staff_user=host,
+                status__in=["requested", "confirmed"],
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).exists()
+
+            # Also check if host is in collective_hosts of other appointments
+            collective_conflicts = Appointment.objects.select_for_update().filter(
+                collective_hosts=host,
+                status__in=["requested", "confirmed"],
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).exists()
+
+            if conflicts or collective_conflicts:
+                raise ValueError(
+                    f"Time slot is no longer available for host {host.username} (conflict detected)"
+                )
+
+        # Determine initial status
+        initial_status = "requested" if appointment_type.requires_approval else "confirmed"
+
+        # Use the first required host as the primary staff_user for backward compatibility
+        required_hosts = list(appointment_type.required_hosts.all())
+        primary_staff_user = required_hosts[0] if required_hosts else collective_hosts[0]
+
+        # Create appointment
+        appointment = Appointment.objects.create(
+            firm=appointment_type.firm,
+            appointment_type=appointment_type,
+            booking_link=booking_link,
+            staff_user=primary_staff_user,
+            account=account,
+            contact=contact,
+            start_time=start_time,
+            end_time=end_time,
+            timezone=appointment_type.firm.timezone if hasattr(appointment_type.firm, 'timezone') else 'UTC',
+            intake_responses=intake_responses or {},
+            status=initial_status,
+            booked_by=booked_by,
+        )
+
+        # Add all collective hosts
+        appointment.collective_hosts.set(collective_hosts)
+
+        # Create status history entry
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status="",
+            to_status=initial_status,
+            reason=f"Initial collective event booking with {len(collective_hosts)} hosts",
+            changed_by=booked_by,
+        )
+
+        logger.info(
+            f"Booked collective appointment {appointment.appointment_id} "
+            f"with {len(collective_hosts)} hosts: {[h.username for h in collective_hosts]}"
+        )
+
+        return appointment
+
+    @transaction.atomic
     def cancel_appointment(
         self,
         appointment: Appointment,
@@ -758,3 +977,85 @@ class BookingService:
         )
 
         return appointment
+
+    @transaction.atomic
+    def substitute_collective_host(
+        self,
+        appointment: Appointment,
+        old_host,
+        new_host,
+        substituted_by,
+        reason: str = "",
+    ) -> Appointment:
+        """
+        Substitute a host in a collective event appointment.
+
+        TEAM-1: Implements host substitution workflow for collective events.
+        Validates that the new host is available and atomically updates the appointment.
+
+        Args:
+            appointment: Appointment to modify
+            old_host: Host to remove
+            new_host: Host to add as replacement
+            substituted_by: User performing the substitution
+            reason: Optional reason for substitution
+
+        Returns:
+            Updated Appointment instance
+
+        Raises:
+            ValueError: If not a collective event, host not found, or new host has conflict
+        """
+        if appointment.appointment_type.event_category != "collective":
+            raise ValueError("Host substitution only applies to collective events")
+
+        # Check that old_host is actually in the appointment
+        if old_host not in appointment.collective_hosts.all():
+            raise ValueError(f"Host {old_host.username} is not assigned to this appointment")
+
+        # Check that new_host doesn't have a conflict
+        conflicts = Appointment.objects.select_for_update().filter(
+            staff_user=new_host,
+            status__in=["requested", "confirmed"],
+            start_time__lt=appointment.end_time,
+            end_time__gt=appointment.start_time,
+        ).exists()
+
+        collective_conflicts = Appointment.objects.select_for_update().filter(
+            collective_hosts=new_host,
+            status__in=["requested", "confirmed"],
+            start_time__lt=appointment.end_time,
+            end_time__gt=appointment.start_time,
+        ).exists()
+
+        if conflicts or collective_conflicts:
+            raise ValueError(
+                f"Cannot substitute: new host {new_host.username} has a conflicting appointment"
+            )
+
+        # Remove old host and add new host
+        appointment.collective_hosts.remove(old_host)
+        appointment.collective_hosts.add(new_host)
+
+        # Update primary staff_user if the old host was primary
+        if appointment.staff_user == old_host:
+            appointment.staff_user = new_host
+            appointment.save()
+
+        # Create audit trail in status history
+        substitution_reason = reason or f"Host substitution: {old_host.username} → {new_host.username}"
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status=appointment.status,
+            to_status=appointment.status,
+            reason=substitution_reason,
+            changed_by=substituted_by,
+        )
+
+        logger.info(
+            f"Substituted host in appointment {appointment.appointment_id}: "
+            f"{old_host.username} → {new_host.username}"
+        )
+
+        return appointment
+

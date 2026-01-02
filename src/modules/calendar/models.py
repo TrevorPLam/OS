@@ -790,6 +790,15 @@ class Appointment(models.Model):
         related_name="staff_appointments",
         help_text="Staff member for this appointment",
     )
+
+    # TEAM-1: Collective event hosts (for event_category="collective")
+    collective_hosts = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="collective_appointments",
+        blank=True,
+        help_text="All hosts assigned to this collective event appointment (required + available optional hosts)",
+    )
+
     account = models.ForeignKey(
         "clients.Client",
         on_delete=models.SET_NULL,

@@ -204,6 +204,9 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
     account_name = serializers.CharField(source="account.name", read_only=True, allow_null=True)
     contact_name = serializers.CharField(source="contact.name", read_only=True, allow_null=True)
     booked_by_username = serializers.CharField(source="booked_by.username", read_only=True, allow_null=True)
+    
+    # TEAM-1: Collective event hosts
+    collective_hosts_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
@@ -214,6 +217,8 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
             "booking_link",
             "staff_user",
             "staff_username",
+            "collective_hosts",
+            "collective_hosts_details",
             "account",
             "account_name",
             "contact",
@@ -242,6 +247,20 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = fields
+
+    def get_collective_hosts_details(self, obj):
+        """Get details of all collective hosts for this appointment."""
+        if obj.appointment_type.event_category != "collective":
+            return []
+        
+        return [
+            {
+                "id": host.id,
+                "username": host.username,
+                "email": host.email,
+            }
+            for host in obj.collective_hosts.all()
+        ]
 
 
 class BookAppointmentSerializer(serializers.Serializer):
