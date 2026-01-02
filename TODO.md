@@ -58,17 +58,21 @@
   - Module: `src/modules/documents/permissions.py` (18KB)
   - Migration: `0005_add_granular_permissions.py`
   
-- [ ] **SEC-3:** Add advanced access controls (12-16 hours)
-  - Dynamic watermarking (username, IP, timestamp)
-  - View-only mode (no download, print, copy)
-  - IP whitelisting for sensitive operations
-  - Device trust/registration system
+- [x] **SEC-3:** Add advanced access controls (12-16 hours) ✅ COMPLETE
+  - ✅ Implemented dynamic watermarking (username, IP, timestamp) for documents
+  - ✅ Built view-only mode (disable download, print, copy) per document
+  - ✅ Added IP whitelisting system for sensitive operations
+  - ✅ Created device trust/registration system with verification
+  - Module: `src/modules/core/access_controls.py` (20KB)
+  - Features: IPWhitelist, TrustedDevice, DocumentAccessControl, WatermarkService
   
-- [ ] **SEC-4:** Build security monitoring (16-20 hours)
-  - Immutable audit logs with 7-year retention
-  - SIEM integration (Splunk/Datadog export)
-  - Real-time security alerts
-  - Content scanning for PII/PHI patterns
+- [x] **SEC-4:** Build security monitoring (16-20 hours) ✅ COMPLETE
+  - ✅ Immutable audit logs with 7-year retention (already in `firm/audit.py`)
+  - ✅ SIEM integration implemented (Splunk HEC, Datadog Logs, Generic Webhook)
+  - ✅ Real-time security alerts (SecurityAlert model with notifications)
+  - ✅ Content scanning for PII/PHI patterns (SSN, credit cards, medical terms)
+  - Module: `src/modules/core/security_monitoring.py` (25KB)
+  - Features: SecurityAlert, SecurityMonitor, PIIScanner, SIEMExporter
 
 #### Active Directory Integration (HIGH - 64-88 hours)
 **Status:** Deal-breaker for enterprise customers  
