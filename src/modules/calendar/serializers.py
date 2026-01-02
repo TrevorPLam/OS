@@ -6,6 +6,14 @@ from .models import AppointmentType, AvailabilityProfile, BookingLink, Appointme
 
 class AppointmentTypeSerializer(serializers.ModelSerializer):
     """Serializer for AppointmentType."""
+    
+    # Display fields for many-to-many relationships
+    required_hosts_display = serializers.SerializerMethodField()
+    optional_hosts_display = serializers.SerializerMethodField()
+    round_robin_pool_display = serializers.SerializerMethodField()
+    
+    # CAL-2: Available duration options
+    available_durations = serializers.SerializerMethodField()
 
     class Meta:
         model = AppointmentType
@@ -13,7 +21,22 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             "appointment_type_id",
             "name",
             "description",
+            # CAL-1: Event category fields
+            "event_category",
+            "max_attendees",
+            "enable_waitlist",
+            "required_hosts",
+            "required_hosts_display",
+            "optional_hosts",
+            "optional_hosts_display",
+            "round_robin_pool",
+            "round_robin_pool_display",
+            # CAL-2: Duration fields
             "duration_minutes",
+            "enable_multiple_durations",
+            "duration_options",
+            "available_durations",
+            # Original fields
             "buffer_before_minutes",
             "buffer_after_minutes",
             "location_mode",
@@ -28,7 +51,58 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["appointment_type_id", "created_at", "updated_at"]
+        read_only_fields = [
+            "appointment_type_id",
+            "required_hosts_display",
+            "optional_hosts_display",
+            "round_robin_pool_display",
+            "available_durations",
+            "created_at",
+            "updated_at",
+        ]
+    
+    def get_required_hosts_display(self, obj):
+        """Return display names for required hosts."""
+        return [
+            {"id": user.id, "username": user.username, "email": user.email}
+            for user in obj.required_hosts.all()
+        ]
+    
+    def get_optional_hosts_display(self, obj):
+        """Return display names for optional hosts."""
+        return [
+            {"id": user.id, "username": user.username, "email": user.email}
+            for user in obj.optional_hosts.all()
+        ]
+    
+    def get_round_robin_pool_display(self, obj):
+        """Return display names for round robin pool members."""
+        return [
+            {"id": user.id, "username": user.username, "email": user.email}
+            for user in obj.round_robin_pool.all()
+        ]
+    
+    def get_available_durations(self, obj):
+        """Return available duration options (CAL-2)."""
+        return obj.get_available_durations()
+    
+    def validate(self, data):
+        """Validate event category-specific requirements."""
+        event_category = data.get('event_category', 'one_on_one')
+        
+        # Validate group events
+        if event_category == 'group':
+            max_attendees = data.get('max_attendees')
+            if not max_attendees:
+                raise serializers.ValidationError({
+                    'max_attendees': 'Group events require max_attendees to be set'
+                })
+            if max_attendees < 2 or max_attendees > 1000:
+                raise serializers.ValidationError({
+                    'max_attendees': 'Group events must have between 2 and 1000 max attendees'
+                })
+        
+        return data
 
 
 class AvailabilityProfileSerializer(serializers.ModelSerializer):
@@ -144,6 +218,9 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "timezone",
+            # CAL-2: Selected duration fields
+            "selected_duration_minutes",
+            "selected_duration_price",
             "intake_responses",
             "status",
             "status_reason",

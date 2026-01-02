@@ -26,15 +26,68 @@ class AppointmentTypeAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
+        "event_category",
         "duration_minutes",
         "location_mode",
         "routing_policy",
         "status",
         "firm",
     ]
-    list_filter = ["status", "location_mode", "routing_policy", "firm"]
+    list_filter = ["status", "event_category", "location_mode", "routing_policy", "firm"]
     search_fields = ["name", "description"]
     readonly_fields = ["appointment_type_id", "created_at", "updated_at"]
+    filter_horizontal = ["required_hosts", "optional_hosts", "round_robin_pool"]
+    
+    fieldsets = (
+        (None, {
+            "fields": ("firm", "name", "description", "status")
+        }),
+        ("Event Category (CAL-1)", {
+            "fields": ("event_category",),
+            "description": "Event type: one-on-one, group, collective, or round robin"
+        }),
+        ("Group Event Settings (CAL-1)", {
+            "fields": ("max_attendees", "enable_waitlist"),
+            "description": "Required for group events",
+            "classes": ("collapse",),
+        }),
+        ("Collective Event Settings (CAL-1)", {
+            "fields": ("required_hosts", "optional_hosts"),
+            "description": "Configure hosts for collective events (multiple hosts, overlapping availability)",
+            "classes": ("collapse",),
+        }),
+        ("Round Robin Settings (CAL-1)", {
+            "fields": ("round_robin_pool",),
+            "description": "Configure staff pool for round robin distribution",
+            "classes": ("collapse",),
+        }),
+        ("Duration & Buffers", {
+            "fields": ("duration_minutes", "buffer_before_minutes", "buffer_after_minutes")
+        }),
+        ("Multiple Durations (CAL-2)", {
+            "fields": ("enable_multiple_durations", "duration_options"),
+            "description": "Allow bookers to select from multiple duration options with optional pricing",
+            "classes": ("collapse",),
+        }),
+        ("Location", {
+            "fields": ("location_mode", "location_details")
+        }),
+        ("Booking Channels", {
+            "fields": ("allow_portal_booking", "allow_staff_booking", "allow_public_prospect_booking")
+        }),
+        ("Routing", {
+            "fields": ("routing_policy", "fixed_staff_user", "requires_approval")
+        }),
+        ("Intake Questions", {
+            "fields": ("intake_questions",),
+            "description": "JSON array of intake questions",
+            "classes": ("collapse",),
+        }),
+        ("Metadata", {
+            "fields": ("appointment_type_id", "created_by", "created_at", "updated_at"),
+            "classes": ("collapse",),
+        }),
+    )
 
 
 @admin.register(AvailabilityProfile)
