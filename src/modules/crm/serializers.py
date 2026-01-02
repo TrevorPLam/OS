@@ -10,10 +10,14 @@ from modules.crm.models import (
     AccountRelationship,
     Campaign,
     Contract,
+    Deal,
+    DealTask,
     IntakeForm,
     IntakeFormField,
     IntakeFormSubmission,
     Lead,
+    Pipeline,
+    PipelineStage,
     Product,
     ProductConfiguration,
     ProductOption,
@@ -630,3 +634,275 @@ class ProductConfigurationCreateSerializer(serializers.ModelSerializer):
         configuration.validate_configuration()
         configuration.save()
         return configuration
+
+
+# Pipeline & Deal Management Serializers (DEAL-2)
+
+class PipelineStageSerializer(serializers.ModelSerializer):
+    """Serializer for PipelineStage model."""
+    
+    deal_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = PipelineStage
+        fields = [
+            "id",
+            "pipeline",
+            "name",
+            "description",
+            "probability",
+            "is_active",
+            "is_closed_won",
+            "is_closed_lost",
+            "display_order",
+            "auto_tasks",
+            "deal_count",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "deal_count"]
+    
+    def get_deal_count(self, obj):
+        """Get count of active deals in this stage."""
+        return obj.deals.filter(is_active=True).count()
+
+
+class PipelineSerializer(serializers.ModelSerializer):
+    """Serializer for Pipeline model."""
+    
+    stages = PipelineStageSerializer(many=True, read_only=True)
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+    deal_count = serializers.SerializerMethodField()
+    total_value = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Pipeline
+        fields = [
+            "id",
+            "firm",
+            "name",
+            "description",
+            "is_active",
+            "is_default",
+            "display_order",
+            "stages",
+            "deal_count",
+            "total_value",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+        ]
+        read_only_fields = ["id", "firm", "created_at", "updated_at", "created_by", "created_by_name"]
+    
+    def get_deal_count(self, obj):
+        """Get count of active deals in this pipeline."""
+        return obj.deals.filter(is_active=True).count()
+    
+    def get_total_value(self, obj):
+        """Get total value of active deals in this pipeline."""
+        from django.db.models import Sum
+        result = obj.deals.filter(is_active=True).aggregate(total=Sum("value"))
+        return result["total"] or 0
+
+
+class DealTaskSerializer(serializers.ModelSerializer):
+    """Serializer for DealTask model."""
+    
+    assigned_to_name = serializers.CharField(source="assigned_to.get_full_name", read_only=True)
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+    is_overdue = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = DealTask
+        fields = [
+            "id",
+            "deal",
+            "title",
+            "description",
+            "priority",
+            "status",
+            "assigned_to",
+            "assigned_to_name",
+            "due_date",
+            "completed_at",
+            "is_overdue",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "created_by", "created_by_name", "completed_at"]
+    
+    def get_is_overdue(self, obj):
+        """Check if task is overdue."""
+        if obj.due_date and obj.status not in ["completed", "cancelled"]:
+            from django.utils import timezone
+            return obj.due_date < timezone.now().date()
+        return False
+
+
+class DealSerializer(serializers.ModelSerializer):
+    """Serializer for Deal model."""
+    
+    pipeline_name = serializers.CharField(source="pipeline.name", read_only=True)
+    stage_name = serializers.CharField(source="stage.name", read_only=True)
+    account_name = serializers.CharField(source="account.name", read_only=True)
+    contact_name = serializers.CharField(source="contact.full_name", read_only=True)
+    owner_name = serializers.CharField(source="owner.get_full_name", read_only=True)
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+    tasks = DealTaskSerializer(many=True, read_only=True)
+    team_member_names = serializers.SerializerMethodField()
+    days_in_stage = serializers.SerializerMethodField()
+    days_since_activity = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Deal
+        fields = [
+            "id",
+            "firm",
+            "pipeline",
+            "pipeline_name",
+            "stage",
+            "stage_name",
+            "name",
+            "description",
+            "account",
+            "account_name",
+            "contact",
+            "contact_name",
+            "value",
+            "currency",
+            "probability",
+            "weighted_value",
+            "expected_close_date",
+            "actual_close_date",
+            "owner",
+            "owner_name",
+            "team_members",
+            "team_member_names",
+            "split_percentage",
+            "source",
+            "campaign",
+            "is_active",
+            "is_won",
+            "is_lost",
+            "lost_reason",
+            "last_activity_date",
+            "is_stale",
+            "stale_days_threshold",
+            "days_since_activity",
+            "converted_to_project",
+            "project",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+            "tags",
+            "tasks",
+            "days_in_stage",
+        ]
+        read_only_fields = [
+            "id",
+            "firm",
+            "weighted_value",
+            "is_won",
+            "is_lost",
+            "actual_close_date",
+            "is_stale",
+            "converted_to_project",
+            "project",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+        ]
+    
+    def get_team_member_names(self, obj):
+        """Get list of team member names."""
+        return [member.get_full_name() for member in obj.team_members.all()]
+    
+    def get_days_in_stage(self, obj):
+        """Calculate days in current stage."""
+        from django.utils import timezone
+        return (timezone.now().date() - obj.updated_at.date()).days
+    
+    def get_days_since_activity(self, obj):
+        """Calculate days since last activity."""
+        if obj.last_activity_date:
+            from django.utils import timezone
+            return (timezone.now().date() - obj.last_activity_date).days
+        return None
+    
+    def validate(self, data):
+        """Validate deal data."""
+        # Ensure stage belongs to pipeline
+        if "stage" in data and "pipeline" in data:
+            if data["stage"].pipeline != data["pipeline"]:
+                raise serializers.ValidationError({
+                    "stage": "Stage must belong to the selected pipeline."
+                })
+        
+        # Ensure account and contact belong to same firm
+        if "account" in data and data.get("account"):
+            request = self.context.get("request")
+            if request and hasattr(request, "user"):
+                firm = request.user.firm
+                if data["account"].firm != firm:
+                    raise serializers.ValidationError({
+                        "account": "Account must belong to your firm."
+                    })
+        
+        # Validate probability range
+        if "probability" in data:
+            if not 0 <= data["probability"] <= 100:
+                raise serializers.ValidationError({
+                    "probability": "Probability must be between 0 and 100."
+                })
+        
+        return data
+
+
+class DealCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating Deal with minimal fields."""
+    
+    class Meta:
+        model = Deal
+        fields = [
+            "pipeline",
+            "stage",
+            "name",
+            "description",
+            "account",
+            "contact",
+            "value",
+            "currency",
+            "probability",
+            "expected_close_date",
+            "owner",
+            "source",
+            "campaign",
+            "tags",
+        ]
+    
+    def validate(self, data):
+        """Validate deal data."""
+        # Ensure stage belongs to pipeline
+        if data["stage"].pipeline != data["pipeline"]:
+            raise serializers.ValidationError({
+                "stage": "Stage must belong to the selected pipeline."
+            })
+        
+        return data
+    
+    def create(self, validated_data):
+        """Create deal with firm from request."""
+        request = self.context.get("request")
+        validated_data["firm"] = request.user.firm
+        validated_data["created_by"] = request.user
+        
+        # Set initial last_activity_date
+        from django.utils import timezone
+        validated_data["last_activity_date"] = timezone.now().date()
+        
+        return super().create(validated_data)

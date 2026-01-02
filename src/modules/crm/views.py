@@ -21,10 +21,14 @@ from modules.crm.models import (
     AccountRelationship,
     Campaign,
     Contract,
+    Deal,
+    DealTask,
     IntakeForm,
     IntakeFormField,
     IntakeFormSubmission,
     Lead,
+    Pipeline,
+    PipelineStage,
     Product,
     ProductConfiguration,
     ProductOption,
@@ -37,10 +41,15 @@ from modules.crm.serializers import (
     AccountSerializer,
     CampaignSerializer,
     ContractSerializer,
+    DealCreateSerializer,
+    DealSerializer,
+    DealTaskSerializer,
     IntakeFormSerializer,
     IntakeFormFieldSerializer,
     IntakeFormSubmissionSerializer,
     LeadSerializer,
+    PipelineSerializer,
+    PipelineStageSerializer,
     ProductConfigurationCreateSerializer,
     ProductConfigurationSerializer,
     ProductOptionSerializer,
@@ -684,3 +693,341 @@ class ProductConfigurationViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
             "quote_id": quote.id,
             "quote_number": quote.quote_number,
         })
+
+
+# Pipeline & Deal Management ViewSets (DEAL-2)
+
+class PipelineViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Pipeline management (DEAL-2).
+    
+    Pipelines represent customizable sales workflows with stages.
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2.5: Portal users explicitly denied.
+    """
+    
+    queryset = Pipeline.objects.all()
+    serializer_class = PipelineSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["is_active", "is_default"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["display_order", "name", "created_at"]
+    ordering = ["display_order", "name"]
+    
+    def perform_create(self, serializer):
+        """Set firm and created_by on creation."""
+        serializer.save(
+            firm=self.request.user.firm,
+            created_by=self.request.user
+        )
+    
+    @action(detail=True, methods=["post"])
+    def set_default(self, request, pk=None):
+        """Set this pipeline as the default for the firm."""
+        pipeline = self.get_object()
+        pipeline.is_default = True
+        pipeline.save()
+        return Response({"status": "Pipeline set as default"})
+    
+    @action(detail=True, methods=["get"])
+    def analytics(self, request, pk=None):
+        """Get analytics for this pipeline."""
+        from django.db.models import Avg, Count, Sum
+        
+        pipeline = self.get_object()
+        active_deals = pipeline.deals.filter(is_active=True)
+        
+        analytics = {
+            "total_deals": active_deals.count(),
+            "total_value": active_deals.aggregate(Sum("value"))["value__sum"] or 0,
+            "total_weighted_value": active_deals.aggregate(Sum("weighted_value"))["weighted_value__sum"] or 0,
+            "average_deal_value": active_deals.aggregate(Avg("value"))["value__avg"] or 0,
+            "average_probability": active_deals.aggregate(Avg("probability"))["probability__avg"] or 0,
+            "stage_breakdown": [],
+        }
+        
+        # Get deals per stage
+        for stage in pipeline.stages.all():
+            stage_deals = active_deals.filter(stage=stage)
+            analytics["stage_breakdown"].append({
+                "stage_id": stage.id,
+                "stage_name": stage.name,
+                "deal_count": stage_deals.count(),
+                "total_value": stage_deals.aggregate(Sum("value"))["value__sum"] or 0,
+                "weighted_value": stage_deals.aggregate(Sum("weighted_value"))["weighted_value__sum"] or 0,
+            })
+        
+        return Response(analytics)
+
+
+class PipelineStageViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for PipelineStage management (DEAL-2).
+    
+    Stages represent steps within a pipeline.
+    
+    TIER 0: Scoped through pipeline relationship.
+    TIER 2.5: Portal users explicitly denied.
+    """
+    
+    queryset = PipelineStage.objects.all()
+    serializer_class = PipelineStageSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["pipeline", "is_active", "is_closed_won", "is_closed_lost"]
+    search_fields = ["name", "description"]
+    ordering_fields = ["display_order", "name"]
+    ordering = ["pipeline", "display_order"]
+    
+    def get_queryset(self):
+        """Filter stages by firm through pipeline."""
+        user = self.request.user
+        return PipelineStage.objects.filter(pipeline__firm=user.firm)
+    
+    @action(detail=True, methods=["post"])
+    def reorder(self, request, pk=None):
+        """Reorder stages within a pipeline."""
+        stage = self.get_object()
+        new_order = request.data.get("display_order")
+        
+        if new_order is not None:
+            stage.display_order = new_order
+            stage.save()
+            return Response({"status": "Stage reordered"})
+        
+        return Response(
+            {"error": "display_order is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for Deal management (DEAL-2).
+    
+    Deals represent sales opportunities that progress through pipeline stages.
+    
+    TIER 0: Automatically scoped to request.firm via FirmScopedMixin.
+    TIER 2.5: Portal users explicitly denied.
+    """
+    
+    queryset = Deal.objects.all()
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, BoundedSearchFilter, filters.OrderingFilter]
+    filterset_fields = [
+        "pipeline",
+        "stage",
+        "owner",
+        "account",
+        "is_active",
+        "is_won",
+        "is_lost",
+        "is_stale",
+    ]
+    search_fields = ["name", "description"]
+    ordering_fields = ["value", "weighted_value", "expected_close_date", "created_at", "updated_at"]
+    ordering = ["-created_at"]
+    
+    def get_serializer_class(self):
+        """Use different serializer for create action."""
+        if self.action == "create":
+            return DealCreateSerializer
+        return DealSerializer
+    
+    def perform_create(self, serializer):
+        """Set firm and created_by on creation."""
+        serializer.save()
+    
+    def perform_update(self, serializer):
+        """Update last_activity_date on update."""
+        deal = serializer.save()
+        deal.update_last_activity()
+    
+    @action(detail=True, methods=["post"])
+    def move_stage(self, request, pk=None):
+        """
+        Move deal to a different stage (DEAL-2 stage transition logic).
+        
+        Expected payload:
+        {
+            "stage_id": 123,
+            "notes": "Moving to next stage because..."
+        }
+        """
+        deal = self.get_object()
+        stage_id = request.data.get("stage_id")
+        notes = request.data.get("notes", "")
+        
+        if not stage_id:
+            return Response(
+                {"error": "stage_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            new_stage = PipelineStage.objects.get(id=stage_id, pipeline=deal.pipeline)
+        except PipelineStage.DoesNotExist:
+            return Response(
+                {"error": "Stage not found or doesn't belong to deal's pipeline"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        old_stage = deal.stage
+        deal.stage = new_stage
+        deal.probability = new_stage.probability  # Update probability to stage default
+        deal.save()
+        
+        # Create activity log
+        from modules.crm.models import Activity
+        Activity.objects.create(
+            firm=deal.firm,
+            activity_type="other",
+            subject=f"Deal moved from {old_stage.name} to {new_stage.name}",
+            description=notes,
+            activity_date=timezone.now(),
+            created_by=request.user,
+        )
+        
+        serializer = self.get_serializer(deal)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=["post"])
+    def mark_won(self, request, pk=None):
+        """Mark deal as won (DEAL-2)."""
+        deal = self.get_object()
+        
+        # Find won stage or use current
+        won_stage = deal.pipeline.stages.filter(is_closed_won=True).first()
+        if won_stage:
+            deal.stage = won_stage
+        
+        deal.is_won = True
+        deal.is_active = False
+        deal.actual_close_date = timezone.now().date()
+        deal.save()
+        
+        serializer = self.get_serializer(deal)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=["post"])
+    def mark_lost(self, request, pk=None):
+        """Mark deal as lost (DEAL-2)."""
+        deal = self.get_object()
+        lost_reason = request.data.get("lost_reason", "")
+        
+        # Find lost stage or use current
+        lost_stage = deal.pipeline.stages.filter(is_closed_lost=True).first()
+        if lost_stage:
+            deal.stage = lost_stage
+        
+        deal.is_lost = True
+        deal.is_active = False
+        deal.lost_reason = lost_reason
+        deal.actual_close_date = timezone.now().date()
+        deal.save()
+        
+        serializer = self.get_serializer(deal)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=["post"])
+    def convert_to_project(self, request, pk=None):
+        """
+        Convert deal to project (DEAL-1 conversion workflow).
+        
+        Expected payload (optional):
+        {
+            "start_date": "2024-01-01",
+            "end_date": "2024-12-31",
+            "description": "Project description"
+        }
+        """
+        deal = self.get_object()
+        
+        try:
+            project_data = request.data or {}
+            project = deal.convert_to_project(project_data)
+            
+            return Response({
+                "status": "Deal converted to project",
+                "project_id": project.id,
+                "project_name": project.name,
+            })
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    @action(detail=False, methods=["get"])
+    def stale(self, request):
+        """Get list of stale deals (DEAL-6)."""
+        stale_deals = self.get_queryset().filter(is_stale=True, is_active=True)
+        serializer = self.get_serializer(stale_deals, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=["get"])
+    def forecast(self, request):
+        """
+        Get pipeline forecast (DEAL-4 forecasting).
+        
+        Returns weighted value grouped by expected close date.
+        """
+        from django.db.models import Sum
+        from django.db.models.functions import TruncMonth
+        
+        active_deals = self.get_queryset().filter(is_active=True)
+        
+        # Group by month
+        forecast = active_deals.annotate(
+            month=TruncMonth("expected_close_date")
+        ).values("month").annotate(
+            deal_count=Count("id"),
+            total_value=Sum("value"),
+            weighted_value=Sum("weighted_value"),
+        ).order_by("month")
+        
+        return Response({
+            "total_pipeline_value": active_deals.aggregate(Sum("value"))["value__sum"] or 0,
+            "total_weighted_value": active_deals.aggregate(Sum("weighted_value"))["weighted_value__sum"] or 0,
+            "monthly_forecast": list(forecast),
+        })
+
+
+class DealTaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for DealTask management (DEAL-2).
+    
+    Tasks associated with deals.
+    
+    TIER 0: Scoped through deal relationship.
+    TIER 2.5: Portal users explicitly denied.
+    """
+    
+    queryset = DealTask.objects.all()
+    serializer_class = DealTaskSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["deal", "status", "priority", "assigned_to"]
+    search_fields = ["title", "description"]
+    ordering_fields = ["due_date", "priority", "created_at"]
+    ordering = ["due_date", "-priority"]
+    
+    def get_queryset(self):
+        """Filter tasks by firm through deal."""
+        user = self.request.user
+        return DealTask.objects.filter(deal__firm=user.firm)
+    
+    def perform_create(self, serializer):
+        """Set created_by on creation and update deal activity."""
+        task = serializer.save(created_by=self.request.user)
+        task.deal.update_last_activity()
+    
+    @action(detail=True, methods=["post"])
+    def complete(self, request, pk=None):
+        """Mark task as completed."""
+        task = self.get_object()
+        task.complete()
+        serializer = self.get_serializer(task)
+        return Response(serializer.data)
