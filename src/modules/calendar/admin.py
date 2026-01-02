@@ -64,6 +64,11 @@ class AppointmentTypeAdmin(admin.ModelAdmin):
         ("Duration & Buffers", {
             "fields": ("duration_minutes", "buffer_before_minutes", "buffer_after_minutes")
         }),
+        ("Multiple Durations (CAL-2)", {
+            "fields": ("enable_multiple_durations", "duration_options"),
+            "description": "Allow bookers to select from multiple duration options with optional pricing",
+            "classes": ("collapse",),
+        }),
         ("Location", {
             "fields": ("location_mode", "location_details")
         }),

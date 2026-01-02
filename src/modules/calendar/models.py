@@ -98,7 +98,24 @@ class AppointmentType(models.Model):
     )
 
     # Duration and buffers (per docs/34 section 2.1)
-    duration_minutes = models.IntegerField(help_text="Meeting duration in minutes")
+    duration_minutes = models.IntegerField(help_text="Meeting duration in minutes (default if multiple options not enabled)")
+    
+    # CAL-2: Multiple duration options
+    enable_multiple_durations = models.BooleanField(
+        default=False,
+        help_text="Allow bookers to choose from multiple duration options",
+    )
+    duration_options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=(
+            "Array of duration options in minutes (e.g., [15, 30, 60]). "
+            "If enabled, booker can select from these options. Each option can optionally include "
+            "pricing if duration-based pricing is used: "
+            "[{\"minutes\": 30, \"price\": 50.00, \"label\": \"30 min session\"}, ...]"
+        ),
+    )
+    
     buffer_before_minutes = models.IntegerField(
         default=0, help_text="Buffer time before meeting (minutes)"
     )
@@ -225,8 +242,80 @@ class AppointmentType(models.Model):
             # Note: ManyToMany validation happens after save, so we check in save() override
             pass
 
+        # CAL-2: Validate multiple duration options
+        if self.enable_multiple_durations:
+            if not self.duration_options:
+                errors["duration_options"] = "Multiple durations enabled but no options provided"
+            elif not isinstance(self.duration_options, list):
+                errors["duration_options"] = "Duration options must be a list"
+            elif len(self.duration_options) == 0:
+                errors["duration_options"] = "At least one duration option must be provided"
+            else:
+                # Validate each option
+                for idx, option in enumerate(self.duration_options):
+                    if isinstance(option, dict):
+                        # Extended format with pricing
+                        if "minutes" not in option:
+                            errors["duration_options"] = f"Option {idx}: 'minutes' field is required"
+                            break
+                        if not isinstance(option["minutes"], int) or option["minutes"] <= 0:
+                            errors["duration_options"] = f"Option {idx}: 'minutes' must be a positive integer"
+                            break
+                        if "price" in option:
+                            try:
+                                float(option["price"])
+                            except (ValueError, TypeError):
+                                errors["duration_options"] = f"Option {idx}: 'price' must be a number"
+                                break
+                    elif isinstance(option, int):
+                        # Simple format (just minutes)
+                        if option <= 0:
+                            errors["duration_options"] = f"Option {idx}: Duration must be positive"
+                            break
+                    else:
+                        errors["duration_options"] = f"Option {idx}: Must be an integer or dict with 'minutes' field"
+                        break
+
         if errors:
             raise ValidationError(errors)
+    
+    def get_available_durations(self):
+        """
+        Get list of available durations for this appointment type (CAL-2).
+        
+        Returns:
+            List of duration options, each as a dict with 'minutes', 'label', and optionally 'price'
+        """
+        if not self.enable_multiple_durations or not self.duration_options:
+            # Single duration mode
+            return [{
+                "minutes": self.duration_minutes,
+                "label": f"{self.duration_minutes} minutes",
+                "price": None,
+            }]
+        
+        # Multiple duration mode
+        result = []
+        for option in self.duration_options:
+            if isinstance(option, dict):
+                # Extended format
+                minutes = option.get("minutes")
+                label = option.get("label", f"{minutes} minutes")
+                price = option.get("price")
+                result.append({
+                    "minutes": minutes,
+                    "label": label,
+                    "price": price,
+                })
+            elif isinstance(option, int):
+                # Simple format (just minutes)
+                result.append({
+                    "minutes": option,
+                    "label": f"{option} minutes",
+                    "price": None,
+                })
+        
+        return result
 
 
 class AvailabilityProfile(models.Model):
@@ -536,6 +625,20 @@ class Appointment(models.Model):
     end_time = models.DateTimeField(help_text="Appointment end time (UTC)")
     timezone = models.CharField(
         max_length=100, default="UTC", help_text="Timezone for display"
+    )
+    
+    # CAL-2: Selected duration (for multiple duration options)
+    selected_duration_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Duration selected by booker (if multiple options were available)",
+    )
+    selected_duration_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Price for selected duration (if duration-based pricing is used)",
     )
 
     # Intake responses (JSON)

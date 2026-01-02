@@ -157,7 +157,7 @@
   - Collective event types (multiple hosts, overlapping availability)
   - Round Robin event types (distribute across team)
   
-- [ ] **CAL-2:** Add multiple duration options (4-6 hours)
+- [x] **CAL-2:** Add multiple duration options (4-6 hours) ✅ **COMPLETED** (January 2, 2026)
   - Multiple duration choices per event (15/30/60 min, custom)
   - Duration selection UI for bookers
   - Duration-based pricing (if applicable)

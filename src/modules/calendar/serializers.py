@@ -11,6 +11,9 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
     required_hosts_display = serializers.SerializerMethodField()
     optional_hosts_display = serializers.SerializerMethodField()
     round_robin_pool_display = serializers.SerializerMethodField()
+    
+    # CAL-2: Available duration options
+    available_durations = serializers.SerializerMethodField()
 
     class Meta:
         model = AppointmentType
@@ -28,8 +31,12 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             "optional_hosts_display",
             "round_robin_pool",
             "round_robin_pool_display",
-            # Original fields
+            # CAL-2: Duration fields
             "duration_minutes",
+            "enable_multiple_durations",
+            "duration_options",
+            "available_durations",
+            # Original fields
             "buffer_before_minutes",
             "buffer_after_minutes",
             "location_mode",
@@ -49,6 +56,7 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             "required_hosts_display",
             "optional_hosts_display",
             "round_robin_pool_display",
+            "available_durations",
             "created_at",
             "updated_at",
         ]
@@ -73,6 +81,10 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             {"id": user.id, "username": user.username, "email": user.email}
             for user in obj.round_robin_pool.all()
         ]
+    
+    def get_available_durations(self, obj):
+        """Return available duration options (CAL-2)."""
+        return obj.get_available_durations()
     
     def validate(self, data):
         """Validate event category-specific requirements."""
@@ -206,6 +218,9 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
             "start_time",
             "end_time",
             "timezone",
+            # CAL-2: Selected duration fields
+            "selected_duration_minutes",
+            "selected_duration_price",
             "intake_responses",
             "status",
             "status_reason",
