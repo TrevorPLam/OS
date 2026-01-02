@@ -1011,3 +1011,66 @@ class ContactBulkUpdateCreateSerializer(serializers.Serializer):
         
         return value
 
+
+# Contact Merging Serializers
+
+class ContactMergeConflictSerializer(serializers.Serializer):
+    """Serializer for a merge conflict."""
+    
+    field = serializers.CharField()
+    primary_value = serializers.CharField(allow_null=True, allow_blank=True)
+    secondary_value = serializers.CharField(allow_null=True, allow_blank=True)
+    resolution = serializers.CharField(allow_null=True, required=False)
+    resolved = serializers.BooleanField()
+
+
+class ContactMergePreviewSerializer(serializers.Serializer):
+    """Serializer for merge preview."""
+    
+    primary_id = serializers.IntegerField()
+    secondary_id = serializers.IntegerField()
+    conflicts = ContactMergeConflictSerializer(many=True)
+    merged_fields = serializers.JSONField()
+
+
+class ContactMergeRequestSerializer(serializers.Serializer):
+    """Serializer for initiating a contact merge."""
+    
+    primary_contact_id = serializers.IntegerField(
+        required=True,
+        help_text="ID of the contact to keep (master record)",
+    )
+    secondary_contact_id = serializers.IntegerField(
+        required=True,
+        help_text="ID of the contact to merge and delete",
+    )
+    conflict_resolutions = serializers.JSONField(
+        required=False,
+        default=dict,
+        help_text="Manual conflict resolutions: {field_name: resolution}",
+    )
+    auto_resolve_with_primary = serializers.BooleanField(
+        default=False,
+        help_text="Automatically resolve all conflicts with primary contact values",
+    )
+    
+    def validate(self, data):
+        """Validate that primary and secondary are different."""
+        if data['primary_contact_id'] == data['secondary_contact_id']:
+            raise serializers.ValidationError(
+                "Primary and secondary contacts must be different"
+            )
+        return data
+
+
+class PotentialDuplicateSerializer(serializers.Serializer):
+    """Serializer for potential duplicate contact pairs."""
+    
+    contact1_id = serializers.IntegerField()
+    contact1_name = serializers.CharField()
+    contact1_email = serializers.EmailField()
+    contact2_id = serializers.IntegerField()
+    contact2_name = serializers.CharField()
+    contact2_email = serializers.EmailField()
+    similarity_score = serializers.FloatField()
+
