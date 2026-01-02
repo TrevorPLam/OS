@@ -69,7 +69,7 @@
 #### Active Directory Integration (HIGH - 64-88 hours)
 **Status:** Deal-breaker for enterprise customers  
 **Dependencies:** None  
-**🔬 Research:** AD connector library selection
+**✅ Research Complete:** AD connector library selection - LDAP (ldap3) selected (see [docs/research/active-directory-integration-research.md](docs/research/active-directory-integration-research.md))
 
 - [ ] **AD-1:** Implement AD Organizational Unit sync (16-20 hours)
   - Connect to AD via LDAP
@@ -1278,7 +1278,7 @@
 The following tasks require additional research before implementation planning:
 
 #### High Priority Research
-- **AD Integration:** Active Directory connector library selection (LDAP vs custom)
+- ✅ **AD Integration:** Active Directory connector library selection - COMPLETE (LDAP via ldap3 selected - see [docs/research/active-directory-integration-research.md](docs/research/active-directory-integration-research.md))
 - ✅ **Visual Workflow Builder:** Library selection for drag-and-drop workflow canvas - COMPLETE (React Flow selected - see [docs/research/visual-workflow-builder-research.md](docs/research/visual-workflow-builder-research.md))
 - ✅ **ML Framework:** scikit-learn vs TensorFlow for lead scoring and predictions - COMPLETE (scikit-learn + XGBoost selected - see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
 
