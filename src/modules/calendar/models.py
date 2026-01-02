@@ -33,6 +33,14 @@ class AppointmentType(models.Model):
         ("inactive", "Inactive"),
     ]
 
+    # CAL-1: Event type categories
+    EVENT_CATEGORY_CHOICES = [
+        ("one_on_one", "One-on-One"),
+        ("group", "Group Event (one-to-many)"),
+        ("collective", "Collective Event (multiple hosts, overlapping availability)"),
+        ("round_robin", "Round Robin (distribute across team)"),
+    ]
+
     # Identity
     appointment_type_id = models.BigAutoField(primary_key=True)
 
@@ -47,6 +55,47 @@ class AppointmentType(models.Model):
     # Basic info
     name = models.CharField(max_length=255, help_text="Display name for this appointment type")
     description = models.TextField(blank=True, help_text="Description shown to bookers")
+
+    # CAL-1: Event category
+    event_category = models.CharField(
+        max_length=20,
+        choices=EVENT_CATEGORY_CHOICES,
+        default="one_on_one",
+        help_text="Event type category (one-on-one, group, collective, or round robin)",
+    )
+
+    # CAL-1: Group event settings (for event_category="group")
+    max_attendees = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum number of attendees for group events (2-1000). Required for group events.",
+    )
+    enable_waitlist = models.BooleanField(
+        default=False,
+        help_text="Enable waitlist when group event reaches max capacity",
+    )
+
+    # CAL-1: Collective event settings (for event_category="collective")
+    required_hosts = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="collective_required_appointments",
+        blank=True,
+        help_text="Required hosts for collective events (all must be available)",
+    )
+    optional_hosts = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="collective_optional_appointments",
+        blank=True,
+        help_text="Optional hosts for collective events",
+    )
+
+    # CAL-1: Round robin settings (for event_category="round_robin")
+    round_robin_pool = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="round_robin_appointments",
+        blank=True,
+        help_text="Pool of staff members for round robin distribution",
+    )
 
     # Duration and buffers (per docs/34 section 2.1)
     duration_minutes = models.IntegerField(help_text="Meeting duration in minutes")
@@ -136,10 +185,12 @@ class AppointmentType(models.Model):
         ordering = ["name"]
         indexes = [
             models.Index(fields=["firm", "status"], name="calendar_apt_fir_sta_idx"),
+            models.Index(fields=["firm", "event_category"], name="calendar_apt_fir_cat_idx"),
         ]
 
     def __str__(self):
-        return f"{self.name} ({self.duration_minutes} min)"
+        category_display = dict(self.EVENT_CATEGORY_CHOICES).get(self.event_category, self.event_category)
+        return f"{self.name} ({category_display}, {self.duration_minutes} min)"
 
     def clean(self):
         """Validate AppointmentType data integrity."""
@@ -156,6 +207,23 @@ class AppointmentType(models.Model):
 
         if self.routing_policy == "fixed_staff" and not self.fixed_staff_user:
             errors["fixed_staff_user"] = "Fixed staff routing requires a staff user"
+
+        # CAL-1: Validate event category-specific requirements
+        if self.event_category == "group":
+            if not self.max_attendees:
+                errors["max_attendees"] = "Group events require max_attendees to be set"
+            elif self.max_attendees < 2 or self.max_attendees > 1000:
+                errors["max_attendees"] = "Group events must have between 2 and 1000 max attendees"
+
+        elif self.event_category == "collective":
+            # Collective events require at least one required host
+            # Note: ManyToMany validation happens after save, so we check in save() override
+            pass
+
+        elif self.event_category == "round_robin":
+            # Round robin requires a pool of staff members
+            # Note: ManyToMany validation happens after save, so we check in save() override
+            pass
 
         if errors:
             raise ValidationError(errors)

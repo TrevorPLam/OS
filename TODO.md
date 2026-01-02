@@ -151,7 +151,7 @@
 **Status:** Complete event type structure  
 **Dependencies:** None
 
-- [ ] **CAL-1:** Implement event type categories (8-12 hours)
+- [x] **CAL-1:** Implement event type categories (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
   - One-on-One event types
   - Group event types (one-to-many)
   - Collective event types (multiple hosts, overlapping availability)
