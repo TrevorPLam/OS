@@ -133,6 +133,147 @@ class AccountContactViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVi
         """
         firm = get_request_firm(self.request)
         return AccountContact.objects.filter(account__firm=firm).select_related("account")
+    
+    @action(detail=False, methods=["get"])
+    def graph_view(self, request):
+        """
+        Get Contact 360° Graph View (CRM-INT-1).
+        
+        Returns a graph structure showing contacts, their accounts,
+        and relationships between accounts. Includes relationship
+        strength indicators based on activity and connection types.
+        
+        Query Parameters:
+        - contact_id: Optional contact ID to focus the graph on
+        - depth: Maximum relationship depth to traverse (default: 2)
+        - include_inactive: Include inactive contacts (default: false)
+        
+        TIER 0: Firm context automatically applied.
+        """
+        from django.db.models import Count, Q
+        
+        firm = get_request_firm(request)
+        contact_id = request.query_params.get("contact_id")
+        depth = int(request.query_params.get("depth", 2))
+        include_inactive = request.query_params.get("include_inactive", "false").lower() == "true"
+        
+        # Build base queryset
+        contacts_qs = AccountContact.objects.filter(account__firm=firm)
+        if not include_inactive:
+            contacts_qs = contacts_qs.filter(is_active=True)
+        
+        # If focusing on a specific contact, get related contacts
+        if contact_id:
+            try:
+                focus_contact = contacts_qs.get(id=contact_id)
+                # Get contacts from related accounts (via account relationships)
+                related_account_ids = set()
+                related_account_ids.add(focus_contact.account_id)
+                
+                # Get accounts related to the focus contact's account
+                relationships = AccountRelationship.objects.filter(
+                    Q(from_account_id=focus_contact.account_id) | Q(to_account_id=focus_contact.account_id),
+                    status="active"
+                )
+                for rel in relationships:
+                    related_account_ids.add(rel.from_account_id)
+                    related_account_ids.add(rel.to_account_id)
+                
+                contacts_qs = contacts_qs.filter(account_id__in=related_account_ids)
+            except AccountContact.DoesNotExist:
+                return Response({"error": "Contact not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Fetch contacts with activity counts for relationship strength
+        contacts = contacts_qs.select_related("account").annotate(
+            activity_count=Count("account__activities", distinct=True)
+        )[:100]  # Limit to 100 contacts for performance
+        
+        # Get account relationships for these contacts' accounts
+        account_ids = [c.account_id for c in contacts]
+        relationships = AccountRelationship.objects.filter(
+            Q(from_account_id__in=account_ids) | Q(to_account_id__in=account_ids),
+            status="active"
+        ).select_related("from_account", "to_account")
+        
+        # Build graph structure
+        nodes = []
+        edges = []
+        
+        # Add contact nodes
+        for contact in contacts:
+            node = {
+                "id": f"contact-{contact.id}",
+                "type": "contact",
+                "data": {
+                    "contact_id": contact.id,
+                    "name": contact.full_name,
+                    "email": contact.email,
+                    "job_title": contact.job_title or "",
+                    "is_primary": contact.is_primary_contact,
+                    "is_decision_maker": contact.is_decision_maker,
+                    "account_id": contact.account_id,
+                    "account_name": contact.account.name,
+                },
+                "strength": min(contact.activity_count / 10.0, 1.0),  # Normalize to 0-1
+            }
+            nodes.append(node)
+        
+        # Add account nodes (grouped)
+        account_map = {}
+        for contact in contacts:
+            if contact.account_id not in account_map:
+                account_map[contact.account_id] = {
+                    "id": f"account-{contact.account_id}",
+                    "type": "account",
+                    "data": {
+                        "account_id": contact.account_id,
+                        "name": contact.account.name,
+                        "account_type": contact.account.account_type,
+                        "industry": contact.account.industry or "",
+                    },
+                }
+        
+        nodes.extend(account_map.values())
+        
+        # Add edges from contacts to their accounts
+        for contact in contacts:
+            edges.append({
+                "id": f"edge-contact-{contact.id}-account-{contact.account_id}",
+                "source": f"contact-{contact.id}",
+                "target": f"account-{contact.account_id}",
+                "type": "belongs_to",
+                "strength": 1.0,
+            })
+        
+        # Add edges between accounts (relationships)
+        for rel in relationships:
+            if rel.from_account_id in account_ids and rel.to_account_id in account_ids:
+                # Calculate relationship strength based on type and activity
+                strength = 0.5
+                if rel.relationship_type in ["parent_subsidiary", "partnership"]:
+                    strength = 1.0
+                elif rel.relationship_type in ["vendor_client", "strategic_alliance"]:
+                    strength = 0.8
+                
+                edges.append({
+                    "id": f"edge-rel-{rel.id}",
+                    "source": f"account-{rel.from_account_id}",
+                    "target": f"account-{rel.to_account_id}",
+                    "type": "relationship",
+                    "relationship_type": rel.relationship_type,
+                    "strength": strength,
+                })
+        
+        return Response({
+            "nodes": nodes,
+            "edges": edges,
+            "metadata": {
+                "total_contacts": len([n for n in nodes if n["type"] == "contact"]),
+                "total_accounts": len([n for n in nodes if n["type"] == "account"]),
+                "total_relationships": len([e for e in edges if e["type"] == "relationship"]),
+                "focus_contact_id": contact_id,
+            }
+        })
 
 
 class AccountRelationshipViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
