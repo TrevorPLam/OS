@@ -655,3 +655,177 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(detail=True, methods=["post"], url_path="register-attendee")
+    def register_attendee(self, request, pk=None):
+        """
+        Register an attendee for a group event (TEAM-3).
+
+        Handles capacity checking and waitlist management automatically.
+        """
+        appointment = self.get_object()
+
+        # Verify it's a group event
+        if appointment.appointment_type.event_category != "group":
+            return Response(
+                {"error": "This endpoint only works with group event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get attendee information
+        contact_id = request.data.get("contact_id")
+        attendee_name = request.data.get("attendee_name", "")
+        attendee_email = request.data.get("attendee_email", "")
+
+        contact = None
+        if contact_id:
+            from modules.clients.models import Contact
+            try:
+                contact = Contact.objects.get(id=contact_id, firm=request.firm)
+            except Contact.DoesNotExist:
+                return Response(
+                    {"error": "Contact not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        # Register attendee
+        from modules.calendar.services import GroupEventService
+        group_service = GroupEventService()
+        
+        try:
+            result, is_waitlisted = group_service.register_attendee(
+                appointment=appointment,
+                contact=contact,
+                attendee_name=attendee_name,
+                attendee_email=attendee_email,
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get capacity info
+        capacity_info = group_service.get_capacity_info(appointment)
+
+        if is_waitlisted:
+            return Response(
+                {
+                    "message": "Added to waitlist",
+                    "waitlist_position": result.waitlist_id,
+                    "capacity_info": capacity_info,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {
+                    "message": "Registered successfully",
+                    "attendee_id": result.attendee_id,
+                    "capacity_info": capacity_info,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+    @action(detail=True, methods=["post"], url_path="cancel-attendee")
+    def cancel_attendee(self, request, pk=None):
+        """
+        Cancel an attendee from a group event (TEAM-3).
+
+        Automatically promotes from waitlist if available.
+        """
+        appointment = self.get_object()
+
+        # Verify it's a group event
+        if appointment.appointment_type.event_category != "group":
+            return Response(
+                {"error": "This endpoint only works with group event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        attendee_id = request.data.get("attendee_id")
+        if not attendee_id:
+            return Response(
+                {"error": "attendee_id is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from modules.calendar.services import GroupEventService
+        group_service = GroupEventService()
+        
+        try:
+            cancelled_attendee, promoted_entry = group_service.cancel_attendee(
+                appointment=appointment,
+                attendee_id=attendee_id,
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        response_data = {
+            "message": "Attendee cancelled",
+            "cancelled_attendee_id": cancelled_attendee.attendee_id,
+        }
+
+        if promoted_entry:
+            response_data["promoted_from_waitlist"] = {
+                "waitlist_id": promoted_entry.waitlist_id,
+                "name": promoted_entry.contact.name if promoted_entry.contact else promoted_entry.waitlist_name,
+            }
+
+        # Get updated capacity info
+        capacity_info = group_service.get_capacity_info(appointment)
+        response_data["capacity_info"] = capacity_info
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"], url_path="group-attendees")
+    def group_attendees(self, request, pk=None):
+        """
+        Get the list of attendees for a group event (TEAM-3).
+        """
+        appointment = self.get_object()
+
+        if appointment.appointment_type.event_category != "group":
+            return Response(
+                {"error": "This endpoint only works with group event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from modules.calendar.services import GroupEventService
+        group_service = GroupEventService()
+        
+        attendees = group_service.get_attendee_list(appointment)
+        waitlist = group_service.get_waitlist(appointment)
+        capacity_info = group_service.get_capacity_info(appointment)
+
+        attendees_data = [
+            {
+                "attendee_id": a.attendee_id,
+                "name": a.contact.name if a.contact else a.attendee_name,
+                "email": a.contact.email if a.contact else a.attendee_email,
+                "status": a.status,
+                "registered_at": a.registered_at.isoformat(),
+            }
+            for a in attendees
+        ]
+
+        waitlist_data = [
+            {
+                "waitlist_id": w.waitlist_id,
+                "name": w.contact.name if w.contact else w.waitlist_name,
+                "email": w.contact.email if w.contact else w.waitlist_email,
+                "priority": w.priority,
+                "joined_at": w.joined_at.isoformat(),
+            }
+            for w in waitlist
+        ]
+
+        return Response(
+            {
+                "capacity_info": capacity_info,
+                "attendees": attendees_data,
+                "waitlist": waitlist_data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
