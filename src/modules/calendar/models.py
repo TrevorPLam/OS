@@ -115,6 +115,48 @@ class AppointmentType(models.Model):
         help_text="Pool of staff members for round robin distribution",
     )
 
+    # TEAM-2: Advanced round robin settings
+    ROUND_ROBIN_STRATEGY_CHOICES = [
+        ("strict", "Strict Round Robin (equal distribution regardless of availability)"),
+        ("optimize_availability", "Optimize for Availability (favor most available)"),
+        ("weighted", "Weighted Distribution (configurable weights per team member)"),
+        ("prioritize_capacity", "Prioritize by Capacity (route to least-booked)"),
+    ]
+    round_robin_strategy = models.CharField(
+        max_length=30,
+        choices=ROUND_ROBIN_STRATEGY_CHOICES,
+        default="strict",
+        blank=True,
+        help_text="Strategy for distributing appointments in round robin pool",
+    )
+    round_robin_weights = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Weights for weighted distribution strategy. "
+            "Format: {user_id: weight}, e.g. {1: 2.0, 2: 1.5, 3: 1.0}. "
+            "Higher weight = more appointments assigned."
+        ),
+    )
+    round_robin_capacity_per_day = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum appointments per person per day in round robin pool (null = unlimited)",
+    )
+    round_robin_enable_rebalancing = models.BooleanField(
+        default=False,
+        help_text="Automatically rebalance distribution when imbalanced",
+    )
+    round_robin_rebalancing_threshold = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.20,
+        help_text=(
+            "Percentage threshold for rebalancing (e.g., 0.20 = trigger rebalance "
+            "if any member is more than 20% off the average)"
+        ),
+    )
+
     # Duration and buffers (per docs/34 section 2.1)
     duration_minutes = models.IntegerField(
         help_text="Meeting duration in minutes (default if multiple options not enabled)"

@@ -52,6 +52,92 @@ class AppointmentTypeViewSet(viewsets.ModelViewSet):
         """Set firm and created_by on create."""
         serializer.save(firm=self.request.firm, created_by=self.request.user)
 
+    @action(detail=True, methods=["get"], url_path="round-robin-stats")
+    def round_robin_stats(self, request, pk=None):
+        """
+        Get round robin distribution statistics for this appointment type (TEAM-2).
+
+        Shows appointment counts per staff member and whether rebalancing is needed.
+        """
+        appointment_type = self.get_object()
+
+        if appointment_type.routing_policy != "round_robin_pool":
+            return Response(
+                {"error": "This endpoint only works with round robin appointment types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pool = list(appointment_type.round_robin_pool.all())
+        
+        if not pool:
+            return Response(
+                {"pool_members": [], "needs_rebalancing": False, "message": "Round robin pool is empty"},
+                status=status.HTTP_200_OK,
+            )
+
+        # Get counts for each pool member
+        stats = []
+        total_count = 0
+        for staff in pool:
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                status__in=["requested", "confirmed"],
+            ).count()
+            
+            # Get recent count (last 30 days)
+            from django.utils import timezone as django_tz
+            recent_cutoff = django_tz.now() - timedelta(days=30)
+            recent_count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                start_time__gte=recent_cutoff,
+                status__in=["requested", "confirmed", "completed"],
+            ).count()
+
+            weight = appointment_type.round_robin_weights.get(str(staff.id), 1.0)
+            
+            stats.append({
+                "staff_id": staff.id,
+                "staff_username": staff.username,
+                "total_appointments": count,
+                "recent_appointments_30d": recent_count,
+                "weight": weight,
+                "weighted_ratio": count / weight if weight > 0 else 0,
+            })
+            total_count += count
+
+        # Calculate average
+        avg_count = total_count / len(pool) if pool else 0
+
+        # Check if needs rebalancing
+        from modules.calendar.services import RoundRobinService
+        rr_service = RoundRobinService()
+        needs_rebalancing = rr_service._needs_rebalancing(appointment_type)
+
+        # Calculate deviation for each member
+        for stat in stats:
+            deviation = abs(stat["total_appointments"] - avg_count) / avg_count if avg_count > 0 else 0
+            stat["deviation_from_average"] = deviation
+
+        # Sort by total appointments (descending)
+        stats.sort(key=lambda x: x["total_appointments"], reverse=True)
+
+        return Response(
+            {
+                "appointment_type_id": appointment_type.appointment_type_id,
+                "appointment_type_name": appointment_type.name,
+                "strategy": appointment_type.round_robin_strategy,
+                "pool_size": len(pool),
+                "total_appointments": total_count,
+                "average_appointments": avg_count,
+                "needs_rebalancing": needs_rebalancing,
+                "rebalancing_threshold": float(appointment_type.round_robin_rebalancing_threshold),
+                "pool_members": stats,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class AvailabilityProfileViewSet(viewsets.ModelViewSet):
     """
@@ -164,7 +250,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 {"error": "Appointment type not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
+        # Calculate end time first (needed for round robin routing)
+        start_time = serializer.validated_data["start_time"]
+        end_time = start_time + timedelta(minutes=appointment_type.duration_minutes)
+
         # Route to staff user (per docs/34 section 2.4)
+        # TEAM-2: Pass start_time and end_time for advanced round robin
         routing_service = RoutingService()
         account = serializer.validated_data.get("account")
         engagement = serializer.validated_data.get("engagement")
@@ -172,6 +263,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             appointment_type=appointment_type,
             account=account,
             engagement=engagement,
+            start_time=start_time,
+            end_time=end_time,
         )
 
         if not staff_user:
@@ -180,9 +273,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Calculate end time
-        start_time = serializer.validated_data["start_time"]
-        end_time = start_time + timedelta(minutes=appointment_type.duration_minutes)
 
         # Book appointment (per docs/34 section 4.5: atomic transaction)
         booking_service = BookingService()
