@@ -18,7 +18,6 @@ from modules.clients.health_score_calculator import HealthScoreCalculator, calcu
 from modules.clients.serializers import (
     ClientHealthScoreSerializer,
 )
-from modules.firm.permissions import HasFirmPermission
 
 
 class ClientHealthScoreViewSet(viewsets.ModelViewSet):
@@ -33,7 +32,7 @@ class ClientHealthScoreViewSet(viewsets.ModelViewSet):
     """
     
     serializer_class = ClientHealthScoreSerializer
-    permission_classes = [IsAuthenticated, HasFirmPermission]
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         """Filter scores to current firm (via client relationship)."""
