@@ -14,12 +14,8 @@ from modules.clients.models import (
     ClientMessage,
     ClientNote,
     ClientPortalUser,
-    Organization,
-)
-from modules.clients.health_score import (
     ClientHealthScore,
-    ClientHealthScoreConfig,
-    ClientHealthScoreAlert,
+    Organization,
 )
 
 
@@ -1151,166 +1147,57 @@ class PrebuiltSegmentSerializer(serializers.Serializer):
     parameters = serializers.JSONField(required=False)
 
 
-class ClientHealthScoreConfigSerializer(serializers.ModelSerializer):
-    """Serializer for ClientHealthScoreConfig model."""
-    
-    created_by_name = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = ClientHealthScoreConfig
-        fields = [
-            "id",
-            "firm",
-            "engagement_weight",
-            "payment_weight",
-            "communication_weight",
-            "project_delivery_weight",
-            "alert_threshold",
-            "at_risk_threshold",
-            "lookback_days",
-            "is_active",
-            "created_at",
-            "updated_at",
-            "created_by",
-            "created_by_name",
-        ]
-        read_only_fields = ["firm", "created_at", "updated_at", "created_by"]
-    
-    def get_created_by_name(self, obj):
-        """Return name of user who created this config."""
-        if obj.created_by:
-            return f"{obj.created_by.first_name} {obj.created_by.last_name}".strip() or obj.created_by.email
-        return None
-    
-    def validate(self, data):
-        """Validate that weights sum to 100."""
-        weights = [
-            data.get("engagement_weight", 25),
-            data.get("payment_weight", 30),
-            data.get("communication_weight", 20),
-            data.get("project_delivery_weight", 25),
-        ]
-        
-        total = sum(weights)
-        if total != 100:
-            raise serializers.ValidationError(
-                f"Factor weights must sum to 100, got {total}"
-            )
-        
-        return data
-
-
 class ClientHealthScoreSerializer(serializers.ModelSerializer):
     """Serializer for ClientHealthScore model."""
     
     client_name = serializers.CharField(source="client.company_name", read_only=True)
-    score_trend = serializers.SerializerMethodField()
     
     class Meta:
         model = ClientHealthScore
         fields = [
             "id",
-            "firm",
             "client",
             "client_name",
             "score",
-            "engagement_score",
-            "payment_score",
-            "communication_score",
-            "project_delivery_score",
-            "calculation_metadata",
-            "previous_score",
-            "score_change",
             "score_trend",
-            "is_at_risk",
-            "triggered_alert",
-            "calculated_at",
-        ]
-        read_only_fields = [
-            "id",
-            "firm",
-            "score",
             "engagement_score",
             "payment_score",
             "communication_score",
-            "project_delivery_score",
-            "calculation_metadata",
-            "previous_score",
-            "score_change",
+            "delivery_score",
+            "engagement_weight",
+            "payment_weight",
+            "communication_weight",
+            "delivery_weight",
+            "days_since_last_activity",
+            "overdue_invoice_count",
+            "overdue_invoice_amount",
+            "avg_payment_delay_days",
+            "email_response_rate",
+            "project_completion_rate",
+            "alert_threshold",
             "is_at_risk",
-            "triggered_alert",
-            "calculated_at",
-        ]
-    
-    def get_score_trend(self, obj):
-        """Return trend indicator (up, down, stable)."""
-        if obj.score_change > 0:
-            return "up"
-        elif obj.score_change < 0:
-            return "down"
-        return "stable"
-
-
-class ClientHealthScoreAlertSerializer(serializers.ModelSerializer):
-    """Serializer for ClientHealthScoreAlert model."""
-    
-    client_name = serializers.CharField(source="client.company_name", read_only=True)
-    acknowledged_by_name = serializers.SerializerMethodField()
-    resolved_by_name = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = ClientHealthScoreAlert
-        fields = [
-            "id",
-            "firm",
-            "client",
-            "client_name",
-            "health_score",
-            "status",
-            "score_drop",
+            "alert_sent_at",
             "previous_score",
-            "current_score",
-            "acknowledged_at",
-            "acknowledged_by",
-            "acknowledged_by_name",
-            "resolution_notes",
-            "resolved_at",
-            "resolved_by",
-            "resolved_by_name",
+            "score_history",
+            "last_calculated_at",
             "created_at",
-            "updated_at",
         ]
         read_only_fields = [
             "id",
-            "firm",
-            "client",
-            "health_score",
-            "score_drop",
+            "client_name",
+            "score",
+            "score_trend",
+            "days_since_last_activity",
+            "overdue_invoice_count",
+            "overdue_invoice_amount",
+            "avg_payment_delay_days",
+            "email_response_rate",
+            "project_completion_rate",
+            "is_at_risk",
+            "alert_sent_at",
             "previous_score",
-            "current_score",
+            "score_history",
+            "last_calculated_at",
             "created_at",
-            "updated_at",
         ]
-    
-    def get_acknowledged_by_name(self, obj):
-        """Return name of user who acknowledged this alert."""
-        if obj.acknowledged_by:
-            return f"{obj.acknowledged_by.first_name} {obj.acknowledged_by.last_name}".strip() or obj.acknowledged_by.email
-        return None
-    
-    def get_resolved_by_name(self, obj):
-        """Return name of user who resolved this alert."""
-        if obj.resolved_by:
-            return f"{obj.resolved_by.first_name} {obj.resolved_by.last_name}".strip() or obj.resolved_by.email
-        return None
-
-
-class ClientHealthScoreSummarySerializer(serializers.Serializer):
-    """Serializer for health score summary statistics."""
-    
-    total_clients = serializers.IntegerField()
-    at_risk_count = serializers.IntegerField()
-    pending_alerts = serializers.IntegerField()
-    average_score = serializers.FloatField()
-    score_distribution = serializers.DictField()
 

@@ -15,43 +15,26 @@ from typing import Dict, Any, Optional
 from django.db.models import Avg, Count, Sum, Q, F
 from django.utils import timezone
 
-from modules.clients.models import Client
-from modules.clients.health_score import ClientHealthScore, ClientHealthScoreConfig, ClientHealthScoreAlert
+from modules.clients.models import Client, ClientHealthScore
 
 
 class HealthScoreCalculator:
     """Calculator for client health scores."""
     
-    def __init__(self, client: Client, config: Optional[ClientHealthScoreConfig] = None):
+    def __init__(self, client: Client, lookback_days: int = 90):
         """
         Initialize calculator for a client.
         
         Args:
             client: Client to calculate score for
-            config: Optional custom config (defaults to firm's active config)
+            lookback_days: Days to look back for historical data
         """
         self.client = client
         self.firm = client.firm
-        
-        # Get or create config
-        if config is None:
-            config, _ = ClientHealthScoreConfig.objects.get_or_create(
-                firm=self.firm,
-                is_active=True,
-                defaults={
-                    "engagement_weight": 25,
-                    "payment_weight": 30,
-                    "communication_weight": 20,
-                    "project_delivery_weight": 25,
-                    "alert_threshold": 20,
-                    "at_risk_threshold": 50,
-                    "lookback_days": 90,
-                }
-            )
-        self.config = config
+        self.lookback_days = lookback_days
         
         # Calculate lookback date
-        self.lookback_date = timezone.now() - timedelta(days=self.config.lookback_days)
+        self.lookback_date = timezone.now() - timedelta(days=self.lookback_days)
     
     def calculate(self) -> ClientHealthScore:
         """
@@ -60,79 +43,56 @@ class HealthScoreCalculator:
         Returns:
             ClientHealthScore instance with calculated scores
         """
+        # Get or create health score record for this client
+        health_score, created = ClientHealthScore.objects.get_or_create(
+            client=self.client,
+            defaults={
+                "score": 75,
+                "engagement_score": 75,
+                "payment_score": 75,
+                "communication_score": 75,
+                "delivery_score": 75,
+            }
+        )
+        
+        # Save previous score for trend calculation
+        if not created:
+            health_score.previous_score = health_score.score
+        
         # Calculate individual factor scores
         engagement_score = self._calculate_engagement_score()
         payment_score = self._calculate_payment_score()
         communication_score = self._calculate_communication_score()
         project_delivery_score = self._calculate_project_delivery_score()
         
+        # Update factor scores
+        health_score.engagement_score = engagement_score
+        health_score.payment_score = payment_score
+        health_score.communication_score = communication_score
+        health_score.delivery_score = project_delivery_score
+        
+        # Update metrics
+        health_score.days_since_last_activity = self._calculate_days_since_last_activity()
+        health_score.overdue_invoice_count = self._calculate_overdue_invoice_count()
+        health_score.overdue_invoice_amount = self._calculate_overdue_invoice_amount()
+        health_score.avg_payment_delay_days = self._calculate_avg_payment_delay()
+        health_score.email_response_rate = self._calculate_email_response_rate()
+        health_score.project_completion_rate = self._calculate_project_completion_rate()
+        
         # Calculate weighted overall score
-        overall_score = int(
-            (engagement_score * self.config.engagement_weight / 100) +
-            (payment_score * self.config.payment_weight / 100) +
-            (communication_score * self.config.communication_weight / 100) +
-            (project_delivery_score * self.config.project_delivery_weight / 100)
-        )
+        health_score.score = health_score.calculate_score()
         
-        # Get previous score for comparison
-        previous_health_score = ClientHealthScore.objects.filter(
-            client=self.client
-        ).order_by("-calculated_at").first()
+        # Update trend
+        health_score.update_trend()
         
-        previous_score = previous_health_score.score if previous_health_score else None
-        score_change = overall_score - previous_score if previous_score is not None else 0
+        # Check at-risk status
+        health_score.check_at_risk()
         
-        # Determine if at risk
-        is_at_risk = overall_score < self.config.at_risk_threshold
+        # Save to history
+        health_score.save_to_history()
         
-        # Determine if alert should be triggered
-        triggered_alert = False
-        if previous_score is not None and score_change < 0:
-            triggered_alert = abs(score_change) >= self.config.alert_threshold
-        
-        # Build calculation metadata
-        metadata = {
-            "engagement": self._get_engagement_metadata(),
-            "payment": self._get_payment_metadata(),
-            "communication": self._get_communication_metadata(),
-            "project_delivery": self._get_project_delivery_metadata(),
-            "config": {
-                "engagement_weight": self.config.engagement_weight,
-                "payment_weight": self.config.payment_weight,
-                "communication_weight": self.config.communication_weight,
-                "project_delivery_weight": self.config.project_delivery_weight,
-                "lookback_days": self.config.lookback_days,
-            },
-            "calculation_date": timezone.now().isoformat(),
-        }
-        
-        # Create health score record
-        health_score = ClientHealthScore.objects.create(
-            firm=self.firm,
-            client=self.client,
-            score=overall_score,
-            engagement_score=engagement_score,
-            payment_score=payment_score,
-            communication_score=communication_score,
-            project_delivery_score=project_delivery_score,
-            calculation_metadata=metadata,
-            previous_score=previous_score,
-            score_change=score_change,
-            is_at_risk=is_at_risk,
-            triggered_alert=triggered_alert,
-        )
-        
-        # Create alert if triggered
-        if triggered_alert:
-            ClientHealthScoreAlert.objects.create(
-                firm=self.firm,
-                client=self.client,
-                health_score=health_score,
-                status="pending",
-                score_drop=abs(score_change),
-                previous_score=previous_score,
-                current_score=overall_score,
-            )
+        # Save the updated health score
+        health_score.save()
         
         return health_score
     
@@ -170,7 +130,7 @@ class HealthScoreCalculator:
         
         if recent_projects > 0 or recent_invoices > 0:
             score += 30
-        elif (timezone.now().date() - self.client.created_at.date()).days < self.config.lookback_days:
+        elif (timezone.now().date() - self.client.created_at.date()).days < self.lookback_days:
             # New client, give benefit of the doubt
             score += 20
         
@@ -226,10 +186,6 @@ class HealthScoreCalculator:
             disputed_ratio = disputed_invoices / total_invoices
             score -= int(15 * disputed_ratio)
         
-        # Paid on time (+0 points, already at 100)
-        paid_invoices = invoices.filter(status="paid").count()
-        on_time_ratio = paid_invoices / total_invoices if total_invoices > 0 else 0
-        
         # Partial payments (-10 points max)
         partial_invoices = invoices.filter(status="partial").count()
         if partial_invoices > 0:
@@ -247,14 +203,12 @@ class HealthScoreCalculator:
         - Response rate
         - Recent communication activity
         """
-        from modules.communications.models import Conversation, Message
+        from modules.communications.models import Conversation
+        from modules.projects.models import Project
         
         score = 50  # Start at neutral
         
         # Find conversations related to this client
-        # Look for conversations linked to client or their projects
-        from modules.projects.models import Project
-        
         client_projects = Project.objects.filter(client=self.client).values_list("id", flat=True)
         
         conversations = Conversation.objects.filter(
@@ -313,9 +267,6 @@ class HealthScoreCalculator:
             completion_ratio = completed_projects / total_projects
             score += int(20 * completion_ratio)
         
-        # Active projects (0 points, neutral)
-        active_projects = projects.filter(status="active").count()
-        
         # On hold projects (-10 points max)
         on_hold_projects = projects.filter(status="on_hold").count()
         if on_hold_projects > 0:
@@ -330,90 +281,103 @@ class HealthScoreCalculator:
         
         return max(0, min(100, score))
     
-    def _get_engagement_metadata(self) -> Dict[str, Any]:
-        """Get detailed engagement metrics."""
+    def _calculate_days_since_last_activity(self) -> int:
+        """Calculate days since last client activity."""
         from modules.projects.models import Project
         from modules.finance.models import Invoice
-        
-        return {
-            "active_projects_count": self.client.active_projects_count,
-            "recent_projects_count": Project.objects.filter(
-                client=self.client,
-                created_at__gte=self.lookback_date
-            ).count(),
-            "recent_invoices_count": Invoice.objects.filter(
-                client=self.client,
-                created_at__gte=self.lookback_date
-            ).count(),
-            "client_status": self.client.status,
-            "client_age_days": (timezone.now().date() - self.client.created_at.date()).days,
-        }
-    
-    def _get_payment_metadata(self) -> Dict[str, Any]:
-        """Get detailed payment metrics."""
-        from modules.finance.models import Invoice
-        
-        invoices = Invoice.objects.filter(
-            client=self.client,
-            created_at__gte=self.lookback_date
-        )
-        
-        return {
-            "total_invoices": invoices.count(),
-            "paid_invoices": invoices.filter(status="paid").count(),
-            "overdue_invoices": invoices.filter(status="overdue").count(),
-            "failed_invoices": invoices.filter(status="failed").count(),
-            "disputed_invoices": invoices.filter(status="disputed").count(),
-            "partial_invoices": invoices.filter(status="partial").count(),
-            "total_amount_due": float(invoices.aggregate(
-                total=Sum("total_amount")
-            )["total"] or Decimal("0.00")),
-        }
-    
-    def _get_communication_metadata(self) -> Dict[str, Any]:
-        """Get detailed communication metrics."""
         from modules.communications.models import Conversation
-        from modules.projects.models import Project
         
-        client_projects = Project.objects.filter(client=self.client).values_list("id", flat=True)
+        # Check various activity sources
+        last_project = Project.objects.filter(client=self.client).order_by("-created_at").first()
+        last_invoice = Invoice.objects.filter(client=self.client).order_by("-created_at").first()
         
-        conversations = Conversation.objects.filter(
-            firm=self.firm,
-            last_message_at__gte=self.lookback_date
-        ).filter(
-            Q(primary_object_type="Client", primary_object_id=self.client.id) |
-            Q(primary_object_type="Project", primary_object_id__in=client_projects)
-        )
+        latest_date = None
         
-        return {
-            "conversation_count": conversations.count(),
-            "total_messages": conversations.aggregate(total=Sum("message_count"))["total"] or 0,
-        }
+        if last_project and last_project.created_at:
+            latest_date = last_project.created_at
+        
+        if last_invoice and last_invoice.created_at:
+            if latest_date is None or last_invoice.created_at > latest_date:
+                latest_date = last_invoice.created_at
+        
+        if latest_date:
+            return (timezone.now() - latest_date).days
+        
+        return (timezone.now().date() - self.client.created_at.date()).days
     
-    def _get_project_delivery_metadata(self) -> Dict[str, Any]:
-        """Get detailed project delivery metrics."""
-        from modules.projects.models import Project
+    def _calculate_overdue_invoice_count(self) -> int:
+        """Calculate number of overdue invoices."""
+        from modules.finance.models import Invoice
         
-        projects = Project.objects.filter(
+        return Invoice.objects.filter(
             client=self.client,
-            created_at__gte=self.lookback_date
+            status="overdue"
+        ).count()
+    
+    def _calculate_overdue_invoice_amount(self) -> Decimal:
+        """Calculate total overdue invoice amount."""
+        from modules.finance.models import Invoice
+        
+        result = Invoice.objects.filter(
+            client=self.client,
+            status="overdue"
+        ).aggregate(total=Sum("total_amount"))
+        
+        return result["total"] or Decimal("0.00")
+    
+    def _calculate_avg_payment_delay(self) -> int:
+        """Calculate average payment delay in days."""
+        from modules.finance.models import Invoice
+        
+        paid_invoices = Invoice.objects.filter(
+            client=self.client,
+            status="paid",
+            paid_date__isnull=False,
+            due_date__isnull=False
         )
         
-        return {
-            "total_projects": projects.count(),
-            "completed_projects": projects.filter(status="completed").count(),
-            "active_projects": projects.filter(status="active").count(),
-            "on_hold_projects": projects.filter(status="on_hold").count(),
-            "cancelled_projects": projects.filter(status="cancelled").count(),
-        }
+        if not paid_invoices.exists():
+            return 0
+        
+        total_delay = 0
+        count = 0
+        
+        for invoice in paid_invoices:
+            if invoice.paid_date and invoice.due_date:
+                delay = (invoice.paid_date - invoice.due_date).days
+                if delay > 0:  # Only count late payments
+                    total_delay += delay
+                    count += 1
+        
+        return total_delay // count if count > 0 else 0
+    
+    def _calculate_email_response_rate(self) -> Decimal:
+        """Calculate email response rate percentage."""
+        # Placeholder - would need email tracking to calculate
+        return Decimal("80.00")
+    
+    def _calculate_project_completion_rate(self) -> Decimal:
+        """Calculate project completion rate percentage."""
+        from modules.projects.models import Project
+        
+        projects = Project.objects.filter(client=self.client)
+        total_projects = projects.count()
+        
+        if total_projects == 0:
+            return Decimal("100.00")
+        
+        completed_projects = projects.filter(status="completed").count()
+        
+        return Decimal(str(round((completed_projects / total_projects) * 100, 2)))
 
 
-def calculate_all_client_health_scores(firm_id: int) -> int:
+def calculate_all_client_health_scores(firm_id: int, lookback_days: int = 90) -> int:
     """
     Calculate health scores for all active clients in a firm.
     
     Args:
         firm_id: ID of the firm
+        lookback_days: Days to look back for historical data
         
     Returns:
         Number of clients processed
@@ -425,7 +389,7 @@ def calculate_all_client_health_scores(firm_id: int) -> int:
     
     count = 0
     for client in clients:
-        calculator = HealthScoreCalculator(client)
+        calculator = HealthScoreCalculator(client, lookback_days)
         calculator.calculate()
         count += 1
     

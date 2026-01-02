@@ -12,14 +12,10 @@ from modules.clients.models import (
     ClientMessage,
     ClientNote,
     ClientPortalUser,
+    ClientHealthScore,
     Contact,
     EngagementLine,
     Organization,
-)
-from modules.clients.health_score import (
-    ClientHealthScore,
-    ClientHealthScoreConfig,
-    ClientHealthScoreAlert,
 )
 
 
@@ -599,105 +595,50 @@ class OrganizationAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(ClientHealthScoreConfig)
-class ClientHealthScoreConfigAdmin(admin.ModelAdmin):
-    list_display = (
-        "firm",
-        "is_active",
-        "engagement_weight",
-        "payment_weight",
-        "communication_weight",
-        "project_delivery_weight",
-        "alert_threshold",
-        "at_risk_threshold",
-    )
-    list_filter = ("is_active", "firm")
-    search_fields = ("firm__name",)
-    readonly_fields = ("created_at", "updated_at")
-    raw_id_fields = ("created_by",)
-
-    fieldsets = (
-        (
-            "Firm",
-            {
-                "fields": ("firm", "is_active"),
-            },
-        ),
-        (
-            "Factor Weights (must sum to 100)",
-            {
-                "fields": (
-                    "engagement_weight",
-                    "payment_weight",
-                    "communication_weight",
-                    "project_delivery_weight",
-                ),
-            },
-        ),
-        (
-            "Alert Thresholds",
-            {
-                "fields": ("alert_threshold", "at_risk_threshold"),
-            },
-        ),
-        (
-            "Calculation Settings",
-            {
-                "fields": ("lookback_days",),
-            },
-        ),
-        (
-            "Audit",
-            {
-                "fields": ("created_by", "created_at", "updated_at"),
-                "classes": ("collapse",),
-            },
-        ),
-    )
-
-
 @admin.register(ClientHealthScore)
 class ClientHealthScoreAdmin(admin.ModelAdmin):
     list_display = (
         "client",
         "score",
+        "score_trend",
         "engagement_score",
         "payment_score",
         "communication_score",
-        "project_delivery_score",
+        "delivery_score",
         "is_at_risk",
-        "triggered_alert",
-        "calculated_at",
+        "last_calculated_at",
     )
-    list_filter = ("is_at_risk", "triggered_alert", "calculated_at")
-    search_fields = ("client__company_name", "firm__name")
+    list_filter = ("is_at_risk", "score_trend", "last_calculated_at")
+    search_fields = ("client__company_name",)
     readonly_fields = (
-        "firm",
         "client",
         "score",
-        "engagement_score",
-        "payment_score",
-        "communication_score",
-        "project_delivery_score",
-        "calculation_metadata",
-        "previous_score",
-        "score_change",
+        "score_trend",
+        "days_since_last_activity",
+        "overdue_invoice_count",
+        "overdue_invoice_amount",
+        "avg_payment_delay_days",
+        "email_response_rate",
+        "project_completion_rate",
         "is_at_risk",
-        "triggered_alert",
-        "calculated_at",
+        "alert_sent_at",
+        "previous_score",
+        "score_history",
+        "last_calculated_at",
+        "created_at",
     )
 
     fieldsets = (
         (
             "Client",
             {
-                "fields": ("firm", "client"),
+                "fields": ("client",),
             },
         ),
         (
             "Overall Score",
             {
-                "fields": ("score", "previous_score", "score_change"),
+                "fields": ("score", "score_trend", "previous_score", "is_at_risk"),
             },
         ),
         (
@@ -707,86 +648,52 @@ class ClientHealthScoreAdmin(admin.ModelAdmin):
                     "engagement_score",
                     "payment_score",
                     "communication_score",
-                    "project_delivery_score",
+                    "delivery_score",
                 ),
             },
         ),
         (
-            "Alerts",
+            "Factor Weights",
             {
-                "fields": ("is_at_risk", "triggered_alert"),
+                "fields": (
+                    "engagement_weight",
+                    "payment_weight",
+                    "communication_weight",
+                    "delivery_weight",
+                ),
             },
         ),
         (
-            "Metadata",
+            "Metrics",
             {
-                "fields": ("calculation_metadata", "calculated_at"),
+                "fields": (
+                    "days_since_last_activity",
+                    "overdue_invoice_count",
+                    "overdue_invoice_amount",
+                    "avg_payment_delay_days",
+                    "email_response_rate",
+                    "project_completion_rate",
+                ),
                 "classes": ("collapse",),
             },
         ),
-    )
-
-
-@admin.register(ClientHealthScoreAlert)
-class ClientHealthScoreAlertAdmin(admin.ModelAdmin):
-    list_display = (
-        "client",
-        "status",
-        "score_drop",
-        "previous_score",
-        "current_score",
-        "created_at",
-        "acknowledged_by",
-        "resolved_by",
-    )
-    list_filter = ("status", "created_at")
-    search_fields = ("client__company_name", "firm__name")
-    readonly_fields = (
-        "firm",
-        "client",
-        "health_score",
-        "score_drop",
-        "previous_score",
-        "current_score",
-        "created_at",
-        "updated_at",
-    )
-    raw_id_fields = ("acknowledged_by", "resolved_by")
-
-    fieldsets = (
         (
-            "Alert Details",
+            "Alert Settings",
             {
-                "fields": (
-                    "firm",
-                    "client",
-                    "health_score",
-                    "status",
-                ),
+                "fields": ("alert_threshold", "alert_sent_at"),
             },
         ),
         (
-            "Score Change",
+            "History",
             {
-                "fields": ("score_drop", "previous_score", "current_score"),
-            },
-        ),
-        (
-            "Acknowledgment",
-            {
-                "fields": ("acknowledged_at", "acknowledged_by"),
-            },
-        ),
-        (
-            "Resolution",
-            {
-                "fields": ("resolved_at", "resolved_by", "resolution_notes"),
+                "fields": ("score_history",),
+                "classes": ("collapse",),
             },
         ),
         (
             "Audit",
             {
-                "fields": ("created_at", "updated_at"),
+                "fields": ("last_calculated_at", "created_at"),
                 "classes": ("collapse",),
             },
         ),
