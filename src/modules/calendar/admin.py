@@ -93,6 +93,14 @@ class AppointmentTypeAdmin(admin.ModelAdmin):
         ),
         ("Routing", {"fields": ("routing_policy", "fixed_staff_user", "requires_approval")}),
         (
+            "Event Customization (CAL-4)",
+            {
+                "fields": ("url_slug", "color_code", "availability_overrides"),
+                "description": "Custom URL slug, color coding, and event-specific availability overrides",
+                "classes": ("collapse",),
+            },
+        ),
+        (
             "Intake Questions",
             {
                 "fields": ("intake_questions",),

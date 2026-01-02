@@ -439,3 +439,149 @@ class RichEventDescriptionTest(TestCase):
         self.assertEqual(appointment_type.name, "Discovery Call")
         self.assertEqual(appointment_type.internal_name, "DISCO-STD-2024")
         self.assertNotEqual(appointment_type.name, appointment_type.internal_name)
+
+
+class EventCustomizationTest(TestCase):
+    """Test event customization features (CAL-4)."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.firm = Firm.objects.create(name="Test Firm", slug="test-firm")
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+
+    def test_auto_generate_slug_from_name(self):
+        """Test that URL slug is auto-generated from event name if not provided."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Strategy Session",
+            description="Initial strategy consultation",
+            duration_minutes=60,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        # Slug should be auto-generated
+        self.assertEqual(appointment_type.url_slug, "strategy-session")
+
+    def test_custom_slug_preserved(self):
+        """Test that custom URL slug is preserved if provided."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Strategy Session",
+            url_slug="premium-strategy",
+            description="Premium strategy consultation",
+            duration_minutes=60,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        # Custom slug should be preserved
+        self.assertEqual(appointment_type.url_slug, "premium-strategy")
+
+    def test_slug_uniqueness_within_firm(self):
+        """Test that URL slugs are unique within a firm."""
+        # Create first event
+        AppointmentType.objects.create(
+            firm=self.firm,
+            name="Consultation",
+            description="Standard consultation",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        # Create second event with same name
+        appointment_type2 = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Consultation",
+            description="Another consultation",
+            duration_minutes=45,
+            location_mode="phone",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        # Second event should get a unique slug
+        self.assertEqual(appointment_type2.url_slug, "consultation-1")
+
+    def test_color_code_validation(self):
+        """Test that color code validation works correctly."""
+        from django.core.exceptions import ValidationError
+
+        # Valid color code
+        appointment_type = AppointmentType(
+            firm=self.firm,
+            name="Colored Event",
+            color_code="#3B82F6",
+            description="Event with valid color",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+        appointment_type.clean()  # Should not raise
+
+        # Invalid color code
+        appointment_type_invalid = AppointmentType(
+            firm=self.firm,
+            name="Bad Color Event",
+            color_code="blue",
+            description="Event with invalid color",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            appointment_type_invalid.clean()
+
+        self.assertIn("color_code", context.exception.message_dict)
+
+    def test_archived_status(self):
+        """Test that archived status is available (CAL-4)."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Old Event",
+            description="Event to be archived",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            status="archived",
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.status, "archived")
+
+    def test_availability_overrides(self):
+        """Test that availability overrides can be set."""
+        overrides = {
+            "min_notice_minutes": 120,
+            "max_future_days": 60,
+            "weekly_hours": {"monday": [{"start": "10:00", "end": "14:00"}]},
+        }
+
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Special Event",
+            description="Event with custom availability",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            availability_overrides=overrides,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.availability_overrides["min_notice_minutes"], 120)
+        self.assertEqual(appointment_type.availability_overrides["max_future_days"], 60)

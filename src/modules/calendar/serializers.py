@@ -52,6 +52,10 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             "requires_approval",
             "routing_policy",
             "intake_questions",
+            # CAL-4: Event customization fields
+            "url_slug",
+            "color_code",
+            "availability_overrides",
             "status",
             "created_at",
             "updated_at",

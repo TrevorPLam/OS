@@ -168,7 +168,7 @@
   - Image upload and display
   - Internal name vs public display name
   
-- [ ] **CAL-4:** Add event customization features (8-12 hours)
+- [x] **CAL-4:** Add event customization features (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
   - Custom URL slugs per event
   - Event color coding
   - Event-specific availability overrides

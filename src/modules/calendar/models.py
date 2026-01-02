@@ -31,6 +31,7 @@ class AppointmentType(models.Model):
     STATUS_CHOICES = [
         ("active", "Active"),
         ("inactive", "Inactive"),
+        ("archived", "Archived"),
     ]
 
     # CAL-1: Event type categories
@@ -186,8 +187,35 @@ class AppointmentType(models.Model):
         help_text="List of intake questions to ask during booking (JSON array)",
     )
 
+    # CAL-4: Event customization features
+    url_slug = models.SlugField(
+        max_length=100,
+        blank=True,
+        help_text="Custom URL slug for this event type (e.g., 'strategy-session'). Auto-generated if not provided.",
+    )
+    color_code = models.CharField(
+        max_length=7,
+        blank=True,
+        default="",
+        help_text="Color code for visual identification (hex format: #RRGGBB)",
+    )
+    availability_overrides = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Event-specific availability overrides. "
+            "Can override weekly_hours, exceptions, buffer times, etc. "
+            "JSON format: {'weekly_hours': {...}, 'min_notice_minutes': 120, ...}"
+        ),
+    )
+
     # Status
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="active",
+        help_text="Event status: active, inactive, or archived",
+    )
 
     # Audit
     created_by = models.ForeignKey(
@@ -208,6 +236,15 @@ class AppointmentType(models.Model):
         indexes = [
             models.Index(fields=["firm", "status"], name="calendar_apt_fir_sta_idx"),
             models.Index(fields=["firm", "event_category"], name="calendar_apt_fir_cat_idx"),
+            models.Index(fields=["firm", "url_slug"], name="calendar_apt_fir_slug_idx"),
+        ]
+        constraints = [
+            # Ensure url_slug is unique within a firm (if provided)
+            models.UniqueConstraint(
+                fields=["firm", "url_slug"],
+                condition=models.Q(url_slug__gt=""),
+                name="calendar_apt_firm_slug_uniq",
+            ),
         ]
 
     def __str__(self):
@@ -281,8 +318,43 @@ class AppointmentType(models.Model):
                         errors["duration_options"] = f"Option {idx}: Must be an integer or dict with 'minutes' field"
                         break
 
+        # CAL-4: Validate customization fields
+        if self.color_code:
+            # Validate hex color format
+            import re
+
+            if not re.match(r"^#[0-9A-Fa-f]{6}$", self.color_code):
+                errors["color_code"] = "Color code must be in hex format: #RRGGBB (e.g., #3B82F6)"
+
+        if self.url_slug:
+            # Validate slug format (lowercase, hyphens, no spaces)
+            import re
+
+            if not re.match(r"^[a-z0-9-]+$", self.url_slug):
+                errors["url_slug"] = "URL slug must contain only lowercase letters, numbers, and hyphens"
+
         if errors:
             raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        """Override save to auto-generate slug if not provided (CAL-4)."""
+        if not self.url_slug:
+            # Auto-generate slug from name
+            from django.utils.text import slugify
+
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+
+            # Ensure uniqueness within firm
+            if self.firm_id:
+                while AppointmentType.objects.filter(firm=self.firm, url_slug=slug).exclude(pk=self.pk).exists():
+                    slug = f"{base_slug}-{counter}"
+                    counter += 1
+
+            self.url_slug = slug
+
+        super().save(*args, **kwargs)
 
     def get_available_durations(self):
         """
