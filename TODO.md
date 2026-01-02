@@ -181,6 +181,58 @@
   - ✅ API endpoints: `stale_report`, `check_stale`, `send_stale_reminders`
   - Backend: `/src/modules/crm/deal_rotting_alerts.py`, `/scripts/check_stale_deals.sh`
   - See: [WORK_SUMMARY_DEAL_3-6.md](WORK_SUMMARY_DEAL_3-6.md)
+**Status:** ✅ PARTIAL - Core models and API complete, UI and analytics pending  
+**Dependencies:** None
+
+- [x] **DEAL-1:** Design Pipeline and Deal models (4-6 hours) ✅ COMPLETE
+  - ✅ Pipeline model with configurable stages
+  - ✅ Deal model with value, probability, associations
+  - ✅ Deal-to-Project conversion workflow design
+  - Models: `Pipeline`, `PipelineStage`, `Deal`, `DealTask` in `src/modules/crm/models.py`
+  - Migration: `0007_add_pipeline_and_deal_models.py`
+  
+- [x] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours) ✅ COMPLETE
+  - ✅ Deal creation, update, delete endpoints
+  - ✅ Deal stage transition logic
+  - ✅ Deal associations (contacts, accounts, tasks)
+  - ✅ Validation rules and constraints
+  - ViewSets: `PipelineViewSet`, `PipelineStageViewSet`, `DealViewSet`, `DealTaskViewSet`
+  - Serializers: Full CRUD with validation in `src/modules/crm/serializers.py`
+  
+- [x] **DEAL-3:** Build Pipeline visualization UI (8-12 hours) ✅ COMPLETE
+  - ✅ Kanban board view of deals by stage
+  - ✅ Drag-and-drop stage transitions
+  - ✅ Pipeline filtering and search
+  - ✅ Deal card UI with key metrics
+  - Component: `src/frontend/src/pages/crm/PipelineKanban.tsx`
+  - Features: Deal CRUD, stage transitions, pipeline selection, metrics display
+  
+- [x] **DEAL-4:** Add forecasting and analytics (8-12 hours) ✅ COMPLETE
+  - ✅ Weighted pipeline forecasting
+  - ✅ Win/loss tracking
+  - ✅ Pipeline performance reports
+  - ✅ Revenue projection calculations
+  - API Endpoints: `/crm/deals/forecast/`, `/crm/deals/win_loss_report/`, `/crm/pipelines/{id}/analytics/`
+  - Component: `src/frontend/src/pages/crm/PipelineAnalytics.tsx`
+  - Features: Win rate metrics, monthly forecasts, stage breakdown, loss reason analysis
+  
+- [x] **DEAL-5:** Implement assignment automation (6-8 hours) ✅ COMPLETE
+  - ✅ Round-robin deal assignment
+  - ✅ Territory-based routing
+  - ✅ Deal stage automation triggers
+  - Models: `DealAssignmentRule`, `DealStageAutomation` in `src/modules/crm/models.py`
+  - Migration: `0008_add_assignment_automation_models.py`
+  - Features: Round-robin, territory-based, load-balanced, value-based assignment rules
+  - Stage automation: Assign user, create task, send notification, update field actions
+  
+- [x] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours) ✅ COMPLETE
+  - ✅ Deal splitting for multiple owners (already implemented via `secondary_owners` and `split_percentage` fields)
+  - ✅ Stale deal detection (already implemented via `is_stale`, `stale_days_threshold`, `last_activity_date` fields)
+  - ✅ Automated reminder system
+  - Model: `DealAlert` in `src/modules/crm/models.py`
+  - Migration: `0009_add_deal_alerts.py`
+  - Management command: `check_stale_deals` for periodic stale deal detection
+  - Features: Alert types (stale, close date, value change, etc.), priority levels, notification system, acknowledgement tracking
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours)
 **Status:** Core marketing automation feature - critical for ActiveCampaign-like functionality  

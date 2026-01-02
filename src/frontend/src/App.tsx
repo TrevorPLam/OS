@@ -12,6 +12,8 @@ import Prospects from './pages/crm/Prospects'
 import Campaigns from './pages/crm/Campaigns'
 import Deals from './pages/crm/Deals'
 import DealAnalytics from './pages/crm/DealAnalytics'
+import PipelineKanban from './pages/crm/PipelineKanban'
+import PipelineAnalytics from './pages/crm/PipelineAnalytics'
 import Clients from './pages/Clients'
 import Proposals from './pages/Proposals'
 import Contracts from './pages/Contracts'
@@ -54,6 +56,8 @@ function App() {
                 <Route path="/crm/campaigns" element={<Campaigns />} />
                 <Route path="/crm/deals" element={<Deals />} />
                 <Route path="/crm/deal-analytics" element={<DealAnalytics />} />
+                <Route path="/crm/pipeline" element={<PipelineKanban />} />
+                <Route path="/crm/analytics" element={<PipelineAnalytics />} />
                 <Route path="/proposals" element={<Proposals />} />
 
                 {/* Client Management Routes */}

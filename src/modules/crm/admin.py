@@ -11,6 +11,9 @@ from .models import (
     Campaign,
     Contract,
     Deal,
+    DealAlert,
+    DealAssignmentRule,
+    DealStageAutomation,
     DealTask,
     IntakeForm,
     IntakeFormField,
@@ -1115,3 +1118,156 @@ class DealTaskAdmin(admin.ModelAdmin):
         self.message_user(request, f"Marked {count} task(s) as completed.")
     
     mark_as_completed.short_description = "Mark selected tasks as completed"
+
+
+@admin.register(DealAssignmentRule)
+class DealAssignmentRuleAdmin(admin.ModelAdmin):
+    """Admin for DealAssignmentRule (DEAL-5)."""
+    list_display = [
+        "name",
+        "firm",
+        "assignment_type",
+        "pipeline",
+        "is_active",
+        "priority",
+        "created_at",
+    ]
+    list_filter = ["assignment_type", "is_active", "pipeline"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at", "last_assigned_user"]
+    raw_id_fields = ["firm", "pipeline", "stage", "created_by"]
+    filter_horizontal = ["target_users"]
+    
+    fieldsets = (
+        ("Rule Information", {
+            "fields": ("firm", "name", "description", "assignment_type", "is_active", "priority")
+        }),
+        ("Pipeline & Stage Filters", {
+            "fields": ("pipeline", "stage")
+        }),
+        ("Assignment Configuration", {
+            "fields": ("target_users", "last_assigned_user")
+        }),
+        ("Territory-Based Configuration", {
+            "fields": ("territory_field", "territory_mapping"),
+            "classes": ("collapse",)
+        }),
+        ("Value-Based Configuration", {
+            "fields": ("min_deal_value", "max_deal_value"),
+            "classes": ("collapse",)
+        }),
+        ("Lead Source Configuration", {
+            "fields": ("lead_sources",),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(DealStageAutomation)
+class DealStageAutomationAdmin(admin.ModelAdmin):
+    """Admin for DealStageAutomation (DEAL-5)."""
+    list_display = [
+        "name",
+        "firm",
+        "pipeline",
+        "stage",
+        "trigger_type",
+        "action_type",
+        "is_active",
+        "created_at",
+    ]
+    list_filter = ["trigger_type", "action_type", "is_active", "pipeline"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["firm", "pipeline", "stage", "created_by"]
+    
+    fieldsets = (
+        ("Automation Information", {
+            "fields": ("firm", "name", "description", "is_active")
+        }),
+        ("Trigger Configuration", {
+            "fields": ("pipeline", "stage", "trigger_type")
+        }),
+        ("Action Configuration", {
+            "fields": ("action_type", "action_config")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(DealAlert)
+class DealAlertAdmin(admin.ModelAdmin):
+    """Admin for DealAlert (DEAL-6)."""
+    list_display = [
+        "title",
+        "deal",
+        "alert_type",
+        "priority",
+        "is_sent",
+        "is_acknowledged",
+        "is_dismissed",
+        "created_at",
+    ]
+    list_filter = ["alert_type", "priority", "is_sent", "is_acknowledged", "is_dismissed"]
+    search_fields = ["title", "message", "deal__name"]
+    readonly_fields = ["sent_at", "acknowledged_at", "created_at", "updated_at"]
+    raw_id_fields = ["deal", "acknowledged_by"]
+    filter_horizontal = ["recipients"]
+    
+    fieldsets = (
+        ("Alert Information", {
+            "fields": ("deal", "alert_type", "priority", "title", "message")
+        }),
+        ("Notification", {
+            "fields": ("recipients", "is_sent", "sent_at")
+        }),
+        ("Acknowledgement", {
+            "fields": ("is_acknowledged", "acknowledged_by", "acknowledged_at")
+        }),
+        ("Dismissal", {
+            "fields": ("is_dismissed", "auto_dismiss_date")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    actions = ["send_notifications", "mark_acknowledged", "dismiss_alerts"]
+    
+    def send_notifications(self, request, queryset):
+        """Admin action to send notifications for selected alerts."""
+        count = 0
+        for alert in queryset.filter(is_sent=False):
+            alert.send_notification()
+            count += 1
+        
+        self.message_user(request, f"Sent {count} notification(s).")
+    
+    send_notifications.short_description = "Send notifications for selected alerts"
+    
+    def mark_acknowledged(self, request, queryset):
+        """Admin action to mark alerts as acknowledged."""
+        count = queryset.filter(is_acknowledged=False).update(
+            is_acknowledged=True,
+            acknowledged_by=request.user
+        )
+        
+        self.message_user(request, f"Marked {count} alert(s) as acknowledged.")
+    
+    mark_acknowledged.short_description = "Mark selected alerts as acknowledged"
+    
+    def dismiss_alerts(self, request, queryset):
+        """Admin action to dismiss alerts."""
+        count = queryset.filter(is_dismissed=False).update(is_dismissed=True)
+        
+        self.message_user(request, f"Dismissed {count} alert(s).")
+    
+    dismiss_alerts.short_description = "Dismiss selected alerts"

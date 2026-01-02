@@ -1087,6 +1087,80 @@ class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             "output": out.getvalue(),
             "dry_run": dry_run,
         })
+    def win_loss_report(self, request):
+        """
+        Get win/loss tracking report (DEAL-4).
+        
+        Returns win rate, loss rate, and deal outcomes over time.
+        """
+        from django.db.models import Avg, Count, Q, Sum
+        from django.db.models.functions import TruncMonth
+        from datetime import timedelta
+        
+        # Get all closed deals
+        closed_deals = self.get_queryset().filter(
+            Q(is_won=True) | Q(is_lost=True),
+            actual_close_date__isnull=False
+        )
+        
+        # Calculate win/loss metrics
+        total_closed = closed_deals.count()
+        won_deals = closed_deals.filter(is_won=True)
+        lost_deals = closed_deals.filter(is_lost=True)
+        
+        won_count = won_deals.count()
+        lost_count = lost_deals.count()
+        
+        win_rate = (won_count / total_closed * 100) if total_closed > 0 else 0
+        loss_rate = (lost_count / total_closed * 100) if total_closed > 0 else 0
+        
+        # Calculate revenue metrics
+        won_value = won_deals.aggregate(Sum("value"))["value__sum"] or 0
+        lost_value = lost_deals.aggregate(Sum("value"))["value__sum"] or 0
+        
+        # Average deal sizes
+        avg_won_deal = won_deals.aggregate(Avg("value"))["value__avg"] or 0
+        avg_lost_deal = lost_deals.aggregate(Avg("value"))["value__avg"] or 0
+        
+        # Group by month for trends
+        monthly_won = won_deals.annotate(
+            month=TruncMonth("actual_close_date")
+        ).values("month").annotate(
+            deal_count=Count("id"),
+            total_value=Sum("value"),
+        ).order_by("month")
+        
+        monthly_lost = lost_deals.annotate(
+            month=TruncMonth("actual_close_date")
+        ).values("month").annotate(
+            deal_count=Count("id"),
+            total_value=Sum("value"),
+        ).order_by("month")
+        
+        # Loss reasons breakdown
+        loss_reasons = lost_deals.exclude(
+            lost_reason=""
+        ).values("lost_reason").annotate(
+            count=Count("id")
+        ).order_by("-count")[:10]
+        
+        return Response({
+            "summary": {
+                "total_closed": total_closed,
+                "won_count": won_count,
+                "lost_count": lost_count,
+                "win_rate": round(win_rate, 2),
+                "loss_rate": round(loss_rate, 2),
+                "won_value": won_value,
+                "lost_value": lost_value,
+                "avg_won_deal": avg_won_deal,
+                "avg_lost_deal": avg_lost_deal,
+            },
+            "monthly_won": list(monthly_won),
+            "monthly_lost": list(monthly_lost),
+            "top_loss_reasons": list(loss_reasons),
+        })
+
 
 
 class DealTaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
