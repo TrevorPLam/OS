@@ -2538,3 +2538,376 @@ class DealTask(models.Model):
         
         # Update deal last activity
         self.deal.update_last_activity()
+
+
+class DealAssignmentRule(models.Model):
+    """
+    Deal Assignment Automation Rule (DEAL-5).
+    
+    Defines rules for automatically assigning deals to users.
+    Supports round-robin, territory-based, and custom routing logic.
+    
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+    
+    ASSIGNMENT_TYPE_CHOICES = [
+        ("round_robin", "Round Robin"),
+        ("territory", "Territory-Based"),
+        ("lead_source", "Lead Source"),
+        ("deal_value", "Deal Value"),
+        ("load_balance", "Load Balanced"),
+    ]
+    
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="deal_assignment_rules",
+        help_text="Firm (workspace) this rule belongs to"
+    )
+    
+    # Rule Details
+    name = models.CharField(max_length=255, help_text="Rule name")
+    description = models.TextField(blank=True, help_text="Rule description")
+    assignment_type = models.CharField(
+        max_length=50,
+        choices=ASSIGNMENT_TYPE_CHOICES,
+        default="round_robin",
+        help_text="Type of assignment logic"
+    )
+    is_active = models.BooleanField(default=True, help_text="Whether this rule is active")
+    priority = models.IntegerField(default=0, help_text="Rule priority (higher = evaluated first)")
+    
+    # Pipeline & Stage Filters
+    pipeline = models.ForeignKey(
+        Pipeline,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="assignment_rules",
+        help_text="Apply rule to specific pipeline (null = all pipelines)"
+    )
+    stage = models.ForeignKey(
+        PipelineStage,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="assignment_rules",
+        help_text="Apply rule when deal enters this stage (null = any stage)"
+    )
+    
+    # Assignment Target Users
+    target_users = models.ManyToManyField(
+        "auth.User",
+        related_name="deal_assignment_rules",
+        help_text="Users to assign deals to"
+    )
+    
+    # Round Robin State
+    last_assigned_user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="last_assigned_rules",
+        help_text="Last user assigned (for round-robin)"
+    )
+    
+    # Territory-Based Configuration
+    territory_field = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Field to use for territory matching (e.g., 'account.state', 'account.country')"
+    )
+    territory_mapping = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Territory to user mapping {territory: user_id}"
+    )
+    
+    # Value-Based Configuration
+    min_deal_value = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Minimum deal value to trigger this rule"
+    )
+    max_deal_value = models.DecimalField(
+        max_digits=15,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Maximum deal value to trigger this rule"
+    )
+    
+    # Lead Source Configuration
+    lead_sources = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of lead sources to trigger this rule"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_assignment_rules"
+    )
+    
+    class Meta:
+        db_table = "crm_deal_assignment_rule"
+        ordering = ["-priority", "name"]
+        indexes = [
+            models.Index(fields=["firm", "is_active"], name="crm_assign_rule_firm_active_idx"),
+            models.Index(fields=["pipeline", "is_active"], name="crm_assign_rule_pipe_active_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.name} ({self.get_assignment_type_display()})"
+    
+    @property
+    def firm_property(self):
+        """Get the firm for TIER 0 scoping."""
+        return self.firm
+    
+    def get_next_assignee(self, deal=None):
+        """
+        Get the next user to assign based on the rule type.
+        
+        Args:
+            deal: Optional Deal instance for context-aware assignment
+            
+        Returns:
+            User instance or None
+        """
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        target_users = self.target_users.filter(is_active=True)
+        
+        if not target_users.exists():
+            return None
+        
+        if self.assignment_type == "round_robin":
+            # Get next user in round-robin sequence
+            if self.last_assigned_user and self.last_assigned_user in target_users:
+                user_list = list(target_users)
+                current_index = user_list.index(self.last_assigned_user)
+                next_index = (current_index + 1) % len(user_list)
+                return user_list[next_index]
+            else:
+                return target_users.first()
+        
+        elif self.assignment_type == "territory" and deal and deal.account:
+            # Territory-based assignment
+            territory_value = self._get_territory_value(deal)
+            if territory_value and territory_value in self.territory_mapping:
+                user_id = self.territory_mapping[territory_value]
+                try:
+                    return User.objects.get(id=user_id, is_active=True)
+                except User.DoesNotExist:
+                    pass
+            return None
+        
+        elif self.assignment_type == "load_balance":
+            # Assign to user with fewest active deals
+            from django.db.models import Count
+            return target_users.annotate(
+                deal_count=Count("owned_deals", filter=models.Q(owned_deals__is_active=True))
+            ).order_by("deal_count").first()
+        
+        else:
+            # Default to round-robin
+            return target_users.first()
+    
+    def _get_territory_value(self, deal):
+        """Extract territory value from deal using territory_field."""
+        if not self.territory_field:
+            return None
+        
+        try:
+            # Support nested field access like 'account.state'
+            obj = deal
+            for field in self.territory_field.split('.'):
+                obj = getattr(obj, field, None)
+                if obj is None:
+                    return None
+            return str(obj)
+        except (AttributeError, TypeError):
+            return None
+    
+    def matches_criteria(self, deal):
+        """
+        Check if this rule should apply to the given deal.
+        
+        Args:
+            deal: Deal instance
+            
+        Returns:
+            bool: True if rule matches
+        """
+        # Check pipeline
+        if self.pipeline and deal.pipeline != self.pipeline:
+            return False
+        
+        # Check stage
+        if self.stage and deal.stage != self.stage:
+            return False
+        
+        # Check deal value range
+        if self.min_deal_value and deal.value < self.min_deal_value:
+            return False
+        if self.max_deal_value and deal.value > self.max_deal_value:
+            return False
+        
+        # Check lead sources (if deal has a lead source field)
+        if self.lead_sources:
+            deal_source = getattr(deal, 'source', None)
+            if deal_source and deal_source not in self.lead_sources:
+                return False
+        
+        return True
+
+
+class DealStageAutomation(models.Model):
+    """
+    Deal Stage Automation Trigger (DEAL-5).
+    
+    Defines automated actions when a deal enters or exits a stage.
+    
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+    
+    TRIGGER_TYPE_CHOICES = [
+        ("enter", "On Enter Stage"),
+        ("exit", "On Exit Stage"),
+    ]
+    
+    ACTION_TYPE_CHOICES = [
+        ("assign_user", "Assign to User"),
+        ("create_task", "Create Task"),
+        ("send_notification", "Send Notification"),
+        ("update_field", "Update Field"),
+    ]
+    
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="deal_stage_automations",
+        help_text="Firm (workspace) this automation belongs to"
+    )
+    
+    # Automation Details
+    name = models.CharField(max_length=255, help_text="Automation name")
+    description = models.TextField(blank=True, help_text="Automation description")
+    is_active = models.BooleanField(default=True, help_text="Whether this automation is active")
+    
+    # Trigger Configuration
+    pipeline = models.ForeignKey(
+        Pipeline,
+        on_delete=models.CASCADE,
+        related_name="stage_automations",
+        help_text="Pipeline to monitor"
+    )
+    stage = models.ForeignKey(
+        PipelineStage,
+        on_delete=models.CASCADE,
+        related_name="stage_automations",
+        help_text="Stage that triggers this automation"
+    )
+    trigger_type = models.CharField(
+        max_length=10,
+        choices=TRIGGER_TYPE_CHOICES,
+        default="enter",
+        help_text="When to trigger"
+    )
+    
+    # Action Configuration
+    action_type = models.CharField(
+        max_length=50,
+        choices=ACTION_TYPE_CHOICES,
+        help_text="Type of action to perform"
+    )
+    action_config = models.JSONField(
+        default=dict,
+        help_text="Action configuration parameters"
+    )
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_stage_automations"
+    )
+    
+    class Meta:
+        db_table = "crm_deal_stage_automation"
+        ordering = ["pipeline", "stage", "name"]
+        indexes = [
+            models.Index(fields=["firm", "is_active"], name="crm_stage_auto_firm_active_idx"),
+            models.Index(fields=["pipeline", "stage", "is_active"], name="crm_stage_auto_pipe_stage_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.name} ({self.pipeline.name} - {self.stage.name})"
+    
+    @property
+    def firm_property(self):
+        """Get the firm for TIER 0 scoping."""
+        return self.firm
+    
+    def execute(self, deal):
+        """
+        Execute the automation action for the given deal.
+        
+        Args:
+            deal: Deal instance
+        """
+        if not self.is_active:
+            return
+        
+        if self.action_type == "assign_user":
+            user_id = self.action_config.get("user_id")
+            if user_id:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                try:
+                    user = User.objects.get(id=user_id, is_active=True)
+                    deal.owner = user
+                    deal.save(update_fields=["owner", "updated_at"])
+                except User.DoesNotExist:
+                    pass
+        
+        elif self.action_type == "create_task":
+            task_title = self.action_config.get("title", "New Task")
+            task_description = self.action_config.get("description", "")
+            task_priority = self.action_config.get("priority", "medium")
+            DealTask.objects.create(
+                deal=deal,
+                title=task_title,
+                description=task_description,
+                priority=task_priority,
+                assigned_to=deal.owner,
+                created_by=self.created_by
+            )
+        
+        elif self.action_type == "send_notification":
+            # Placeholder for notification logic
+            pass
+        
+        elif self.action_type == "update_field":
+            field_name = self.action_config.get("field")
+            field_value = self.action_config.get("value")
+            if field_name and hasattr(deal, field_name):
+                setattr(deal, field_name, field_value)
+                deal.save(update_fields=[field_name, "updated_at"])

@@ -11,6 +11,8 @@ from .models import (
     Campaign,
     Contract,
     Deal,
+    DealAssignmentRule,
+    DealStageAutomation,
     DealTask,
     IntakeForm,
     IntakeFormField,
@@ -1115,3 +1117,85 @@ class DealTaskAdmin(admin.ModelAdmin):
         self.message_user(request, f"Marked {count} task(s) as completed.")
     
     mark_as_completed.short_description = "Mark selected tasks as completed"
+
+
+@admin.register(DealAssignmentRule)
+class DealAssignmentRuleAdmin(admin.ModelAdmin):
+    """Admin for DealAssignmentRule (DEAL-5)."""
+    list_display = [
+        "name",
+        "firm",
+        "assignment_type",
+        "pipeline",
+        "is_active",
+        "priority",
+        "created_at",
+    ]
+    list_filter = ["assignment_type", "is_active", "pipeline"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at", "last_assigned_user"]
+    raw_id_fields = ["firm", "pipeline", "stage", "created_by"]
+    filter_horizontal = ["target_users"]
+    
+    fieldsets = (
+        ("Rule Information", {
+            "fields": ("firm", "name", "description", "assignment_type", "is_active", "priority")
+        }),
+        ("Pipeline & Stage Filters", {
+            "fields": ("pipeline", "stage")
+        }),
+        ("Assignment Configuration", {
+            "fields": ("target_users", "last_assigned_user")
+        }),
+        ("Territory-Based Configuration", {
+            "fields": ("territory_field", "territory_mapping"),
+            "classes": ("collapse",)
+        }),
+        ("Value-Based Configuration", {
+            "fields": ("min_deal_value", "max_deal_value"),
+            "classes": ("collapse",)
+        }),
+        ("Lead Source Configuration", {
+            "fields": ("lead_sources",),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(DealStageAutomation)
+class DealStageAutomationAdmin(admin.ModelAdmin):
+    """Admin for DealStageAutomation (DEAL-5)."""
+    list_display = [
+        "name",
+        "firm",
+        "pipeline",
+        "stage",
+        "trigger_type",
+        "action_type",
+        "is_active",
+        "created_at",
+    ]
+    list_filter = ["trigger_type", "action_type", "is_active", "pipeline"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["firm", "pipeline", "stage", "created_by"]
+    
+    fieldsets = (
+        ("Automation Information", {
+            "fields": ("firm", "name", "description", "is_active")
+        }),
+        ("Trigger Configuration", {
+            "fields": ("pipeline", "stage", "trigger_type")
+        }),
+        ("Action Configuration", {
+            "fields": ("action_type", "action_config")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )

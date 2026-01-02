@@ -162,10 +162,14 @@
   - Component: `src/frontend/src/pages/crm/PipelineAnalytics.tsx`
   - Features: Win rate metrics, monthly forecasts, stage breakdown, loss reason analysis
   
-- [ ] **DEAL-5:** Implement assignment automation (6-8 hours)
-  - Round-robin deal assignment
-  - Territory-based routing
-  - Deal stage automation triggers
+- [x] **DEAL-5:** Implement assignment automation (6-8 hours) ✅ COMPLETE
+  - ✅ Round-robin deal assignment
+  - ✅ Territory-based routing
+  - ✅ Deal stage automation triggers
+  - Models: `DealAssignmentRule`, `DealStageAutomation` in `src/modules/crm/models.py`
+  - Migration: `0008_add_assignment_automation_models.py`
+  - Features: Round-robin, territory-based, load-balanced, value-based assignment rules
+  - Stage automation: Assign user, create task, send notification, update field actions
   
 - [ ] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours)
   - Deal splitting for multiple owners
