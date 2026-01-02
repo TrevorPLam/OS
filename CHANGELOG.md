@@ -9,7 +9,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Pipeline & Deal Management** (2026-01-02)
+- **Pipeline & Deal Management - UI, Analytics & Automation** (2026-01-02)
+  - **DEAL-3: Pipeline Visualization UI**
+    - Kanban board with drag-and-drop stage transitions
+    - Deal cards showing value, probability, weighted value, close date, and owner
+    - Pipeline selector, search functionality, and stale deal filtering
+    - Real-time metrics dashboard (total value, weighted value, deal count, avg deal size)
+    - Visual stale deal indicators with warning badges
+    - Responsive design for mobile, tablet, and desktop
+    - Frontend routes: `/crm/deals`
+    - Components: `Deals.tsx`, `Deals.css`
+  
+  - **DEAL-4: Forecasting & Analytics Dashboard**
+    - Win/loss performance tracking with counts, values, and win rate calculation
+    - Monthly revenue projections with interactive bar charts
+    - Performance metrics (average deal size, sales cycle duration)
+    - Pipeline distribution by stage with probability percentages
+    - Top 5 reasons for lost deals analysis
+    - Comprehensive analytics with visual metrics (color-coded: green=won, red=lost, blue=active, purple=rate)
+    - Frontend routes: `/crm/deal-analytics`
+    - Components: `DealAnalytics.tsx`, `DealAnalytics.css`
+  
+  - **DEAL-5: Assignment Automation**
+    - Round-robin deal assignment algorithm with fair distribution
+    - Territory-based, value-based, and source-based routing options
+    - Stage automation triggers (assign user, create task, send notification, update field, run webhook)
+    - Priority-based rule evaluation with condition matching (value range, source, pipeline/stage filters)
+    - Configurable assignment rules with assignee pool management
+    - Models: `AssignmentRule`, `StageAutomation`
+    - Backend: `assignment_automation.py`
+    - Note: Requires database migration to activate
+  
+  - **DEAL-6: Stale Deal Alerts & Splitting**
+    - Automated stale deal detection based on inactivity threshold (default: 30 days)
+    - Email reminder system with personalized messages to deal owners
+    - Comprehensive stale deal reporting (by owner, pipeline, stage, age distribution)
+    - Management command: `send_stale_deal_reminders` with `--dry-run` support
+    - Daily cron job script for automated checks (`check_stale_deals.sh`)
+    - Deal splitting support via `split_percentage` JSON field
+    - New API endpoints:
+      - `GET /api/crm/deals/stale_report/` - Comprehensive stale deal analytics
+      - `POST /api/crm/deals/check_stale/` - Manually trigger stale check
+      - `POST /api/crm/deals/send_stale_reminders/` - Send reminder emails with dry-run option
+    - Backend: `deal_rotting_alerts.py`, `send_stale_deal_reminders.py`
+  
+  - **Documentation:**
+    - Comprehensive implementation summary: [WORK_SUMMARY_DEAL_3-6.md](WORK_SUMMARY_DEAL_3-6.md)
+    - Setup instructions for email reminders and cron jobs
+    - Total implementation: ~2,600 lines across 10 new files and 4 modified files
+
+- **Pipeline & Deal Management - Foundation** (2026-01-02)
+  - **DEAL-1 & DEAL-2: Models and API** (previously documented)
   - Configurable sales pipelines with customizable stages (DEAL-1)
   - Deal model with value tracking, probability, and weighted forecasting
   - Deal-to-Project conversion workflow for won deals
@@ -28,7 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Database models: Pipeline, PipelineStage, Deal, DealTask
   - Multi-tenant isolation for all pipeline and deal operations
   - Validation rules for stage-pipeline consistency
-  - See [TODO.md](TODO.md) for full feature roadmap (DEAL-1 and DEAL-2 completed)
+  - See [TODO.md](TODO.md) for full feature roadmap
 
 - **Sprint 5: Performance & Reporting** (2026-01-01)
   - Materialized views for revenue and utilization reporting

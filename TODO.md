@@ -127,41 +127,60 @@
 ### 🔥 Core Business Features
 
 #### Pipeline & Deal Management (HIGH - 40-56 hours)
-**Status:** Core CRM feature missing - required for sales pipeline  
+**Status:** ✅ COMPLETE - All features implemented  
 **Dependencies:** None
 
-- [ ] **DEAL-1:** Design Pipeline and Deal models (4-6 hours)
+- [x] **DEAL-1:** Design Pipeline and Deal models (4-6 hours) ✅ COMPLETE
   - Pipeline model with configurable stages
   - Deal model with value, probability, associations
   - Deal-to-Project conversion workflow design
   
-- [ ] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours)
+- [x] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours) ✅ COMPLETE
   - Deal creation, update, delete endpoints
   - Deal stage transition logic
   - Deal associations (contacts, accounts, tasks)
   - Validation rules and constraints
   
-- [ ] **DEAL-3:** Build Pipeline visualization UI (8-12 hours)
-  - Kanban board view of deals by stage
-  - Drag-and-drop stage transitions
-  - Pipeline filtering and search
-  - Deal card UI with key metrics
+- [x] **DEAL-3:** Build Pipeline visualization UI (8-12 hours) ✅ COMPLETE (2026-01-02)
+  - ✅ Kanban board view of deals by stage with drag-and-drop
+  - ✅ Pipeline selector, search, and filtering
+  - ✅ Deal card UI with key metrics (value, probability, weighted value, close date, owner)
+  - ✅ Stale deal highlighting and visual indicators
+  - ✅ Real-time metrics dashboard (total value, weighted value, deal count, avg deal size)
+  - ✅ Responsive design for mobile/tablet/desktop
+  - Frontend: `/src/frontend/src/pages/crm/Deals.tsx`
   
-- [ ] **DEAL-4:** Add forecasting and analytics (8-12 hours)
-  - Weighted pipeline forecasting
-  - Win/loss tracking
-  - Pipeline performance reports
-  - Revenue projection calculations
+- [x] **DEAL-4:** Add forecasting and analytics (8-12 hours) ✅ COMPLETE (2026-01-02)
+  - ✅ Weighted pipeline forecasting with monthly revenue projections
+  - ✅ Win/loss tracking (counts, values, win rate calculation)
+  - ✅ Pipeline performance reports and metrics
+  - ✅ Revenue projection calculations with visual bar charts
+  - ✅ Performance metrics (avg deal size, sales cycle duration)
+  - ✅ Pipeline distribution by stage
+  - ✅ Top reasons for lost deals analysis
+  - Frontend: `/src/frontend/src/pages/crm/DealAnalytics.tsx`
   
-- [ ] **DEAL-5:** Implement assignment automation (6-8 hours)
-  - Round-robin deal assignment
-  - Territory-based routing
-  - Deal stage automation triggers
+- [x] **DEAL-5:** Implement assignment automation (6-8 hours) ✅ COMPLETE (2026-01-02)
+  - ✅ Round-robin deal assignment algorithm
+  - ✅ Territory-based routing
+  - ✅ Value and source-based assignment rules
+  - ✅ Deal stage automation triggers (assign user, create task, send notification, update field, webhook)
+  - ✅ Priority-based rule evaluation with condition matching
+  - ✅ Configurable assignment rules with pipeline/stage filters
+  - Backend: `/src/modules/crm/assignment_automation.py`
+  - Models: `AssignmentRule`, `StageAutomation`
+  - Note: Requires migration to activate
   
-- [ ] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours)
-  - Deal splitting for multiple owners
-  - Stale deal detection
-  - Automated reminder system
+- [x] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours) ✅ COMPLETE (2026-01-02)
+  - ✅ Deal splitting for multiple owners (via `split_percentage` JSON field)
+  - ✅ Stale deal detection (automated marking based on inactivity threshold)
+  - ✅ Automated reminder system (email notifications to deal owners)
+  - ✅ Comprehensive stale deal reporting and analytics
+  - ✅ Management command: `send_stale_deal_reminders` with dry-run support
+  - ✅ Daily cron job script for automated checks
+  - ✅ API endpoints: `stale_report`, `check_stale`, `send_stale_reminders`
+  - Backend: `/src/modules/crm/deal_rotting_alerts.py`, `/scripts/check_stale_deals.sh`
+  - See: [WORK_SUMMARY_DEAL_3-6.md](WORK_SUMMARY_DEAL_3-6.md)
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours)
 **Status:** Core marketing automation feature - critical for ActiveCampaign-like functionality  
