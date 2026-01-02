@@ -884,6 +884,41 @@ class ClientMessage(models.Model):
             self.thread.save()
 
 
+class ContactManager(models.Manager):
+    """Custom manager for Contact model with state-based filtering."""
+
+    def active(self):
+        """Get all active contacts."""
+        return self.filter(status=Contact.STATUS_ACTIVE)
+
+    def unsubscribed(self):
+        """Get all unsubscribed contacts."""
+        return self.filter(status=Contact.STATUS_UNSUBSCRIBED)
+
+    def bounced(self):
+        """Get all bounced contacts."""
+        return self.filter(status=Contact.STATUS_BOUNCED)
+
+    def unconfirmed(self):
+        """Get all unconfirmed contacts."""
+        return self.filter(status=Contact.STATUS_UNCONFIRMED)
+
+    def inactive(self):
+        """Get all inactive contacts."""
+        return self.filter(status=Contact.STATUS_INACTIVE)
+
+    def can_receive_emails(self):
+        """Get contacts that can receive emails (active and not bounced/unsubscribed)."""
+        return self.filter(status__in=[Contact.STATUS_ACTIVE, Contact.STATUS_UNCONFIRMED])
+
+    def can_receive_marketing(self):
+        """Get contacts that can receive marketing emails."""
+        return self.filter(
+            status=Contact.STATUS_ACTIVE,
+            opt_out_marketing=False,
+        )
+
+
 class Contact(models.Model):
     """
     Individual contact person associated with a client.
@@ -893,6 +928,21 @@ class Contact(models.Model):
 
     TIER 0: Belongs to exactly one Firm (via client relationship).
     """
+
+    # Contact state choices for lifecycle management
+    STATUS_ACTIVE = "active"
+    STATUS_UNSUBSCRIBED = "unsubscribed"
+    STATUS_BOUNCED = "bounced"
+    STATUS_UNCONFIRMED = "unconfirmed"
+    STATUS_INACTIVE = "inactive"
+
+    STATUS_CHOICES = [
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_UNSUBSCRIBED, "Unsubscribed"),
+        (STATUS_BOUNCED, "Bounced"),
+        (STATUS_UNCONFIRMED, "Unconfirmed"),
+        (STATUS_INACTIVE, "Inactive"),
+    ]
 
     # Client relationship
     client = models.ForeignKey(
@@ -946,8 +996,31 @@ class Contact(models.Model):
     opt_out_marketing = models.BooleanField(default=False, help_text="Opted out of marketing communications")
     opt_out_sms = models.BooleanField(default=False, help_text="Opted out of SMS communications")
 
-    # Status
-    is_active = models.BooleanField(default=True, help_text="Whether this contact is active")
+    # Status and Lifecycle
+    is_active = models.BooleanField(default=True, help_text="Whether this contact is active (deprecated, use status)")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_ACTIVE,
+        help_text="Current lifecycle state of the contact",
+    )
+    status_changed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the status was last changed",
+    )
+    status_changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact_status_changes",
+        help_text="User who last changed the status",
+    )
+    status_reason = models.TextField(
+        blank=True,
+        help_text="Reason for status change (e.g., bounce reason, unsubscribe reason)",
+    )
 
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
@@ -961,6 +1034,9 @@ class Contact(models.Model):
     )
     notes = models.TextField(blank=True, help_text="Internal notes about this contact")
 
+    # Managers
+    objects = ContactManager()  # Custom manager with state-based filtering
+
     class Meta:
         db_table = "clients_contact"
         ordering = ["last_name", "first_name"]
@@ -969,6 +1045,8 @@ class Contact(models.Model):
             models.Index(fields=["client", "is_primary_contact"], name="clients_contact_cli_pri_idx"),
             models.Index(fields=["email"], name="clients_contact_email_idx"),
             models.Index(fields=["phone"], name="clients_contact_phone_idx"),
+            models.Index(fields=["client", "status"], name="clients_contact_cli_sta_idx"),
+            models.Index(fields=["status"], name="clients_contact_status_idx"),
         ]
         unique_together = [["client", "email"]]
 
@@ -979,6 +1057,63 @@ class Contact(models.Model):
     def full_name(self):
         """Return contact's full name."""
         return f"{self.first_name} {self.last_name}"
+
+    def change_status(self, new_status, reason="", changed_by=None):
+        """
+        Change contact status with proper state transition tracking.
+
+        Args:
+            new_status: New status value (one of STATUS_CHOICES)
+            reason: Reason for status change
+            changed_by: User making the change (if any)
+
+        Returns:
+            bool: True if status was changed, False if already in that status
+        """
+        from django.utils import timezone
+
+        if new_status not in dict(self.STATUS_CHOICES):
+            raise ValueError(f"Invalid status: {new_status}")
+
+        if self.status == new_status:
+            return False  # Already in this status
+
+        old_status = self.status
+        self.status = new_status
+        self.status_changed_at = timezone.now()
+        self.status_changed_by = changed_by
+        self.status_reason = reason
+
+        # Update is_active for backwards compatibility
+        self.is_active = new_status == self.STATUS_ACTIVE
+
+        return True
+
+    def mark_as_unsubscribed(self, reason="", changed_by=None):
+        """Mark contact as unsubscribed from communications."""
+        self.change_status(self.STATUS_UNSUBSCRIBED, reason=reason, changed_by=changed_by)
+        self.opt_out_marketing = True
+
+    def mark_as_bounced(self, reason="", changed_by=None):
+        """Mark contact email as bounced."""
+        self.change_status(self.STATUS_BOUNCED, reason=reason, changed_by=changed_by)
+
+    def mark_as_inactive(self, reason="", changed_by=None):
+        """Mark contact as inactive."""
+        self.change_status(self.STATUS_INACTIVE, reason=reason, changed_by=changed_by)
+
+    def reactivate(self, reason="", changed_by=None):
+        """Reactivate an inactive or unconfirmed contact."""
+        if self.status in [self.STATUS_INACTIVE, self.STATUS_UNCONFIRMED]:
+            self.change_status(self.STATUS_ACTIVE, reason=reason, changed_by=changed_by)
+        elif self.status == self.STATUS_BOUNCED:
+            # Can reactivate bounced if email is fixed
+            self.change_status(self.STATUS_ACTIVE, reason=reason, changed_by=changed_by)
+
+    def confirm_email(self, changed_by=None):
+        """Confirm contact's email address (move from unconfirmed to active)."""
+        if self.status == self.STATUS_UNCONFIRMED:
+            self.change_status(self.STATUS_ACTIVE, reason="Email confirmed", changed_by=changed_by)
 
     def clean(self):
         """
