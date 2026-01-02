@@ -304,8 +304,11 @@ class WorkflowExecutionEngine:
             'template': 'email body template with {{variables}}',
             'subject': 'email subject with {{variables}}',
             'to_email': 'recipient email or {{dynamic_field}}',
-            'from_email': 'sender email (optional)'
+            'from_email': 'sender email (optional)',
+            'attach_ics': true/false (optional, default true for reminders)
         }
+        
+        FLOW-1: Enhanced to attach ICS calendar invitation when enabled.
         """
         config = workflow.action_config
         
@@ -327,21 +330,57 @@ class WorkflowExecutionEngine:
         
         from_email = config.get('from_email', settings.DEFAULT_FROM_EMAIL)
         
-        # Send email
-        send_mail(
-            subject=subject,
-            message=body,
-            from_email=from_email,
-            recipient_list=[to_email],
-            fail_silently=False
-        )
+        # Check if we should attach ICS calendar invitation
+        attach_ics = config.get('attach_ics', True)
         
-        return {
-            'summary': 'email_sent',
-            'to_email': to_email,
-            'subject': subject,
-            'sent_at': timezone.now().isoformat()
-        }
+        if attach_ics:
+            # Generate and attach ICS file
+            from django.core.mail import EmailMessage
+            from .services import CalendarInvitationService
+            
+            invitation_service = CalendarInvitationService()
+            
+            # Determine ICS method based on appointment status
+            if appointment.status == 'cancelled':
+                ics_content = invitation_service.generate_cancellation_ics(appointment)
+                ics_filename = f'cancellation-{appointment.appointment_id}.ics'
+            else:
+                ics_content = invitation_service.generate_ics(appointment)
+                ics_filename = f'invitation-{appointment.appointment_id}.ics'
+            
+            # Create email with attachment
+            email = EmailMessage(
+                subject=subject,
+                body=body,
+                from_email=from_email,
+                to=[to_email],
+            )
+            email.attach(ics_filename, ics_content, 'text/calendar')
+            email.send(fail_silently=False)
+            
+            return {
+                'summary': 'email_sent_with_ics',
+                'to_email': to_email,
+                'subject': subject,
+                'ics_attached': True,
+                'sent_at': timezone.now().isoformat()
+            }
+        else:
+            # Send email without ICS attachment
+            send_mail(
+                subject=subject,
+                message=body,
+                from_email=from_email,
+                recipient_list=[to_email],
+                fail_silently=False
+            )
+            
+            return {
+                'summary': 'email_sent',
+                'to_email': to_email,
+                'subject': subject,
+                'sent_at': timezone.now().isoformat()
+            }
     
     def _execute_send_sms(
         self,

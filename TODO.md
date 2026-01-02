@@ -224,14 +224,14 @@
 **Status:** Complete team scheduling features  
 **Dependencies:** CAL-1 through CAL-6
 
-- [ ] **TEAM-1:** Implement Collective Events (16-20 hours)
+- [x] **TEAM-1:** Implement Collective Events (16-20 hours) ✅ **COMPLETED** (January 2, 2026)
   - Venn diagram availability logic (only overlapping free time)
   - Multi-host support (2-10 hosts per event)
   - Host substitution workflow
   - Required vs optional host configuration
   - Performance optimization for multi-calendar queries
   
-- [ ] **TEAM-2:** Build advanced Round Robin (16-20 hours)
+- [x] **TEAM-2:** Build advanced Round Robin (16-20 hours) ✅ **COMPLETED** (January 2, 2026)
   - Strict round robin distribution (equal regardless of availability)
   - Optimize for availability (favor most available)
   - Weighted distribution (configurable weights per team member)
@@ -242,14 +242,14 @@
   - Fallback logic when no one available
   - Manual assignment overrides
   
-- [ ] **TEAM-3:** Implement Group Events (12-16 hours)
+- [x] **TEAM-3:** Implement Group Events (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - One-to-many (host with multiple invitees)
   - Max attendees capacity (2-1000)
   - Waitlist when full
   - Attendee list management
   - Group communication
   
-- [ ] **TEAM-4:** Build Polling Events (12-16 hours)
+- [x] **TEAM-4:** Build Polling Events (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Propose multiple time options
   - Voting interface for invitees
   - Auto-schedule when consensus reached
@@ -261,31 +261,31 @@
 **Dependencies:** CAL-1 through CAL-6  
 **🔬 Research:** Workflow engine architecture
 
-- [ ] **FLOW-1:** Implement reminder system (12-16 hours)
+- [x] **FLOW-1:** Implement reminder system (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Email reminders (24h, 1h before)
   - SMS reminders
   - Calendar invitations (ICS)
   - Custom reminder timing
   
-- [ ] **FLOW-2:** Add follow-up sequences (12-16 hours)
+- [x] **FLOW-2:** Add follow-up sequences (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Thank you emails post-meeting
   - Feedback surveys
   - No-show follow-ups
   - Rescheduling prompts
   
-- [ ] **FLOW-3:** Build confirmation workflows (12-16 hours)
+- [x] **FLOW-3:** Build confirmation workflows (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Require manual host confirmation
   - Auto-confirm after criteria met
   - Rejection workflows
   - Waitlist promotion
   
-- [ ] **FLOW-4:** Implement routing rules (12-16 hours)
+- [x] **FLOW-4:** Implement routing rules (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Form-based routing (qualify before scheduling)
   - Hidden field routing
   - Answer-based routing
   - Priority/VIP routing
   
-- [ ] **FLOW-5:** Add custom questions (12-16 hours)
+- [x] **FLOW-5:** Add custom questions (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Pre-booking questions
   - Question types (text, multiple choice, dropdown)
   - Conditional questions
