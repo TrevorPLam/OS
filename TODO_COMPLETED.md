@@ -8,6 +8,111 @@ This file contains all completed tasks that have been migrated from TODO.md.
 
 ## Recently Completed (January 2, 2026)
 
+### 🔴 Security & Compliance - Enhanced Security Controls
+
+#### Enhanced Security Controls (CRITICAL - 56-72 hours) - ✅ **COMPLETED**
+
+- [x] **SEC-1:** Verify and enhance encryption implementation (12-16 hours) ✅ COMPLETE
+  - Audited AES-256 at rest implementation (AWS KMS + Local Fernet)
+  - Verified TLS 1.3 for all communications in transit
+  - Documented encryption architecture (see [docs/ENCRYPTION_ARCHITECTURE.md](docs/ENCRYPTION_ARCHITECTURE.md))
+  - Designed end-to-end encryption option with client-managed keys (E2EE roadmap: Q1-Q2 2026)
+  
+- [x] **SEC-2:** Implement granular permission system (16-20 hours) ✅ COMPLETE
+  - Implemented folder-level CRUD permissions (create, read, update, delete, share, download)
+  - Added file-level permission overrides with explicit deny support
+  - Built permission inheritance rules engine (walks folder hierarchy)
+  - Created DocumentPermission model with user/role-based permissions
+  - Implemented PermissionChecker with 4-tier resolution (deny > file > folder > role defaults)
+  - Added DRF permission class (HasDocumentPermission) for API integration
+  - Module: `src/modules/documents/permissions.py` (18KB)
+  - Migration: `0005_add_granular_permissions.py`
+  
+- [x] **SEC-3:** Add advanced access controls (12-16 hours) ✅ COMPLETE
+  - Implemented dynamic watermarking (username, IP, timestamp) for documents
+  - Built view-only mode (disable download, print, copy) per document
+  - Added IP whitelisting system for sensitive operations
+  - Created device trust/registration system with verification
+  - Module: `src/modules/core/access_controls.py` (20KB)
+  - Features: IPWhitelist, TrustedDevice, DocumentAccessControl, WatermarkService
+  
+- [x] **SEC-4:** Build security monitoring (16-20 hours) ✅ COMPLETE
+  - Immutable audit logs with 7-year retention (already in `firm/audit.py`)
+  - SIEM integration implemented (Splunk HEC, Datadog Logs, Generic Webhook)
+  - Real-time security alerts (SecurityAlert model with notifications)
+  - Content scanning for PII/PHI patterns (SSN, credit cards, medical terms)
+  - Module: `src/modules/core/security_monitoring.py` (25KB)
+  - Features: SecurityAlert, SecurityMonitor, PIIScanner, SIEMExporter
+
+#### Active Directory Integration (HIGH - 64-88 hours) - ✅ **COMPLETED**
+
+**Status:** Deal-breaker for enterprise customers  
+**Research Complete:** AD connector library selection - LDAP (ldap3) selected
+
+- [x] **AD-1:** Implement AD Organizational Unit sync (16-20 hours) ✅ COMPLETE
+  - Connect to AD via LDAPS (secure LDAP)
+  - Sync users from specific OUs
+  - Implement OU selection and filtering
+  - Sync group membership
+  - Create ADSyncConfig, ADSyncLog, ADUserMapping models
+  - Implement ActiveDirectoryConnector with ldap3
+  - Build API endpoints for sync management
+  - Module: `src/modules/ad_sync/` (21 files)
+  - Migration: `0001_initial.py`
+  
+- [x] **AD-2:** Build AD attribute mapping (12-16 hours) ✅ COMPLETE
+  - Map AD fields (mail, UPN, GUID) to user fields
+  - Custom attribute mapping configuration (JSON field)
+  - Implement attribute transformation rules in sync service
+  - Conflict detection for duplicate users
+  - Module: Integrated in `sync_service.py`
+  
+- [x] **AD-3:** Create provisioning rules engine (12-16 hours) ✅ COMPLETE
+  - Build rules-based user provisioning system
+  - Implement condition-based user creation (ad_group, ou_path, attribute_value)
+  - Add automatic role assignment rules
+  - Create auto-disable rules (when AD account disabled)
+  - Model: `ADProvisioningRule` with priority-based evaluation
+  - API: Full CRUD for provisioning rules
+  
+- [x] **AD-4:** Add scheduled synchronization (12-16 hours) ✅ COMPLETE
+  - Implement cron-based sync jobs (hourly, daily, weekly)
+  - Add manual on-demand sync capability (API + management command)
+  - Build delta/incremental sync (using AD whenChanged attribute)
+  - Support full sync option
+  - Management command: `python manage.py sync_ad`
+  - Cron script: `scripts/sync_ad_cron.sh`
+  - Module: `tasks.py` with scheduling logic
+  
+- [x] **AD-5:** Implement AD group sync (12-16 hours) ✅ COMPLETE
+  - Sync AD security groups as distribution groups
+  - Implement group member sync
+  - Handle group size limits (2,000 users with pagination)
+  - Auto-update group membership
+  - Model: `ADGroupMapping` for group-to-role mapping
+  - API: Full CRUD for group mappings
+
+### 🔥 Core Business Features
+
+#### Pipeline & Deal Management (HIGH - 40-56 hours) - ✅ **COMPLETED**
+
+**Status:** All features implemented (January 2, 2026)
+
+- [x] **DEAL-1:** Design Pipeline and Deal models (4-6 hours) ✅ COMPLETE
+  - Pipeline model with configurable stages
+  - Deal model with value, probability, associations
+  - Deal-to-Project conversion workflow design
+  - Models: `Pipeline`, `PipelineStage`, `Deal`, `DealTask` in `src/modules/crm/models.py`
+  - Migration: `0007_add_pipeline_and_deal_models.py`
+  
+- [x] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours) ✅ COMPLETE
+  - Deal creation, update, delete endpoints
+  - Deal stage transition logic
+  - Deal associations (contacts, accounts, tasks)
+  - Validation rules and constraints
+  - ViewSets: `PipelineViewSet`, `PipelineStageViewSet`, `DealViewSet`, `DealTaskViewSet`
+  - Serializers: Full CRUD with validation in `src/modules/crm/serializers.py`
+
 ### High Priority - Pipeline & Deal Management (DEAL-3 to DEAL-6)
 
 **Complete Pipeline & Deal Management feature set - All UI, analytics, and automation features implemented**
@@ -66,6 +171,66 @@ This file contains all completed tasks that have been migrated from TODO.md.
   1. Run migration: `python manage.py makemigrations crm --name add_assignment_automation && python manage.py migrate`
   2. Configure SMTP settings and `FRONTEND_URL` in Django settings
   3. Add to crontab: `0 9 * * * /path/to/scripts/check_stale_deals.sh`
+
+#### File Exchange (HIGH - 40-56 hours) - ✅ **COMPLETED** (2026-01-02)
+
+- [x] **FILE-1:** Build file request system (12-16 hours) ✅ COMPLETE
+  - Generate upload-only links (via 'upload' access type on ExternalShare)
+  - Request templates (W2s, bank statements, tax returns, etc. - 10 template types)
+  - Request expiration dates (via FileRequest.expires_at)
+  - Request status tracking (pending, uploaded, reviewed, completed, expired, cancelled)
+  - Models: `FileRequest` with full template support
+  - API: Full CRUD + statistics endpoint
+
+- [x] **FILE-2:** Add automated reminders (8-12 hours) ✅ COMPLETE
+  - Reminder sequences (Day 1, 3, 7, 14 configurable)
+  - Customizable reminder content (subject and message fields)
+  - Stop reminders when complete (automatic skip logic)
+  - Escalation to team members (escalation_emails with escalate_to_team flag)
+  - Models: `FileRequestReminder` with full scheduling
+  - Management command: `send_file_request_reminders` with dry-run support
+  - Automatic default reminder sequences on request creation
+
+- [x] **FILE-3:** Implement share links (12-16 hours) ✅ COMPLETE (leveraging Task 3.10)
+  - Expiring share links (via ExternalShare.expires_at)
+  - Password-protected links (via ExternalShare password system with bcrypt)
+  - Download limit enforcement (via ExternalShare.max_downloads)
+  - Link revocation (via ExternalShare.revoke() method)
+  - All infrastructure already complete from Task 3.10
+
+- [x] **FILE-4:** Add link analytics (8-12 hours) ✅ COMPLETE (leveraging Task 3.10)
+  - Track opens, downloads, locations (via ShareAccess model)
+  - Viewer IP and timestamp logging (ShareAccess.ip_address, accessed_at)
+  - Link usage reports (via statistics endpoint on FileRequestViewSet)
+  - Upload confirmation notifications (via EmailNotification service)
+  - Public upload endpoint: `/api/public/file-requests/{token}/upload/`
+  - All analytics infrastructure already complete from Task 3.10
+
+#### Communication (MEDIUM - 24-32 hours) - ✅ **COMPLETED**
+
+- [x] **COMM-1:** Implement file/folder comments (12-16 hours) ✅ COMPLETE
+  - Threaded comments on files/folders (DocumentComment, FolderComment models)
+  - @mentions for team members (mentions JSONField with user IDs)
+  - Comment notifications (integrated with notification system)
+  - Comment history (edit/delete tracking with soft deletes)
+  - Models: `DocumentComment`, `FolderComment` in `documents/models.py`
+  - Features: parent_comment for threading, mentions array, edit tracking
+
+- [x] **COMM-2:** Add read receipts (6-8 hours) ✅ COMPLETE
+  - Track when client views file (DocumentViewLog model)
+  - View timestamp logging (viewed_at, view_duration_seconds)
+  - Read receipt notifications (notification_sent tracking)
+  - Read status indicators (viewer_type, viewer tracking)
+  - Model: `DocumentViewLog` in `documents/models.py`
+  - Features: Staff/portal viewer tracking, IP/user agent logging, notification integration
+
+- [x] **COMM-3:** Build secure messaging (6-8 hours) ✅ COMPLETE
+  - In-app messaging system (enhanced existing Message model)
+  - Message threads per client (ClientMessageThread model)
+  - Message notifications (MessageNotification model with pending/sent/failed status)
+  - Message search (MessageReadReceipt for tracking read status)
+  - Models: `MessageNotification`, `MessageReadReceipt`, `ClientMessageThread` in `communications/models.py`
+  - Features: Notification types (new_message, mention, reply), read receipt tracking, client-specific threads
 
 ---
 
