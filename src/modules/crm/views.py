@@ -1029,8 +1029,14 @@ class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         """
         from modules.crm.deal_rotting_alerts import get_stale_deal_report
         
-        firm_id = request.user.firm.id if hasattr(request.user, 'firm') else None
-        report = get_stale_deal_report(firm_id)
+        # Ensure user has a firm
+        if not hasattr(request.user, 'firm') or not request.user.firm:
+            return Response(
+                {"error": "User must be associated with a firm"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        report = get_stale_deal_report(request.user.firm.id)
         
         return Response(report)
     
@@ -1060,13 +1066,20 @@ class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         from django.core.management import call_command
         from io import StringIO
         
+        # Ensure user has a firm
+        if not hasattr(request.user, 'firm') or not request.user.firm:
+            return Response(
+                {"error": "User must be associated with a firm"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         dry_run = request.data.get('dry_run', True)
         
         # Capture command output
         out = StringIO()
         call_command('send_stale_deal_reminders', 
                     dry_run=dry_run,
-                    firm_id=request.user.firm.id if hasattr(request.user, 'firm') else None,
+                    firm_id=request.user.firm.id,
                     stdout=out)
         
         return Response({

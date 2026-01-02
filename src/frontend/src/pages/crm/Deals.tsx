@@ -65,7 +65,13 @@ const Deals: React.FC = () => {
       
       // Sort stages by display order
       setStages(stagesData.sort((a, b) => a.display_order - b.display_order))
-      setDeals(dealsData)
+      
+      // Filter deals by selected pipeline if showing stale deals
+      if (filterStale) {
+        setDeals(dealsData.filter(deal => deal.pipeline === selectedPipeline.id))
+      } else {
+        setDeals(dealsData)
+      }
     } catch (error) {
       console.error('Error loading stages and deals:', error)
     } finally {

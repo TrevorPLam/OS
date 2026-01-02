@@ -108,12 +108,12 @@ const DealAnalytics: React.FC = () => {
   }
 
   const calculateDealsByStage = () => {
-    if (!selectedPipeline) return []
+    if (!selectedPipeline || !selectedPipeline.stages) return []
 
     const stageMap = new Map<number, { name: string; count: number; value: number; probability: number }>()
 
     deals.forEach(deal => {
-      const stage = selectedPipeline.stages?.find(s => s.id === deal.stage)
+      const stage = selectedPipeline.stages.find(s => s.id === deal.stage)
       if (!stage) return
 
       const existing = stageMap.get(deal.stage) || { name: stage.name, count: 0, value: 0, probability: stage.probability }

@@ -67,9 +67,12 @@ class Command(BaseCommand):
         
         # Calculate how long deal has been stale
         if not deal.last_activity_date:
-            days_stale = 'unknown'
+            days_stale_str = 'an unknown number of'
+            days_stale_display = 'unknown'
         else:
             days_stale = (timezone.now().date() - deal.last_activity_date).days
+            days_stale_str = str(days_stale)
+            days_stale_display = deal.last_activity_date.strftime('%Y-%m-%d')
         
         subject = f'⚠️ Stale Deal Alert: {deal.name}'
         
@@ -79,14 +82,14 @@ class Command(BaseCommand):
         message = f"""
 Hello {deal.owner.first_name or deal.owner.email},
 
-This is a reminder that the following deal has had no activity for {days_stale} days:
+This is a reminder that the following deal has had no activity for {days_stale_str} days:
 
 Deal: {deal.name}
 Pipeline: {deal.pipeline.name}
 Stage: {deal.stage.name}
 Value: ${deal.value}
 Expected Close: {deal.expected_close_date}
-Last Activity: {deal.last_activity_date or 'Never'}
+Last Activity: {days_stale_display}
 
 Please review this deal and take appropriate action:
 - Update the deal with recent activity

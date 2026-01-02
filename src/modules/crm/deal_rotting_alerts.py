@@ -12,6 +12,30 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def _get_user_display_name(user_data):
+    """
+    Get display name for a user from query data.
+    
+    Args:
+        user_data: Dictionary with user fields (owner__first_name, owner__last_name, owner__email)
+        
+    Returns:
+        String display name
+    """
+    first = user_data.get('owner__first_name', '').strip()
+    last = user_data.get('owner__last_name', '').strip()
+    email = user_data.get('owner__email', 'Unknown')
+    
+    if first and last:
+        return f"{first} {last}"
+    elif first:
+        return first
+    elif last:
+        return last
+    else:
+        return email
+
+
 def check_and_mark_stale_deals():
     """
     Check all active deals and mark them as stale if needed (DEAL-6).
@@ -21,7 +45,9 @@ def check_and_mark_stale_deals():
     Returns:
         Number of deals marked as stale
     """
-    from modules.crm.models import Deal
+    # Import here to avoid circular imports
+    from django.apps import apps
+    Deal = apps.get_model('crm', 'Deal')
     
     now = timezone.now().date()
     
@@ -65,7 +91,9 @@ def get_stale_deal_report(firm_id=None):
     Returns:
         Dictionary with stale deal statistics
     """
-    from modules.crm.models import Deal
+    # Import here to avoid circular imports
+    from django.apps import apps
+    Deal = apps.get_model('crm', 'Deal')
     
     queryset = Deal.objects.filter(is_active=True, is_stale=True)
     if firm_id:
@@ -84,6 +112,12 @@ def get_stale_deal_report(firm_id=None):
         total_value=Sum('value'),
         weighted_value=Sum('weighted_value')
     ).order_by('-deal_count')
+    
+    # Add display names
+    by_owner_list = []
+    for owner in by_owner:
+        owner['display_name'] = _get_user_display_name(owner)
+        by_owner_list.append(owner)
     
     # Group by pipeline
     by_pipeline = queryset.values(
@@ -130,7 +164,7 @@ def get_stale_deal_report(firm_id=None):
         'total_stale_deals': total_stale,
         'total_value_at_risk': float(total_value),
         'total_weighted_value_at_risk': float(weighted_value),
-        'by_owner': list(by_owner),
+        'by_owner': by_owner_list,
         'by_pipeline': list(by_pipeline),
         'by_stage': list(by_stage),
         'age_distribution': age_ranges,
@@ -148,8 +182,10 @@ def get_deal_splitting_report(firm_id=None):
     Returns:
         Dictionary with split deal statistics
     """
-    from modules.crm.models import Deal
+    # Import here to avoid circular imports
+    from django.apps import apps
     from django.db.models import Q
+    Deal = apps.get_model('crm', 'Deal')
     
     # Find deals with split_percentage data
     queryset = Deal.objects.filter(is_active=True).exclude(
@@ -215,7 +251,7 @@ By Owner:
 """
     
     for owner in report['by_owner'][:5]:
-        name = f"{owner.get('owner__first_name', '')} {owner.get('owner__last_name', '')}".strip() or owner.get('owner__email', 'Unknown')
+        name = owner.get('display_name', 'Unknown')
         message += f"- {name}: {owner['deal_count']} deals (${owner['total_value']:,.2f})\n"
     
     message += "\nBy Pipeline:\n"
