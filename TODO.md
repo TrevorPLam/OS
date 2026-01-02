@@ -162,25 +162,25 @@
   - Duration selection UI for bookers
   - Duration-based pricing (if applicable)
   
-- [ ] **CAL-3:** Implement rich event descriptions (6-8 hours)
+- [x] **CAL-3:** Implement rich event descriptions (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
   - WYSIWYG editor with formatting
   - Link embedding
   - Image upload and display
   - Internal name vs public display name
   
-- [ ] **CAL-4:** Add event customization features (8-12 hours)
+- [x] **CAL-4:** Add event customization features (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
   - Custom URL slugs per event
   - Event color coding
   - Event-specific availability overrides
   - Event status management (active/inactive/archived)
   
-- [ ] **CAL-5:** Implement scheduling constraints (8-12 hours)
+- [x] **CAL-5:** Implement scheduling constraints (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
   - Daily meeting limit per event type
   - Rolling availability window (e.g., "next 30 days")
   - Min/Max notice periods (1 hour - 30 days)
   - Event-specific buffer time configuration
   
-- [ ] **CAL-6:** Build meeting lifecycle management (6-8 hours)
+- [x] **CAL-6:** Build meeting lifecycle management (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
   - Meeting states (scheduled, rescheduled, canceled, completed)
   - No-Show tracking
   - Awaiting Confirmation (for group polls)
