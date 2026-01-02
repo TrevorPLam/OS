@@ -9,12 +9,15 @@ from .models import (
     AccountContact,
     AccountRelationship,
     Campaign,
+    ContactEnrichment,
     Contract,
     Deal,
     DealAlert,
     DealAssignmentRule,
     DealStageAutomation,
     DealTask,
+    EnrichmentProvider,
+    EnrichmentQualityMetric,
     IntakeForm,
     IntakeFormField,
     IntakeFormSubmission,
@@ -1271,3 +1274,387 @@ class DealAlertAdmin(admin.ModelAdmin):
         self.message_user(request, f"Dismissed {count} alert(s).")
     
     dismiss_alerts.short_description = "Dismiss selected alerts"
+
+
+# ============================================================================
+# Enrichment Admin
+# ============================================================================
+
+
+@admin.register(EnrichmentProvider)
+class EnrichmentProviderAdmin(admin.ModelAdmin):
+    """Admin interface for EnrichmentProvider model."""
+
+    list_display = [
+        "id",
+        "firm",
+        "provider",
+        "is_enabled",
+        "auto_enrich_on_create",
+        "total_enrichments",
+        "success_rate_display",
+        "last_used_at",
+        "created_at",
+    ]
+    list_filter = [
+        "provider",
+        "is_enabled",
+        "auto_enrich_on_create",
+        "auto_refresh_enabled",
+        "created_at",
+    ]
+    search_fields = ["firm__name", "provider"]
+    readonly_fields = [
+        "total_enrichments",
+        "successful_enrichments",
+        "failed_enrichments",
+        "success_rate_display",
+        "last_used_at",
+        "created_at",
+        "updated_at",
+    ]
+    fieldsets = (
+        ("Provider Information", {
+            "fields": (
+                "firm",
+                "provider",
+                "is_enabled",
+            )
+        }),
+        ("API Configuration", {
+            "fields": (
+                "api_key",
+                "api_secret",
+                "additional_config",
+            ),
+            "classes": ("collapse",),
+        }),
+        ("Auto-Enrichment Settings", {
+            "fields": (
+                "auto_enrich_on_create",
+                "auto_refresh_enabled",
+                "refresh_interval_hours",
+            )
+        }),
+        ("Usage Statistics", {
+            "fields": (
+                "total_enrichments",
+                "successful_enrichments",
+                "failed_enrichments",
+                "success_rate_display",
+                "last_used_at",
+            ),
+            "classes": ("collapse",),
+        }),
+        ("Audit", {
+            "fields": (
+                "created_by",
+                "created_at",
+                "updated_at",
+            ),
+            "classes": ("collapse",),
+        }),
+    )
+
+    def success_rate_display(self, obj):
+        """Display success rate as percentage."""
+        return f"{obj.success_rate:.1f}%"
+
+    success_rate_display.short_description = "Success Rate"
+
+    actions = ["enable_providers", "disable_providers", "test_connections"]
+
+    def enable_providers(self, request, queryset):
+        """Admin action to enable selected providers."""
+        count = queryset.update(is_enabled=True)
+        self.message_user(request, f"Enabled {count} provider(s).")
+
+    enable_providers.short_description = "Enable selected providers"
+
+    def disable_providers(self, request, queryset):
+        """Admin action to disable selected providers."""
+        count = queryset.update(is_enabled=False)
+        self.message_user(request, f"Disabled {count} provider(s).")
+
+    disable_providers.short_description = "Disable selected providers"
+
+    def test_connections(self, request, queryset):
+        """Admin action to test provider connections."""
+        from modules.crm.enrichment_service import (
+            ClearbitEnrichmentService,
+            ZoomInfoEnrichmentService,
+            LinkedInEnrichmentService,
+        )
+
+        results = []
+        for provider in queryset:
+            try:
+                if provider.provider == "clearbit":
+                    service = ClearbitEnrichmentService(provider)
+                elif provider.provider == "zoominfo":
+                    service = ZoomInfoEnrichmentService(provider)
+                elif provider.provider == "linkedin":
+                    service = LinkedInEnrichmentService(provider)
+                else:
+                    results.append(f"❌ {provider}: Unsupported provider")
+                    continue
+
+                results.append(f"✅ {provider}: Connection successful")
+
+            except Exception as e:
+                results.append(f"❌ {provider}: {str(e)}")
+
+        self.message_user(request, "\n".join(results))
+
+    test_connections.short_description = "Test connection for selected providers"
+
+
+@admin.register(ContactEnrichment)
+class ContactEnrichmentAdmin(admin.ModelAdmin):
+    """Admin interface for ContactEnrichment model."""
+
+    list_display = [
+        "id",
+        "contact_display",
+        "enrichment_provider",
+        "company_name",
+        "confidence_score",
+        "data_completeness_display",
+        "is_stale",
+        "last_enriched_at",
+    ]
+    list_filter = [
+        "enrichment_provider",
+        "is_stale",
+        "contact_seniority",
+        "last_enriched_at",
+        "created_at",
+    ]
+    search_fields = [
+        "company_name",
+        "company_domain",
+        "contact_email",
+        "account_contact__email",
+        "client_contact__email",
+    ]
+    readonly_fields = [
+        "contact_display",
+        "contact_email",
+        "data_completeness_display",
+        "last_enriched_at",
+        "refresh_count",
+        "created_at",
+        "updated_at",
+    ]
+    fieldsets = (
+        ("Contact & Provider", {
+            "fields": (
+                "account_contact",
+                "client_contact",
+                "contact_display",
+                "contact_email",
+                "enrichment_provider",
+            )
+        }),
+        ("Company Data", {
+            "fields": (
+                "company_name",
+                "company_domain",
+                "company_industry",
+                "company_size",
+                "company_revenue",
+                "company_description",
+                "company_logo_url",
+                "company_location",
+                "company_founded_year",
+                "technologies",
+            )
+        }),
+        ("Contact Data", {
+            "fields": (
+                "contact_title",
+                "contact_seniority",
+                "contact_role",
+            )
+        }),
+        ("Social Profiles", {
+            "fields": (
+                "linkedin_url",
+                "twitter_url",
+                "facebook_url",
+                "github_url",
+            )
+        }),
+        ("Data Quality", {
+            "fields": (
+                "confidence_score",
+                "data_completeness_display",
+                "fields_enriched",
+                "fields_missing",
+                "enrichment_error",
+            )
+        }),
+        ("Refresh Tracking", {
+            "fields": (
+                "last_enriched_at",
+                "next_refresh_at",
+                "refresh_count",
+                "is_stale",
+            )
+        }),
+        ("Raw Data", {
+            "fields": ("raw_data",),
+            "classes": ("collapse",),
+        }),
+        ("Audit", {
+            "fields": (
+                "created_at",
+                "updated_at",
+            ),
+            "classes": ("collapse",),
+        }),
+    )
+
+    def contact_display(self, obj):
+        """Display contact name and email."""
+        if obj.account_contact:
+            return f"{obj.account_contact.first_name} {obj.account_contact.last_name} ({obj.account_contact.email})"
+        elif obj.client_contact:
+            return f"{obj.client_contact.first_name} {obj.client_contact.last_name} ({obj.client_contact.email})"
+        return "Unknown"
+
+    contact_display.short_description = "Contact"
+
+    def data_completeness_display(self, obj):
+        """Display data completeness as percentage."""
+        return f"{obj.data_completeness:.1f}%"
+
+    data_completeness_display.short_description = "Data Completeness"
+
+    actions = ["refresh_enrichments", "mark_stale", "mark_fresh"]
+
+    def refresh_enrichments(self, request, queryset):
+        """Admin action to manually refresh selected enrichments."""
+        from modules.crm.enrichment_service import EnrichmentOrchestrator
+
+        count = 0
+        errors = []
+
+        for enrichment in queryset[:10]:  # Limit to 10 at a time
+            try:
+                email = enrichment.contact_email
+                if not email:
+                    continue
+
+                firm = enrichment.firm
+                orchestrator = EnrichmentOrchestrator(firm=firm)
+
+                if enrichment.account_contact:
+                    result, enrich_errors = orchestrator.enrich_contact(
+                        email=email,
+                        contact=enrichment.account_contact,
+                    )
+                elif enrichment.client_contact:
+                    result, enrich_errors = orchestrator.enrich_contact(
+                        email=email,
+                        client_contact=enrichment.client_contact,
+                    )
+                else:
+                    continue
+
+                if result:
+                    count += 1
+                else:
+                    errors.extend(enrich_errors)
+
+            except Exception as e:
+                errors.append(str(e))
+
+        message = f"Refreshed {count} enrichment(s)."
+        if errors:
+            message += f" Errors: {', '.join(errors[:3])}"
+
+        self.message_user(request, message)
+
+    refresh_enrichments.short_description = "Refresh selected enrichments (max 10)"
+
+    def mark_stale(self, request, queryset):
+        """Admin action to mark enrichments as stale."""
+        count = queryset.update(is_stale=True)
+        self.message_user(request, f"Marked {count} enrichment(s) as stale.")
+
+    mark_stale.short_description = "Mark selected as stale"
+
+    def mark_fresh(self, request, queryset):
+        """Admin action to mark enrichments as fresh."""
+        count = queryset.update(is_stale=False)
+        self.message_user(request, f"Marked {count} enrichment(s) as fresh.")
+
+    mark_fresh.short_description = "Mark selected as fresh"
+
+
+@admin.register(EnrichmentQualityMetric)
+class EnrichmentQualityMetricAdmin(admin.ModelAdmin):
+    """Admin interface for EnrichmentQualityMetric model."""
+
+    list_display = [
+        "id",
+        "enrichment_provider",
+        "metric_date",
+        "total_enrichments",
+        "success_rate_display",
+        "average_completeness",
+        "average_confidence",
+        "average_response_time_ms",
+    ]
+    list_filter = [
+        "enrichment_provider",
+        "metric_date",
+    ]
+    search_fields = ["enrichment_provider__provider"]
+    readonly_fields = [
+        "success_rate_display",
+        "created_at",
+    ]
+    date_hierarchy = "metric_date"
+    fieldsets = (
+        ("Provider & Date", {
+            "fields": (
+                "enrichment_provider",
+                "metric_date",
+            )
+        }),
+        ("Enrichment Metrics", {
+            "fields": (
+                "total_enrichments",
+                "successful_enrichments",
+                "failed_enrichments",
+                "success_rate_display",
+            )
+        }),
+        ("Quality Metrics", {
+            "fields": (
+                "average_completeness",
+                "average_confidence",
+                "average_response_time_ms",
+            )
+        }),
+        ("Field Success Rates", {
+            "fields": ("field_success_rates",),
+            "classes": ("collapse",),
+        }),
+        ("Error Tracking", {
+            "fields": ("error_types",),
+            "classes": ("collapse",),
+        }),
+        ("Audit", {
+            "fields": ("created_at",),
+            "classes": ("collapse",),
+        }),
+    )
+
+    def success_rate_display(self, obj):
+        """Display success rate as percentage."""
+        return f"{obj.success_rate:.1f}%"
+
+    success_rate_display.short_description = "Success Rate"

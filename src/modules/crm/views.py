@@ -1340,3 +1340,362 @@ class DealTaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         task.complete()
         serializer = self.get_serializer(task)
         return Response(serializer.data)
+
+
+# ============================================================================
+# Enrichment ViewSets
+# ============================================================================
+
+
+class EnrichmentProviderViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    API endpoints for managing enrichment providers.
+
+    Allows firms to configure Clearbit, ZoomInfo, and LinkedIn integrations
+    for contact enrichment.
+
+    TIER 0: Scoped to user's firm via FirmScopedMixin.
+    TIER 2.5: Portal users explicitly denied.
+    """
+
+    from .models import EnrichmentProvider
+    model = EnrichmentProvider
+    queryset = EnrichmentProvider.objects.all()
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["provider", "is_enabled", "auto_enrich_on_create"]
+    ordering_fields = ["provider", "created_at", "total_enrichments"]
+    ordering = ["-created_at"]
+
+    def get_serializer_class(self):
+        """Use detailed serializer for retrieve action."""
+        from .serializers import EnrichmentProviderSerializer, EnrichmentProviderDetailSerializer
+
+        if self.action == "retrieve":
+            return EnrichmentProviderDetailSerializer
+        return EnrichmentProviderSerializer
+
+    @action(detail=True, methods=["post"])
+    def test_connection(self, request, pk=None):
+        """Test provider API connection."""
+        provider = self.get_object()
+
+        # Simple test - try to create service instance
+        try:
+            from .enrichment_service import (
+                ClearbitEnrichmentService,
+                ZoomInfoEnrichmentService,
+                LinkedInEnrichmentService,
+            )
+
+            if provider.provider == "clearbit":
+                service = ClearbitEnrichmentService(provider)
+            elif provider.provider == "zoominfo":
+                service = ZoomInfoEnrichmentService(provider)
+            elif provider.provider == "linkedin":
+                service = LinkedInEnrichmentService(provider)
+            else:
+                return Response(
+                    {"success": False, "error": "Unsupported provider"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            return Response({
+                "success": True,
+                "message": f"{provider.get_provider_display()} service initialized successfully"
+            })
+
+        except Exception as e:
+            return Response(
+                {"success": False, "error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class ContactEnrichmentViewSet(QueryTimeoutMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoints for viewing contact enrichment data.
+
+    Read-only access to enriched contact data. Enrichment is triggered
+    automatically via signals or manually via AccountContactViewSet.
+
+    TIER 0: Scoped to user's firm through contact relationship.
+    TIER 2.5: Portal users explicitly denied.
+    """
+
+    from .models import ContactEnrichment
+    queryset = ContactEnrichment.objects.all()
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["enrichment_provider", "is_stale"]
+    ordering_fields = ["last_enriched_at", "confidence_score"]
+    ordering = ["-last_enriched_at"]
+
+    def get_serializer_class(self):
+        """Use detailed serializer for retrieve action."""
+        from .serializers import ContactEnrichmentSerializer, ContactEnrichmentDetailSerializer
+
+        if self.action == "retrieve":
+            return ContactEnrichmentDetailSerializer
+        return ContactEnrichmentSerializer
+
+    def get_queryset(self):
+        """Filter enrichments by firm through contact relationship."""
+        user = self.request.user
+        from django.db.models import Q
+
+        return ContactEnrichment.objects.filter(
+            Q(account_contact__account__firm=user.firm) |
+            Q(client_contact__firm=user.firm)
+        ).select_related(
+            "enrichment_provider",
+            "account_contact",
+            "client_contact",
+        )
+
+    @action(detail=True, methods=["post"])
+    def refresh(self, request, pk=None):
+        """Manually trigger refresh of this enrichment."""
+        enrichment = self.get_object()
+
+        try:
+            from .enrichment_service import EnrichmentOrchestrator
+
+            email = enrichment.contact_email
+            if not email:
+                return Response(
+                    {"success": False, "error": "No email address found"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            firm = enrichment.firm
+            orchestrator = EnrichmentOrchestrator(firm=firm)
+
+            if enrichment.account_contact:
+                result, errors = orchestrator.enrich_contact(
+                    email=email,
+                    contact=enrichment.account_contact,
+                )
+            elif enrichment.client_contact:
+                result, errors = orchestrator.enrich_contact(
+                    email=email,
+                    client_contact=enrichment.client_contact,
+                )
+            else:
+                return Response(
+                    {"success": False, "error": "No contact found"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            if result:
+                serializer = self.get_serializer(result)
+                return Response({
+                    "success": True,
+                    "enrichment": serializer.data
+                })
+            else:
+                return Response(
+                    {"success": False, "errors": errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Exception as e:
+            return Response(
+                {"success": False, "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class EnrichmentQualityMetricViewSet(QueryTimeoutMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoints for viewing enrichment quality metrics.
+
+    Provides historical quality and performance data for enrichment providers.
+
+    TIER 0: Scoped to user's firm through provider relationship.
+    TIER 2.5: Portal users explicitly denied.
+    """
+
+    from .models import EnrichmentQualityMetric
+    serializer_class = None  # Set in get_serializer_class
+    queryset = EnrichmentQualityMetric.objects.all()
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["enrichment_provider", "metric_date"]
+    ordering_fields = ["metric_date", "success_rate"]
+    ordering = ["-metric_date"]
+
+    def get_serializer_class(self):
+        """Get serializer class."""
+        from .serializers import EnrichmentQualityMetricSerializer
+        return EnrichmentQualityMetricSerializer
+
+    def get_queryset(self):
+        """Filter metrics by firm through provider relationship."""
+        user = self.request.user
+        return EnrichmentQualityMetric.objects.filter(
+            enrichment_provider__firm=user.firm
+        ).select_related("enrichment_provider")
+
+
+# Add enrichment actions to AccountContactViewSet
+from rest_framework.decorators import action
+
+
+# Note: These should be added to the existing AccountContactViewSet
+# For now, creating a mixin that can be added to AccountContactViewSet
+
+
+class ContactEnrichmentMixin:
+    """
+    Mixin to add enrichment actions to contact ViewSets.
+
+    Can be mixed into AccountContactViewSet or ClientContactViewSet.
+    """
+
+    @action(detail=True, methods=["post"])
+    def enrich(self, request, pk=None):
+        """
+        Manually trigger enrichment for this contact.
+
+        Body params:
+        - providers: Optional list of provider names to use
+        """
+        from .serializers import EnrichContactRequestSerializer
+        from .enrichment_service import EnrichmentOrchestrator
+
+        contact = self.get_object()
+
+        # Validate request
+        serializer = EnrichContactRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data.get("email") or contact.email
+        providers = serializer.validated_data.get("providers")
+
+        if not email:
+            return Response(
+                {"success": False, "error": "Contact has no email address"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Determine firm based on contact type
+            if hasattr(contact, 'account'):
+                # AccountContact
+                firm = contact.account.firm
+                orchestrator = EnrichmentOrchestrator(firm=firm)
+                enrichment, errors = orchestrator.enrich_contact(
+                    email=email,
+                    contact=contact,
+                    providers=providers,
+                )
+            else:
+                # Client Contact
+                firm = contact.firm
+                orchestrator = EnrichmentOrchestrator(firm=firm)
+                enrichment, errors = orchestrator.enrich_contact(
+                    email=email,
+                    client_contact=contact,
+                    providers=providers,
+                )
+
+            if enrichment:
+                from .serializers import ContactEnrichmentSerializer
+                enrichment_serializer = ContactEnrichmentSerializer(enrichment)
+                return Response({
+                    "success": True,
+                    "enrichment": enrichment_serializer.data
+                })
+            else:
+                return Response(
+                    {"success": False, "errors": errors},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Exception as e:
+            return Response(
+                {"success": False, "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["post"])
+    def enrich_linkedin(self, request, pk=None):
+        """
+        Enrich contact using LinkedIn profile URL.
+
+        Body params:
+        - linkedin_url: LinkedIn profile URL
+        """
+        from .serializers import EnrichLinkedInRequestSerializer
+        from .enrichment_service import EnrichmentOrchestrator
+
+        contact = self.get_object()
+
+        # Validate request
+        serializer = EnrichLinkedInRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        linkedin_url = serializer.validated_data["linkedin_url"]
+
+        try:
+            # Determine firm based on contact type
+            if hasattr(contact, 'account'):
+                # AccountContact
+                firm = contact.account.firm
+                orchestrator = EnrichmentOrchestrator(firm=firm)
+                enrichment, error = orchestrator.enrich_linkedin_profile(
+                    linkedin_url=linkedin_url,
+                    contact=contact,
+                )
+            else:
+                # Client Contact
+                firm = contact.firm
+                orchestrator = EnrichmentOrchestrator(firm=firm)
+                enrichment, error = orchestrator.enrich_linkedin_profile(
+                    linkedin_url=linkedin_url,
+                    client_contact=contact,
+                )
+
+            if enrichment:
+                from .serializers import ContactEnrichmentSerializer
+                enrichment_serializer = ContactEnrichmentSerializer(enrichment)
+                return Response({
+                    "success": True,
+                    "enrichment": enrichment_serializer.data
+                })
+            else:
+                return Response(
+                    {"success": False, "error": error},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Exception as e:
+            return Response(
+                {"success": False, "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=["get"])
+    def enrichment_data(self, request, pk=None):
+        """Get enrichment data for this contact."""
+        from .serializers import ContactEnrichmentDetailSerializer
+
+        contact = self.get_object()
+
+        # Get enrichment data
+        enrichment = None
+        if hasattr(contact, 'enrichment_data'):
+            enrichment = contact.enrichment_data
+
+        if not enrichment:
+            return Response(
+                {"success": False, "error": "No enrichment data found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ContactEnrichmentDetailSerializer(enrichment)
+        return Response({
+            "success": True,
+            "enrichment": serializer.data
+        })
