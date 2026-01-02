@@ -1,10 +1,11 @@
 """
-CRM Models: Lead, Prospect, Proposal, Contract, Campaign.
+CRM Models: Lead, Prospect, Proposal, Contract, Campaign, Pipeline, Deal.
 
 This module handles PRE-SALE operations only (Marketing & Sales).
 Post-sale Client management moved to modules.clients.
 
 Workflow: Lead → Prospect → Proposal → (Accepted) → Client (in modules.clients)
+Deal Workflow: Deal → (Won) → Project conversion
 
 TIER 0: All CRM entities MUST belong to exactly one Firm for tenant isolation.
 """
@@ -2063,3 +2064,471 @@ class ProductConfiguration(models.Model):
         self.configuration_price = self.calculate_price()
         
         super().save(*args, **kwargs)
+
+
+class Pipeline(models.Model):
+    """
+    Pipeline model with configurable stages (DEAL-1).
+    
+    Represents a customizable sales pipeline with stages that deals progress through.
+    Each firm can have multiple pipelines for different types of deals.
+    
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+    
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="pipelines",
+        help_text="Firm (workspace) this pipeline belongs to"
+    )
+    
+    # Pipeline Details
+    name = models.CharField(max_length=255, help_text="Pipeline name (e.g., 'Sales', 'Consulting', 'Enterprise')")
+    description = models.TextField(blank=True, help_text="Pipeline description and purpose")
+    is_active = models.BooleanField(default=True, help_text="Whether this pipeline is currently active")
+    is_default = models.BooleanField(default=False, help_text="Whether this is the default pipeline for new deals")
+    
+    # Ordering
+    display_order = models.IntegerField(default=0, help_text="Display order for sorting pipelines")
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_pipelines",
+        help_text="User who created this pipeline"
+    )
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "crm_pipelines"
+        ordering = ["display_order", "name"]
+        indexes = [
+            models.Index(fields=["firm", "is_active"], name="crm_pip_firm_active_idx"),
+            models.Index(fields=["firm", "is_default"], name="crm_pip_firm_default_idx"),
+        ]
+        unique_together = [["firm", "name"]]
+    
+    def __str__(self) -> str:
+        return f"{self.name}"
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Override save to ensure only one default pipeline per firm."""
+        if self.is_default:
+            # Set all other pipelines in this firm to non-default
+            Pipeline.objects.filter(firm=self.firm, is_default=True).exclude(pk=self.pk).update(is_default=False)
+        super().save(*args, **kwargs)
+
+
+class PipelineStage(models.Model):
+    """
+    Pipeline Stage model (DEAL-1).
+    
+    Represents a stage within a pipeline. Stages have a specific order
+    and probability associated with them.
+    
+    TIER 0: Belongs to exactly one Firm via Pipeline relationship.
+    """
+    
+    # Pipeline relationship
+    pipeline = models.ForeignKey(
+        Pipeline,
+        on_delete=models.CASCADE,
+        related_name="stages",
+        help_text="Pipeline this stage belongs to"
+    )
+    
+    # Stage Details
+    name = models.CharField(max_length=100, help_text="Stage name (e.g., 'Discovery', 'Proposal', 'Negotiation')")
+    description = models.TextField(blank=True, help_text="Stage description")
+    
+    # Stage Configuration
+    probability = models.IntegerField(
+        default=0,
+        validators=[MinValueValidator(0)],
+        help_text="Default win probability percentage (0-100) for deals in this stage"
+    )
+    is_active = models.BooleanField(default=True, help_text="Whether this stage is currently active")
+    is_closed_won = models.BooleanField(default=False, help_text="Mark as won stage")
+    is_closed_lost = models.BooleanField(default=False, help_text="Mark as lost stage")
+    
+    # Ordering
+    display_order = models.IntegerField(default=0, help_text="Display order within the pipeline")
+    
+    # Automation (future)
+    auto_tasks = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Tasks to auto-create when deal enters this stage"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "crm_pipeline_stages"
+        ordering = ["pipeline", "display_order", "name"]
+        indexes = [
+            models.Index(fields=["pipeline", "display_order"], name="crm_pip_stg_pip_ord_idx"),
+            models.Index(fields=["pipeline", "is_active"], name="crm_pip_stg_pip_act_idx"),
+        ]
+        unique_together = [["pipeline", "name"]]
+    
+    def __str__(self) -> str:
+        return f"{self.pipeline.name} - {self.name}"
+    
+    @property
+    def firm(self):
+        """Get the firm through the pipeline relationship."""
+        return self.pipeline.firm
+
+
+class Deal(models.Model):
+    """
+    Deal model with value, probability, and associations (DEAL-1).
+    
+    Represents a sales opportunity/deal that progresses through pipeline stages.
+    More flexible than Prospect - can be associated with Accounts, Contacts, 
+    and eventually converted to Projects.
+    
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+    
+    # TIER 0: Firm tenancy (REQUIRED)
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="deals",
+        help_text="Firm (workspace) this deal belongs to"
+    )
+    
+    # Pipeline & Stage
+    pipeline = models.ForeignKey(
+        Pipeline,
+        on_delete=models.PROTECT,
+        related_name="deals",
+        help_text="Pipeline this deal belongs to"
+    )
+    stage = models.ForeignKey(
+        PipelineStage,
+        on_delete=models.PROTECT,
+        related_name="deals",
+        help_text="Current stage in the pipeline"
+    )
+    
+    # Deal Details
+    name = models.CharField(max_length=255, help_text="Deal name/title")
+    description = models.TextField(blank=True, help_text="Deal description and notes")
+    
+    # Associations (optional - can have account, contact, or both)
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deals",
+        help_text="Associated account/company"
+    )
+    contact = models.ForeignKey(
+        AccountContact,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deals",
+        help_text="Primary contact for this deal"
+    )
+    
+    # Financial Details
+    value = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.00"))],
+        help_text="Deal value/amount"
+    )
+    currency = models.CharField(max_length=3, default="USD")
+    probability = models.IntegerField(
+        default=50,
+        validators=[MinValueValidator(0)],
+        help_text="Win probability percentage (0-100)"
+    )
+    weighted_value = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        help_text="Auto-calculated: value * probability / 100"
+    )
+    
+    # Timeline
+    expected_close_date = models.DateField(help_text="Expected close date")
+    actual_close_date = models.DateField(null=True, blank=True, help_text="Actual close date when won/lost")
+    
+    # Assignment & Ownership
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="owned_deals",
+        help_text="Primary deal owner"
+    )
+    team_members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name="team_deals",
+        help_text="Additional team members working on this deal"
+    )
+    
+    # Deal Splitting (DEAL-6) - for multiple owners
+    split_percentage = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Split percentages for multiple owners {user_id: percentage}"
+    )
+    
+    # Source Tracking
+    source = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Lead source (e.g., 'Website', 'Referral', 'Cold Call')"
+    )
+    campaign = models.ForeignKey(
+        Campaign,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deals",
+        help_text="Marketing campaign that generated this deal"
+    )
+    
+    # Status & Lifecycle
+    is_active = models.BooleanField(default=True, help_text="Whether this deal is active")
+    is_won = models.BooleanField(default=False, help_text="Deal was won")
+    is_lost = models.BooleanField(default=False, help_text="Deal was lost")
+    lost_reason = models.CharField(max_length=255, blank=True, help_text="Reason for losing the deal")
+    
+    # Rotting/Stale Detection (DEAL-6)
+    last_activity_date = models.DateField(null=True, blank=True, help_text="Date of last activity on this deal")
+    is_stale = models.BooleanField(default=False, help_text="Deal has had no activity for extended period")
+    stale_days_threshold = models.IntegerField(default=30, help_text="Days without activity before marked stale")
+    
+    # Conversion to Project
+    converted_to_project = models.BooleanField(default=False, help_text="Deal converted to project")
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="source_deals",
+        help_text="Project created from this deal"
+    )
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_deals",
+        help_text="User who created this deal"
+    )
+    
+    # Tags for filtering/organization
+    tags = models.JSONField(default=list, blank=True, help_text="Tags for categorizing deals")
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "crm_deals"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "pipeline", "stage"], name="crm_deal_firm_pip_stg_idx"),
+            models.Index(fields=["firm", "owner"], name="crm_deal_firm_owner_idx"),
+            models.Index(fields=["firm", "is_active"], name="crm_deal_firm_active_idx"),
+            models.Index(fields=["firm", "expected_close_date"], name="crm_deal_firm_close_idx"),
+            models.Index(fields=["firm", "is_stale"], name="crm_deal_firm_stale_idx"),
+            models.Index(fields=["account"], name="crm_deal_account_idx"),
+            models.Index(fields=["contact"], name="crm_deal_contact_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.name} - {self.stage.name} (${self.value})"
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Override save to calculate weighted value and update status."""
+        # Calculate weighted value
+        self.weighted_value = (self.value * Decimal(self.probability)) / Decimal(100)
+        
+        # Update is_won/is_lost based on stage
+        if self.stage.is_closed_won:
+            self.is_won = True
+            self.is_active = False
+            if not self.actual_close_date:
+                from django.utils import timezone
+                self.actual_close_date = timezone.now().date()
+        elif self.stage.is_closed_lost:
+            self.is_lost = True
+            self.is_active = False
+            if not self.actual_close_date:
+                from django.utils import timezone
+                self.actual_close_date = timezone.now().date()
+        
+        # Check for stale deals (DEAL-6)
+        if self.last_activity_date and self.is_active:
+            from django.utils import timezone
+            days_since_activity = (timezone.now().date() - self.last_activity_date).days
+            self.is_stale = days_since_activity >= self.stale_days_threshold
+        
+        super().save(*args, **kwargs)
+    
+    def update_last_activity(self) -> None:
+        """Update last activity date to today."""
+        from django.utils import timezone
+        self.last_activity_date = timezone.now().date()
+        self.is_stale = False
+        self.save(update_fields=["last_activity_date", "is_stale", "updated_at"])
+    
+    def convert_to_project(self, project_data: dict = None) -> Any:
+        """
+        Convert this deal to a project (DEAL-1 conversion workflow).
+        
+        Args:
+            project_data: Optional dictionary with project creation data
+            
+        Returns:
+            Created Project instance
+        """
+        if self.converted_to_project:
+            raise ValueError("Deal has already been converted to a project")
+        
+        if not self.is_won:
+            raise ValueError("Only won deals can be converted to projects")
+        
+        from modules.projects.models import Project
+        from django.utils import timezone
+        
+        # Prepare project data
+        project_defaults = {
+            "firm": self.firm,
+            "name": self.name,
+            "description": self.description,
+            "client": self.account.client if self.account and hasattr(self.account, "client") else None,
+            "budget": self.value,
+            "owner": self.owner,
+            "start_date": timezone.now().date(),
+            "status": "planning",
+        }
+        
+        # Merge with provided project data
+        if project_data:
+            project_defaults.update(project_data)
+        
+        # Create the project
+        project = Project.objects.create(**project_defaults)
+        
+        # Update deal
+        self.converted_to_project = True
+        self.project = project
+        self.save(update_fields=["converted_to_project", "project", "updated_at"])
+        
+        return project
+
+
+class DealTask(models.Model):
+    """
+    Task associated with a Deal (DEAL-2).
+    
+    Represents action items and tasks related to deal progression.
+    
+    TIER 0: Belongs to exactly one Firm via Deal relationship.
+    """
+    
+    PRIORITY_CHOICES = [
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+        ("urgent", "Urgent"),
+    ]
+    
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("cancelled", "Cancelled"),
+    ]
+    
+    # Deal relationship
+    deal = models.ForeignKey(
+        Deal,
+        on_delete=models.CASCADE,
+        related_name="tasks",
+        help_text="Deal this task belongs to"
+    )
+    
+    # Task Details
+    title = models.CharField(max_length=255, help_text="Task title")
+    description = models.TextField(blank=True, help_text="Task description")
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    
+    # Assignment
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="deal_tasks",
+        help_text="User assigned to this task"
+    )
+    
+    # Timeline
+    due_date = models.DateField(null=True, blank=True, help_text="Task due date")
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="When task was completed")
+    
+    # Audit Fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_deal_tasks",
+        help_text="User who created this task"
+    )
+    
+    class Meta:
+        db_table = "crm_deal_tasks"
+        ordering = ["due_date", "-priority", "title"]
+        indexes = [
+            models.Index(fields=["deal", "status"], name="crm_deal_task_deal_status_idx"),
+            models.Index(fields=["assigned_to", "status"], name="crm_deal_task_user_status_idx"),
+            models.Index(fields=["due_date"], name="crm_deal_task_due_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.deal.name} - {self.title}"
+    
+    @property
+    def firm(self):
+        """Get the firm through the deal relationship."""
+        return self.deal.firm
+    
+    def complete(self) -> None:
+        """Mark task as completed."""
+        from django.utils import timezone
+        self.status = "completed"
+        self.completed_at = timezone.now()
+        self.save(update_fields=["status", "completed_at", "updated_at"])
+        
+        # Update deal last activity
+        self.deal.update_last_activity()
