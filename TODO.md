@@ -48,11 +48,15 @@
   - ✅ Documented encryption architecture (see [docs/ENCRYPTION_ARCHITECTURE.md](docs/ENCRYPTION_ARCHITECTURE.md))
   - ✅ Designed end-to-end encryption option with client-managed keys (E2EE roadmap: Q1-Q2 2026)
   
-- [ ] **SEC-2:** Implement granular permission system (16-20 hours)
-  - Expand role system beyond current 6 roles
-  - Add folder-level CRUD permissions
-  - Implement file-level permission overrides
-  - Build permission inheritance rules engine
+- [x] **SEC-2:** Implement granular permission system (16-20 hours) ✅ COMPLETE
+  - ✅ Implemented folder-level CRUD permissions (create, read, update, delete, share, download)
+  - ✅ Added file-level permission overrides with explicit deny support
+  - ✅ Built permission inheritance rules engine (walks folder hierarchy)
+  - ✅ Created DocumentPermission model with user/role-based permissions
+  - ✅ Implemented PermissionChecker with 4-tier resolution (deny > file > folder > role defaults)
+  - ✅ Added DRF permission class (HasDocumentPermission) for API integration
+  - Module: `src/modules/documents/permissions.py` (18KB)
+  - Migration: `0005_add_granular_permissions.py`
   
 - [ ] **SEC-3:** Add advanced access controls (12-16 hours)
   - Dynamic watermarking (username, IP, timestamp)
