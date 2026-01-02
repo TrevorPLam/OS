@@ -145,7 +145,7 @@
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours)
 **Status:** Core marketing automation feature - critical for ActiveCampaign-like functionality  
 **Dependencies:** None  
-**🔬 Research:** Visual workflow builder library selection
+**✅ Research Complete:** Visual workflow builder library selection - React Flow selected (see [docs/research/visual-workflow-builder-research.md](docs/research/visual-workflow-builder-research.md))
 
 - [ ] **AUTO-1:** Design automation workflow architecture (6-8 hours)
   - Workflow model with nodes and edges
@@ -466,7 +466,7 @@
 #### CRM Intelligence Enhancements (MEDIUM - 48-64 hours)
 **Status:** AI/ML features to enhance CRM  
 **Dependencies:** None  
-**🔬 Research:** ML framework selection (scikit-learn vs TensorFlow)
+**✅ Research Complete:** ML framework selection - scikit-learn + XGBoost selected (see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
 
 - [ ] **CRM-INT-1:** Implement Contact 360° Graph View (12-16 hours)
   - Visual graph visualization of contact relationships
@@ -1065,9 +1065,9 @@
 #### AI-Powered Lead Scoring (LOW - 16-24 hours)
 **Status:** ML-based lead qualification  
 **Dependencies:** None  
-**🔬 Research:** ML frameworks (scikit-learn, TensorFlow)
+**✅ Research Complete:** ML frameworks - scikit-learn + XGBoost selected (see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
 
-- [ ] **AI-LEAD-1:** Research ML frameworks (2-4 hours)
+- [x] **AI-LEAD-1:** Research ML frameworks (2-4 hours) ✅ COMPLETE
 - [ ] **AI-LEAD-2:** Collect and prepare training data (4-6 hours)
 - [ ] **AI-LEAD-3:** Train lead scoring model (4-6 hours)
 - [ ] **AI-LEAD-4:** Implement model inference service (4-6 hours)
@@ -1279,8 +1279,8 @@ The following tasks require additional research before implementation planning:
 
 #### High Priority Research
 - **AD Integration:** Active Directory connector library selection (LDAP vs custom)
-- **Visual Workflow Builder:** Library selection for drag-and-drop workflow canvas
-- **ML Framework:** scikit-learn vs TensorFlow for lead scoring and predictions
+- ✅ **Visual Workflow Builder:** Library selection for drag-and-drop workflow canvas - COMPLETE (React Flow selected - see [docs/research/visual-workflow-builder-research.md](docs/research/visual-workflow-builder-research.md))
+- ✅ **ML Framework:** scikit-learn vs TensorFlow for lead scoring and predictions - COMPLETE (scikit-learn + XGBoost selected - see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
 
 #### Medium Priority Research
 - **Document AI:** AWS Textract vs Google Document AI for intelligent document processing
