@@ -145,17 +145,22 @@
   - ViewSets: `PipelineViewSet`, `PipelineStageViewSet`, `DealViewSet`, `DealTaskViewSet`
   - Serializers: Full CRUD with validation in `src/modules/crm/serializers.py`
   
-- [ ] **DEAL-3:** Build Pipeline visualization UI (8-12 hours)
-  - Kanban board view of deals by stage
-  - Drag-and-drop stage transitions
-  - Pipeline filtering and search
-  - Deal card UI with key metrics
+- [x] **DEAL-3:** Build Pipeline visualization UI (8-12 hours) ✅ COMPLETE
+  - ✅ Kanban board view of deals by stage
+  - ✅ Drag-and-drop stage transitions
+  - ✅ Pipeline filtering and search
+  - ✅ Deal card UI with key metrics
+  - Component: `src/frontend/src/pages/crm/PipelineKanban.tsx`
+  - Features: Deal CRUD, stage transitions, pipeline selection, metrics display
   
-- [ ] **DEAL-4:** Add forecasting and analytics (8-12 hours)
-  - Weighted pipeline forecasting
-  - Win/loss tracking
-  - Pipeline performance reports
-  - Revenue projection calculations
+- [x] **DEAL-4:** Add forecasting and analytics (8-12 hours) ✅ COMPLETE
+  - ✅ Weighted pipeline forecasting
+  - ✅ Win/loss tracking
+  - ✅ Pipeline performance reports
+  - ✅ Revenue projection calculations
+  - API Endpoints: `/crm/deals/forecast/`, `/crm/deals/win_loss_report/`, `/crm/pipelines/{id}/analytics/`
+  - Component: `src/frontend/src/pages/crm/PipelineAnalytics.tsx`
+  - Features: Win rate metrics, monthly forecasts, stage breakdown, loss reason analysis
   
 - [ ] **DEAL-5:** Implement assignment automation (6-8 hours)
   - Round-robin deal assignment
