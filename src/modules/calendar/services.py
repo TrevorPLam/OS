@@ -1328,6 +1328,71 @@ class BookingService:
             changed_by=confirmed_by,
         )
 
+        # Trigger confirmation workflows
+        from .workflow_services import WorkflowExecutionEngine
+        engine = WorkflowExecutionEngine()
+        engine.trigger_workflows(
+            appointment=appointment,
+            trigger_event="appointment_confirmed",
+            actor=confirmed_by,
+        )
+
+        return appointment
+
+    @transaction.atomic
+    def reject_appointment(
+        self,
+        appointment: Appointment,
+        rejected_by,
+        reason: str = "",
+    ) -> Appointment:
+        """
+        Reject a requested appointment (denial flow).
+
+        FLOW-3: Enables rejection workflows with automatic notifications.
+
+        Args:
+            appointment: Appointment to reject
+            rejected_by: User rejecting the appointment
+            reason: Reason for rejection
+
+        Returns:
+            Updated Appointment instance
+        """
+        if appointment.status != "requested":
+            raise ValueError("Only requested appointments can be rejected")
+
+        old_status = appointment.status
+        appointment.status = "cancelled"
+        appointment.status_reason = f"Rejected: {reason}" if reason else "Rejected by host"
+        appointment.save()
+
+        # Create status history entry
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status=old_status,
+            to_status="cancelled",
+            reason=f"Rejected by staff" + (f": {reason}" if reason else ""),
+            changed_by=rejected_by,
+        )
+
+        logger.info(f"Rejected appointment {appointment.appointment_id}")
+
+        # Trigger rejection workflows (notification emails, etc.)
+        from .workflow_services import WorkflowExecutionEngine
+        engine = WorkflowExecutionEngine()
+        engine.trigger_workflows(
+            appointment=appointment,
+            trigger_event="appointment_cancelled",  # Use cancellation trigger for rejection
+            actor=rejected_by,
+        )
+
+        # If this was a group event, check if we should promote from waitlist
+        if appointment.appointment_type.event_category == "group":
+            # Note: In a rejection scenario, we typically don't promote from waitlist
+            # since the slot was never actually taken
+            pass
+
         return appointment
 
     @transaction.atomic
