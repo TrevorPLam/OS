@@ -1019,6 +1019,61 @@ class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             "total_weighted_value": active_deals.aggregate(Sum("weighted_value"))["weighted_value__sum"] or 0,
             "monthly_forecast": list(forecast),
         })
+    
+    @action(detail=False, methods=["get"])
+    def stale_report(self, request):
+        """
+        Get comprehensive stale deal report (DEAL-6).
+        
+        Returns statistics about stale deals including breakdown by owner, pipeline, stage, and age.
+        """
+        from modules.crm.deal_rotting_alerts import get_stale_deal_report
+        
+        firm_id = request.user.firm.id if hasattr(request.user, 'firm') else None
+        report = get_stale_deal_report(firm_id)
+        
+        return Response(report)
+    
+    @action(detail=False, methods=["post"])
+    def check_stale(self, request):
+        """
+        Manually trigger stale deal check (DEAL-6).
+        
+        Checks all active deals and marks them as stale if threshold exceeded.
+        """
+        from modules.crm.deal_rotting_alerts import check_and_mark_stale_deals
+        
+        marked_count = check_and_mark_stale_deals()
+        
+        return Response({
+            "status": "success",
+            "marked_stale": marked_count,
+        })
+    
+    @action(detail=False, methods=["post"])
+    def send_stale_reminders(self, request):
+        """
+        Send reminders for stale deals (DEAL-6).
+        
+        Triggers email reminders to owners of stale deals.
+        """
+        from django.core.management import call_command
+        from io import StringIO
+        
+        dry_run = request.data.get('dry_run', True)
+        
+        # Capture command output
+        out = StringIO()
+        call_command('send_stale_deal_reminders', 
+                    dry_run=dry_run,
+                    firm_id=request.user.firm.id if hasattr(request.user, 'firm') else None,
+                    stdout=out)
+        
+        return Response({
+            "status": "success",
+            "output": out.getvalue(),
+            "dry_run": dry_run,
+        })
 
 
 class DealTaskViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
