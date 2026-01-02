@@ -11,10 +11,14 @@ from modules.crm.views import (
     AccountViewSet,
     CampaignViewSet,
     ContractViewSet,
+    DealTaskViewSet,
+    DealViewSet,
     IntakeFormViewSet,
     IntakeFormFieldViewSet,
     IntakeFormSubmissionViewSet,
     LeadViewSet,
+    PipelineStageViewSet,
+    PipelineViewSet,
     ProductConfigurationViewSet,
     ProductOptionViewSet,
     ProductViewSet,
@@ -43,6 +47,10 @@ router.register(r"intake-form-submissions", IntakeFormSubmissionViewSet, basenam
 router.register(r"products", ProductViewSet, basename="product")  # Task 3.5 (CPQ)
 router.register(r"product-options", ProductOptionViewSet, basename="product-option")  # Task 3.5 (CPQ)
 router.register(r"product-configurations", ProductConfigurationViewSet, basename="product-configuration")  # Task 3.5 (CPQ)
+router.register(r"pipelines", PipelineViewSet, basename="pipeline")  # DEAL-1: Pipeline Management
+router.register(r"pipeline-stages", PipelineStageViewSet, basename="pipeline-stage")  # DEAL-1: Pipeline Stages
+router.register(r"deals", DealViewSet, basename="deal")  # DEAL-1: Deal Management
+router.register(r"deal-tasks", DealTaskViewSet, basename="deal-task")  # DEAL-2: Deal Tasks
 
 urlpatterns = [
     path("", include(router.urls)),

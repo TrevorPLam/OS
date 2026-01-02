@@ -10,10 +10,14 @@ from .models import (
     AccountRelationship,
     Campaign,
     Contract,
+    Deal,
+    DealTask,
     IntakeForm,
     IntakeFormField,
     IntakeFormSubmission,
     Lead,
+    Pipeline,
+    PipelineStage,
     Product,
     ProductConfiguration,
     ProductOption,
@@ -843,3 +847,271 @@ class ProductConfigurationAdmin(admin.ModelAdmin):
         self.message_user(request, f"Recalculated prices for {count} configuration(s).")
     
     recalculate_prices.short_description = "Recalculate prices"
+
+
+# Pipeline & Deal Management Admin (DEAL-2)
+
+@admin.register(Pipeline)
+class PipelineAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "firm",
+        "is_active",
+        "is_default",
+        "display_order",
+        "created_at",
+    ]
+    list_filter = ["firm", "is_active", "is_default"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at"]
+    raw_id_fields = ["created_by"]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("firm", "name", "description")
+        }),
+        ("Settings", {
+            "fields": ("is_active", "is_default", "display_order")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+@admin.register(PipelineStage)
+class PipelineStageAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "pipeline",
+        "probability",
+        "is_active",
+        "is_closed_won",
+        "is_closed_lost",
+        "display_order",
+    ]
+    list_filter = ["pipeline", "is_active", "is_closed_won", "is_closed_lost"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at"]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("pipeline", "name", "description")
+        }),
+        ("Settings", {
+            "fields": ("probability", "is_active", "is_closed_won", "is_closed_lost", "display_order")
+        }),
+        ("Automation", {
+            "fields": ("auto_tasks",),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at"),
+            "classes": ("collapse",)
+        }),
+    )
+
+
+class DealTaskInline(admin.TabularInline):
+    model = DealTask
+    extra = 0
+    fields = ["title", "status", "priority", "assigned_to", "due_date"]
+    raw_id_fields = ["assigned_to"]
+
+
+@admin.register(Deal)
+class DealAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "firm",
+        "pipeline",
+        "stage",
+        "value",
+        "probability",
+        "weighted_value",
+        "owner",
+        "is_active",
+        "is_won",
+        "is_lost",
+        "is_stale",
+        "expected_close_date",
+    ]
+    list_filter = [
+        "firm",
+        "pipeline",
+        "stage",
+        "is_active",
+        "is_won",
+        "is_lost",
+        "is_stale",
+        "owner",
+    ]
+    search_fields = ["name", "description"]
+    readonly_fields = [
+        "weighted_value",
+        "is_won",
+        "is_lost",
+        "actual_close_date",
+        "is_stale",
+        "converted_to_project",
+        "created_at",
+        "updated_at",
+    ]
+    raw_id_fields = ["account", "contact", "owner", "campaign", "project", "created_by"]
+    filter_horizontal = ["team_members"]
+    inlines = [DealTaskInline]
+    
+    fieldsets = (
+        ("Basic Information", {
+            "fields": ("firm", "name", "description")
+        }),
+        ("Pipeline", {
+            "fields": ("pipeline", "stage")
+        }),
+        ("Associations", {
+            "fields": ("account", "contact", "campaign")
+        }),
+        ("Financial", {
+            "fields": ("value", "currency", "probability", "weighted_value")
+        }),
+        ("Timeline", {
+            "fields": ("expected_close_date", "actual_close_date")
+        }),
+        ("Assignment", {
+            "fields": ("owner", "team_members", "split_percentage")
+        }),
+        ("Source", {
+            "fields": ("source",)
+        }),
+        ("Status", {
+            "fields": (
+                "is_active",
+                "is_won",
+                "is_lost",
+                "lost_reason",
+                "last_activity_date",
+                "is_stale",
+                "stale_days_threshold",
+            )
+        }),
+        ("Project Conversion", {
+            "fields": ("converted_to_project", "project"),
+            "classes": ("collapse",)
+        }),
+        ("Other", {
+            "fields": ("tags",),
+            "classes": ("collapse",)
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    actions = ["mark_as_won", "mark_as_lost", "check_stale_deals"]
+    
+    def mark_as_won(self, request, queryset):
+        """Admin action to mark deals as won."""
+        count = 0
+        for deal in queryset:
+            if not deal.is_won:
+                # Find won stage
+                won_stage = deal.pipeline.stages.filter(is_closed_won=True).first()
+                if won_stage:
+                    deal.stage = won_stage
+                deal.is_won = True
+                deal.is_active = False
+                from django.utils import timezone
+                deal.actual_close_date = timezone.now().date()
+                deal.save()
+                count += 1
+        
+        self.message_user(request, f"Marked {count} deal(s) as won.")
+    
+    mark_as_won.short_description = "Mark selected deals as won"
+    
+    def mark_as_lost(self, request, queryset):
+        """Admin action to mark deals as lost."""
+        count = 0
+        for deal in queryset:
+            if not deal.is_lost:
+                # Find lost stage
+                lost_stage = deal.pipeline.stages.filter(is_closed_lost=True).first()
+                if lost_stage:
+                    deal.stage = lost_stage
+                deal.is_lost = True
+                deal.is_active = False
+                from django.utils import timezone
+                deal.actual_close_date = timezone.now().date()
+                deal.save()
+                count += 1
+        
+        self.message_user(request, f"Marked {count} deal(s) as lost.")
+    
+    mark_as_lost.short_description = "Mark selected deals as lost"
+    
+    def check_stale_deals(self, request, queryset):
+        """Admin action to check and mark stale deals."""
+        count = 0
+        for deal in queryset.filter(is_active=True):
+            if deal.last_activity_date:
+                from django.utils import timezone
+                days_since_activity = (timezone.now().date() - deal.last_activity_date).days
+                if days_since_activity >= deal.stale_days_threshold:
+                    deal.is_stale = True
+                    deal.save()
+                    count += 1
+        
+        self.message_user(request, f"Marked {count} deal(s) as stale.")
+    
+    check_stale_deals.short_description = "Check for stale deals"
+
+
+@admin.register(DealTask)
+class DealTaskAdmin(admin.ModelAdmin):
+    list_display = [
+        "title",
+        "deal",
+        "status",
+        "priority",
+        "assigned_to",
+        "due_date",
+        "created_at",
+    ]
+    list_filter = ["status", "priority", "assigned_to"]
+    search_fields = ["title", "description", "deal__name"]
+    readonly_fields = ["completed_at", "created_at", "updated_at"]
+    raw_id_fields = ["deal", "assigned_to", "created_by"]
+    
+    fieldsets = (
+        ("Task Information", {
+            "fields": ("deal", "title", "description")
+        }),
+        ("Status & Priority", {
+            "fields": ("status", "priority")
+        }),
+        ("Assignment", {
+            "fields": ("assigned_to",)
+        }),
+        ("Timeline", {
+            "fields": ("due_date", "completed_at")
+        }),
+        ("Audit", {
+            "fields": ("created_at", "updated_at", "created_by"),
+            "classes": ("collapse",)
+        }),
+    )
+    
+    actions = ["mark_as_completed"]
+    
+    def mark_as_completed(self, request, queryset):
+        """Admin action to mark tasks as completed."""
+        count = 0
+        for task in queryset.filter(status__in=["pending", "in_progress"]):
+            task.complete()
+            count += 1
+        
+        self.message_user(request, f"Marked {count} task(s) as completed.")
+    
+    mark_as_completed.short_description = "Mark selected tasks as completed"

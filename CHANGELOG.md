@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Pipeline & Deal Management** (2026-01-02)
+  - Configurable sales pipelines with customizable stages (DEAL-1)
+  - Deal model with value tracking, probability, and weighted forecasting
+  - Deal-to-Project conversion workflow for won deals
+  - Deal task management with priority and assignment
+  - Stale deal detection based on activity tracking
+  - Deal splitting support for multiple owners
+  - Stage transition logic with activity logging
+  - Comprehensive API endpoints:
+    - Pipeline CRUD with analytics endpoint (`/api/crm/pipelines/`)
+    - Pipeline stage management (`/api/crm/pipeline-stages/`)
+    - Deal CRUD with stage transitions (`/api/crm/deals/`)
+    - Deal task management (`/api/crm/deal-tasks/`)
+    - Stale deals endpoint (`/api/crm/deals/stale/`)
+    - Forecast endpoint with weighted values (`/api/crm/deals/forecast/`)
+  - Django admin interfaces with custom actions for pipeline and deal management
+  - Database models: Pipeline, PipelineStage, Deal, DealTask
+  - Multi-tenant isolation for all pipeline and deal operations
+  - Validation rules for stage-pipeline consistency
+  - See [TODO.md](TODO.md) for full feature roadmap (DEAL-1 and DEAL-2 completed)
+
 - **Sprint 5: Performance & Reporting** (2026-01-01)
   - Materialized views for revenue and utilization reporting
   - Revenue reporting MV (`mv_revenue_by_project_month`) with 20-50x speedup
