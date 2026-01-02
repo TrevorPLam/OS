@@ -1,0 +1,381 @@
+/* Workflow Builder Styles */
+
+.workflow-builder {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 60px);
+  background: #f9fafb;
+}
+
+.builder-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.builder-header h1 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1a1a1a;
+}
+
+.btn-back {
+  padding: 0.5rem 1rem;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.builder-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 2rem 0;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.builder-tabs button {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.builder-tabs button:hover {
+  color: #2563eb;
+}
+
+.builder-tabs .tab-active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.builder-canvas-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.canvas-sidebar {
+  width: 250px;
+  background: white;
+  border-right: 1px solid #e5e7eb;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.canvas-sidebar h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: #1a1a1a;
+}
+
+.node-category {
+  margin-bottom: 1.5rem;
+}
+
+.node-category h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.node-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.node-palette-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.node-palette-item:hover {
+  background: #f3f4f6;
+  border-color: #2563eb;
+}
+
+.node-icon {
+  font-size: 1.25rem;
+}
+
+.node-label {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.canvas-main {
+  flex: 1;
+  overflow: auto;
+  padding: 2rem;
+}
+
+.canvas-area {
+  background: white;
+  border-radius: 0.5rem;
+  min-height: 400px;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #9ca3af;
+}
+
+.nodes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.node-item {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  padding: 1rem;
+}
+
+.node-header {
+  margin-bottom: 0.75rem;
+}
+
+.node-header strong {
+  display: block;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.node-type {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.node-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-edit-node,
+.btn-delete-node {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.btn-edit-node {
+  color: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-edit-node:hover {
+  background: #eff6ff;
+}
+
+.btn-delete-node {
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-delete-node:hover {
+  background: #fef2f2;
+}
+
+.builder-triggers {
+  flex: 1;
+  padding: 2rem;
+  overflow: auto;
+}
+
+.triggers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.triggers-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1a1a1a;
+}
+
+.btn-add-trigger {
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-add-trigger:hover {
+  background: #1d4ed8;
+}
+
+.no-triggers {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 3rem;
+  text-align: center;
+  color: #6b7280;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.triggers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trigger-item {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.trigger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.trigger-header strong {
+  color: #1a1a1a;
+}
+
+.trigger-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.trigger-status.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.trigger-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.trigger-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-delete-trigger {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #dc2626;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-trigger:hover {
+  background: #fef2f2;
+}
+
+.builder-settings {
+  flex: 1;
+  padding: 2rem;
+  overflow: auto;
+}
+
+.builder-settings h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  color: #1a1a1a;
+}
+
+.settings-form {
+  background: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+.trigger-types {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.trigger-type-btn {
+  padding: 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.trigger-type-btn:hover {
+  background: #f3f4f6;
+  border-color: #2563eb;
+}
+
+.builder-loading,
+.builder-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.25rem;
+}
+
+.builder-error {
+  color: #dc2626;
+}
