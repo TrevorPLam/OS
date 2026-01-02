@@ -174,7 +174,7 @@
   - Event-specific availability overrides
   - Event status management (active/inactive/archived)
   
-- [ ] **CAL-5:** Implement scheduling constraints (8-12 hours)
+- [x] **CAL-5:** Implement scheduling constraints (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
   - Daily meeting limit per event type
   - Rolling availability window (e.g., "next 30 days")
   - Min/Max notice periods (1 hour - 30 days)

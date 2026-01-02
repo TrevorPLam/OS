@@ -139,6 +139,31 @@ class AppointmentType(models.Model):
     buffer_before_minutes = models.IntegerField(default=0, help_text="Buffer time before meeting (minutes)")
     buffer_after_minutes = models.IntegerField(default=0, help_text="Buffer time after meeting (minutes)")
 
+    # CAL-5: Scheduling constraints
+    daily_meeting_limit = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum number of this event type that can be booked per day (null = unlimited)",
+    )
+    min_notice_hours = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Minimum notice required before booking (hours, 1-720). Overrides profile default if set.",
+    )
+    max_notice_days = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum days in advance for booking (1-365). Overrides profile default if set.",
+    )
+    rolling_window_days = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text=(
+            "Rolling availability window in days (e.g., 30 = only show next 30 days). "
+            "If set, overrides max_notice_days with a rolling window."
+        ),
+    )
+
     # Location
     location_mode = models.CharField(
         max_length=20,
@@ -332,6 +357,38 @@ class AppointmentType(models.Model):
 
             if not re.match(r"^[a-z0-9-]+$", self.url_slug):
                 errors["url_slug"] = "URL slug must contain only lowercase letters, numbers, and hyphens"
+
+        # CAL-5: Validate scheduling constraints
+        if self.daily_meeting_limit is not None:
+            if self.daily_meeting_limit < 1:
+                errors["daily_meeting_limit"] = "Daily meeting limit must be at least 1"
+            elif self.daily_meeting_limit > 100:
+                errors["daily_meeting_limit"] = "Daily meeting limit cannot exceed 100"
+
+        if self.min_notice_hours is not None:
+            if self.min_notice_hours < 1:
+                errors["min_notice_hours"] = "Minimum notice must be at least 1 hour"
+            elif self.min_notice_hours > 720:  # 30 days
+                errors["min_notice_hours"] = "Minimum notice cannot exceed 720 hours (30 days)"
+
+        if self.max_notice_days is not None:
+            if self.max_notice_days < 1:
+                errors["max_notice_days"] = "Maximum notice must be at least 1 day"
+            elif self.max_notice_days > 365:
+                errors["max_notice_days"] = "Maximum notice cannot exceed 365 days"
+
+        if self.rolling_window_days is not None:
+            if self.rolling_window_days < 1:
+                errors["rolling_window_days"] = "Rolling window must be at least 1 day"
+            elif self.rolling_window_days > 365:
+                errors["rolling_window_days"] = "Rolling window cannot exceed 365 days"
+
+        # Validate min < max for notice periods
+        if self.min_notice_hours and self.max_notice_days:
+            min_hours = self.min_notice_hours
+            max_hours = self.max_notice_days * 24
+            if min_hours >= max_hours:
+                errors["min_notice_hours"] = "Minimum notice must be less than maximum notice"
 
         if errors:
             raise ValidationError(errors)

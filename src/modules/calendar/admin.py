@@ -93,6 +93,14 @@ class AppointmentTypeAdmin(admin.ModelAdmin):
         ),
         ("Routing", {"fields": ("routing_policy", "fixed_staff_user", "requires_approval")}),
         (
+            "Scheduling Constraints (CAL-5)",
+            {
+                "fields": ("daily_meeting_limit", "min_notice_hours", "max_notice_days", "rolling_window_days"),
+                "description": "Daily limits, notice periods, and rolling availability windows",
+                "classes": ("collapse",),
+            },
+        ),
+        (
             "Event Customization (CAL-4)",
             {
                 "fields": ("url_slug", "color_code", "availability_overrides"),

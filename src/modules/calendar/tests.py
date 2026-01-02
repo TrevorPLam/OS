@@ -585,3 +585,143 @@ class EventCustomizationTest(TestCase):
 
         self.assertEqual(appointment_type.availability_overrides["min_notice_minutes"], 120)
         self.assertEqual(appointment_type.availability_overrides["max_future_days"], 60)
+
+
+class SchedulingConstraintsTest(TestCase):
+    """Test scheduling constraints (CAL-5)."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.firm = Firm.objects.create(name="Test Firm", slug="test-firm")
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+
+    def test_daily_meeting_limit(self):
+        """Test that daily meeting limit can be set."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Limited Event",
+            daily_meeting_limit=5,
+            description="Event with daily limit",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.daily_meeting_limit, 5)
+
+    def test_daily_meeting_limit_validation(self):
+        """Test that daily meeting limit is validated."""
+        from django.core.exceptions import ValidationError
+
+        # Too low
+        appointment_type = AppointmentType(
+            firm=self.firm,
+            name="Invalid Event",
+            daily_meeting_limit=0,
+            description="Event with invalid limit",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            appointment_type.clean()
+
+        self.assertIn("daily_meeting_limit", context.exception.message_dict)
+
+    def test_min_notice_hours(self):
+        """Test that minimum notice can be set in hours."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Advance Notice Event",
+            min_notice_hours=48,  # 2 days
+            description="Event requiring 48 hours notice",
+            duration_minutes=60,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.min_notice_hours, 48)
+
+    def test_max_notice_days(self):
+        """Test that maximum booking window can be set."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Limited Booking Window",
+            max_notice_days=90,
+            description="Can only book up to 90 days ahead",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.max_notice_days, 90)
+
+    def test_rolling_window_days(self):
+        """Test that rolling window can be set."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Rolling Window Event",
+            rolling_window_days=30,
+            description="Only show next 30 days",
+            duration_minutes=45,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.rolling_window_days, 30)
+
+    def test_min_max_notice_validation(self):
+        """Test that min notice must be less than max notice."""
+        from django.core.exceptions import ValidationError
+
+        # Min notice > max notice (invalid)
+        appointment_type = AppointmentType(
+            firm=self.firm,
+            name="Invalid Notice Range",
+            min_notice_hours=72,  # 3 days
+            max_notice_days=2,  # 2 days = 48 hours
+            description="Invalid notice range",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        with self.assertRaises(ValidationError) as context:
+            appointment_type.clean()
+
+        self.assertIn("min_notice_hours", context.exception.message_dict)
+
+    def test_all_constraints_together(self):
+        """Test that multiple constraints can be applied together."""
+        appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Fully Constrained Event",
+            daily_meeting_limit=3,
+            min_notice_hours=24,
+            max_notice_days=60,
+            rolling_window_days=30,
+            description="Event with all constraints",
+            duration_minutes=60,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.user,
+            created_by=self.user,
+        )
+
+        self.assertEqual(appointment_type.daily_meeting_limit, 3)
+        self.assertEqual(appointment_type.min_notice_hours, 24)
+        self.assertEqual(appointment_type.max_notice_days, 60)
+        self.assertEqual(appointment_type.rolling_window_days, 30)

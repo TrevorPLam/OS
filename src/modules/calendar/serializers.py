@@ -44,6 +44,11 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             # Original fields
             "buffer_before_minutes",
             "buffer_after_minutes",
+            # CAL-5: Scheduling constraints
+            "daily_meeting_limit",
+            "min_notice_hours",
+            "max_notice_days",
+            "rolling_window_days",
             "location_mode",
             "location_details",
             "allow_portal_booking",
