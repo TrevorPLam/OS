@@ -812,6 +812,18 @@ class Appointment(models.Model):
     end_time = models.DateTimeField(help_text="Appointment end time (UTC)")
     timezone = models.CharField(max_length=100, default="UTC", help_text="Timezone for display")
 
+    # AVAIL-4: Invitee timezone auto-detection
+    invitee_timezone = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Auto-detected timezone of the invitee/booker",
+    )
+    invitee_timezone_offset_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Browser timezone offset in minutes (for DST handling)",
+    )
+
     # CAL-2: Selected duration (for multiple duration options)
     selected_duration_minutes = models.IntegerField(
         null=True,
