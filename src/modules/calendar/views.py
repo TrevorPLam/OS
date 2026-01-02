@@ -52,6 +52,92 @@ class AppointmentTypeViewSet(viewsets.ModelViewSet):
         """Set firm and created_by on create."""
         serializer.save(firm=self.request.firm, created_by=self.request.user)
 
+    @action(detail=True, methods=["get"], url_path="round-robin-stats")
+    def round_robin_stats(self, request, pk=None):
+        """
+        Get round robin distribution statistics for this appointment type (TEAM-2).
+
+        Shows appointment counts per staff member and whether rebalancing is needed.
+        """
+        appointment_type = self.get_object()
+
+        if appointment_type.routing_policy != "round_robin_pool":
+            return Response(
+                {"error": "This endpoint only works with round robin appointment types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        pool = list(appointment_type.round_robin_pool.all())
+        
+        if not pool:
+            return Response(
+                {"pool_members": [], "needs_rebalancing": False, "message": "Round robin pool is empty"},
+                status=status.HTTP_200_OK,
+            )
+
+        # Get counts for each pool member
+        stats = []
+        total_count = 0
+        for staff in pool:
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                status__in=["requested", "confirmed"],
+            ).count()
+            
+            # Get recent count (last 30 days)
+            from django.utils import timezone as django_tz
+            recent_cutoff = django_tz.now() - timedelta(days=30)
+            recent_count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                start_time__gte=recent_cutoff,
+                status__in=["requested", "confirmed", "completed"],
+            ).count()
+
+            weight = appointment_type.round_robin_weights.get(str(staff.id), 1.0)
+            
+            stats.append({
+                "staff_id": staff.id,
+                "staff_username": staff.username,
+                "total_appointments": count,
+                "recent_appointments_30d": recent_count,
+                "weight": weight,
+                "weighted_ratio": count / weight if weight > 0 else 0,
+            })
+            total_count += count
+
+        # Calculate average
+        avg_count = total_count / len(pool) if pool else 0
+
+        # Check if needs rebalancing
+        from modules.calendar.services import RoundRobinService
+        rr_service = RoundRobinService()
+        needs_rebalancing = rr_service._needs_rebalancing(appointment_type)
+
+        # Calculate deviation for each member
+        for stat in stats:
+            deviation = abs(stat["total_appointments"] - avg_count) / avg_count if avg_count > 0 else 0
+            stat["deviation_from_average"] = deviation
+
+        # Sort by total appointments (descending)
+        stats.sort(key=lambda x: x["total_appointments"], reverse=True)
+
+        return Response(
+            {
+                "appointment_type_id": appointment_type.appointment_type_id,
+                "appointment_type_name": appointment_type.name,
+                "strategy": appointment_type.round_robin_strategy,
+                "pool_size": len(pool),
+                "total_appointments": total_count,
+                "average_appointments": avg_count,
+                "needs_rebalancing": needs_rebalancing,
+                "rebalancing_threshold": float(appointment_type.round_robin_rebalancing_threshold),
+                "pool_members": stats,
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class AvailabilityProfileViewSet(viewsets.ModelViewSet):
     """
@@ -164,7 +250,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 {"error": "Appointment type not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
+        # Calculate end time first (needed for round robin routing)
+        start_time = serializer.validated_data["start_time"]
+        end_time = start_time + timedelta(minutes=appointment_type.duration_minutes)
+
         # Route to staff user (per docs/34 section 2.4)
+        # TEAM-2: Pass start_time and end_time for advanced round robin
         routing_service = RoutingService()
         account = serializer.validated_data.get("account")
         engagement = serializer.validated_data.get("engagement")
@@ -172,6 +263,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             appointment_type=appointment_type,
             account=account,
             engagement=engagement,
+            start_time=start_time,
+            end_time=end_time,
         )
 
         if not staff_user:
@@ -180,9 +273,6 @@ class AppointmentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Calculate end time
-        start_time = serializer.validated_data["start_time"]
-        end_time = start_time + timedelta(minutes=appointment_type.duration_minutes)
 
         # Book appointment (per docs/34 section 4.5: atomic transaction)
         booking_service = BookingService()
@@ -342,3 +432,400 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=False, methods=["post"], url_path="collective-available-slots")
+    def collective_available_slots(self, request):
+        """
+        Get available slots for collective event booking (TEAM-1).
+
+        Computes Venn diagram availability where all required hosts must be free.
+        """
+        serializer = AvailableSlotsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Get appointment type
+        try:
+            appointment_type = AppointmentType.objects.get(
+                firm=request.firm,
+                appointment_type_id=serializer.validated_data["appointment_type_id"],
+                status="active",
+            )
+        except AppointmentType.DoesNotExist:
+            return Response(
+                {"error": "Appointment type not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Verify it's a collective event
+        if appointment_type.event_category != "collective":
+            return Response(
+                {"error": "This endpoint only works with collective event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Compute collective available slots
+        availability_service = AvailabilityService()
+        slots_with_hosts = availability_service.compute_collective_available_slots(
+            appointment_type=appointment_type,
+            start_date=serializer.validated_data["start_date"],
+            end_date=serializer.validated_data["end_date"],
+        )
+
+        # Format slots for response
+        formatted_slots = [
+            {
+                "start_time": start.isoformat(),
+                "end_time": end.isoformat(),
+                "duration_minutes": appointment_type.duration_minutes,
+                "available_hosts": [
+                    {
+                        "id": host.id,
+                        "username": host.username,
+                        "is_required": host in appointment_type.required_hosts.all(),
+                    }
+                    for host in hosts
+                ],
+                "required_hosts_count": appointment_type.required_hosts.count(),
+                "total_hosts_count": len(hosts),
+            }
+            for start, end, hosts in slots_with_hosts
+        ]
+
+        return Response(
+            {
+                "appointment_type": AppointmentTypeSerializer(appointment_type).data,
+                "required_hosts": [
+                    {"id": h.id, "username": h.username}
+                    for h in appointment_type.required_hosts.all()
+                ],
+                "optional_hosts": [
+                    {"id": h.id, "username": h.username}
+                    for h in appointment_type.optional_hosts.all()
+                ],
+                "slots": formatted_slots,
+                "total_slots": len(formatted_slots),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path="book-collective")
+    def book_collective(self, request):
+        """
+        Book a collective event appointment (TEAM-1).
+
+        Creates appointment with multiple hosts (required + available optional).
+        """
+        # Validate basic booking data
+        serializer = BookAppointmentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Get appointment type
+        try:
+            appointment_type = AppointmentType.objects.get(
+                firm=request.firm,
+                appointment_type_id=serializer.validated_data["appointment_type_id"],
+                status="active",
+            )
+        except AppointmentType.DoesNotExist:
+            return Response(
+                {"error": "Appointment type not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Verify it's a collective event
+        if appointment_type.event_category != "collective":
+            return Response(
+                {"error": "This endpoint only works with collective event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Calculate end time
+        start_time = serializer.validated_data["start_time"]
+        end_time = start_time + timedelta(minutes=appointment_type.duration_minutes)
+
+        # Get the required and available optional hosts for this time slot
+        availability_service = AvailabilityService()
+        slots_with_hosts = availability_service.compute_collective_available_slots(
+            appointment_type=appointment_type,
+            start_date=start_time.date(),
+            end_date=start_time.date(),
+        )
+
+        # Find the matching slot
+        matching_hosts = None
+        for slot_start, slot_end, hosts in slots_with_hosts:
+            if slot_start == start_time and slot_end == end_time:
+                matching_hosts = hosts
+                break
+
+        if not matching_hosts:
+            return Response(
+                {"error": "The selected time slot is no longer available for all required hosts"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        # Book collective appointment
+        booking_service = BookingService()
+        try:
+            appointment = booking_service.book_collective_appointment(
+                appointment_type=appointment_type,
+                start_time=start_time,
+                end_time=end_time,
+                collective_hosts=matching_hosts,
+                booked_by=request.user,
+                intake_responses=serializer.validated_data.get("intake_responses", {}),
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_409_CONFLICT
+            )
+
+        return Response(
+            {
+                "message": "Collective event appointment booked successfully",
+                "appointment": AppointmentDetailSerializer(appointment).data,
+                "hosts": [
+                    {"id": h.id, "username": h.username}
+                    for h in appointment.collective_hosts.all()
+                ],
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=True, methods=["post"], url_path="substitute-host", permission_classes=[IsAuthenticated, IsStaffUser])
+    def substitute_host(self, request, pk=None):
+        """
+        Substitute a host in a collective event appointment (TEAM-1).
+
+        Staff only. Allows replacing one host with another if new host is available.
+        """
+        appointment = self.get_object()
+
+        # Verify it's a collective event
+        if appointment.appointment_type.event_category != "collective":
+            return Response(
+                {"error": "Host substitution only applies to collective events"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get old and new host IDs from request
+        old_host_id = request.data.get("old_host_id")
+        new_host_id = request.data.get("new_host_id")
+        reason = request.data.get("reason", "")
+
+        if not old_host_id or not new_host_id:
+            return Response(
+                {"error": "Both old_host_id and new_host_id are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get user instances
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+
+        try:
+            old_host = User.objects.get(id=old_host_id, firm=request.firm)
+            new_host = User.objects.get(id=new_host_id, firm=request.firm)
+        except User.DoesNotExist:
+            return Response(
+                {"error": "One or both hosts not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Perform substitution
+        booking_service = BookingService()
+        try:
+            appointment = booking_service.substitute_collective_host(
+                appointment=appointment,
+                old_host=old_host,
+                new_host=new_host,
+                substituted_by=request.user,
+                reason=reason,
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_409_CONFLICT
+            )
+
+        return Response(
+            {
+                "message": "Host substituted successfully",
+                "appointment": AppointmentDetailSerializer(appointment).data,
+                "old_host": {"id": old_host.id, "username": old_host.username},
+                "new_host": {"id": new_host.id, "username": new_host.username},
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"], url_path="register-attendee")
+    def register_attendee(self, request, pk=None):
+        """
+        Register an attendee for a group event (TEAM-3).
+
+        Handles capacity checking and waitlist management automatically.
+        """
+        appointment = self.get_object()
+
+        # Verify it's a group event
+        if appointment.appointment_type.event_category != "group":
+            return Response(
+                {"error": "This endpoint only works with group event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get attendee information
+        contact_id = request.data.get("contact_id")
+        attendee_name = request.data.get("attendee_name", "")
+        attendee_email = request.data.get("attendee_email", "")
+
+        contact = None
+        if contact_id:
+            from modules.clients.models import Contact
+            try:
+                contact = Contact.objects.get(id=contact_id, firm=request.firm)
+            except Contact.DoesNotExist:
+                return Response(
+                    {"error": "Contact not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        # Register attendee
+        from modules.calendar.services import GroupEventService
+        group_service = GroupEventService()
+        
+        try:
+            result, is_waitlisted = group_service.register_attendee(
+                appointment=appointment,
+                contact=contact,
+                attendee_name=attendee_name,
+                attendee_email=attendee_email,
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get capacity info
+        capacity_info = group_service.get_capacity_info(appointment)
+
+        if is_waitlisted:
+            return Response(
+                {
+                    "message": "Added to waitlist",
+                    "waitlist_position": result.waitlist_id,
+                    "capacity_info": capacity_info,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                {
+                    "message": "Registered successfully",
+                    "attendee_id": result.attendee_id,
+                    "capacity_info": capacity_info,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+    @action(detail=True, methods=["post"], url_path="cancel-attendee")
+    def cancel_attendee(self, request, pk=None):
+        """
+        Cancel an attendee from a group event (TEAM-3).
+
+        Automatically promotes from waitlist if available.
+        """
+        appointment = self.get_object()
+
+        # Verify it's a group event
+        if appointment.appointment_type.event_category != "group":
+            return Response(
+                {"error": "This endpoint only works with group event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        attendee_id = request.data.get("attendee_id")
+        if not attendee_id:
+            return Response(
+                {"error": "attendee_id is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from modules.calendar.services import GroupEventService
+        group_service = GroupEventService()
+        
+        try:
+            cancelled_attendee, promoted_entry = group_service.cancel_attendee(
+                appointment=appointment,
+                attendee_id=attendee_id,
+            )
+        except ValueError as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        response_data = {
+            "message": "Attendee cancelled",
+            "cancelled_attendee_id": cancelled_attendee.attendee_id,
+        }
+
+        if promoted_entry:
+            response_data["promoted_from_waitlist"] = {
+                "waitlist_id": promoted_entry.waitlist_id,
+                "name": promoted_entry.contact.name if promoted_entry.contact else promoted_entry.waitlist_name,
+            }
+
+        # Get updated capacity info
+        capacity_info = group_service.get_capacity_info(appointment)
+        response_data["capacity_info"] = capacity_info
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"], url_path="group-attendees")
+    def group_attendees(self, request, pk=None):
+        """
+        Get the list of attendees for a group event (TEAM-3).
+        """
+        appointment = self.get_object()
+
+        if appointment.appointment_type.event_category != "group":
+            return Response(
+                {"error": "This endpoint only works with group event types"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from modules.calendar.services import GroupEventService
+        group_service = GroupEventService()
+        
+        attendees = group_service.get_attendee_list(appointment)
+        waitlist = group_service.get_waitlist(appointment)
+        capacity_info = group_service.get_capacity_info(appointment)
+
+        attendees_data = [
+            {
+                "attendee_id": a.attendee_id,
+                "name": a.contact.name if a.contact else a.attendee_name,
+                "email": a.contact.email if a.contact else a.attendee_email,
+                "status": a.status,
+                "registered_at": a.registered_at.isoformat(),
+            }
+            for a in attendees
+        ]
+
+        waitlist_data = [
+            {
+                "waitlist_id": w.waitlist_id,
+                "name": w.contact.name if w.contact else w.waitlist_name,
+                "email": w.contact.email if w.contact else w.waitlist_email,
+                "priority": w.priority,
+                "joined_at": w.joined_at.isoformat(),
+            }
+            for w in waitlist
+        ]
+
+        return Response(
+            {
+                "capacity_info": capacity_info,
+                "attendees": attendees_data,
+                "waitlist": waitlist_data,
+            },
+            status=status.HTTP_200_OK,
+        )
+

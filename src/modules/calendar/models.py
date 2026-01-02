@@ -115,6 +115,48 @@ class AppointmentType(models.Model):
         help_text="Pool of staff members for round robin distribution",
     )
 
+    # TEAM-2: Advanced round robin settings
+    ROUND_ROBIN_STRATEGY_CHOICES = [
+        ("strict", "Strict Round Robin (equal distribution regardless of availability)"),
+        ("optimize_availability", "Optimize for Availability (favor most available)"),
+        ("weighted", "Weighted Distribution (configurable weights per team member)"),
+        ("prioritize_capacity", "Prioritize by Capacity (route to least-booked)"),
+    ]
+    round_robin_strategy = models.CharField(
+        max_length=30,
+        choices=ROUND_ROBIN_STRATEGY_CHOICES,
+        default="strict",
+        blank=True,
+        help_text="Strategy for distributing appointments in round robin pool",
+    )
+    round_robin_weights = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            "Weights for weighted distribution strategy. "
+            "Format: {user_id: weight}, e.g. {1: 2.0, 2: 1.5, 3: 1.0}. "
+            "Higher weight = more appointments assigned."
+        ),
+    )
+    round_robin_capacity_per_day = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum appointments per person per day in round robin pool (null = unlimited)",
+    )
+    round_robin_enable_rebalancing = models.BooleanField(
+        default=False,
+        help_text="Automatically rebalance distribution when imbalanced",
+    )
+    round_robin_rebalancing_threshold = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0.20,
+        help_text=(
+            "Percentage threshold for rebalancing (e.g., 0.20 = trigger rebalance "
+            "if any member is more than 20% off the average)"
+        ),
+    )
+
     # Duration and buffers (per docs/34 section 2.1)
     duration_minutes = models.IntegerField(
         help_text="Meeting duration in minutes (default if multiple options not enabled)"
@@ -790,6 +832,15 @@ class Appointment(models.Model):
         related_name="staff_appointments",
         help_text="Staff member for this appointment",
     )
+
+    # TEAM-1: Collective event hosts (for event_category="collective")
+    collective_hosts = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="collective_appointments",
+        blank=True,
+        help_text="All hosts assigned to this collective event appointment (required + available optional hosts)",
+    )
+
     account = models.ForeignKey(
         "clients.Client",
         on_delete=models.SET_NULL,
@@ -1557,3 +1608,165 @@ class MeetingWorkflowExecution(models.Model):
 
     def __str__(self):
         return f"{self.workflow.name} for {self.appointment}"
+
+
+class GroupEventAttendee(models.Model):
+    """
+    Group Event Attendee model.
+
+    TEAM-3: Tracks attendees for group events (one-to-many).
+    Supports attendee list management and capacity tracking.
+    """
+
+    # Identity
+    attendee_id = models.BigAutoField(primary_key=True)
+
+    # Relations
+    appointment = models.ForeignKey(
+        Appointment,
+        on_delete=models.CASCADE,
+        related_name="group_attendees",
+        help_text="Group event appointment",
+    )
+    contact = models.ForeignKey(
+        "clients.Contact",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="group_event_attendances",
+        help_text="Contact attending the group event",
+    )
+
+    # Attendee information (for non-contact attendees)
+    attendee_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Name of attendee (if not a contact)",
+    )
+    attendee_email = models.EmailField(
+        blank=True,
+        help_text="Email of attendee (if not a contact)",
+    )
+
+    # Status
+    STATUS_CHOICES = [
+        ("registered", "Registered"),
+        ("confirmed", "Confirmed"),
+        ("cancelled", "Cancelled"),
+        ("no_show", "No Show"),
+        ("attended", "Attended"),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="registered",
+        help_text="Attendee status",
+    )
+
+    # Audit
+    registered_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "calendar_group_event_attendees"
+        ordering = ["registered_at"]
+        indexes = [
+            models.Index(fields=["appointment", "status"], name="calendar_att_app_sta_idx"),
+            models.Index(fields=["contact"], name="calendar_att_con_idx"),
+        ]
+
+    def __str__(self):
+        name = self.contact.name if self.contact else self.attendee_name
+        return f"{name} - {self.appointment}"
+
+
+class GroupEventWaitlist(models.Model):
+    """
+    Group Event Waitlist model.
+
+    TEAM-3: Manages waitlist for group events that have reached max capacity.
+    Supports automatic promotion when spots open up.
+    """
+
+    # Identity
+    waitlist_id = models.BigAutoField(primary_key=True)
+
+    # Relations
+    appointment = models.ForeignKey(
+        Appointment,
+        on_delete=models.CASCADE,
+        related_name="waitlist_entries",
+        help_text="Group event appointment",
+    )
+    contact = models.ForeignKey(
+        "clients.Contact",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="group_event_waitlist",
+        help_text="Contact on the waitlist",
+    )
+
+    # Waitlist information (for non-contact users)
+    waitlist_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Name of person on waitlist (if not a contact)",
+    )
+    waitlist_email = models.EmailField(
+        blank=True,
+        help_text="Email of person on waitlist (if not a contact)",
+    )
+
+    # Status and priority
+    STATUS_CHOICES = [
+        ("waiting", "Waiting"),
+        ("promoted", "Promoted to Attendee"),
+        ("cancelled", "Cancelled"),
+        ("expired", "Expired"),
+    ]
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="waiting",
+        help_text="Waitlist entry status",
+    )
+    priority = models.IntegerField(
+        default=0,
+        help_text="Priority for promotion (higher = promoted first). Default is based on join order.",
+    )
+
+    # Promotion tracking
+    promoted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this entry was promoted to attendee",
+    )
+    notified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When promotion notification was sent",
+    )
+
+    # Audit
+    joined_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "calendar_group_event_waitlist"
+        ordering = ["-priority", "joined_at"]  # Higher priority first, then FIFO
+        indexes = [
+            models.Index(fields=["appointment", "status"], name="calendar_wai_app_sta_idx"),
+            models.Index(fields=["contact"], name="calendar_wai_con_idx"),
+            models.Index(fields=["status", "priority", "joined_at"], name="calendar_wai_sta_pri_joi_idx"),
+        ]
+
+    def __str__(self):
+        name = self.contact.name if self.contact else self.waitlist_name
+        return f"{name} - Waitlist for {self.appointment}"

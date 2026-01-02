@@ -150,6 +150,117 @@ class AvailabilityService:
 
         return slots
 
+    def compute_collective_available_slots(
+        self,
+        appointment_type: AppointmentType,
+        start_date: datetime.date,
+        end_date: datetime.date,
+    ) -> List[Tuple[datetime, datetime, List[any]]]:
+        """
+        Compute available slots for collective events (multiple hosts, overlapping availability).
+
+        TEAM-1: Implements Venn diagram availability logic where slots are only available
+        when ALL required hosts are free. Optional hosts are not required for availability.
+
+        Args:
+            appointment_type: AppointmentType with event_category="collective"
+            start_date: Start date for availability search
+            end_date: End date for availability search
+
+        Returns:
+            List of (start_time, end_time, available_hosts) tuples in UTC.
+            available_hosts includes all required hosts plus any optional hosts who are available.
+        """
+        if appointment_type.event_category != "collective":
+            raise ValueError("compute_collective_available_slots only works with collective event types")
+
+        # Get required and optional hosts
+        required_hosts = list(appointment_type.required_hosts.all())
+        optional_hosts = list(appointment_type.optional_hosts.all())
+
+        if not required_hosts:
+            logger.warning(f"Collective event {appointment_type.name} has no required hosts")
+            return []
+
+        # Get availability profiles for all hosts
+        host_profiles = {}
+        for host in required_hosts + optional_hosts:
+            try:
+                profile = AvailabilityProfile.objects.get(
+                    firm=appointment_type.firm,
+                    owner_type="staff",
+                    owner_staff_user=host,
+                )
+                host_profiles[host.id] = profile
+            except AvailabilityProfile.DoesNotExist:
+                if host in required_hosts:
+                    # Required host has no profile - cannot find availability
+                    logger.warning(
+                        f"Required host {host.username} has no availability profile "
+                        f"for collective event {appointment_type.name}"
+                    )
+                    return []
+
+        # Compute slots for each required host
+        required_host_slots = {}
+        for host in required_hosts:
+            profile = host_profiles.get(host.id)
+            if not profile:
+                return []  # Already logged warning above
+
+            slots = self.compute_available_slots(
+                profile=profile,
+                appointment_type=appointment_type,
+                start_date=start_date,
+                end_date=end_date,
+                staff_user=host,
+            )
+            required_host_slots[host.id] = set(slots)
+
+        if not required_host_slots:
+            return []
+
+        # Find overlapping slots (Venn diagram intersection) for all required hosts
+        # Start with first host's slots
+        first_host_id = list(required_host_slots.keys())[0]
+        overlapping_slots = required_host_slots[first_host_id].copy()
+
+        # Intersect with each other required host's slots
+        for host_id, host_slots in required_host_slots.items():
+            if host_id == first_host_id:
+                continue
+            overlapping_slots = overlapping_slots.intersection(host_slots)
+
+        if not overlapping_slots:
+            logger.debug(f"No overlapping slots found for collective event {appointment_type.name}")
+            return []
+
+        # For each overlapping slot, determine which optional hosts are also available
+        result = []
+        for slot_start, slot_end in sorted(overlapping_slots):
+            available_hosts = required_hosts.copy()
+
+            # Check optional hosts
+            for opt_host in optional_hosts:
+                profile = host_profiles.get(opt_host.id)
+                if not profile:
+                    continue
+
+                # Check if optional host is available for this slot
+                if not self._has_conflict(
+                    opt_host, slot_start, slot_end, appointment_type, profile
+                ):
+                    available_hosts.append(opt_host)
+
+            result.append((slot_start, slot_end, available_hosts))
+
+        logger.info(
+            f"Found {len(result)} overlapping slots for collective event {appointment_type.name} "
+            f"with {len(required_hosts)} required hosts"
+        )
+
+        return result
+
     def _is_exception_date(self, date: datetime.date, exceptions: list) -> bool:
         """Check if date is in exception list."""
         date_str = date.strftime("%Y-%m-%d")
@@ -590,6 +701,338 @@ class AvailabilityService:
             return False
 
 
+class RoundRobinService:
+    """
+    Service for advanced round robin distribution.
+
+    TEAM-2: Implements multiple round robin strategies:
+    - Strict round robin (equal distribution)
+    - Optimize for availability (favor most available)
+    - Weighted distribution (configurable weights)
+    - Prioritize by capacity (route to least-booked)
+    """
+
+    def select_round_robin_staff(
+        self,
+        appointment_type: AppointmentType,
+        start_time: datetime,
+        end_time: datetime,
+    ) -> Tuple[Optional[any], str]:
+        """
+        Select a staff member from the round robin pool based on the configured strategy.
+
+        Args:
+            appointment_type: AppointmentType with round_robin_pool
+            start_time: Proposed appointment start time
+            end_time: Proposed appointment end time
+
+        Returns:
+            Tuple of (selected_staff, reason_string)
+        """
+        pool = list(appointment_type.round_robin_pool.all())
+        
+        if not pool:
+            logger.warning(f"Round robin pool is empty for appointment type {appointment_type.name}")
+            return None, "No staff in round robin pool"
+
+        strategy = appointment_type.round_robin_strategy or "strict"
+
+        # Filter out staff who have conflicts
+        available_staff = self._filter_available_staff(
+            pool, start_time, end_time, appointment_type
+        )
+
+        if not available_staff:
+            # Fallback: if no one is available, return None or implement fallback logic
+            logger.warning(
+                f"No staff available in round robin pool for {appointment_type.name} "
+                f"at {start_time}"
+            )
+            return None, "No available staff in round robin pool"
+
+        # Check capacity limits per day
+        if appointment_type.round_robin_capacity_per_day:
+            available_staff = self._filter_by_daily_capacity(
+                available_staff,
+                start_time,
+                appointment_type,
+            )
+
+        if not available_staff:
+            return None, "All staff have reached daily capacity limit"
+
+        # Apply selection strategy
+        if strategy == "strict":
+            selected_staff, reason = self._strict_round_robin(
+                available_staff, appointment_type
+            )
+        elif strategy == "optimize_availability":
+            selected_staff, reason = self._optimize_for_availability(
+                available_staff, start_time, end_time, appointment_type
+            )
+        elif strategy == "weighted":
+            selected_staff, reason = self._weighted_distribution(
+                available_staff, appointment_type
+            )
+        elif strategy == "prioritize_capacity":
+            selected_staff, reason = self._prioritize_capacity(
+                available_staff, start_time, appointment_type
+            )
+        else:
+            # Default to strict
+            selected_staff, reason = self._strict_round_robin(
+                available_staff, appointment_type
+            )
+
+        # Check if rebalancing is needed
+        if (
+            appointment_type.round_robin_enable_rebalancing
+            and self._needs_rebalancing(appointment_type)
+        ):
+            logger.info(
+                f"Round robin pool for {appointment_type.name} needs rebalancing"
+            )
+            # Optionally trigger rebalancing logic or just log
+
+        return selected_staff, f"Round robin ({strategy}): {reason}"
+
+    def _filter_available_staff(
+        self,
+        staff_list: List[any],
+        start_time: datetime,
+        end_time: datetime,
+        appointment_type: AppointmentType,
+    ) -> List[any]:
+        """Filter staff to only those available at the requested time."""
+        available = []
+        availability_service = AvailabilityService()
+
+        for staff in staff_list:
+            # Get availability profile
+            try:
+                profile = AvailabilityProfile.objects.get(
+                    firm=appointment_type.firm,
+                    owner_type="staff",
+                    owner_staff_user=staff,
+                )
+            except AvailabilityProfile.DoesNotExist:
+                logger.debug(f"No availability profile for {staff.username}, skipping")
+                continue
+
+            # Check for conflicts
+            if not availability_service._has_conflict(
+                staff, start_time, end_time, appointment_type, profile
+            ):
+                available.append(staff)
+
+        return available
+
+    def _filter_by_daily_capacity(
+        self,
+        staff_list: List[any],
+        start_time: datetime,
+        appointment_type: AppointmentType,
+    ) -> List[any]:
+        """Filter out staff who have reached daily capacity limit."""
+        capacity_limit = appointment_type.round_robin_capacity_per_day
+        if not capacity_limit:
+            return staff_list
+
+        # Get start of day for counting
+        day_start = start_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end = day_start + timedelta(days=1)
+
+        available = []
+        for staff in staff_list:
+            # Count appointments for this staff on this day
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                start_time__gte=day_start,
+                start_time__lt=day_end,
+                status__in=["requested", "confirmed"],
+            ).count()
+
+            if count < capacity_limit:
+                available.append(staff)
+            else:
+                logger.debug(
+                    f"Staff {staff.username} has reached daily capacity "
+                    f"({count}/{capacity_limit})"
+                )
+
+        return available
+
+    def _strict_round_robin(
+        self,
+        staff_list: List[any],
+        appointment_type: AppointmentType,
+    ) -> Tuple[any, str]:
+        """
+        Strict round robin: distribute equally regardless of current load.
+        
+        Selects the staff member with the fewest total appointments for this type.
+        """
+        # Count appointments for each staff member
+        staff_counts = []
+        for staff in staff_list:
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                status__in=["requested", "confirmed"],
+            ).count()
+            staff_counts.append((staff, count))
+
+        # Sort by count (ascending) to find least-assigned
+        staff_counts.sort(key=lambda x: x[1])
+        selected_staff, count = staff_counts[0]
+
+        return selected_staff, f"{selected_staff.username} (fewest assignments: {count})"
+
+    def _optimize_for_availability(
+        self,
+        staff_list: List[any],
+        start_time: datetime,
+        end_time: datetime,
+        appointment_type: AppointmentType,
+    ) -> Tuple[any, str]:
+        """
+        Optimize for availability: favor staff with more open slots.
+        
+        Calculates available slots for each staff member and selects the one with most availability.
+        """
+        availability_service = AvailabilityService()
+        staff_availability = []
+
+        # Look ahead 7 days to assess availability
+        search_end = start_time.date() + timedelta(days=7)
+
+        for staff in staff_list:
+            try:
+                profile = AvailabilityProfile.objects.get(
+                    firm=appointment_type.firm,
+                    owner_type="staff",
+                    owner_staff_user=staff,
+                )
+                
+                slots = availability_service.compute_available_slots(
+                    profile=profile,
+                    appointment_type=appointment_type,
+                    start_date=start_time.date(),
+                    end_date=search_end,
+                    staff_user=staff,
+                )
+                
+                staff_availability.append((staff, len(slots)))
+            except AvailabilityProfile.DoesNotExist:
+                staff_availability.append((staff, 0))
+
+        # Sort by availability (descending) to find most available
+        staff_availability.sort(key=lambda x: x[1], reverse=True)
+        selected_staff, slot_count = staff_availability[0]
+
+        return selected_staff, f"{selected_staff.username} (most available: {slot_count} slots)"
+
+    def _weighted_distribution(
+        self,
+        staff_list: List[any],
+        appointment_type: AppointmentType,
+    ) -> Tuple[any, str]:
+        """
+        Weighted distribution: use configurable weights to favor certain staff.
+        
+        Higher weight = more appointments should be routed to that staff member.
+        """
+        weights = appointment_type.round_robin_weights or {}
+        
+        # Count appointments and calculate weighted ratios
+        staff_ratios = []
+        for staff in staff_list:
+            weight = weights.get(str(staff.id), 1.0)  # Default weight 1.0
+            
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                status__in=["requested", "confirmed"],
+            ).count()
+            
+            # Ratio = actual count / expected count (based on weight)
+            # Lower ratio = under-assigned relative to weight
+            ratio = count / weight if weight > 0 else float('inf')
+            staff_ratios.append((staff, ratio, weight, count))
+
+        # Sort by ratio (ascending) to find most under-assigned relative to weight
+        staff_ratios.sort(key=lambda x: x[1])
+        selected_staff, ratio, weight, count = staff_ratios[0]
+
+        return selected_staff, f"{selected_staff.username} (weight: {weight}, count: {count})"
+
+    def _prioritize_capacity(
+        self,
+        staff_list: List[any],
+        start_time: datetime,
+        appointment_type: AppointmentType,
+    ) -> Tuple[any, str]:
+        """
+        Prioritize by capacity: route to the person with the fewest bookings recently.
+        
+        Looks at bookings in the last 30 days to determine who is least busy.
+        """
+        lookback_start = start_time - timedelta(days=30)
+
+        staff_recent_counts = []
+        for staff in staff_list:
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                start_time__gte=lookback_start,
+                status__in=["requested", "confirmed", "completed"],
+            ).count()
+            staff_recent_counts.append((staff, count))
+
+        # Sort by recent count (ascending) to find least busy
+        staff_recent_counts.sort(key=lambda x: x[1])
+        selected_staff, count = staff_recent_counts[0]
+
+        return selected_staff, f"{selected_staff.username} (least busy: {count} in last 30 days)"
+
+    def _needs_rebalancing(self, appointment_type: AppointmentType) -> bool:
+        """
+        Check if round robin pool needs rebalancing.
+        
+        Returns True if any staff member is more than threshold% off the average.
+        """
+        pool = list(appointment_type.round_robin_pool.all())
+        if len(pool) < 2:
+            return False
+
+        threshold = float(appointment_type.round_robin_rebalancing_threshold or 0.20)
+
+        # Count appointments for each pool member
+        counts = []
+        for staff in pool:
+            count = Appointment.objects.filter(
+                appointment_type=appointment_type,
+                staff_user=staff,
+                status__in=["requested", "confirmed"],
+            ).count()
+            counts.append(count)
+
+        if not counts:
+            return False
+
+        avg = sum(counts) / len(counts)
+        
+        # Check if any count deviates more than threshold from average
+        for count in counts:
+            if avg > 0:
+                deviation = abs(count - avg) / avg
+                if deviation > threshold:
+                    return True
+
+        return False
+
+
 class RoutingService:
     """
     Service for routing appointments to staff.
@@ -602,6 +1045,8 @@ class RoutingService:
         appointment_type: AppointmentType,
         account=None,
         engagement: Optional[Any] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
     ) -> Tuple[Optional[any], str]:
         """
         Route an appointment to a staff user based on routing policy.
@@ -609,6 +1054,7 @@ class RoutingService:
         Returns: (staff_user, reason)
 
         Per docs/34 section 2.4: supports multiple routing policies.
+        TEAM-2: Enhanced with advanced round robin support.
         """
         policy = appointment_type.routing_policy
         reason = f"Routing policy: {policy}"
@@ -623,8 +1069,25 @@ class RoutingService:
             return appointment_type.fixed_staff_user, f"{reason} - Fallback to fixed staff (no engagement owner)"
 
         elif policy == "round_robin_pool":
-            # FUTURE: Implement round-robin logic with team pool
-            return appointment_type.fixed_staff_user, f"{reason} - Round robin not implemented, using fixed staff"
+            # TEAM-2: Implement advanced round-robin logic with multiple strategies
+            if not start_time or not end_time:
+                logger.warning("Round robin routing requires start_time and end_time")
+                return appointment_type.fixed_staff_user, f"{reason} - Missing time info, using fixed staff"
+            
+            round_robin_service = RoundRobinService()
+            staff_user, rr_reason = round_robin_service.select_round_robin_staff(
+                appointment_type=appointment_type,
+                start_time=start_time,
+                end_time=end_time,
+            )
+            
+            if staff_user:
+                return staff_user, f"{reason} - {rr_reason}"
+            else:
+                # Fallback if no one is available
+                logger.warning(f"Round robin failed: {rr_reason}, falling back to fixed staff")
+                return appointment_type.fixed_staff_user, f"{reason} - Round robin fallback: {rr_reason}"
+
 
         elif policy == "service_line_owner":
             # FUTURE: Implement service line routing
@@ -703,6 +1166,114 @@ class BookingService:
         return appointment
 
     @transaction.atomic
+    def book_collective_appointment(
+        self,
+        appointment_type: AppointmentType,
+        start_time: datetime,
+        end_time: datetime,
+        collective_hosts: List[any],
+        booked_by,
+        account=None,
+        contact=None,
+        engagement=None,
+        intake_responses=None,
+        booking_link=None,
+    ) -> Appointment:
+        """
+        Book a collective event appointment with multiple hosts.
+
+        TEAM-1: Implements collective event booking with Venn diagram availability.
+        Ensures all required hosts are available and books with all hosts atomically.
+
+        Args:
+            appointment_type: AppointmentType with event_category="collective"
+            start_time: Start time for appointment
+            end_time: End time for appointment
+            collective_hosts: List of host users (required + available optional)
+            booked_by: User who is booking the appointment
+            account: Optional client account
+            contact: Optional contact
+            engagement: Optional engagement
+            intake_responses: Optional intake question responses
+            booking_link: Optional booking link used
+
+        Returns:
+            Created Appointment instance
+
+        Raises:
+            ValueError: If conflicts detected for any host
+        """
+        if appointment_type.event_category != "collective":
+            raise ValueError("book_collective_appointment only works with collective event types")
+
+        if not collective_hosts:
+            raise ValueError("Collective events require at least one host")
+
+        # Check for conflicts for ALL hosts within transaction (race condition protection)
+        for host in collective_hosts:
+            conflicts = Appointment.objects.select_for_update().filter(
+                staff_user=host,
+                status__in=["requested", "confirmed"],
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).exists()
+
+            # Also check if host is in collective_hosts of other appointments
+            collective_conflicts = Appointment.objects.select_for_update().filter(
+                collective_hosts=host,
+                status__in=["requested", "confirmed"],
+                start_time__lt=end_time,
+                end_time__gt=start_time,
+            ).exists()
+
+            if conflicts or collective_conflicts:
+                raise ValueError(
+                    f"Time slot is no longer available for host {host.username} (conflict detected)"
+                )
+
+        # Determine initial status
+        initial_status = "requested" if appointment_type.requires_approval else "confirmed"
+
+        # Use the first required host as the primary staff_user for backward compatibility
+        required_hosts = list(appointment_type.required_hosts.all())
+        primary_staff_user = required_hosts[0] if required_hosts else collective_hosts[0]
+
+        # Create appointment
+        appointment = Appointment.objects.create(
+            firm=appointment_type.firm,
+            appointment_type=appointment_type,
+            booking_link=booking_link,
+            staff_user=primary_staff_user,
+            account=account,
+            contact=contact,
+            start_time=start_time,
+            end_time=end_time,
+            timezone=appointment_type.firm.timezone if hasattr(appointment_type.firm, 'timezone') else 'UTC',
+            intake_responses=intake_responses or {},
+            status=initial_status,
+            booked_by=booked_by,
+        )
+
+        # Add all collective hosts
+        appointment.collective_hosts.set(collective_hosts)
+
+        # Create status history entry
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status="",
+            to_status=initial_status,
+            reason=f"Initial collective event booking with {len(collective_hosts)} hosts",
+            changed_by=booked_by,
+        )
+
+        logger.info(
+            f"Booked collective appointment {appointment.appointment_id} "
+            f"with {len(collective_hosts)} hosts: {[h.username for h in collective_hosts]}"
+        )
+
+        return appointment
+
+    @transaction.atomic
     def cancel_appointment(
         self,
         appointment: Appointment,
@@ -758,3 +1329,330 @@ class BookingService:
         )
 
         return appointment
+
+    @transaction.atomic
+    def substitute_collective_host(
+        self,
+        appointment: Appointment,
+        old_host,
+        new_host,
+        substituted_by,
+        reason: str = "",
+    ) -> Appointment:
+        """
+        Substitute a host in a collective event appointment.
+
+        TEAM-1: Implements host substitution workflow for collective events.
+        Validates that the new host is available and atomically updates the appointment.
+
+        Args:
+            appointment: Appointment to modify
+            old_host: Host to remove
+            new_host: Host to add as replacement
+            substituted_by: User performing the substitution
+            reason: Optional reason for substitution
+
+        Returns:
+            Updated Appointment instance
+
+        Raises:
+            ValueError: If not a collective event, host not found, or new host has conflict
+        """
+        if appointment.appointment_type.event_category != "collective":
+            raise ValueError("Host substitution only applies to collective events")
+
+        # Check that old_host is actually in the appointment
+        if old_host not in appointment.collective_hosts.all():
+            raise ValueError(f"Host {old_host.username} is not assigned to this appointment")
+
+        # Check that new_host doesn't have a conflict
+        conflicts = Appointment.objects.select_for_update().filter(
+            staff_user=new_host,
+            status__in=["requested", "confirmed"],
+            start_time__lt=appointment.end_time,
+            end_time__gt=appointment.start_time,
+        ).exists()
+
+        collective_conflicts = Appointment.objects.select_for_update().filter(
+            collective_hosts=new_host,
+            status__in=["requested", "confirmed"],
+            start_time__lt=appointment.end_time,
+            end_time__gt=appointment.start_time,
+        ).exists()
+
+        if conflicts or collective_conflicts:
+            raise ValueError(
+                f"Cannot substitute: new host {new_host.username} has a conflicting appointment"
+            )
+
+        # Remove old host and add new host
+        appointment.collective_hosts.remove(old_host)
+        appointment.collective_hosts.add(new_host)
+
+        # Update primary staff_user if the old host was primary
+        if appointment.staff_user == old_host:
+            appointment.staff_user = new_host
+            appointment.save()
+
+        # Create audit trail in status history
+        substitution_reason = reason or f"Host substitution: {old_host.username} → {new_host.username}"
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status=appointment.status,
+            to_status=appointment.status,
+            reason=substitution_reason,
+            changed_by=substituted_by,
+        )
+
+        logger.info(
+            f"Substituted host in appointment {appointment.appointment_id}: "
+            f"{old_host.username} → {new_host.username}"
+        )
+
+        return appointment
+
+
+class GroupEventService:
+    """
+    Service for managing group events.
+
+    TEAM-3: Implements group event functionality:
+    - Attendee registration and management
+    - Waitlist when full
+    - Automatic promotion from waitlist
+    - Capacity tracking
+    """
+
+    def register_attendee(
+        self,
+        appointment: Appointment,
+        contact=None,
+        attendee_name: str = "",
+        attendee_email: str = "",
+    ) -> tuple:
+        """
+        Register an attendee for a group event.
+
+        TEAM-3: Handles registration with capacity checking and waitlist management.
+
+        Args:
+            appointment: Group event appointment
+            contact: Optional contact to register
+            attendee_name: Name if not a contact
+            attendee_email: Email if not a contact
+
+        Returns:
+            Tuple of (attendee_or_waitlist, is_on_waitlist)
+
+        Raises:
+            ValueError: If not a group event or invalid input
+        """
+        from .models import GroupEventAttendee, GroupEventWaitlist
+
+        if appointment.appointment_type.event_category != "group":
+            raise ValueError("This endpoint only works with group event types")
+
+        if not contact and not (attendee_name and attendee_email):
+            raise ValueError("Must provide either contact or attendee name and email")
+
+        # Check current capacity
+        current_attendees = GroupEventAttendee.objects.filter(
+            appointment=appointment,
+            status__in=["registered", "confirmed"],
+        ).count()
+
+        max_attendees = appointment.appointment_type.max_attendees
+
+        if current_attendees < max_attendees:
+            # Space available - register directly
+            attendee = GroupEventAttendee.objects.create(
+                appointment=appointment,
+                contact=contact,
+                attendee_name=attendee_name,
+                attendee_email=attendee_email,
+                status="registered",
+            )
+
+            logger.info(
+                f"Registered attendee for group event {appointment.appointment_id}: "
+                f"{contact.name if contact else attendee_name}"
+            )
+
+            return attendee, False
+
+        else:
+            # At capacity - check if waitlist is enabled
+            if not appointment.appointment_type.enable_waitlist:
+                raise ValueError("Group event is at capacity and waitlist is not enabled")
+
+            # Add to waitlist
+            waitlist_entry = GroupEventWaitlist.objects.create(
+                appointment=appointment,
+                contact=contact,
+                waitlist_name=attendee_name,
+                waitlist_email=attendee_email,
+                status="waiting",
+            )
+
+            logger.info(
+                f"Added to waitlist for group event {appointment.appointment_id}: "
+                f"{contact.name if contact else attendee_name}"
+            )
+
+            return waitlist_entry, True
+
+    @transaction.atomic
+    def cancel_attendee(
+        self,
+        appointment: Appointment,
+        attendee_id: int,
+    ):
+        """
+        Cancel an attendee and promote from waitlist if available.
+
+        TEAM-3: Handles attendee cancellation with automatic waitlist promotion.
+
+        Args:
+            appointment: Group event appointment
+            attendee_id: ID of attendee to cancel
+
+        Returns:
+            Tuple of (cancelled_attendee, promoted_waitlist_entry)
+        """
+        from .models import GroupEventAttendee, GroupEventWaitlist
+
+        try:
+            attendee = GroupEventAttendee.objects.select_for_update().get(
+                attendee_id=attendee_id,
+                appointment=appointment,
+            )
+        except GroupEventAttendee.DoesNotExist:
+            raise ValueError("Attendee not found")
+
+        # Cancel the attendee
+        attendee.status = "cancelled"
+        attendee.save()
+
+        logger.info(
+            f"Cancelled attendee {attendee_id} for group event {appointment.appointment_id}"
+        )
+
+        # Try to promote from waitlist
+        promoted_entry = self._promote_from_waitlist(appointment)
+
+        return attendee, promoted_entry
+
+    def _promote_from_waitlist(self, appointment: Appointment):
+        """
+        Promote the next person from waitlist to attendee.
+
+        Args:
+            appointment: Group event appointment
+
+        Returns:
+            Promoted waitlist entry or None if waitlist is empty
+        """
+        from .models import GroupEventAttendee, GroupEventWaitlist
+
+        # Get next waiting entry (highest priority, then oldest)
+        waitlist_entry = GroupEventWaitlist.objects.filter(
+            appointment=appointment,
+            status="waiting",
+        ).order_by("-priority", "joined_at").first()
+
+        if not waitlist_entry:
+            return None
+
+        # Create attendee from waitlist entry
+        attendee = GroupEventAttendee.objects.create(
+            appointment=appointment,
+            contact=waitlist_entry.contact,
+            attendee_name=waitlist_entry.waitlist_name,
+            attendee_email=waitlist_entry.waitlist_email,
+            status="registered",
+        )
+
+        # Mark waitlist entry as promoted
+        waitlist_entry.status = "promoted"
+        waitlist_entry.promoted_at = timezone.now()
+        waitlist_entry.save()
+
+        logger.info(
+            f"Promoted waitlist entry {waitlist_entry.waitlist_id} to attendee "
+            f"for group event {appointment.appointment_id}"
+        )
+
+        return waitlist_entry
+
+    def get_attendee_list(self, appointment: Appointment):
+        """
+        Get the list of attendees for a group event.
+
+        Args:
+            appointment: Group event appointment
+
+        Returns:
+            QuerySet of GroupEventAttendee
+        """
+        from .models import GroupEventAttendee
+
+        return GroupEventAttendee.objects.filter(
+            appointment=appointment,
+            status__in=["registered", "confirmed", "attended"],
+        ).order_by("registered_at")
+
+    def get_waitlist(self, appointment: Appointment):
+        """
+        Get the waitlist for a group event.
+
+        Args:
+            appointment: Group event appointment
+
+        Returns:
+            QuerySet of GroupEventWaitlist
+        """
+        from .models import GroupEventWaitlist
+
+        return GroupEventWaitlist.objects.filter(
+            appointment=appointment,
+            status="waiting",
+        ).order_by("-priority", "joined_at")
+
+    def get_capacity_info(self, appointment: Appointment):
+        """
+        Get capacity information for a group event.
+
+        Args:
+            appointment: Group event appointment
+
+        Returns:
+            Dict with capacity info
+        """
+        from .models import GroupEventAttendee
+
+        if appointment.appointment_type.event_category != "group":
+            return None
+
+        max_attendees = appointment.appointment_type.max_attendees
+        current_attendees = GroupEventAttendee.objects.filter(
+            appointment=appointment,
+            status__in=["registered", "confirmed"],
+        ).count()
+
+        waitlist_count = 0
+        if appointment.appointment_type.enable_waitlist:
+            from .models import GroupEventWaitlist
+            waitlist_count = GroupEventWaitlist.objects.filter(
+                appointment=appointment,
+                status="waiting",
+            ).count()
+
+        return {
+            "max_attendees": max_attendees,
+            "current_attendees": current_attendees,
+            "available_spots": max(0, max_attendees - current_attendees),
+            "is_full": current_attendees >= max_attendees,
+            "waitlist_enabled": appointment.appointment_type.enable_waitlist,
+            "waitlist_count": waitlist_count,
+        }
+
