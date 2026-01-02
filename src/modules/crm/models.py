@@ -14,7 +14,7 @@ from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from modules.core.validators import validate_safe_url
@@ -2123,8 +2123,14 @@ class Pipeline(models.Model):
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Override save to ensure only one default pipeline per firm."""
         if self.is_default:
-            # Set all other pipelines in this firm to non-default
-            Pipeline.objects.filter(firm=self.firm, is_default=True).exclude(pk=self.pk).update(is_default=False)
+            # Use database transaction to prevent race conditions
+            from django.db import transaction
+            with transaction.atomic():
+                # Lock the rows to prevent concurrent updates
+                Pipeline.objects.select_for_update().filter(
+                    firm=self.firm, 
+                    is_default=True
+                ).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
 
 
@@ -2153,7 +2159,7 @@ class PipelineStage(models.Model):
     # Stage Configuration
     probability = models.IntegerField(
         default=0,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
         help_text="Default win probability percentage (0-100) for deals in this stage"
     )
     is_active = models.BooleanField(default=True, help_text="Whether this stage is currently active")
@@ -2257,7 +2263,7 @@ class Deal(models.Model):
     currency = models.CharField(max_length=3, default="USD")
     probability = models.IntegerField(
         default=50,
-        validators=[MinValueValidator(0)],
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
         help_text="Win probability percentage (0-100)"
     )
     weighted_value = models.DecimalField(

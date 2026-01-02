@@ -725,11 +725,32 @@ class PipelineViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
     
     @action(detail=True, methods=["post"])
     def set_default(self, request, pk=None):
-        """Set this pipeline as the default for the firm."""
+        """
+        Set this pipeline as the default for the firm.
+        
+        This will automatically unset any other default pipeline.
+        """
         pipeline = self.get_object()
-        pipeline.is_default = True
-        pipeline.save()
-        return Response({"status": "Pipeline set as default"})
+        
+        # Check if another pipeline is currently default
+        from django.db import transaction
+        with transaction.atomic():
+            current_default = Pipeline.objects.filter(
+                firm=request.user.firm,
+                is_default=True
+            ).exclude(pk=pipeline.pk).first()
+            
+            pipeline.is_default = True
+            pipeline.save()
+            
+            message = f"Pipeline '{pipeline.name}' set as default"
+            if current_default:
+                message += f" (replaced '{current_default.name}')"
+            
+            return Response({
+                "status": message,
+                "previous_default": current_default.name if current_default else None
+            })
     
     @action(detail=True, methods=["get"])
     def analytics(self, request, pk=None):
@@ -867,7 +888,12 @@ class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             )
         
         try:
-            new_stage = PipelineStage.objects.get(id=stage_id, pipeline=deal.pipeline)
+            # Ensure stage belongs to deal's pipeline AND the firm
+            new_stage = PipelineStage.objects.get(
+                id=stage_id, 
+                pipeline=deal.pipeline,
+                pipeline__firm=request.user.firm
+            )
         except PipelineStage.DoesNotExist:
             return Response(
                 {"error": "Stage not found or doesn't belong to deal's pipeline"},
@@ -974,7 +1000,7 @@ class DealViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         
         Returns weighted value grouped by expected close date.
         """
-        from django.db.models import Sum
+        from django.db.models import Count, Sum
         from django.db.models.functions import TruncMonth
         
         active_deals = self.get_queryset().filter(is_active=True)
