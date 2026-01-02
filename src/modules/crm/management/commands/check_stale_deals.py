@@ -76,7 +76,7 @@ class Command(BaseCommand):
                 total_deals_checked += 1
                 
                 # Determine stale threshold
-                threshold = days_override if days_override else deal.stale_days_threshold
+                threshold = days_override if days_override else (deal.stale_days_threshold or 30)
                 
                 # Check if deal is stale
                 if deal.last_activity_date:

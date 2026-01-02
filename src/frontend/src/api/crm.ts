@@ -376,6 +376,11 @@ export const crmApi = {
     return response.data
   },
 
+  getPipelineAnalytics: async (id: number): Promise<any> => {
+    const response = await apiClient.get(`/crm/pipelines/${id}/analytics/`)
+    return response.data
+  },
+
   createPipeline: async (data: Partial<Pipeline>): Promise<Pipeline> => {
     const response = await apiClient.post('/crm/pipelines/', data)
     return response.data
@@ -437,6 +442,16 @@ export const crmApi = {
 
   getDeal: async (id: number): Promise<Deal> => {
     const response = await apiClient.get(`/crm/deals/${id}/`)
+    return response.data
+  },
+
+  forecast: async (): Promise<any> => {
+    const response = await apiClient.get('/crm/deals/forecast/')
+    return response.data
+  },
+
+  winLossReport: async (): Promise<any> => {
+    const response = await apiClient.get('/crm/deals/win_loss_report/')
     return response.data
   },
 

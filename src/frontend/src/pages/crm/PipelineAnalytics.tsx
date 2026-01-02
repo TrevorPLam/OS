@@ -79,16 +79,8 @@ const PipelineAnalytics: React.FC = () => {
       setLoading(true)
       const [pipelinesData, forecastResponse, winLossResponse] = await Promise.all([
         crmApi.getPipelines(),
-        fetch('/api/crm/deals/forecast/', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        }).then(res => res.json()),
-        fetch('/api/crm/deals/win_loss_report/', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        }).then(res => res.json()),
+        crmApi.forecast(),
+        crmApi.winLossReport(),
       ])
       
       setPipelines(pipelinesData)
@@ -109,12 +101,7 @@ const PipelineAnalytics: React.FC = () => {
 
   const loadPipelineAnalytics = async (pipelineId: number) => {
     try {
-      const response = await fetch(`/api/crm/pipelines/${pipelineId}/analytics/`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-      })
-      const data = await response.json()
+      const data = await crmApi.getPipelineAnalytics(pipelineId)
       setPipelineAnalytics(data)
     } catch (error) {
       console.error('Error loading pipeline analytics:', error)
