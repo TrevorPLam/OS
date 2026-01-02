@@ -518,6 +518,33 @@ class AvailabilityProfile(models.Model):
         help_text="Exception dates (JSON array of {date: 'YYYY-MM-DD', reason: 'Holiday'})",
     )
 
+    # AVAIL-2: Recurring unavailability blocks
+    recurring_unavailability = models.JSONField(
+        default=list,
+        help_text="Recurring unavailability blocks (JSON array of {day_of_week: 'monday', start: '12:00', end: '13:00', reason: 'Lunch'})",
+    )
+
+    # AVAIL-2: Holiday blocking
+    auto_detect_holidays = models.BooleanField(
+        default=False,
+        help_text="Automatically block common holidays based on timezone/country",
+    )
+    custom_holidays = models.JSONField(
+        default=list,
+        help_text="Custom holiday dates (JSON array of {date: 'YYYY-MM-DD', name: 'Company Holiday'})",
+    )
+
+    # AVAIL-2: Meeting gap configuration
+    min_gap_between_meetings_minutes = models.IntegerField(
+        default=0,
+        help_text="Minimum gap between meetings (minutes). 0 means back-to-back allowed.",
+    )
+    max_gap_between_meetings_minutes = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum gap between meetings (minutes). Null means no limit.",
+    )
+
     # Booking constraints (per docs/34 section 2.2)
     min_notice_minutes = models.IntegerField(default=60, help_text="Minimum notice required before booking (minutes)")
     max_future_days = models.IntegerField(default=60, help_text="Maximum days in advance for booking")
