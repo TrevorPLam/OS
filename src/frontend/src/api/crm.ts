@@ -239,6 +239,45 @@ export interface DealTask {
   updated_at: string
 }
 
+// Contact Graph View Interfaces (CRM-INT-1)
+export interface ContactGraphNode {
+  id: string
+  type: 'contact' | 'account'
+  data: {
+    contact_id?: number
+    account_id?: number
+    name: string
+    email?: string
+    job_title?: string
+    is_primary?: boolean
+    is_decision_maker?: boolean
+    account_name?: string
+    account_type?: string
+    industry?: string
+  }
+  strength: number
+}
+
+export interface ContactGraphEdge {
+  id: string
+  source: string
+  target: string
+  type: 'belongs_to' | 'relationship'
+  relationship_type?: string
+  strength: number
+}
+
+export interface ContactGraphData {
+  nodes: ContactGraphNode[]
+  edges: ContactGraphEdge[]
+  metadata: {
+    total_contacts: number
+    total_accounts: number
+    total_relationships: number
+    focus_contact_id?: string
+  }
+}
+
 export const crmApi = {
   // Leads
   getLeads: async (): Promise<Lead[]> => {
@@ -596,5 +635,20 @@ export const crmApi = {
 
   deleteDealTask: async (id: number): Promise<void> => {
     await apiClient.delete(`/crm/deal-tasks/${id}/`)
+  },
+
+  // Contact Graph View (CRM-INT-1)
+  getContactGraphView: async (params?: {
+    contact_id?: number
+    depth?: number
+    include_inactive?: boolean
+  }): Promise<ContactGraphData> => {
+    const queryParams = new URLSearchParams()
+    if (params?.contact_id) queryParams.append('contact_id', params.contact_id.toString())
+    if (params?.depth) queryParams.append('depth', params.depth.toString())
+    if (params?.include_inactive) queryParams.append('include_inactive', 'true')
+    
+    const response = await apiClient.get(`/crm/account-contacts/graph_view/?${queryParams}`)
+    return response.data
   },
 }
