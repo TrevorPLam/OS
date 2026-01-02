@@ -804,3 +804,344 @@ class ClientEngagementDetailSerializer(serializers.ModelSerializer):
     def get_has_renewals(self, obj):
         """Check if this engagement has been renewed."""
         return obj.renewals.exists()
+
+
+# Bulk Operations Serializers
+
+class ContactImportSerializer(serializers.ModelSerializer):
+    """Serializer for ContactImport model."""
+    
+    created_by_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        from modules.clients.models import ContactImport
+        model = ContactImport
+        fields = [
+            "id",
+            "firm",
+            "status",
+            "filename",
+            "file_path",
+            "total_rows",
+            "successful_imports",
+            "failed_imports",
+            "skipped_rows",
+            "duplicates_found",
+            "field_mapping",
+            "duplicate_strategy",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+            "completed_at",
+        ]
+        read_only_fields = [
+            "firm",
+            "status",
+            "total_rows",
+            "successful_imports",
+            "failed_imports",
+            "skipped_rows",
+            "duplicates_found",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "completed_at",
+        ]
+    
+    def get_created_by_name(self, obj):
+        """Return creator's full name."""
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.email
+        return None
+
+
+class ContactImportCreateSerializer(serializers.Serializer):
+    """Serializer for creating a new contact import."""
+    
+    file = serializers.FileField(required=True, help_text="CSV file to import")
+    client_id = serializers.IntegerField(required=True, help_text="Client ID for imported contacts")
+    duplicate_strategy = serializers.ChoiceField(
+        choices=["skip", "update", "create_new"],
+        default="skip",
+        help_text="How to handle duplicate contacts",
+    )
+    field_mapping = serializers.JSONField(
+        required=True,
+        help_text="Mapping of CSV columns to Contact model fields",
+    )
+    
+    def validate_file(self, value):
+        """Validate uploaded file."""
+        # Check file extension
+        if not value.name.endswith(('.csv', '.CSV')):
+            raise serializers.ValidationError("Only CSV files are supported")
+        
+        # Check file size (max 10MB)
+        if value.size > 10 * 1024 * 1024:
+            raise serializers.ValidationError("File size cannot exceed 10MB")
+        
+        return value
+    
+    def validate_field_mapping(self, value):
+        """Validate field mapping configuration."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Field mapping must be a dictionary")
+        
+        # Check that at least email or first_name+last_name are mapped
+        required_fields_met = (
+            'email' in value.values() or
+            ('first_name' in value.values() and 'last_name' in value.values())
+        )
+        
+        if not required_fields_met:
+            raise serializers.ValidationError(
+                "Field mapping must include 'email' or both 'first_name' and 'last_name'"
+            )
+        
+        return value
+
+
+class ContactBulkUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for ContactBulkUpdate model."""
+    
+    created_by_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        from modules.clients.models import ContactBulkUpdate
+        model = ContactBulkUpdate
+        fields = [
+            "id",
+            "firm",
+            "status",
+            "operation_type",
+            "update_data",
+            "filter_criteria",
+            "total_contacts",
+            "successful_updates",
+            "failed_updates",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+            "completed_at",
+        ]
+        read_only_fields = [
+            "firm",
+            "status",
+            "total_contacts",
+            "successful_updates",
+            "failed_updates",
+            "error_message",
+            "error_details",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "completed_at",
+        ]
+    
+    def get_created_by_name(self, obj):
+        """Return creator's full name."""
+        if obj.created_by:
+            return obj.created_by.get_full_name() or obj.created_by.email
+        return None
+
+
+class ContactBulkUpdateCreateSerializer(serializers.Serializer):
+    """Serializer for creating a new bulk update operation."""
+    
+    contact_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        help_text="List of contact IDs to update",
+    )
+    update_data = serializers.JSONField(
+        required=True,
+        help_text="Fields and values to update",
+    )
+    operation_type = serializers.CharField(
+        max_length=50,
+        default="bulk_update",
+        help_text="Type of operation being performed",
+    )
+    
+    def validate_contact_ids(self, value):
+        """Validate contact IDs list."""
+        if not value:
+            raise serializers.ValidationError("At least one contact ID is required")
+        
+        if len(value) > 1000:
+            raise serializers.ValidationError("Cannot update more than 1000 contacts at once")
+        
+        return value
+    
+    def validate_update_data(self, value):
+        """Validate update data."""
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Update data must be a dictionary")
+        
+        if not value:
+            raise serializers.ValidationError("Update data cannot be empty")
+        
+        # List of fields that can be bulk updated
+        allowed_fields = [
+            'job_title',
+            'department',
+            'preferred_contact_method',
+            'opt_out_marketing',
+            'opt_out_sms',
+            'receives_billing_emails',
+            'receives_project_updates',
+            'status',
+            'notes',
+        ]
+        
+        for field in value.keys():
+            if field not in allowed_fields:
+                raise serializers.ValidationError(
+                    f"Field '{field}' is not allowed for bulk update. "
+                    f"Allowed fields: {', '.join(allowed_fields)}"
+                )
+        
+        return value
+
+
+# Contact Merging Serializers
+
+class ContactMergeConflictSerializer(serializers.Serializer):
+    """Serializer for a merge conflict."""
+    
+    field = serializers.CharField()
+    primary_value = serializers.CharField(allow_null=True, allow_blank=True)
+    secondary_value = serializers.CharField(allow_null=True, allow_blank=True)
+    resolution = serializers.CharField(allow_null=True, required=False)
+    resolved = serializers.BooleanField()
+
+
+class ContactMergePreviewSerializer(serializers.Serializer):
+    """Serializer for merge preview."""
+    
+    primary_id = serializers.IntegerField()
+    secondary_id = serializers.IntegerField()
+    conflicts = ContactMergeConflictSerializer(many=True)
+    merged_fields = serializers.JSONField()
+
+
+class ContactMergeRequestSerializer(serializers.Serializer):
+    """Serializer for initiating a contact merge."""
+    
+    primary_contact_id = serializers.IntegerField(
+        required=True,
+        help_text="ID of the contact to keep (master record)",
+    )
+    secondary_contact_id = serializers.IntegerField(
+        required=True,
+        help_text="ID of the contact to merge and delete",
+    )
+    conflict_resolutions = serializers.JSONField(
+        required=False,
+        default=dict,
+        help_text="Manual conflict resolutions: {field_name: resolution}",
+    )
+    auto_resolve_with_primary = serializers.BooleanField(
+        default=False,
+        help_text="Automatically resolve all conflicts with primary contact values",
+    )
+    
+    def validate(self, data):
+        """Validate that primary and secondary are different."""
+        if data['primary_contact_id'] == data['secondary_contact_id']:
+            raise serializers.ValidationError(
+                "Primary and secondary contacts must be different"
+            )
+        return data
+
+
+class PotentialDuplicateSerializer(serializers.Serializer):
+    """Serializer for potential duplicate contact pairs."""
+    
+    contact1_id = serializers.IntegerField()
+    contact1_name = serializers.CharField()
+    contact1_email = serializers.EmailField()
+    contact2_id = serializers.IntegerField()
+    contact2_name = serializers.CharField()
+    contact2_email = serializers.EmailField()
+    similarity_score = serializers.FloatField()
+
+
+# Segmentation Serializers
+
+class SegmentConditionSerializer(serializers.Serializer):
+    """Serializer for a segment condition."""
+    
+    field = serializers.CharField(help_text="Field name to filter on")
+    operator = serializers.ChoiceField(
+        choices=[
+            'equals', 'not_equals', 'contains', 'not_contains',
+            'starts_with', 'ends_with', 'in', 'not_in',
+            'greater_than', 'greater_than_or_equal',
+            'less_than', 'less_than_or_equal',
+            'is_null', 'is_not_null', 'between',
+        ],
+        help_text="Comparison operator",
+    )
+    value = serializers.JSONField(help_text="Value to compare against")
+
+
+class SegmentGroupSerializer(serializers.Serializer):
+    """Serializer for a segment group with nested conditions."""
+    
+    logic = serializers.ChoiceField(
+        choices=['AND', 'OR'],
+        default='AND',
+        help_text="Logical operator for combining conditions",
+    )
+    conditions = SegmentConditionSerializer(many=True, required=False)
+    groups = serializers.ListField(
+        child=serializers.JSONField(),  # Recursive, will be SegmentGroupSerializer
+        required=False,
+        help_text="Nested segment groups",
+    )
+
+
+class ContactSegmentSerializer(serializers.Serializer):
+    """Serializer for contact segment definition."""
+    
+    name = serializers.CharField(max_length=255, help_text="Segment name")
+    client_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Client ID to scope segment to",
+    )
+    conditions = SegmentGroupSerializer(help_text="Root condition group")
+    
+    def validate_conditions(self, value):
+        """Validate that conditions are properly structured."""
+        if not value:
+            raise serializers.ValidationError("Segment must have at least one condition")
+        return value
+
+
+class SegmentEvaluationSerializer(serializers.Serializer):
+    """Serializer for segment evaluation results."""
+    
+    segment_name = serializers.CharField()
+    total_contacts = serializers.IntegerField()
+    matching_contacts = serializers.IntegerField()
+    execution_time_ms = serializers.FloatField()
+
+
+class PrebuiltSegmentSerializer(serializers.Serializer):
+    """Serializer for listing available pre-built segments."""
+    
+    id = serializers.CharField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    parameters = serializers.JSONField(required=False)
+
