@@ -1331,6 +1331,113 @@ class BookingService:
         return appointment
 
     @transaction.atomic
+    def mark_no_show(
+        self,
+        appointment: Appointment,
+        marked_by,
+        party: str = "client",
+        reason: str = "",
+    ) -> Appointment:
+        """
+        Mark an appointment as no-show.
+
+        FLOW-2: Enables no-show follow-up workflows.
+
+        Args:
+            appointment: Appointment to mark as no-show
+            marked_by: User marking the no-show
+            party: Who didn't show up ("client" or "staff")
+            reason: Optional reason for no-show
+
+        Returns:
+            Updated Appointment instance
+        """
+        if appointment.status not in ["confirmed", "requested"]:
+            raise ValueError("Only confirmed or requested appointments can be marked as no-show")
+
+        old_status = appointment.status
+        appointment.status = "no_show"
+        appointment.status_reason = reason
+        appointment.no_show_at = timezone.now()
+        appointment.no_show_party = party
+        appointment.save()
+
+        # Create status history entry
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status=old_status,
+            to_status="no_show",
+            reason=f"No-show by {party}" + (f": {reason}" if reason else ""),
+            changed_by=marked_by,
+        )
+
+        logger.info(
+            f"Marked appointment {appointment.appointment_id} as no-show ({party})"
+        )
+
+        # Trigger no-show workflows
+        from .workflow_services import WorkflowExecutionEngine
+        engine = WorkflowExecutionEngine()
+        engine.trigger_workflows(
+            appointment=appointment,
+            trigger_event="appointment_no_show",
+            actor=marked_by,
+        )
+
+        return appointment
+
+    @transaction.atomic
+    def complete_appointment(
+        self,
+        appointment: Appointment,
+        completed_by,
+        notes: str = "",
+    ) -> Appointment:
+        """
+        Mark an appointment as completed.
+
+        FLOW-2: Triggers post-meeting follow-up workflows.
+
+        Args:
+            appointment: Appointment to complete
+            completed_by: User marking as complete
+            notes: Optional completion notes
+
+        Returns:
+            Updated Appointment instance
+        """
+        if appointment.status not in ["confirmed"]:
+            raise ValueError("Only confirmed appointments can be marked as completed")
+
+        old_status = appointment.status
+        appointment.status = "completed"
+        if notes:
+            appointment.notes = (appointment.notes or "") + "\n\n" + notes
+        appointment.save()
+
+        # Create status history entry
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status=old_status,
+            to_status="completed",
+            reason="Marked as completed" + (f": {notes}" if notes else ""),
+            changed_by=completed_by,
+        )
+
+        logger.info(f"Completed appointment {appointment.appointment_id}")
+
+        # Trigger completion workflows (thank you emails, surveys, etc.)
+        from .workflow_services import WorkflowExecutionEngine
+        engine = WorkflowExecutionEngine()
+        engine.trigger_workflows(
+            appointment=appointment,
+            trigger_event="appointment_completed",
+            actor=completed_by,
+        )
+
+        return appointment
+
+    @transaction.atomic
     def substitute_collective_host(
         self,
         appointment: Appointment,

@@ -1440,6 +1440,8 @@ class MeetingWorkflow(models.Model):
         ("appointment_confirmed", "Appointment Confirmed"),
         ("appointment_completed", "Appointment Completed"),
         ("appointment_cancelled", "Appointment Cancelled"),
+        ("appointment_no_show", "Appointment No-Show"),
+        ("appointment_rescheduled", "Appointment Rescheduled"),
     ]
 
     ACTION_TYPE_CHOICES = [
