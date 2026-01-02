@@ -279,13 +279,13 @@
   - Rejection workflows
   - Waitlist promotion
   
-- [ ] **FLOW-4:** Implement routing rules (12-16 hours)
+- [x] **FLOW-4:** Implement routing rules (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Form-based routing (qualify before scheduling)
   - Hidden field routing
   - Answer-based routing
   - Priority/VIP routing
   
-- [ ] **FLOW-5:** Add custom questions (12-16 hours)
+- [x] **FLOW-5:** Add custom questions (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Pre-booking questions
   - Question types (text, multiple choice, dropdown)
   - Conditional questions
