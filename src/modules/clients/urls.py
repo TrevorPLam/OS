@@ -7,6 +7,10 @@ TIER 2.6: Added Organization ViewSet for cross-client collaboration.
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from modules.clients.portal_views import (
+    DomainVerificationRecordViewSet,
+    PortalBrandingViewSet,
+)
 from modules.clients.views import (
     ClientChatThreadViewSet,
     ClientCommentViewSet,
@@ -37,6 +41,9 @@ router.register(r"messages", ClientMessageViewSet, basename="client-message")
 router.register(r"proposals", ClientProposalViewSet, basename="client-proposal")
 router.register(r"contracts", ClientContractViewSet, basename="client-contract")
 router.register(r"engagement-history", ClientEngagementHistoryViewSet, basename="client-engagement-history")
+# Portal Branding (PORTAL-1 through PORTAL-4)
+router.register(r"portal-branding", PortalBrandingViewSet, basename="portal-branding")
+router.register(r"domain-verification", DomainVerificationRecordViewSet, basename="domain-verification")
 
 urlpatterns = [
     path("", include(router.urls)),
