@@ -545,6 +545,13 @@ class AvailabilityProfile(models.Model):
         help_text="Maximum gap between meetings (minutes). Null means no limit.",
     )
 
+    # AVAIL-3: Location-based availability
+    location_based_schedules = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Different schedules per location (JSON: {location_name: {weekly_hours: {...}, timezone: '...'}})",
+    )
+
     # Booking constraints (per docs/34 section 2.2)
     min_notice_minutes = models.IntegerField(default=60, help_text="Minimum notice required before booking (minutes)")
     max_future_days = models.IntegerField(default=60, help_text="Maximum days in advance for booking")
@@ -673,6 +680,35 @@ class BookingLink(models.Model):
     )
     slug = models.SlugField(max_length=100, unique=True, help_text="URL slug for this booking link")
     token = models.UUIDField(default=uuid.uuid4, unique=True, help_text="Unique token for security")
+
+    # AVAIL-3: Secret events (direct link only, hidden from public)
+    is_secret = models.BooleanField(
+        default=False,
+        help_text="Secret events are only accessible via direct link, not listed publicly",
+    )
+
+    # AVAIL-3: Password protection
+    password_protected = models.BooleanField(
+        default=False,
+        help_text="Require password to book",
+    )
+    password_hash = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Hashed password for protected booking links",
+    )
+
+    # AVAIL-3: Email domain restrictions
+    allowed_email_domains = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Whitelist of allowed email domains (e.g., ['example.com', 'partner.com']). Empty means all allowed.",
+    )
+    blocked_email_domains = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Blacklist of blocked email domains (e.g., ['spam.com'])",
+    )
 
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active", help_text="Active or inactive")

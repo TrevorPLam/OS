@@ -206,12 +206,12 @@
   - Meeting padding/buffer enforcement [Already implemented]
   - Min/max meeting gap configuration
   
-- [ ] **AVAIL-3:** Add advanced availability features (12-16 hours)
+- [x] **AVAIL-3:** Add advanced availability features (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Secret events (direct link only, hidden from public)
   - Password-protected booking
   - Invitee blacklist/whitelist (email domains)
   - Location-based availability (different schedules per location)
-  - Capacity scheduling (max 2-1000 attendees)
+  - Capacity scheduling (max 2-1000 attendees) [Already implemented in AppointmentType model]
   
 - [ ] **AVAIL-4:** Implement timezone intelligence (12-16 hours)
   - Auto-detect invitee timezone
