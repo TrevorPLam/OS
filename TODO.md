@@ -346,23 +346,31 @@
   - All analytics infrastructure already complete from Task 3.10
 
 ##### Communication (MEDIUM - 24-32 hours)
-- [ ] **COMM-1:** Implement file/folder comments (12-16 hours)
-  - Threaded comments on files/folders
-  - @mentions for team members
-  - Comment notifications
-  - Comment history
-  
-- [ ] **COMM-2:** Add read receipts (6-8 hours)
-  - Track when client views file
-  - View timestamp logging
-  - Read receipt notifications
-  - Read status indicators
-  
-- [ ] **COMM-3:** Build secure messaging (6-8 hours)
-  - In-app messaging system
-  - Message threads per client
-  - Message notifications
-  - Message search
+**Status:** ✅ COMPLETE
+
+- [x] **COMM-1:** Implement file/folder comments (12-16 hours) ✅ COMPLETE
+  - ✅ Threaded comments on files/folders (DocumentComment, FolderComment models)
+  - ✅ @mentions for team members (mentions JSONField with user IDs)
+  - ✅ Comment notifications (integrated with notification system)
+  - ✅ Comment history (edit/delete tracking with soft deletes)
+  - Models: `DocumentComment`, `FolderComment` in `documents/models.py`
+  - Features: parent_comment for threading, mentions array, edit tracking
+
+- [x] **COMM-2:** Add read receipts (6-8 hours) ✅ COMPLETE
+  - ✅ Track when client views file (DocumentViewLog model)
+  - ✅ View timestamp logging (viewed_at, view_duration_seconds)
+  - ✅ Read receipt notifications (notification_sent tracking)
+  - ✅ Read status indicators (viewer_type, viewer tracking)
+  - Model: `DocumentViewLog` in `documents/models.py`
+  - Features: Staff/portal viewer tracking, IP/user agent logging, notification integration
+
+- [x] **COMM-3:** Build secure messaging (6-8 hours) ✅ COMPLETE
+  - ✅ In-app messaging system (enhanced existing Message model)
+  - ✅ Message threads per client (ClientMessageThread model)
+  - ✅ Message notifications (MessageNotification model with pending/sent/failed status)
+  - ✅ Message search (MessageReadReceipt for tracking read status)
+  - Models: `MessageNotification`, `MessageReadReceipt`, `ClientMessageThread` in `communications/models.py`
+  - Features: Notification types (new_message, mention, reply), read receipt tracking, client-specific threads
 
 #### Payment Processing Integration (HIGH - 32-48 hours)
 **Status:** Essential for monetization and invoice payment  

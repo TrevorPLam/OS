@@ -628,3 +628,342 @@ class ConversationLink(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class MessageNotification(models.Model):
+    """
+    Message notification model (COMM-3).
+
+    Tracks notifications sent for messages to ensure participants
+    are notified of new messages in their conversations.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    NOTIFICATION_TYPE_CHOICES = [
+        ("new_message", "New Message"),
+        ("mention", "@Mention"),
+        ("reply", "Reply to Message"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("sent", "Sent"),
+        ("failed", "Failed"),
+    ]
+
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="message_notifications",
+    )
+
+    # Message link
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+
+    # Recipient information
+    recipient_type = models.CharField(
+        max_length=10,
+        choices=[("staff", "Staff User"), ("portal", "Portal User")],
+    )
+    recipient_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="message_notifications",
+        help_text="Staff user to notify",
+    )
+    recipient_portal_user_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Portal user ID to notify",
+    )
+    recipient_email = models.EmailField(
+        help_text="Email address to send notification to",
+    )
+
+    # Notification details
+    notification_type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPE_CHOICES,
+        default="new_message",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+
+    # Timing
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When notification was sent",
+    )
+    failed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When notification failed",
+    )
+    failure_reason = models.TextField(
+        blank=True,
+        help_text="Reason for failure",
+    )
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "communications_message_notification"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "message", "-created_at"], name="communicat_not_fir_mes_idx"),
+            models.Index(fields=["firm", "recipient_user", "-created_at"], name="communicat_not_fir_rec_idx"),
+            models.Index(fields=["firm", "status", "created_at"], name="communicat_not_fir_sta_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Notification for Message #{self.message_id} to {self.recipient_email}"
+
+    def mark_as_sent(self) -> None:
+        """Mark notification as sent."""
+        self.status = "sent"
+        self.sent_at = timezone.now()
+        self.save(update_fields=["status", "sent_at"])
+
+    def mark_as_failed(self, reason: str) -> None:
+        """Mark notification as failed."""
+        self.status = "failed"
+        self.failed_at = timezone.now()
+        self.failure_reason = reason
+        self.save(update_fields=["status", "failed_at", "failure_reason"])
+
+    def clean(self) -> None:
+        """Validate notification data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency
+        if self.message_id and self.firm_id:
+            if hasattr(self, "message") and self.message.firm_id != self.firm_id:
+                errors["message"] = "Notification firm must match message's firm."
+
+        # Recipient validation
+        if self.recipient_type == "staff" and not self.recipient_user_id:
+            errors["recipient_user"] = "Recipient user is required for staff notifications."
+        if self.recipient_type == "portal" and not self.recipient_portal_user_id:
+            errors["recipient_portal_user_id"] = "Portal user ID is required for portal notifications."
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class MessageReadReceipt(models.Model):
+    """
+    Message read receipt model (COMM-3).
+
+    Tracks when participants read messages in conversations.
+    Provides read status indicators for message delivery confirmation.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="message_read_receipts",
+    )
+
+    # Message link
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.CASCADE,
+        related_name="read_receipts",
+    )
+
+    # Reader information
+    reader_type = models.CharField(
+        max_length=10,
+        choices=[("staff", "Staff User"), ("portal", "Portal User")],
+    )
+    reader_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="message_read_receipts",
+        help_text="Staff user who read the message",
+    )
+    reader_portal_user_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Portal user ID who read the message",
+    )
+
+    # Read tracking
+    read_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text="When the message was read",
+    )
+
+    # Request metadata
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of the reader",
+    )
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "communications_message_read_receipt"
+        ordering = ["-read_at"]
+        indexes = [
+            models.Index(fields=["firm", "message", "-read_at"], name="communicat_rea_fir_mes_idx"),
+            models.Index(fields=["firm", "reader_user", "-read_at"], name="communicat_rea_fir_rea_idx"),
+        ]
+        unique_together = [
+            ["message", "reader_user"],
+            ["message", "reader_portal_user_id"],
+        ]
+
+    def __str__(self) -> str:
+        reader = self.reader_user if self.reader_user else f"Portal User {self.reader_portal_user_id}"
+        return f"{reader} read Message #{self.message_id} at {self.read_at}"
+
+    @classmethod
+    def mark_as_read(
+        cls,
+        firm_id: int,
+        message: Message,
+        reader_type: str,
+        reader_user=None,
+        reader_portal_user_id: int = None,
+        ip_address: str = None,
+    ):
+        """
+        Convenience method to mark a message as read.
+
+        Usage:
+            MessageReadReceipt.mark_as_read(
+                firm_id=message.firm_id,
+                message=message,
+                reader_type="staff",
+                reader_user=request.user,
+                ip_address=request.META.get('REMOTE_ADDR'),
+            )
+        """
+        # Use get_or_create to avoid duplicate read receipts
+        receipt, created = cls.objects.get_or_create(
+            firm_id=firm_id,
+            message=message,
+            reader_type=reader_type,
+            reader_user=reader_user,
+            reader_portal_user_id=reader_portal_user_id,
+            defaults={
+                "ip_address": ip_address,
+            },
+        )
+        return receipt, created
+
+    def clean(self) -> None:
+        """Validate read receipt data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency
+        if self.message_id and self.firm_id:
+            if hasattr(self, "message") and self.message.firm_id != self.firm_id:
+                errors["message"] = "Read receipt firm must match message's firm."
+
+        # Reader validation
+        if self.reader_type == "staff" and not self.reader_user_id:
+            errors["reader_user"] = "Reader user is required for staff read receipts."
+        if self.reader_type == "portal" and not self.reader_portal_user_id:
+            errors["reader_portal_user_id"] = "Portal user ID is required for portal read receipts."
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class ClientMessageThread(models.Model):
+    """
+    Client-specific message thread model (COMM-3).
+
+    Provides a dedicated messaging thread for each client, enabling
+    organized communication history and easy access to client conversations.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="client_message_threads",
+    )
+
+    # Client reference
+    client = models.OneToOneField(
+        "clients.Client",
+        on_delete=models.CASCADE,
+        related_name="message_thread",
+        help_text="The client this thread belongs to",
+    )
+
+    # Linked conversation
+    conversation = models.OneToOneField(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name="client_thread",
+        help_text="The conversation thread for this client",
+    )
+
+    # Thread metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "communications_client_message_thread"
+        indexes = [
+            models.Index(fields=["firm", "client"], name="communicat_thr_fir_cli_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Message Thread for {self.client.company_name}"
+
+    def clean(self) -> None:
+        """Validate thread data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency
+        if self.client_id and self.firm_id:
+            if hasattr(self, "client") and self.client.firm_id != self.firm_id:
+                errors["client"] = "Thread firm must match client's firm."
+
+        if self.conversation_id and self.firm_id:
+            if hasattr(self, "conversation") and self.conversation.firm_id != self.firm_id:
+                errors["conversation"] = "Thread firm must match conversation's firm."
+
+        if errors:
+            raise ValidationError(errors)
