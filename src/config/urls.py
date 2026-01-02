@@ -4,6 +4,7 @@ URL Configuration for ConsultantPro.
 Organized by business domain modules.
 """
 
+from api.documents.public_views import PublicFileRequestViewSet
 from api.finance.webhooks import stripe_webhook
 from django.conf import settings
 from django.conf.urls.static import static
@@ -11,8 +12,13 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from rest_framework.routers import DefaultRouter
 
 from .health import health_check, readiness_check
+
+# Public API router (no authentication required)
+public_router = DefaultRouter()
+public_router.register(r"file-requests", PublicFileRequestViewSet, basename="public-file-request")
 
 # ASSESS-I5.1: API Versioning - All API endpoints use /api/v1/ prefix
 # Version support policy: See docs/API_VERSIONING_POLICY.md
@@ -60,6 +66,8 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    # Public API (no authentication - for file uploads, share links, etc.)
+    path("api/public/", include(public_router.urls)),
     # Webhooks (not versioned - webhook URLs should remain stable)
     path("webhooks/stripe/", stripe_webhook, name="stripe-webhook"),
     path("webhooks/docusign/", include("modules.esignature.urls")),  # Includes webhook at /webhooks/docusign/webhook/

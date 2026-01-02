@@ -8,6 +8,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     DocumentViewSet,
     ExternalShareViewSet,
+    FileRequestReminderViewSet,
+    FileRequestViewSet,
     FolderViewSet,
     ShareAccessViewSet,
     SharePermissionViewSet,
@@ -21,6 +23,8 @@ router.register(r"versions", VersionViewSet, basename="version")
 router.register(r"external-shares", ExternalShareViewSet, basename="external-share")
 router.register(r"share-permissions", SharePermissionViewSet, basename="share-permission")
 router.register(r"share-accesses", ShareAccessViewSet, basename="share-access")
+router.register(r"file-requests", FileRequestViewSet, basename="file-request")
+router.register(r"file-request-reminders", FileRequestReminderViewSet, basename="file-request-reminder")
 
 urlpatterns = [
     path("", include(router.urls)),
