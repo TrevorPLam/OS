@@ -2540,6 +2540,8 @@ class DealTask(models.Model):
         self.deal.update_last_activity()
 
 
+# Import assignment automation models (DEAL-5)
+from .assignment_automation import AssignmentRule, StageAutomation
 class DealAssignmentRule(models.Model):
     """
     Deal Assignment Automation Rule (DEAL-5).

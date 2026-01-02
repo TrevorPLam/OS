@@ -1,8 +1,71 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 1, 2026
+**Last Updated:** January 2, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 2, 2026)
+
+### High Priority - Pipeline & Deal Management (DEAL-3 to DEAL-6)
+
+**Complete Pipeline & Deal Management feature set - All UI, analytics, and automation features implemented**
+
+- [x] **DEAL-3: Build Pipeline visualization UI** - ✅ **COMPLETED** (January 2, 2026)
+  - Kanban board view with drag-and-drop stage transitions
+  - Deal cards with key metrics (value, probability, weighted value, close date, owner)
+  - Pipeline selector, search functionality, and stale deal filtering
+  - Real-time metrics dashboard (total value, weighted value, deal count, avg deal size)
+  - Visual stale deal indicators with warning badges
+  - Responsive design for mobile, tablet, and desktop
+  - **Implementation:** Frontend routes `/crm/deals`, components `Deals.tsx` and `Deals.css`
+  - **Effort:** 8-12 hours, 903 lines (484 TSX + 419 CSS)
+
+- [x] **DEAL-4: Add forecasting and analytics** - ✅ **COMPLETED** (January 2, 2026)
+  - Win/loss performance tracking with counts, values, and win rate calculation
+  - Monthly revenue projections with interactive bar charts
+  - Performance metrics (average deal size, sales cycle duration)
+  - Pipeline distribution by stage with probability percentages
+  - Top 5 reasons for lost deals analysis
+  - Color-coded visual metrics (green=won, red=lost, blue=active, purple=rate)
+  - **Implementation:** Frontend routes `/crm/deal-analytics`, components `DealAnalytics.tsx` and `DealAnalytics.css`
+  - **Effort:** 8-12 hours, 845 lines (406 TSX + 439 CSS)
+
+- [x] **DEAL-5: Implement assignment automation** - ✅ **COMPLETED** (January 2, 2026)
+  - Round-robin deal assignment algorithm with fair distribution
+  - Territory-based, value-based, and source-based routing options
+  - Stage automation triggers (assign user, create task, send notification, update field, run webhook)
+  - Priority-based rule evaluation with condition matching (value range, source, pipeline/stage filters)
+  - Configurable assignment rules with assignee pool management
+  - **Implementation:** Backend models `AssignmentRule` and `StageAutomation` in `assignment_automation.py`
+  - **Effort:** 6-8 hours, 393 lines
+  - **Note:** Requires database migration to activate
+
+- [x] **DEAL-6: Add deal splitting and rotting alerts** - ✅ **COMPLETED** (January 2, 2026)
+  - Automated stale deal detection based on inactivity threshold (default: 30 days)
+  - Email reminder system with personalized messages to deal owners
+  - Comprehensive stale deal reporting (by owner, pipeline, stage, age distribution)
+  - Management command `send_stale_deal_reminders` with `--dry-run` support
+  - Daily cron job script for automated checks (`check_stale_deals.sh`)
+  - Deal splitting support via `split_percentage` JSON field
+  - **New API endpoints:**
+    - `GET /api/crm/deals/stale_report/` - Comprehensive stale deal analytics
+    - `POST /api/crm/deals/check_stale/` - Manually trigger stale check
+    - `POST /api/crm/deals/send_stale_reminders/` - Send reminder emails with dry-run option
+  - **Implementation:** Backend utilities in `deal_rotting_alerts.py`, management command, cron script
+  - **Effort:** 6-8 hours, 459 lines (280 utilities + 126 command + 50 script + 3 __init__ files)
+
+**Total Pipeline & Deal Management Implementation:**
+- **Total effort:** 28-40 hours estimated
+- **Files created:** 10 new files (4 frontend, 6 backend)
+- **Files modified:** 4 files (App.tsx, crm.ts, models.py, views.py)
+- **Total lines added:** ~2,600 lines
+- **Documentation:** Comprehensive implementation summary in [WORK_SUMMARY_DEAL_3-6.md](WORK_SUMMARY_DEAL_3-6.md)
+- **Setup required:**
+  1. Run migration: `python manage.py makemigrations crm --name add_assignment_automation && python manage.py migrate`
+  2. Configure SMTP settings and `FRONTEND_URL` in Django settings
+  3. Add to crontab: `0 9 * * * /path/to/scripts/check_stale_deals.sh`
 
 ---
 

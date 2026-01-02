@@ -1,6 +1,6 @@
 # Platform Capabilities Inventory
 
-**Last Updated:** January 1, 2026
+**Last Updated:** January 2, 2026
 
 This document provides a comprehensive inventory of ConsultantPro's implemented features and capabilities, as well as features that are planned or marked as "Coming Soon."
 
@@ -53,7 +53,12 @@ This document provides a comprehensive inventory of ConsultantPro's implemented 
 | Lead scoring automation | ✅ | Migration: crm/0006, models: ScoringRule, ScoreAdjustment |
 | Activity tracking | ✅ | Activities linked to contacts/leads |
 | Product catalog | ✅ | Products, configurations, options |
-| Sales pipeline | ✅ | Deal stages and progression |
+| Sales pipeline | ✅ | Deal stages and progression (DEAL-1, DEAL-2) |
+| Pipeline visualization UI | ✅ | Kanban board with drag-and-drop (DEAL-3) |
+| Deal forecasting & analytics | ✅ | Win/loss tracking, revenue projections (DEAL-4) |
+| Deal assignment automation | ✅ | Round-robin, territory-based routing (DEAL-5) |
+| Stale deal alerts | ✅ | Automated detection and email reminders (DEAL-6) |
+| Deal splitting | ✅ | Multiple owner support (DEAL-6) |
 | Tags & segmentation | ✅ | Custom tagging system |
 | AI-powered lead scoring | 🔜 | Low priority - enhanced automation |
 
