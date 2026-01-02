@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard'
 import Leads from './pages/crm/Leads'
 import Prospects from './pages/crm/Prospects'
 import Campaigns from './pages/crm/Campaigns'
+import Deals from './pages/crm/Deals'
 import Clients from './pages/Clients'
 import Proposals from './pages/Proposals'
 import Contracts from './pages/Contracts'
@@ -50,6 +51,7 @@ function App() {
                 <Route path="/crm/leads" element={<Leads />} />
                 <Route path="/crm/prospects" element={<Prospects />} />
                 <Route path="/crm/campaigns" element={<Campaigns />} />
+                <Route path="/crm/deals" element={<Deals />} />
                 <Route path="/proposals" element={<Proposals />} />
 
                 {/* Client Management Routes */}

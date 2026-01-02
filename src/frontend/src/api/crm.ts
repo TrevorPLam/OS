@@ -134,6 +134,74 @@ export interface Contract {
   updated_at: string
 }
 
+export interface PipelineStage {
+  id: number
+  pipeline: number
+  name: string
+  description?: string
+  probability: number
+  is_active: boolean
+  is_closed_won: boolean
+  is_closed_lost: boolean
+  display_order: number
+  auto_tasks: any[]
+  created_at: string
+  updated_at: string
+}
+
+export interface Pipeline {
+  id: number
+  name: string
+  description?: string
+  is_active: boolean
+  is_default: boolean
+  display_order: number
+  stages: PipelineStage[]
+  created_at: string
+  updated_at: string
+  created_by?: number
+}
+
+export interface Deal {
+  id: number
+  pipeline: number
+  pipeline_name?: string
+  stage: number
+  stage_name?: string
+  name: string
+  description?: string
+  account?: number
+  account_name?: string
+  contact?: number
+  contact_name?: string
+  value: string
+  currency: string
+  probability: number
+  weighted_value: string
+  expected_close_date: string
+  actual_close_date?: string
+  owner?: number
+  owner_name?: string
+  team_members: number[]
+  split_percentage: Record<string, number>
+  source?: string
+  campaign?: number
+  campaign_name?: string
+  is_active: boolean
+  is_won: boolean
+  is_lost: boolean
+  lost_reason?: string
+  last_activity_date?: string
+  is_stale: boolean
+  stale_days_threshold: number
+  converted_to_project: boolean
+  project?: number
+  tags: string[]
+  created_at: string
+  updated_at: string
+  created_by?: number
+}
+
 export const crmApi = {
   // Leads
   getLeads: async (): Promise<Lead[]> => {
@@ -294,5 +362,113 @@ export const crmApi = {
 
   deleteContract: async (id: number): Promise<void> => {
     await apiClient.delete(`/crm/contracts/${id}/`)
+  },
+
+  // Pipelines
+  getPipelines: async (): Promise<Pipeline[]> => {
+    const response = await apiClient.get('/crm/pipelines/')
+    return response.data.results || response.data
+  },
+
+  getPipeline: async (id: number): Promise<Pipeline> => {
+    const response = await apiClient.get(`/crm/pipelines/${id}/`)
+    return response.data
+  },
+
+  createPipeline: async (data: Partial<Pipeline>): Promise<Pipeline> => {
+    const response = await apiClient.post('/crm/pipelines/', data)
+    return response.data
+  },
+
+  updatePipeline: async (id: number, data: Partial<Pipeline>): Promise<Pipeline> => {
+    const response = await apiClient.put(`/crm/pipelines/${id}/`, data)
+    return response.data
+  },
+
+  deletePipeline: async (id: number): Promise<void> => {
+    await apiClient.delete(`/crm/pipelines/${id}/`)
+  },
+
+  // Pipeline Stages
+  getPipelineStages: async (pipelineId: number): Promise<PipelineStage[]> => {
+    const response = await apiClient.get(`/crm/pipeline-stages/?pipeline=${pipelineId}`)
+    return response.data.results || response.data
+  },
+
+  // Deals
+  getDeals: async (filters?: { pipeline?: number; stage?: number; owner?: number; is_active?: boolean }): Promise<Deal[]> => {
+    const params = new URLSearchParams()
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value))
+        }
+      })
+    }
+    const response = await apiClient.get(`/crm/deals/?${params.toString()}`)
+    return response.data.results || response.data
+  },
+
+  getDeal: async (id: number): Promise<Deal> => {
+    const response = await apiClient.get(`/crm/deals/${id}/`)
+    return response.data
+  },
+
+  createDeal: async (data: Partial<Deal>): Promise<Deal> => {
+    const response = await apiClient.post('/crm/deals/', data)
+    return response.data
+  },
+
+  updateDeal: async (id: number, data: Partial<Deal>): Promise<Deal> => {
+    const response = await apiClient.put(`/crm/deals/${id}/`, data)
+    return response.data
+  },
+
+  deleteDeal: async (id: number): Promise<void> => {
+    await apiClient.delete(`/crm/deals/${id}/`)
+  },
+
+  moveDealToStage: async (id: number, stageId: number, notes?: string): Promise<Deal> => {
+    const response = await apiClient.post(`/crm/deals/${id}/move_stage/`, {
+      stage_id: stageId,
+      notes: notes || ''
+    })
+    return response.data
+  },
+
+  markDealWon: async (id: number): Promise<Deal> => {
+    const response = await apiClient.post(`/crm/deals/${id}/mark_won/`)
+    return response.data
+  },
+
+  markDealLost: async (id: number, reason: string): Promise<Deal> => {
+    const response = await apiClient.post(`/crm/deals/${id}/mark_lost/`, {
+      lost_reason: reason
+    })
+    return response.data
+  },
+
+  convertDealToProject: async (id: number, projectData?: any): Promise<{ status: string; project_id: number; project_name: string }> => {
+    const response = await apiClient.post(`/crm/deals/${id}/convert_to_project/`, projectData || {})
+    return response.data
+  },
+
+  getStaleDeals: async (): Promise<Deal[]> => {
+    const response = await apiClient.get('/crm/deals/stale/')
+    return response.data
+  },
+
+  getDealForecast: async (): Promise<{
+    total_pipeline_value: number
+    total_weighted_value: number
+    monthly_forecast: Array<{
+      month: string
+      deal_count: number
+      total_value: number
+      weighted_value: number
+    }>
+  }> => {
+    const response = await apiClient.get('/crm/deals/forecast/')
+    return response.data
   },
 }
