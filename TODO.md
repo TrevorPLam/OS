@@ -1,6 +1,6 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 1, 2026
+**Last Updated:** January 2, 2026
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
 
@@ -36,203 +36,7 @@
 
 ## Critical & High Priority
 
-### 🔴 Security & Compliance
-
-#### Enhanced Security Controls (CRITICAL - 56-72 hours)
-**Status:** Critical for enterprise adoption  
-**Dependencies:** None
-
-- [x] **SEC-1:** Verify and enhance encryption implementation (12-16 hours) ✅ COMPLETE
-  - ✅ Audited AES-256 at rest implementation (AWS KMS + Local Fernet)
-  - ✅ Verified TLS 1.3 for all communications in transit
-  - ✅ Documented encryption architecture (see [docs/ENCRYPTION_ARCHITECTURE.md](docs/ENCRYPTION_ARCHITECTURE.md))
-  - ✅ Designed end-to-end encryption option with client-managed keys (E2EE roadmap: Q1-Q2 2026)
-  
-- [x] **SEC-2:** Implement granular permission system (16-20 hours) ✅ COMPLETE
-  - ✅ Implemented folder-level CRUD permissions (create, read, update, delete, share, download)
-  - ✅ Added file-level permission overrides with explicit deny support
-  - ✅ Built permission inheritance rules engine (walks folder hierarchy)
-  - ✅ Created DocumentPermission model with user/role-based permissions
-  - ✅ Implemented PermissionChecker with 4-tier resolution (deny > file > folder > role defaults)
-  - ✅ Added DRF permission class (HasDocumentPermission) for API integration
-  - Module: `src/modules/documents/permissions.py` (18KB)
-  - Migration: `0005_add_granular_permissions.py`
-  
-- [x] **SEC-3:** Add advanced access controls (12-16 hours) ✅ COMPLETE
-  - ✅ Implemented dynamic watermarking (username, IP, timestamp) for documents
-  - ✅ Built view-only mode (disable download, print, copy) per document
-  - ✅ Added IP whitelisting system for sensitive operations
-  - ✅ Created device trust/registration system with verification
-  - Module: `src/modules/core/access_controls.py` (20KB)
-  - Features: IPWhitelist, TrustedDevice, DocumentAccessControl, WatermarkService
-  
-- [x] **SEC-4:** Build security monitoring (16-20 hours) ✅ COMPLETE
-  - ✅ Immutable audit logs with 7-year retention (already in `firm/audit.py`)
-  - ✅ SIEM integration implemented (Splunk HEC, Datadog Logs, Generic Webhook)
-  - ✅ Real-time security alerts (SecurityAlert model with notifications)
-  - ✅ Content scanning for PII/PHI patterns (SSN, credit cards, medical terms)
-  - Module: `src/modules/core/security_monitoring.py` (25KB)
-  - Features: SecurityAlert, SecurityMonitor, PIIScanner, SIEMExporter
-
-#### Active Directory Integration (HIGH - 64-88 hours)
-**Status:** ✅ COMPLETE - Deal-breaker for enterprise customers  
-**Dependencies:** None  
-**✅ Research Complete:** AD connector library selection - LDAP (ldap3) selected (see [docs/research/active-directory-integration-research.md](docs/research/active-directory-integration-research.md))
-
-- [x] **AD-1:** Implement AD Organizational Unit sync (16-20 hours) ✅ COMPLETE
-  - ✅ Connect to AD via LDAPS (secure LDAP)
-  - ✅ Sync users from specific OUs
-  - ✅ Implement OU selection and filtering
-  - ✅ Sync group membership
-  - ✅ Create ADSyncConfig, ADSyncLog, ADUserMapping models
-  - ✅ Implement ActiveDirectoryConnector with ldap3
-  - ✅ Build API endpoints for sync management
-  - Module: `src/modules/ad_sync/` (21 files)
-  - Migration: `0001_initial.py`
-  
-- [x] **AD-2:** Build AD attribute mapping (12-16 hours) ✅ COMPLETE
-  - ✅ Map AD fields (mail, UPN, GUID) to user fields
-  - ✅ Custom attribute mapping configuration (JSON field)
-  - ✅ Implement attribute transformation rules in sync service
-  - ✅ Conflict detection for duplicate users
-  - Module: Integrated in `sync_service.py`
-  
-- [x] **AD-3:** Create provisioning rules engine (12-16 hours) ✅ COMPLETE
-  - ✅ Build rules-based user provisioning system
-  - ✅ Implement condition-based user creation (ad_group, ou_path, attribute_value)
-  - ✅ Add automatic role assignment rules
-  - ✅ Create auto-disable rules (when AD account disabled)
-  - Model: `ADProvisioningRule` with priority-based evaluation
-  - API: Full CRUD for provisioning rules
-  
-- [x] **AD-4:** Add scheduled synchronization (12-16 hours) ✅ COMPLETE
-  - ✅ Implement cron-based sync jobs (hourly, daily, weekly)
-  - ✅ Add manual on-demand sync capability (API + management command)
-  - ✅ Build delta/incremental sync (using AD whenChanged attribute)
-  - ✅ Support full sync option
-  - Management command: `python manage.py sync_ad`
-  - Cron script: `scripts/sync_ad_cron.sh`
-  - Module: `tasks.py` with scheduling logic
-  
-- [x] **AD-5:** Implement AD group sync (12-16 hours) ✅ COMPLETE
-  - ✅ Sync AD security groups as distribution groups
-  - ✅ Implement group member sync
-  - ✅ Handle group size limits (2,000 users with pagination)
-  - ✅ Auto-update group membership
-  - Model: `ADGroupMapping` for group-to-role mapping
-  - API: Full CRUD for group mappings
-
----
-
-### 🔥 Core Business Features
-
-#### Pipeline & Deal Management (HIGH - 40-56 hours)
-**Status:** ✅ COMPLETE - All features implemented  
-**Dependencies:** None
-
-- [x] **DEAL-1:** Design Pipeline and Deal models (4-6 hours) ✅ COMPLETE
-  - Pipeline model with configurable stages
-  - Deal model with value, probability, associations
-  - Deal-to-Project conversion workflow design
-  
-- [x] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours) ✅ COMPLETE
-  - Deal creation, update, delete endpoints
-  - Deal stage transition logic
-  - Deal associations (contacts, accounts, tasks)
-  - Validation rules and constraints
-  
-- [x] **DEAL-3:** Build Pipeline visualization UI (8-12 hours) ✅ COMPLETE (2026-01-02)
-  - ✅ Kanban board view of deals by stage with drag-and-drop
-  - ✅ Pipeline selector, search, and filtering
-  - ✅ Deal card UI with key metrics (value, probability, weighted value, close date, owner)
-  - ✅ Stale deal highlighting and visual indicators
-  - ✅ Real-time metrics dashboard (total value, weighted value, deal count, avg deal size)
-  - ✅ Responsive design for mobile/tablet/desktop
-  - Frontend: `/src/frontend/src/pages/crm/Deals.tsx`
-  
-- [x] **DEAL-4:** Add forecasting and analytics (8-12 hours) ✅ COMPLETE (2026-01-02)
-  - ✅ Weighted pipeline forecasting with monthly revenue projections
-  - ✅ Win/loss tracking (counts, values, win rate calculation)
-  - ✅ Pipeline performance reports and metrics
-  - ✅ Revenue projection calculations with visual bar charts
-  - ✅ Performance metrics (avg deal size, sales cycle duration)
-  - ✅ Pipeline distribution by stage
-  - ✅ Top reasons for lost deals analysis
-  - Frontend: `/src/frontend/src/pages/crm/DealAnalytics.tsx`
-  
-- [x] **DEAL-5:** Implement assignment automation (6-8 hours) ✅ COMPLETE (2026-01-02)
-  - ✅ Round-robin deal assignment algorithm
-  - ✅ Territory-based routing
-  - ✅ Value and source-based assignment rules
-  - ✅ Deal stage automation triggers (assign user, create task, send notification, update field, webhook)
-  - ✅ Priority-based rule evaluation with condition matching
-  - ✅ Configurable assignment rules with pipeline/stage filters
-  - Backend: `/src/modules/crm/assignment_automation.py`
-  - Models: `AssignmentRule`, `StageAutomation`
-  - Note: Requires migration to activate
-  
-- [x] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours) ✅ COMPLETE (2026-01-02)
-  - ✅ Deal splitting for multiple owners (via `split_percentage` JSON field)
-  - ✅ Stale deal detection (automated marking based on inactivity threshold)
-  - ✅ Automated reminder system (email notifications to deal owners)
-  - ✅ Comprehensive stale deal reporting and analytics
-  - ✅ Management command: `send_stale_deal_reminders` with dry-run support
-  - ✅ Daily cron job script for automated checks
-  - ✅ API endpoints: `stale_report`, `check_stale`, `send_stale_reminders`
-  - Backend: `/src/modules/crm/deal_rotting_alerts.py`, `/scripts/check_stale_deals.sh`
-  - See: [WORK_SUMMARY_DEAL_3-6.md](WORK_SUMMARY_DEAL_3-6.md)
-**Status:** ✅ PARTIAL - Core models and API complete, UI and analytics pending  
-**Dependencies:** None
-
-- [x] **DEAL-1:** Design Pipeline and Deal models (4-6 hours) ✅ COMPLETE
-  - ✅ Pipeline model with configurable stages
-  - ✅ Deal model with value, probability, associations
-  - ✅ Deal-to-Project conversion workflow design
-  - Models: `Pipeline`, `PipelineStage`, `Deal`, `DealTask` in `src/modules/crm/models.py`
-  - Migration: `0007_add_pipeline_and_deal_models.py`
-  
-- [x] **DEAL-2:** Implement Deal CRUD operations and API (8-12 hours) ✅ COMPLETE
-  - ✅ Deal creation, update, delete endpoints
-  - ✅ Deal stage transition logic
-  - ✅ Deal associations (contacts, accounts, tasks)
-  - ✅ Validation rules and constraints
-  - ViewSets: `PipelineViewSet`, `PipelineStageViewSet`, `DealViewSet`, `DealTaskViewSet`
-  - Serializers: Full CRUD with validation in `src/modules/crm/serializers.py`
-  
-- [x] **DEAL-3:** Build Pipeline visualization UI (8-12 hours) ✅ COMPLETE
-  - ✅ Kanban board view of deals by stage
-  - ✅ Drag-and-drop stage transitions
-  - ✅ Pipeline filtering and search
-  - ✅ Deal card UI with key metrics
-  - Component: `src/frontend/src/pages/crm/PipelineKanban.tsx`
-  - Features: Deal CRUD, stage transitions, pipeline selection, metrics display
-  
-- [x] **DEAL-4:** Add forecasting and analytics (8-12 hours) ✅ COMPLETE
-  - ✅ Weighted pipeline forecasting
-  - ✅ Win/loss tracking
-  - ✅ Pipeline performance reports
-  - ✅ Revenue projection calculations
-  - API Endpoints: `/crm/deals/forecast/`, `/crm/deals/win_loss_report/`, `/crm/pipelines/{id}/analytics/`
-  - Component: `src/frontend/src/pages/crm/PipelineAnalytics.tsx`
-  - Features: Win rate metrics, monthly forecasts, stage breakdown, loss reason analysis
-  
-- [x] **DEAL-5:** Implement assignment automation (6-8 hours) ✅ COMPLETE
-  - ✅ Round-robin deal assignment
-  - ✅ Territory-based routing
-  - ✅ Deal stage automation triggers
-  - Models: `DealAssignmentRule`, `DealStageAutomation` in `src/modules/crm/models.py`
-  - Migration: `0008_add_assignment_automation_models.py`
-  - Features: Round-robin, territory-based, load-balanced, value-based assignment rules
-  - Stage automation: Assign user, create task, send notification, update field actions
-  
-- [x] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours) ✅ COMPLETE
-  - ✅ Deal splitting for multiple owners (already implemented via `secondary_owners` and `split_percentage` fields)
-  - ✅ Stale deal detection (already implemented via `is_stale`, `stale_days_threshold`, `last_activity_date` fields)
-  - ✅ Automated reminder system
-  - Model: `DealAlert` in `src/modules/crm/models.py`
-  - Migration: `0009_add_deal_alerts.py`
-  - Management command: `check_stale_deals` for periodic stale deal detection
-  - Features: Alert types (stale, close date, value change, etc.), priority levels, notification system, acknowledgement tracking
+### 🔥 Marketing & Automation
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours)
 **Status:** Core marketing automation feature - critical for ActiveCampaign-like functionality  
@@ -281,6 +85,10 @@
   - Goal conversion rates
   - Performance metrics per automation
 
+---
+
+### 🔥 Client Portal
+
 #### Client Portal Enhancements (HIGH - 112-156 hours)
 **Status:** Critical for client experience  
 **Dependencies:** None
@@ -310,67 +118,9 @@
   - Email header/footer customization
   - Brand consistency across all emails
 
-##### File Exchange (HIGH - 40-56 hours)
-**Status:** ✅ COMPLETE - All features implemented (2026-01-02)
+---
 
-- [x] **FILE-1:** Build file request system (12-16 hours) ✅ COMPLETE
-  - ✅ Generate upload-only links (via 'upload' access type on ExternalShare)
-  - ✅ Request templates (W2s, bank statements, tax returns, etc. - 10 template types)
-  - ✅ Request expiration dates (via FileRequest.expires_at)
-  - ✅ Request status tracking (pending, uploaded, reviewed, completed, expired, cancelled)
-  - Models: `FileRequest` with full template support
-  - API: Full CRUD + statistics endpoint
-
-- [x] **FILE-2:** Add automated reminders (8-12 hours) ✅ COMPLETE
-  - ✅ Reminder sequences (Day 1, 3, 7, 14 configurable)
-  - ✅ Customizable reminder content (subject and message fields)
-  - ✅ Stop reminders when complete (automatic skip logic)
-  - ✅ Escalation to team members (escalation_emails with escalate_to_team flag)
-  - Models: `FileRequestReminder` with full scheduling
-  - Management command: `send_file_request_reminders` with dry-run support
-  - Automatic default reminder sequences on request creation
-
-- [x] **FILE-3:** Implement share links (12-16 hours) ✅ COMPLETE (leveraging Task 3.10)
-  - ✅ Expiring share links (via ExternalShare.expires_at)
-  - ✅ Password-protected links (via ExternalShare password system with bcrypt)
-  - ✅ Download limit enforcement (via ExternalShare.max_downloads)
-  - ✅ Link revocation (via ExternalShare.revoke() method)
-  - All infrastructure already complete from Task 3.10
-
-- [x] **FILE-4:** Add link analytics (8-12 hours) ✅ COMPLETE (leveraging Task 3.10)
-  - ✅ Track opens, downloads, locations (via ShareAccess model)
-  - ✅ Viewer IP and timestamp logging (ShareAccess.ip_address, accessed_at)
-  - ✅ Link usage reports (via statistics endpoint on FileRequestViewSet)
-  - ✅ Upload confirmation notifications (via EmailNotification service)
-  - Public upload endpoint: `/api/public/file-requests/{token}/upload/`
-  - All analytics infrastructure already complete from Task 3.10
-
-##### Communication (MEDIUM - 24-32 hours)
-**Status:** ✅ COMPLETE
-
-- [x] **COMM-1:** Implement file/folder comments (12-16 hours) ✅ COMPLETE
-  - ✅ Threaded comments on files/folders (DocumentComment, FolderComment models)
-  - ✅ @mentions for team members (mentions JSONField with user IDs)
-  - ✅ Comment notifications (integrated with notification system)
-  - ✅ Comment history (edit/delete tracking with soft deletes)
-  - Models: `DocumentComment`, `FolderComment` in `documents/models.py`
-  - Features: parent_comment for threading, mentions array, edit tracking
-
-- [x] **COMM-2:** Add read receipts (6-8 hours) ✅ COMPLETE
-  - ✅ Track when client views file (DocumentViewLog model)
-  - ✅ View timestamp logging (viewed_at, view_duration_seconds)
-  - ✅ Read receipt notifications (notification_sent tracking)
-  - ✅ Read status indicators (viewer_type, viewer tracking)
-  - Model: `DocumentViewLog` in `documents/models.py`
-  - Features: Staff/portal viewer tracking, IP/user agent logging, notification integration
-
-- [x] **COMM-3:** Build secure messaging (6-8 hours) ✅ COMPLETE
-  - ✅ In-app messaging system (enhanced existing Message model)
-  - ✅ Message threads per client (ClientMessageThread model)
-  - ✅ Message notifications (MessageNotification model with pending/sent/failed status)
-  - ✅ Message search (MessageReadReceipt for tracking read status)
-  - Models: `MessageNotification`, `MessageReadReceipt`, `ClientMessageThread` in `communications/models.py`
-  - Features: Notification types (new_message, mention, reply), read receipt tracking, client-specific threads
+### 🔥 Payment Processing
 
 #### Payment Processing Integration (HIGH - 32-48 hours)
 **Status:** Essential for monetization and invoice payment  
@@ -550,7 +300,7 @@
 
 #### Contact Management Enhancements (MEDIUM - 24-32 hours)
 **Status:** Enhance existing contact management  
-**Dependencies:** DEAL-1 through DEAL-6
+**Dependencies:** None
 
 - [ ] **CONTACT-1:** Add contact states and lifecycle (4-6 hours)
   - Contact state model (Active, Unsubscribed, Bounced, Unconfirmed, Inactive)
@@ -711,7 +461,7 @@
 
 #### Core File Management (MEDIUM - 92-128 hours)
 **Status:** Enterprise file management features  
-**Dependencies:** SEC-1 through SEC-4
+**Dependencies:** None
 
 ##### Storage Architecture (MEDIUM - 32-48 hours)
 - [ ] **DOC-1:** Implement multi-region cloud storage (12-16 hours)
@@ -1076,7 +826,7 @@
 
 #### SCIM Provisioning (LOW - 16-24 hours)
 **Status:** Enterprise user provisioning  
-**Dependencies:** AD-1 through AD-5  
+**Dependencies:** None  
 **🔬 Research:** SCIM 2.0 specification
 
 - [ ] **SCIM-1:** Research SCIM 2.0 specification (2-4 hours)
@@ -1107,7 +857,7 @@
 
 #### Records Management System (LOW - 16-24 hours)
 **Status:** Immutable record keeping  
-**Dependencies:** DOC-1 through DOC-11
+**Dependencies:** None
 
 - [ ] **REC-1:** Design immutable records architecture (3-4 hours)
 - [ ] **REC-2:** Implement record versioning with immutability (6-8 hours)
@@ -1177,7 +927,6 @@
 **Dependencies:** None  
 **✅ Research Complete:** ML frameworks - scikit-learn + XGBoost selected (see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
 
-- [x] **AI-LEAD-1:** Research ML frameworks (2-4 hours) ✅ COMPLETE
 - [ ] **AI-LEAD-2:** Collect and prepare training data (4-6 hours)
 - [ ] **AI-LEAD-3:** Train lead scoring model (4-6 hours)
 - [ ] **AI-LEAD-4:** Implement model inference service (4-6 hours)
@@ -1281,7 +1030,7 @@
 
 #### User Management Enhancements (LOW - 20-28 hours)
 **Status:** Enhanced permission system  
-**Dependencies:** SEC-2
+**Dependencies:** None
 
 - [ ] **USER-1:** Custom roles (8-12 hours)
   - Role builder UI
@@ -1387,13 +1136,7 @@
 
 The following tasks require additional research before implementation planning:
 
-#### High Priority Research
-- ✅ **AD Integration:** Active Directory connector library selection - COMPLETE (LDAP via ldap3 selected - see [docs/research/active-directory-integration-research.md](docs/research/active-directory-integration-research.md))
-- ✅ **Visual Workflow Builder:** Library selection for drag-and-drop workflow canvas - COMPLETE (React Flow selected - see [docs/research/visual-workflow-builder-research.md](docs/research/visual-workflow-builder-research.md))
-- ✅ **ML Framework:** scikit-learn vs TensorFlow for lead scoring and predictions - COMPLETE (scikit-learn + XGBoost selected - see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
-
 #### Medium Priority Research
-- ✅ **Document AI:** AWS Textract vs Google Document AI for intelligent document processing - COMPLETE (Hybrid approach: AWS Textract + Google Document AI - see [docs/research/document-ai-research.md](docs/research/document-ai-research.md))
 - **LLM Integration:** GPT-4 API integration strategy for meeting prep and content generation
 - **Workflow Engine Architecture:** Event-driven vs polling-based automation execution
 
@@ -1413,14 +1156,6 @@ The following tasks require additional research before implementation planning:
 ---
 
 ## Notes
-
-### Completed Work
-All completed tasks have been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md). This includes:
-- Sprint 1: Authentication & Security ✅
-- Sprint 2: Calendar Integration Completion ✅
-- Sprint 3: Accounting Integrations ✅
-- Sprint 4: E-signature Integration ✅
-- Sprint 5: Performance & Reporting ✅
 
 ### Reference Documentation
 - [System Invariants](spec/SYSTEM_INVARIANTS.md)
@@ -1453,10 +1188,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 ---
 
 **Total Estimated Work:**
-- Critical: ~120-160 hours
-- High Priority: ~900-1,200 hours
+- Critical: ~0 hours (all complete)
+- High Priority: ~700-950 hours
 - Medium Priority: ~800-1,100 hours
 - Low Priority: ~1,500-2,000 hours
-- Research: ~50-80 hours
+- Research: ~40-60 hours
 
-**Total: ~3,370-4,540 hours** (~84-113 weeks at 40 hours/week, ~42-57 weeks with 2 developers)
+**Total: ~3,040-4,110 hours** (~76-103 weeks at 40 hours/week, ~38-52 weeks with 2 developers)
