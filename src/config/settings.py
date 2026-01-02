@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     "modules.webhooks",  # General webhook platform for external integrations (Task 3.7)
     "modules.accounting_integrations",  # Sprint 3: QuickBooks and Xero integrations
     "modules.esignature",  # Sprint 4: DocuSign e-signature integration
+    "modules.ad_sync",  # Active Directory integration and user synchronization (AD-1 through AD-5)
 ]
 
 MIDDLEWARE = [

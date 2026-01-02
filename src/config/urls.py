@@ -44,6 +44,7 @@ api_v1_patterns = [
     path("webhooks/", include("api.webhooks.urls")),  # General webhook platform (Task 3.7)
     path("accounting/", include("modules.accounting_integrations.urls")),  # Sprint 3: QuickBooks/Xero integrations
     path("esignature/", include("modules.esignature.urls")),  # Sprint 4: DocuSign e-signature integration
+    path("ad-sync/", include("modules.ad_sync.urls")),  # Active Directory integration and synchronization
 ]
 
 urlpatterns = [
