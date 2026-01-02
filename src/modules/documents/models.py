@@ -1900,3 +1900,434 @@ class FileRequestReminder(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class DocumentComment(models.Model):
+    """
+    Document comment model (COMM-1).
+
+    Enables threaded comments on documents with @mentions, notifications,
+    and full comment history tracking.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="document_comments",
+        help_text="Firm (workspace) this comment belongs to",
+    )
+
+    # Associated document
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        help_text="The document this comment is on",
+    )
+
+    # Threading support
+    parent_comment = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies",
+        help_text="Parent comment for threaded replies (null = top-level comment)",
+    )
+
+    # Comment content
+    body = models.TextField(
+        help_text="Comment text content",
+    )
+
+    # @mentions
+    mentions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of mentioned user IDs (staff users)",
+    )
+
+    # Edit/delete tracking
+    edited_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the comment was last edited",
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp (tombstone preserved)",
+    )
+
+    # Audit fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="document_comments_created",
+        help_text="User who created this comment",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "documents_comments"
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["firm", "document", "created_at"], name="doc_com_fir_doc_cre_idx"),
+            models.Index(fields=["firm", "parent_comment"], name="doc_com_fir_par_idx"),
+            models.Index(fields=["firm", "created_by", "-created_at"], name="doc_com_fir_cre_by_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Comment on {self.document.name} by {self.created_by}"
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if comment has been soft deleted."""
+        return self.deleted_at is not None
+
+    @property
+    def is_reply(self) -> bool:
+        """Check if this is a reply to another comment."""
+        return self.parent_comment_id is not None
+
+    def clean(self) -> None:
+        """Validate comment data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency
+        if self.document_id and self.firm_id:
+            if hasattr(self, "document") and self.document.firm_id != self.firm_id:
+                errors["document"] = "Comment firm must match document's firm."
+
+        # Parent comment validation
+        if self.parent_comment_id and hasattr(self, "parent_comment"):
+            # Parent must belong to same document
+            if self.document_id and self.parent_comment.document_id != self.document_id:
+                errors["parent_comment"] = "Parent comment must belong to the same document."
+            # Parent must belong to same firm
+            if self.firm_id and self.parent_comment.firm_id != self.firm_id:
+                errors["parent_comment"] = "Parent comment must belong to the same firm."
+
+        # Prevent circular reference
+        if self.pk and self.parent_comment_id:
+            if self.parent_comment_id == self.pk:
+                errors["parent_comment"] = "Comment cannot be its own parent."
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class FolderComment(models.Model):
+    """
+    Folder comment model (COMM-1).
+
+    Enables threaded comments on folders with @mentions, notifications,
+    and full comment history tracking.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="folder_comments",
+        help_text="Firm (workspace) this comment belongs to",
+    )
+
+    # Associated folder
+    folder = models.ForeignKey(
+        Folder,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        help_text="The folder this comment is on",
+    )
+
+    # Threading support
+    parent_comment = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="replies",
+        help_text="Parent comment for threaded replies (null = top-level comment)",
+    )
+
+    # Comment content
+    body = models.TextField(
+        help_text="Comment text content",
+    )
+
+    # @mentions
+    mentions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of mentioned user IDs (staff users)",
+    )
+
+    # Edit/delete tracking
+    edited_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the comment was last edited",
+    )
+    deleted_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Soft delete timestamp (tombstone preserved)",
+    )
+
+    # Audit fields
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="folder_comments_created",
+        help_text="User who created this comment",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "documents_folder_comments"
+        ordering = ["created_at"]
+        indexes = [
+            models.Index(fields=["firm", "folder", "created_at"], name="doc_fol_fir_fol_cre_idx"),
+            models.Index(fields=["firm", "parent_comment"], name="doc_fol_fir_par_idx"),
+            models.Index(fields=["firm", "created_by", "-created_at"], name="doc_fol_fir_cre_by_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Comment on {self.folder.name} by {self.created_by}"
+
+    @property
+    def is_deleted(self) -> bool:
+        """Check if comment has been soft deleted."""
+        return self.deleted_at is not None
+
+    @property
+    def is_reply(self) -> bool:
+        """Check if this is a reply to another comment."""
+        return self.parent_comment_id is not None
+
+    def clean(self) -> None:
+        """Validate comment data integrity."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency
+        if self.folder_id and self.firm_id:
+            if hasattr(self, "folder") and self.folder.firm_id != self.firm_id:
+                errors["folder"] = "Comment firm must match folder's firm."
+
+        # Parent comment validation
+        if self.parent_comment_id and hasattr(self, "parent_comment"):
+            # Parent must belong to same folder
+            if self.folder_id and self.parent_comment.folder_id != self.folder_id:
+                errors["parent_comment"] = "Parent comment must belong to the same folder."
+            # Parent must belong to same firm
+            if self.firm_id and self.parent_comment.firm_id != self.firm_id:
+                errors["parent_comment"] = "Parent comment must belong to the same firm."
+
+        # Prevent circular reference
+        if self.pk and self.parent_comment_id:
+            if self.parent_comment_id == self.pk:
+                errors["parent_comment"] = "Comment cannot be its own parent."
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class DocumentViewLog(models.Model):
+    """
+    Document view tracking model (COMM-2).
+
+    Tracks when users (staff and portal) view documents for read receipts.
+    Provides view timestamps, read status indicators, and view notifications.
+
+    TIER 0: Belongs to exactly one Firm (tenant boundary).
+    """
+
+    VIEWER_TYPE_CHOICES = [
+        ("staff", "Staff User"),
+        ("portal", "Portal User"),
+    ]
+
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="document_view_logs",
+        help_text="Firm (workspace) this view log belongs to",
+    )
+
+    # Document being viewed
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="view_logs",
+        help_text="The document that was viewed",
+    )
+
+    # Viewer information
+    viewer_type = models.CharField(
+        max_length=10,
+        choices=VIEWER_TYPE_CHOICES,
+        help_text="Type of viewer (staff or portal)",
+    )
+    viewer_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="document_views",
+        help_text="Staff user who viewed the document",
+    )
+    viewer_portal_user_id = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="Portal user ID if viewer_type='portal'",
+    )
+    viewer_contact = models.ForeignKey(
+        "clients.Contact",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="document_views",
+        help_text="Contact who viewed the document (for portal users)",
+    )
+
+    # View tracking
+    viewed_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text="When the document was viewed",
+    )
+    view_duration_seconds = models.IntegerField(
+        null=True,
+        blank=True,
+        help_text="How long the document was viewed (if tracked)",
+    )
+
+    # Request metadata
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text="IP address of the viewer",
+    )
+    user_agent = models.TextField(
+        blank=True,
+        help_text="User agent string",
+    )
+
+    # Notification tracking
+    notification_sent = models.BooleanField(
+        default=False,
+        help_text="Whether notification was sent for this view",
+    )
+    notification_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When notification was sent",
+    )
+
+    # Additional metadata
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Additional view metadata",
+    )
+
+    # TIER 0: Manager
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "documents_view_logs"
+        ordering = ["-viewed_at"]
+        indexes = [
+            models.Index(fields=["firm", "document", "-viewed_at"], name="doc_vie_fir_doc_vie_idx"),
+            models.Index(fields=["firm", "viewer_user", "-viewed_at"], name="doc_vie_fir_vie_use_idx"),
+            models.Index(fields=["firm", "viewer_portal_user_id", "-viewed_at"], name="doc_vie_fir_vie_por_idx"),
+            models.Index(fields=["firm", "viewer_type", "-viewed_at"], name="doc_vie_fir_vie_typ_idx"),
+        ]
+
+    def __str__(self) -> str:
+        viewer = self.viewer_user if self.viewer_user else f"Portal User {self.viewer_portal_user_id}"
+        return f"{viewer} viewed {self.document.name} at {self.viewed_at}"
+
+    @classmethod
+    def log_view(
+        cls,
+        firm_id: int,
+        document: Document,
+        viewer_type: str,
+        viewer_user=None,
+        viewer_portal_user_id: int = None,
+        viewer_contact=None,
+        view_duration_seconds: int = None,
+        ip_address: str = None,
+        user_agent: str = "",
+        metadata: dict = None,
+    ):
+        """
+        Convenience method to log a document view.
+
+        Usage:
+            DocumentViewLog.log_view(
+                firm_id=document.firm_id,
+                document=document,
+                viewer_type="staff",
+                viewer_user=request.user,
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT'),
+            )
+        """
+        return cls.objects.create(
+            firm_id=firm_id,
+            document=document,
+            viewer_type=viewer_type,
+            viewer_user=viewer_user,
+            viewer_portal_user_id=viewer_portal_user_id,
+            viewer_contact=viewer_contact,
+            view_duration_seconds=view_duration_seconds,
+            ip_address=ip_address,
+            user_agent=user_agent[:1000] if user_agent else "",  # Truncate
+            metadata=metadata or {},
+        )
+
+    def clean(self) -> None:
+        """Validate view log data."""
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Firm consistency
+        if self.document_id and self.firm_id:
+            if hasattr(self, "document") and self.document.firm_id != self.firm_id:
+                errors["document"] = "View log firm must match document's firm."
+
+        # Viewer validation
+        if self.viewer_type == "staff" and not self.viewer_user_id:
+            errors["viewer_user"] = "Viewer user is required for staff views."
+        if self.viewer_type == "portal" and not self.viewer_portal_user_id:
+            errors["viewer_portal_user_id"] = "Portal user ID is required for portal views."
+
+        if errors:
+            raise ValidationError(errors)
