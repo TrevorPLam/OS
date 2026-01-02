@@ -12,6 +12,7 @@ from modules.clients.models import (
     ClientMessage,
     ClientNote,
     ClientPortalUser,
+    ClientHealthScore,
     Contact,
     EngagementLine,
     Organization,
@@ -588,6 +589,111 @@ class OrganizationAdmin(admin.ModelAdmin):
             "Audit",
             {
                 "fields": ("created_by", "created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )
+
+
+@admin.register(ClientHealthScore)
+class ClientHealthScoreAdmin(admin.ModelAdmin):
+    list_display = (
+        "client",
+        "score",
+        "score_trend",
+        "engagement_score",
+        "payment_score",
+        "communication_score",
+        "delivery_score",
+        "is_at_risk",
+        "last_calculated_at",
+    )
+    list_filter = ("is_at_risk", "score_trend", "last_calculated_at")
+    search_fields = ("client__company_name",)
+    readonly_fields = (
+        "client",
+        "score",
+        "score_trend",
+        "days_since_last_activity",
+        "overdue_invoice_count",
+        "overdue_invoice_amount",
+        "avg_payment_delay_days",
+        "email_response_rate",
+        "project_completion_rate",
+        "is_at_risk",
+        "alert_sent_at",
+        "previous_score",
+        "score_history",
+        "last_calculated_at",
+        "created_at",
+    )
+
+    fieldsets = (
+        (
+            "Client",
+            {
+                "fields": ("client",),
+            },
+        ),
+        (
+            "Overall Score",
+            {
+                "fields": ("score", "score_trend", "previous_score", "is_at_risk"),
+            },
+        ),
+        (
+            "Factor Scores",
+            {
+                "fields": (
+                    "engagement_score",
+                    "payment_score",
+                    "communication_score",
+                    "delivery_score",
+                ),
+            },
+        ),
+        (
+            "Factor Weights",
+            {
+                "fields": (
+                    "engagement_weight",
+                    "payment_weight",
+                    "communication_weight",
+                    "delivery_weight",
+                ),
+            },
+        ),
+        (
+            "Metrics",
+            {
+                "fields": (
+                    "days_since_last_activity",
+                    "overdue_invoice_count",
+                    "overdue_invoice_amount",
+                    "avg_payment_delay_days",
+                    "email_response_rate",
+                    "project_completion_rate",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Alert Settings",
+            {
+                "fields": ("alert_threshold", "alert_sent_at"),
+            },
+        ),
+        (
+            "History",
+            {
+                "fields": ("score_history",),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Audit",
+            {
+                "fields": ("last_calculated_at", "created_at"),
                 "classes": ("collapse",),
             },
         ),

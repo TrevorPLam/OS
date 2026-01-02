@@ -14,6 +14,7 @@ from modules.clients.models import (
     ClientMessage,
     ClientNote,
     ClientPortalUser,
+    ClientHealthScore,
     Organization,
 )
 
@@ -1144,4 +1145,59 @@ class PrebuiltSegmentSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField()
     parameters = serializers.JSONField(required=False)
+
+
+class ClientHealthScoreSerializer(serializers.ModelSerializer):
+    """Serializer for ClientHealthScore model."""
+    
+    client_name = serializers.CharField(source="client.company_name", read_only=True)
+    
+    class Meta:
+        model = ClientHealthScore
+        fields = [
+            "id",
+            "client",
+            "client_name",
+            "score",
+            "score_trend",
+            "engagement_score",
+            "payment_score",
+            "communication_score",
+            "delivery_score",
+            "engagement_weight",
+            "payment_weight",
+            "communication_weight",
+            "delivery_weight",
+            "days_since_last_activity",
+            "overdue_invoice_count",
+            "overdue_invoice_amount",
+            "avg_payment_delay_days",
+            "email_response_rate",
+            "project_completion_rate",
+            "alert_threshold",
+            "is_at_risk",
+            "alert_sent_at",
+            "previous_score",
+            "score_history",
+            "last_calculated_at",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "client_name",
+            "score",
+            "score_trend",
+            "days_since_last_activity",
+            "overdue_invoice_count",
+            "overdue_invoice_amount",
+            "avg_payment_delay_days",
+            "email_response_rate",
+            "project_completion_rate",
+            "is_at_risk",
+            "alert_sent_at",
+            "previous_score",
+            "score_history",
+            "last_calculated_at",
+            "created_at",
+        ]
 

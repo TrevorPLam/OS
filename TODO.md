@@ -336,7 +336,7 @@
   - Connection path highlighting
   - Export graph as image
   
-- [ ] **CRM-INT-2:** Build Dynamic Client Health Score (12-16 hours)
+- [x] **CRM-INT-2:** Build Dynamic Client Health Score (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - Real-time health score calculation (0-100)
   - Multi-factor scoring (engagement, payments, communication, project delivery)
   - Configurable weight per factor

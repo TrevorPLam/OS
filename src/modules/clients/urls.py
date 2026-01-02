@@ -2,6 +2,7 @@
 URL routes for Clients module API.
 
 TIER 2.6: Added Organization ViewSet for cross-client collaboration.
+CRM-INT-2: Added Client Health Score ViewSet for dynamic health scoring.
 """
 
 from django.urls import include, path
@@ -26,6 +27,9 @@ from modules.clients.views import (
     ClientViewSet,
     OrganizationViewSet,
 )
+from modules.clients.health_score_views import (
+    ClientHealthScoreViewSet,
+)
 
 router = DefaultRouter()
 router.register(r"organizations", OrganizationViewSet, basename="organization")  # TIER 2.6
@@ -44,6 +48,8 @@ router.register(r"engagement-history", ClientEngagementHistoryViewSet, basename=
 # Portal Branding (PORTAL-1 through PORTAL-4)
 router.register(r"portal-branding", PortalBrandingViewSet, basename="portal-branding")
 router.register(r"domain-verification", DomainVerificationRecordViewSet, basename="domain-verification")
+# Health Score (CRM-INT-2)
+router.register(r"health-scores", ClientHealthScoreViewSet, basename="health-score")
 
 urlpatterns = [
     path("", include(router.urls)),
