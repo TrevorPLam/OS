@@ -14,7 +14,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from .models import Contract, Proposal
+from .models import AccountContact, Contract, Proposal
 
 logger = logging.getLogger(__name__)
 
@@ -234,3 +234,138 @@ def _enable_client_portal(contract):
         logger.info(f"✅ Enabled client portal for {client.company_name} " f"(contract {contract.contract_number})")
     else:
         logger.info(f"Client portal already enabled for {client.company_name}")
+
+
+# ============================================================================
+# Contact Enrichment Signals
+# ============================================================================
+
+
+@receiver(post_save, sender=AccountContact)
+def auto_enrich_account_contact(sender, instance, created, **kwargs):
+    """
+    Auto-enrich AccountContact on creation if enabled for the firm.
+
+    Triggers enrichment for newly created contacts based on their email.
+    Only enriches if:
+    1. Contact was just created
+    2. Contact has an email address
+    3. Firm has auto-enrichment enabled for at least one provider
+    """
+    if not created:
+        return
+
+    if not instance.email:
+        logger.debug(
+            f"Skipping enrichment for AccountContact {instance.id} - no email"
+        )
+        return
+
+    # Check if firm has auto-enrichment enabled
+    from .models import EnrichmentProvider
+
+    providers_with_auto_enrich = EnrichmentProvider.objects.filter(
+        firm=instance.account.firm,
+        is_enabled=True,
+        auto_enrich_on_create=True,
+    )
+
+    if not providers_with_auto_enrich.exists():
+        logger.debug(
+            f"Skipping enrichment for AccountContact {instance.id} - "
+            f"no auto-enrichment providers configured"
+        )
+        return
+
+    # Trigger enrichment asynchronously (import here to avoid circular imports)
+    try:
+        from .enrichment_service import EnrichmentOrchestrator
+
+        orchestrator = EnrichmentOrchestrator(firm=instance.account.firm)
+        enrichment, errors = orchestrator.enrich_contact(
+            email=instance.email,
+            contact=instance,
+        )
+
+        if enrichment:
+            logger.info(
+                f"✅ Auto-enriched AccountContact {instance.id} "
+                f"({instance.email}) on creation"
+            )
+        else:
+            logger.warning(
+                f"Failed to auto-enrich AccountContact {instance.id} "
+                f"({instance.email}): {errors}"
+            )
+
+    except Exception as e:
+        # Don't fail contact creation if enrichment fails
+        logger.error(
+            f"Error auto-enriching AccountContact {instance.id}: {e}",
+            exc_info=True
+        )
+
+
+@receiver(post_save, sender='clients.Contact')
+def auto_enrich_client_contact(sender, instance, created, **kwargs):
+    """
+    Auto-enrich Client Contact on creation if enabled for the firm.
+
+    Triggers enrichment for newly created contacts based on their email.
+    Only enriches if:
+    1. Contact was just created
+    2. Contact has an email address
+    3. Firm has auto-enrichment enabled for at least one provider
+    """
+    if not created:
+        return
+
+    if not instance.email:
+        logger.debug(
+            f"Skipping enrichment for Contact {instance.id} - no email"
+        )
+        return
+
+    # Check if firm has auto-enrichment enabled
+    from .models import EnrichmentProvider
+
+    providers_with_auto_enrich = EnrichmentProvider.objects.filter(
+        firm=instance.firm,
+        is_enabled=True,
+        auto_enrich_on_create=True,
+    )
+
+    if not providers_with_auto_enrich.exists():
+        logger.debug(
+            f"Skipping enrichment for Contact {instance.id} - "
+            f"no auto-enrichment providers configured"
+        )
+        return
+
+    # Trigger enrichment asynchronously (import here to avoid circular imports)
+    try:
+        from .enrichment_service import EnrichmentOrchestrator
+
+        orchestrator = EnrichmentOrchestrator(firm=instance.firm)
+        enrichment, errors = orchestrator.enrich_contact(
+            email=instance.email,
+            client_contact=instance,
+        )
+
+        if enrichment:
+            logger.info(
+                f"✅ Auto-enriched Client Contact {instance.id} "
+                f"({instance.email}) on creation"
+            )
+        else:
+            logger.warning(
+                f"Failed to auto-enrich Client Contact {instance.id} "
+                f"({instance.email}): {errors}"
+            )
+
+    except Exception as e:
+        # Don't fail contact creation if enrichment fails
+        logger.error(
+            f"Error auto-enriching Contact {instance.id}: {e}",
+            exc_info=True
+        )

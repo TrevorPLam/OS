@@ -10,9 +10,12 @@ from modules.crm.views import (
     AccountRelationshipViewSet,
     AccountViewSet,
     CampaignViewSet,
+    ContactEnrichmentViewSet,
     ContractViewSet,
     DealTaskViewSet,
     DealViewSet,
+    EnrichmentProviderViewSet,
+    EnrichmentQualityMetricViewSet,
     IntakeFormViewSet,
     IntakeFormFieldViewSet,
     IntakeFormSubmissionViewSet,
@@ -51,6 +54,9 @@ router.register(r"pipelines", PipelineViewSet, basename="pipeline")  # DEAL-1: P
 router.register(r"pipeline-stages", PipelineStageViewSet, basename="pipeline-stage")  # DEAL-1: Pipeline Stages
 router.register(r"deals", DealViewSet, basename="deal")  # DEAL-1: Deal Management
 router.register(r"deal-tasks", DealTaskViewSet, basename="deal-task")  # DEAL-2: Deal Tasks
+router.register(r"enrichment-providers", EnrichmentProviderViewSet, basename="enrichment-provider")  # CRM-INT-3: Enrichment Providers
+router.register(r"contact-enrichments", ContactEnrichmentViewSet, basename="contact-enrichment")  # CRM-INT-3: Contact Enrichment Data
+router.register(r"enrichment-quality-metrics", EnrichmentQualityMetricViewSet, basename="enrichment-quality-metric")  # CRM-INT-3: Quality Metrics
 
 urlpatterns = [
     path("", include(router.urls)),

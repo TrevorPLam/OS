@@ -906,3 +906,215 @@ class DealCreateSerializer(serializers.ModelSerializer):
         validated_data["last_activity_date"] = timezone.now().date()
         
         return super().create(validated_data)
+
+
+# ============================================================================
+# Enrichment Serializers
+# ============================================================================
+
+
+class EnrichmentProviderSerializer(serializers.ModelSerializer):
+    """Serializer for EnrichmentProvider model."""
+
+    success_rate = serializers.FloatField(read_only=True)
+    provider_display = serializers.CharField(source="get_provider_display", read_only=True)
+
+    class Meta:
+        from .models import EnrichmentProvider
+        model = EnrichmentProvider
+        fields = [
+            "id",
+            "provider",
+            "provider_display",
+            "is_enabled",
+            "auto_enrich_on_create",
+            "auto_refresh_enabled",
+            "refresh_interval_hours",
+            "total_enrichments",
+            "successful_enrichments",
+            "failed_enrichments",
+            "success_rate",
+            "last_used_at",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "total_enrichments",
+            "successful_enrichments",
+            "failed_enrichments",
+            "success_rate",
+            "last_used_at",
+            "created_at",
+            "updated_at",
+        ]
+
+    def create(self, validated_data):
+        """Create provider with firm from request."""
+        request = self.context.get("request")
+        validated_data["firm"] = request.user.firm
+        validated_data["created_by"] = request.user
+        return super().create(validated_data)
+
+
+class EnrichmentProviderDetailSerializer(EnrichmentProviderSerializer):
+    """Detailed serializer for EnrichmentProvider with API credentials."""
+
+    class Meta(EnrichmentProviderSerializer.Meta):
+        fields = EnrichmentProviderSerializer.Meta.fields + [
+            "api_key",
+            "api_secret",
+            "additional_config",
+        ]
+
+
+class ContactEnrichmentSerializer(serializers.ModelSerializer):
+    """Serializer for ContactEnrichment model."""
+
+    provider_name = serializers.CharField(
+        source="enrichment_provider.get_provider_display",
+        read_only=True
+    )
+    data_completeness = serializers.FloatField(read_only=True)
+    contact_email = serializers.CharField(read_only=True)
+    needs_refresh = serializers.SerializerMethodField()
+
+    class Meta:
+        from .models import ContactEnrichment
+        model = ContactEnrichment
+        fields = [
+            "id",
+            "account_contact",
+            "client_contact",
+            "enrichment_provider",
+            "provider_name",
+            "company_name",
+            "company_domain",
+            "company_industry",
+            "company_size",
+            "company_revenue",
+            "company_description",
+            "company_logo_url",
+            "company_location",
+            "company_founded_year",
+            "contact_title",
+            "contact_seniority",
+            "contact_role",
+            "linkedin_url",
+            "twitter_url",
+            "facebook_url",
+            "github_url",
+            "technologies",
+            "confidence_score",
+            "fields_enriched",
+            "fields_missing",
+            "data_completeness",
+            "contact_email",
+            "last_enriched_at",
+            "next_refresh_at",
+            "refresh_count",
+            "is_stale",
+            "needs_refresh",
+            "enrichment_error",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "provider_name",
+            "data_completeness",
+            "contact_email",
+            "last_enriched_at",
+            "refresh_count",
+            "needs_refresh",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_needs_refresh(self, obj):
+        """Check if enrichment needs refresh."""
+        return obj.needs_refresh()
+
+
+class ContactEnrichmentDetailSerializer(ContactEnrichmentSerializer):
+    """Detailed serializer for ContactEnrichment with raw data."""
+
+    class Meta(ContactEnrichmentSerializer.Meta):
+        fields = ContactEnrichmentSerializer.Meta.fields + ["raw_data"]
+
+
+class EnrichmentQualityMetricSerializer(serializers.ModelSerializer):
+    """Serializer for EnrichmentQualityMetric model."""
+
+    provider_name = serializers.CharField(
+        source="enrichment_provider.get_provider_display",
+        read_only=True
+    )
+    success_rate = serializers.FloatField(read_only=True)
+
+    class Meta:
+        from .models import EnrichmentQualityMetric
+        model = EnrichmentQualityMetric
+        fields = [
+            "id",
+            "enrichment_provider",
+            "provider_name",
+            "metric_date",
+            "total_enrichments",
+            "successful_enrichments",
+            "failed_enrichments",
+            "success_rate",
+            "average_completeness",
+            "average_confidence",
+            "field_success_rates",
+            "average_response_time_ms",
+            "error_types",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "provider_name",
+            "success_rate",
+            "created_at",
+        ]
+
+
+class EnrichContactRequestSerializer(serializers.Serializer):
+    """Serializer for manual contact enrichment requests."""
+
+    email = serializers.EmailField(required=True, help_text="Contact email address")
+    providers = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="List of provider names to use (optional)"
+    )
+
+    def validate_providers(self, value):
+        """Validate provider names."""
+        from .models import EnrichmentProvider
+
+        valid_providers = [choice[0] for choice in EnrichmentProvider.PROVIDER_CHOICES]
+        for provider in value:
+            if provider not in valid_providers:
+                raise serializers.ValidationError(
+                    f"Invalid provider: {provider}. "
+                    f"Valid options: {', '.join(valid_providers)}"
+                )
+        return value
+
+
+class EnrichLinkedInRequestSerializer(serializers.Serializer):
+    """Serializer for LinkedIn profile enrichment requests."""
+
+    linkedin_url = serializers.URLField(
+        required=True,
+        help_text="LinkedIn profile URL"
+    )
+
+    def validate_linkedin_url(self, value):
+        """Validate LinkedIn URL."""
+        if "linkedin.com/in/" not in value:
+            raise serializers.ValidationError(
+                "Invalid LinkedIn URL. Must be a profile URL (linkedin.com/in/...)"
+            )
+        return value
