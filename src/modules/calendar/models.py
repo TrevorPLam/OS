@@ -686,9 +686,11 @@ class Appointment(models.Model):
     STATUS_CHOICES = [
         ("requested", "Requested (Needs Approval)"),
         ("confirmed", "Confirmed"),
+        ("rescheduled", "Rescheduled"),
         ("cancelled", "Cancelled"),
         ("completed", "Completed"),
         ("no_show", "No Show"),
+        ("awaiting_confirmation", "Awaiting Confirmation"),
     ]
 
     # Identity
@@ -766,9 +768,49 @@ class Appointment(models.Model):
 
     # Status
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="confirmed", help_text="Appointment status"
+        max_length=30, choices=STATUS_CHOICES, default="confirmed", help_text="Appointment status"
     )
     status_reason = models.TextField(blank=True, help_text="Reason for status (e.g., cancellation reason)")
+
+    # CAL-6: Meeting lifecycle tracking
+    rescheduled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this appointment was rescheduled",
+    )
+    rescheduled_from = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="rescheduled_to",
+        help_text="Original appointment that this was rescheduled from",
+    )
+    cancelled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this appointment was cancelled",
+    )
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this appointment was marked as completed",
+    )
+    no_show_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When this appointment was marked as no-show",
+    )
+    no_show_party = models.CharField(
+        max_length=20,
+        blank=True,
+        choices=[
+            ("client", "Client No-Show"),
+            ("staff", "Staff No-Show"),
+            ("both", "Both No-Show"),
+        ],
+        help_text="Which party didn't show up",
+    )
 
     # External sync reference (for docs/16 CALENDAR_SYNC_SPEC)
     calendar_connection = models.ForeignKey(

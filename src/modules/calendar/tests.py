@@ -725,3 +725,187 @@ class SchedulingConstraintsTest(TestCase):
         self.assertEqual(appointment_type.min_notice_hours, 24)
         self.assertEqual(appointment_type.max_notice_days, 60)
         self.assertEqual(appointment_type.rolling_window_days, 30)
+
+
+class MeetingLifecycleTest(TestCase):
+    """Test meeting lifecycle management (CAL-6)."""
+
+    def setUp(self):
+        """Set up test fixtures."""
+        self.firm = Firm.objects.create(name="Test Firm", slug="test-firm")
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.staff_user = User.objects.create_user(username="staff", password="testpass")
+
+        self.appointment_type = AppointmentType.objects.create(
+            firm=self.firm,
+            name="Test Appointment",
+            duration_minutes=30,
+            location_mode="video",
+            routing_policy="fixed_staff",
+            fixed_staff_user=self.staff_user,
+            created_by=self.user,
+        )
+
+    def test_rescheduled_status_available(self):
+        """Test that rescheduled status is available."""
+        start_time = timezone.now() + timedelta(hours=2)
+        end_time = start_time + timedelta(minutes=30)
+
+        appointment = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=start_time,
+            end_time=end_time,
+            status="rescheduled",
+            booked_by=self.user,
+        )
+
+        self.assertEqual(appointment.status, "rescheduled")
+
+    def test_awaiting_confirmation_status(self):
+        """Test that awaiting_confirmation status is available (for group polls)."""
+        start_time = timezone.now() + timedelta(hours=2)
+        end_time = start_time + timedelta(minutes=30)
+
+        appointment = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=start_time,
+            end_time=end_time,
+            status="awaiting_confirmation",
+            booked_by=self.user,
+        )
+
+        self.assertEqual(appointment.status, "awaiting_confirmation")
+
+    def test_rescheduling_tracking(self):
+        """Test that rescheduling relationship is tracked."""
+        # Create original appointment
+        original_start = timezone.now() + timedelta(hours=2)
+        original_end = original_start + timedelta(minutes=30)
+
+        original = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=original_start,
+            end_time=original_end,
+            status="rescheduled",
+            rescheduled_at=timezone.now(),
+            booked_by=self.user,
+        )
+
+        # Create rescheduled appointment
+        new_start = timezone.now() + timedelta(hours=4)
+        new_end = new_start + timedelta(minutes=30)
+
+        rescheduled = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=new_start,
+            end_time=new_end,
+            status="confirmed",
+            rescheduled_from=original,
+            booked_by=self.user,
+        )
+
+        # Verify relationship
+        self.assertEqual(rescheduled.rescheduled_from, original)
+        self.assertEqual(list(original.rescheduled_to.all()), [rescheduled])
+
+    def test_no_show_tracking(self):
+        """Test that no-show information is tracked."""
+        start_time = timezone.now() + timedelta(hours=2)
+        end_time = start_time + timedelta(minutes=30)
+
+        appointment = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=start_time,
+            end_time=end_time,
+            status="no_show",
+            no_show_at=timezone.now(),
+            no_show_party="client",
+            booked_by=self.user,
+        )
+
+        self.assertEqual(appointment.status, "no_show")
+        self.assertIsNotNone(appointment.no_show_at)
+        self.assertEqual(appointment.no_show_party, "client")
+
+    def test_cancellation_tracking(self):
+        """Test that cancellation timestamp is tracked."""
+        start_time = timezone.now() + timedelta(hours=2)
+        end_time = start_time + timedelta(minutes=30)
+
+        appointment = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=start_time,
+            end_time=end_time,
+            status="cancelled",
+            cancelled_at=timezone.now(),
+            status_reason="Client requested cancellation",
+            booked_by=self.user,
+        )
+
+        self.assertEqual(appointment.status, "cancelled")
+        self.assertIsNotNone(appointment.cancelled_at)
+        self.assertIn("Client requested", appointment.status_reason)
+
+    def test_completion_tracking(self):
+        """Test that completion timestamp is tracked."""
+        start_time = timezone.now() - timedelta(hours=1)
+        end_time = start_time + timedelta(minutes=30)
+
+        appointment = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=start_time,
+            end_time=end_time,
+            status="completed",
+            completed_at=timezone.now(),
+            booked_by=self.user,
+        )
+
+        self.assertEqual(appointment.status, "completed")
+        self.assertIsNotNone(appointment.completed_at)
+
+    def test_status_history_audit_trail(self):
+        """Test that status changes are tracked in audit trail."""
+        from modules.calendar.models import AppointmentStatusHistory
+
+        start_time = timezone.now() + timedelta(hours=2)
+        end_time = start_time + timedelta(minutes=30)
+
+        appointment = Appointment.objects.create(
+            firm=self.firm,
+            appointment_type=self.appointment_type,
+            staff_user=self.staff_user,
+            start_time=start_time,
+            end_time=end_time,
+            status="requested",
+            booked_by=self.user,
+        )
+
+        # Record status change
+        AppointmentStatusHistory.objects.create(
+            appointment=appointment,
+            from_status="requested",
+            to_status="confirmed",
+            reason="Approved by staff",
+            changed_by=self.staff_user,
+        )
+
+        # Verify audit trail
+        history = appointment.status_history.all()
+        self.assertEqual(history.count(), 1)
+        self.assertEqual(history[0].from_status, "requested")
+        self.assertEqual(history[0].to_status, "confirmed")
+        self.assertEqual(history[0].changed_by, self.staff_user)

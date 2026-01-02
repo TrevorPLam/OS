@@ -227,6 +227,13 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
             "intake_responses",
             "status",
             "status_reason",
+            # CAL-6: Lifecycle tracking fields
+            "rescheduled_at",
+            "rescheduled_from",
+            "cancelled_at",
+            "completed_at",
+            "no_show_at",
+            "no_show_party",
             "external_event_id",
             "booked_by",
             "booked_by_username",
