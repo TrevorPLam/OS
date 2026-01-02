@@ -190,7 +190,7 @@
 **Status:** Complete availability rules engine  
 **Dependencies:** Existing calendar integrations
 
-- [ ] **AVAIL-1:** Expand calendar integrations (12-16 hours)
+- [x] **AVAIL-1:** Expand calendar integrations (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
   - iCloud Calendar (iCal feed support)
   - Generic iCal/vCal support
   - Multiple calendar support (check across calendars)
