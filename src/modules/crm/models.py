@@ -2911,3 +2911,134 @@ class DealStageAutomation(models.Model):
             if field_name and hasattr(deal, field_name):
                 setattr(deal, field_name, field_value)
                 deal.save(update_fields=[field_name, "updated_at"])
+
+
+class DealAlert(models.Model):
+    """
+    Deal Alert/Notification (DEAL-6).
+    
+    Tracks alerts and reminders for deals, particularly for stale/rotting deals.
+    
+    TIER 0: Belongs to exactly one Firm via Deal relationship.
+    """
+    
+    ALERT_TYPE_CHOICES = [
+        ("stale", "Stale Deal"),
+        ("close_date", "Close Date Approaching"),
+        ("value_change", "Value Changed"),
+        ("owner_change", "Owner Changed"),
+        ("stage_change", "Stage Changed"),
+        ("custom", "Custom Alert"),
+    ]
+    
+    ALERT_PRIORITY_CHOICES = [
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+        ("urgent", "Urgent"),
+    ]
+    
+    # Deal relationship
+    deal = models.ForeignKey(
+        Deal,
+        on_delete=models.CASCADE,
+        related_name="alerts",
+        help_text="Deal this alert is for"
+    )
+    
+    # Alert Details
+    alert_type = models.CharField(
+        max_length=50,
+        choices=ALERT_TYPE_CHOICES,
+        help_text="Type of alert"
+    )
+    priority = models.CharField(
+        max_length=20,
+        choices=ALERT_PRIORITY_CHOICES,
+        default="medium",
+        help_text="Alert priority"
+    )
+    title = models.CharField(max_length=255, help_text="Alert title")
+    message = models.TextField(help_text="Alert message")
+    
+    # Notification
+    is_sent = models.BooleanField(default=False, help_text="Whether notification has been sent")
+    sent_at = models.DateTimeField(null=True, blank=True, help_text="When notification was sent")
+    recipients = models.ManyToManyField(
+        "auth.User",
+        related_name="deal_alerts",
+        help_text="Users to notify"
+    )
+    
+    # Acknowledgement
+    is_acknowledged = models.BooleanField(default=False, help_text="Whether alert has been acknowledged")
+    acknowledged_by = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="acknowledged_alerts",
+        help_text="User who acknowledged the alert"
+    )
+    acknowledged_at = models.DateTimeField(null=True, blank=True, help_text="When alert was acknowledged")
+    
+    # Auto-dismiss
+    auto_dismiss_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Date when alert should be auto-dismissed"
+    )
+    is_dismissed = models.BooleanField(default=False, help_text="Whether alert has been dismissed")
+    
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = "crm_deal_alert"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["deal", "is_sent"], name="crm_deal_alert_deal_sent_idx"),
+            models.Index(fields=["alert_type", "is_sent"], name="crm_deal_alert_type_sent_idx"),
+            models.Index(fields=["is_acknowledged", "is_dismissed"], name="crm_deal_alert_status_idx"),
+        ]
+    
+    def __str__(self) -> str:
+        return f"{self.title} - {self.deal.name}"
+    
+    @property
+    def firm(self):
+        """Get the firm through the deal relationship."""
+        return self.deal.firm
+    
+    def send_notification(self):
+        """
+        Send notification to recipients.
+        
+        This is a placeholder for actual notification logic.
+        In production, this would integrate with email, SMS, or in-app notification systems.
+        """
+        if self.is_sent:
+            return
+        
+        from django.utils import timezone
+        
+        # TODO: Implement actual notification logic (email, SMS, in-app)
+        # For now, just mark as sent
+        self.is_sent = True
+        self.sent_at = timezone.now()
+        self.save(update_fields=["is_sent", "sent_at", "updated_at"])
+    
+    def acknowledge(self, user):
+        """Acknowledge the alert."""
+        from django.utils import timezone
+        
+        self.is_acknowledged = True
+        self.acknowledged_by = user
+        self.acknowledged_at = timezone.now()
+        self.save(update_fields=["is_acknowledged", "acknowledged_by", "acknowledged_at", "updated_at"])
+    
+    def dismiss(self):
+        """Dismiss the alert."""
+        self.is_dismissed = True
+        self.save(update_fields=["is_dismissed", "updated_at"])

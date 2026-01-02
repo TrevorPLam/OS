@@ -171,10 +171,14 @@
   - Features: Round-robin, territory-based, load-balanced, value-based assignment rules
   - Stage automation: Assign user, create task, send notification, update field actions
   
-- [ ] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours)
-  - Deal splitting for multiple owners
-  - Stale deal detection
-  - Automated reminder system
+- [x] **DEAL-6:** Add deal splitting and rotting alerts (6-8 hours) ✅ COMPLETE
+  - ✅ Deal splitting for multiple owners (already implemented via `secondary_owners` and `split_percentage` fields)
+  - ✅ Stale deal detection (already implemented via `is_stale`, `stale_days_threshold`, `last_activity_date` fields)
+  - ✅ Automated reminder system
+  - Model: `DealAlert` in `src/modules/crm/models.py`
+  - Migration: `0009_add_deal_alerts.py`
+  - Management command: `check_stale_deals` for periodic stale deal detection
+  - Features: Alert types (stale, close date, value change, etc.), priority levels, notification system, acknowledgement tracking
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours)
 **Status:** Core marketing automation feature - critical for ActiveCampaign-like functionality  
