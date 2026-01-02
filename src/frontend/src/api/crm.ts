@@ -134,6 +134,75 @@ export interface Contract {
   updated_at: string
 }
 
+export interface PipelineStage {
+  id: number
+  pipeline: number
+  name: string
+  description?: string
+  display_order: number
+  probability: number
+  created_at: string
+  updated_at: string
+}
+
+export interface Pipeline {
+  id: number
+  name: string
+  description?: string
+  is_active: boolean
+  is_default: boolean
+  display_order: number
+  stages?: PipelineStage[]
+  created_at: string
+  updated_at: string
+}
+
+export interface Deal {
+  id: number
+  pipeline: number
+  pipeline_name?: string
+  stage: number
+  stage_name?: string
+  name: string
+  description?: string
+  value: string
+  probability: number
+  weighted_value: string
+  expected_close_date?: string
+  actual_close_date?: string
+  owner?: number
+  owner_name?: string
+  account?: number
+  account_name?: string
+  contacts?: number[]
+  is_active: boolean
+  is_won: boolean
+  is_lost: boolean
+  lost_reason?: string
+  is_stale: boolean
+  stale_days?: number
+  tags?: string[]
+  custom_fields?: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+export interface DealTask {
+  id: number
+  deal: number
+  deal_name?: string
+  title: string
+  description?: string
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
+  assigned_to?: number
+  assigned_to_name?: string
+  due_date?: string
+  completed_at?: string
+  created_at: string
+  updated_at: string
+}
+
 export const crmApi = {
   // Leads
   getLeads: async (): Promise<Lead[]> => {
@@ -294,5 +363,150 @@ export const crmApi = {
 
   deleteContract: async (id: number): Promise<void> => {
     await apiClient.delete(`/crm/contracts/${id}/`)
+  },
+
+  // Pipelines
+  getPipelines: async (): Promise<Pipeline[]> => {
+    const response = await apiClient.get('/crm/pipelines/')
+    return response.data.results || response.data
+  },
+
+  getPipeline: async (id: number): Promise<Pipeline> => {
+    const response = await apiClient.get(`/crm/pipelines/${id}/`)
+    return response.data
+  },
+
+  getPipelineAnalytics: async (id: number): Promise<any> => {
+    const response = await apiClient.get(`/crm/pipelines/${id}/analytics/`)
+    return response.data
+  },
+
+  createPipeline: async (data: Partial<Pipeline>): Promise<Pipeline> => {
+    const response = await apiClient.post('/crm/pipelines/', data)
+    return response.data
+  },
+
+  updatePipeline: async (id: number, data: Partial<Pipeline>): Promise<Pipeline> => {
+    const response = await apiClient.put(`/crm/pipelines/${id}/`, data)
+    return response.data
+  },
+
+  deletePipeline: async (id: number): Promise<void> => {
+    await apiClient.delete(`/crm/pipelines/${id}/`)
+  },
+
+  setDefaultPipeline: async (id: number): Promise<{ message: string; pipeline: Pipeline }> => {
+    const response = await apiClient.post(`/crm/pipelines/${id}/set_default/`)
+    return response.data
+  },
+
+  // Pipeline Stages
+  getPipelineStages: async (pipelineId?: number): Promise<PipelineStage[]> => {
+    const url = pipelineId ? `/crm/pipeline-stages/?pipeline=${pipelineId}` : '/crm/pipeline-stages/'
+    const response = await apiClient.get(url)
+    return response.data.results || response.data
+  },
+
+  getPipelineStage: async (id: number): Promise<PipelineStage> => {
+    const response = await apiClient.get(`/crm/pipeline-stages/${id}/`)
+    return response.data
+  },
+
+  createPipelineStage: async (data: Partial<PipelineStage>): Promise<PipelineStage> => {
+    const response = await apiClient.post('/crm/pipeline-stages/', data)
+    return response.data
+  },
+
+  updatePipelineStage: async (id: number, data: Partial<PipelineStage>): Promise<PipelineStage> => {
+    const response = await apiClient.put(`/crm/pipeline-stages/${id}/`, data)
+    return response.data
+  },
+
+  deletePipelineStage: async (id: number): Promise<void> => {
+    await apiClient.delete(`/crm/pipeline-stages/${id}/`)
+  },
+
+  // Deals
+  getDeals: async (filters?: { pipeline?: number; stage?: number; owner?: number }): Promise<Deal[]> => {
+    let url = '/crm/deals/'
+    if (filters) {
+      const params = new URLSearchParams()
+      if (filters.pipeline) params.append('pipeline', filters.pipeline.toString())
+      if (filters.stage) params.append('stage', filters.stage.toString())
+      if (filters.owner) params.append('owner', filters.owner.toString())
+      if (params.toString()) url += `?${params.toString()}`
+    }
+    const response = await apiClient.get(url)
+    return response.data.results || response.data
+  },
+
+  getDeal: async (id: number): Promise<Deal> => {
+    const response = await apiClient.get(`/crm/deals/${id}/`)
+    return response.data
+  },
+
+  forecast: async (): Promise<any> => {
+    const response = await apiClient.get('/crm/deals/forecast/')
+    return response.data
+  },
+
+  winLossReport: async (): Promise<any> => {
+    const response = await apiClient.get('/crm/deals/win_loss_report/')
+    return response.data
+  },
+
+  createDeal: async (data: Partial<Deal>): Promise<Deal> => {
+    const response = await apiClient.post('/crm/deals/', data)
+    return response.data
+  },
+
+  updateDeal: async (id: number, data: Partial<Deal>): Promise<Deal> => {
+    const response = await apiClient.put(`/crm/deals/${id}/`, data)
+    return response.data
+  },
+
+  deleteDeal: async (id: number): Promise<void> => {
+    await apiClient.delete(`/crm/deals/${id}/`)
+  },
+
+  moveDealToStage: async (id: number, stageId: number): Promise<Deal> => {
+    const response = await apiClient.post(`/crm/deals/${id}/move_to_stage/`, { stage: stageId })
+    return response.data
+  },
+
+  markDealWon: async (id: number): Promise<Deal> => {
+    const response = await apiClient.post(`/crm/deals/${id}/mark_won/`)
+    return response.data
+  },
+
+  markDealLost: async (id: number, reason?: string): Promise<Deal> => {
+    const response = await apiClient.post(`/crm/deals/${id}/mark_lost/`, { lost_reason: reason })
+    return response.data
+  },
+
+  // Deal Tasks
+  getDealTasks: async (dealId?: number): Promise<DealTask[]> => {
+    const url = dealId ? `/crm/deal-tasks/?deal=${dealId}` : '/crm/deal-tasks/'
+    const response = await apiClient.get(url)
+    return response.data.results || response.data
+  },
+
+  getDealTask: async (id: number): Promise<DealTask> => {
+    const response = await apiClient.get(`/crm/deal-tasks/${id}/`)
+    return response.data
+  },
+
+  createDealTask: async (data: Partial<DealTask>): Promise<DealTask> => {
+    const response = await apiClient.post('/crm/deal-tasks/', data)
+    return response.data
+  },
+
+  updateDealTask: async (id: number, data: Partial<DealTask>): Promise<DealTask> => {
+    const response = await apiClient.put(`/crm/deal-tasks/${id}/`, data)
+    return response.data
+  },
+
+  deleteDealTask: async (id: number): Promise<void> => {
+    await apiClient.delete(`/crm/deal-tasks/${id}/`)
   },
 }
