@@ -889,32 +889,32 @@ class ContactManager(models.Manager):
 
     def active(self):
         """Get all active contacts."""
-        return self.filter(status=Contact.STATUS_ACTIVE)
+        return self.filter(status='active')
 
     def unsubscribed(self):
         """Get all unsubscribed contacts."""
-        return self.filter(status=Contact.STATUS_UNSUBSCRIBED)
+        return self.filter(status='unsubscribed')
 
     def bounced(self):
         """Get all bounced contacts."""
-        return self.filter(status=Contact.STATUS_BOUNCED)
+        return self.filter(status='bounced')
 
     def unconfirmed(self):
         """Get all unconfirmed contacts."""
-        return self.filter(status=Contact.STATUS_UNCONFIRMED)
+        return self.filter(status='unconfirmed')
 
     def inactive(self):
         """Get all inactive contacts."""
-        return self.filter(status=Contact.STATUS_INACTIVE)
+        return self.filter(status='inactive')
 
     def can_receive_emails(self):
         """Get contacts that can receive emails (active and not bounced/unsubscribed)."""
-        return self.filter(status__in=[Contact.STATUS_ACTIVE, Contact.STATUS_UNCONFIRMED])
+        return self.filter(status__in=['active', 'unconfirmed'])
 
     def can_receive_marketing(self):
         """Get contacts that can receive marketing emails."""
         return self.filter(
-            status=Contact.STATUS_ACTIVE,
+            status='active',
             opt_out_marketing=False,
         )
 

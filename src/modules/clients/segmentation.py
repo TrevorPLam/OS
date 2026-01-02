@@ -61,8 +61,27 @@ class GeographicSegmenter:
         """
         Filter contacts within a radius of a center point.
         
-        Note: This is a simplified implementation. For production use,
-        consider using PostGIS or a similar spatial database extension.
+        **KNOWN LIMITATION / TODO:**
+        This is a placeholder implementation that returns the queryset unchanged.
+        To implement proper geographic filtering, you need to:
+        
+        1. Add geographic fields (latitude, longitude) to the Contact model or
+           a related Address model
+        2. Use a spatial database extension like PostGIS for PostgreSQL
+        3. Create spatial indexes for performance
+        4. Implement the Haversine distance formula in a database function
+        
+        Example implementation with PostGIS:
+        ```python
+        from django.contrib.gis.db.models.functions import Distance
+        from django.contrib.gis.geos import Point
+        from django.contrib.gis.measure import D
+        
+        center = Point(center_lon, center_lat, srid=4326)
+        return queryset.filter(
+            location__distance_lte=(center, D(km=radius_km))
+        ).annotate(distance=Distance('location', center))
+        ```
         
         Args:
             queryset: Contact queryset to filter
@@ -70,40 +89,47 @@ class GeographicSegmenter:
             radius_km: Radius in kilometers
         
         Returns:
-            Filtered queryset
+            Filtered queryset (currently unchanged - placeholder)
         """
-        # For now, this returns the queryset as-is since we don't have
-        # lat/lon fields in the Contact model. This would need to be
-        # implemented with proper geographic fields in a real system.
-        
-        # In a real implementation, you would:
-        # 1. Add lat/lon fields to Contact or related Address model
-        # 2. Use PostGIS or similar for efficient radius queries
-        # 3. Create a spatial index for performance
-        
-        # Placeholder implementation
+        # TODO: Implement proper geographic filtering when location fields are added
         return queryset
     
     @staticmethod
     def filter_by_country(queryset, countries: List[str]):
-        """Filter contacts by country."""
-        # This would work if contacts had a country field or related address
-        # For now, filter by client's country
+        """
+        Filter contacts by country.
+        
+        **Note:** Currently filters by client's country field, not contact-specific location.
+        If contact-specific location is needed, add a related Address model or
+        geographic fields directly to the Contact model.
+        """
         return queryset.filter(client__country__in=countries)
     
     @staticmethod
     def filter_by_state(queryset, states: List[str]):
-        """Filter contacts by state/province."""
+        """
+        Filter contacts by state/province.
+        
+        **Note:** Currently filters by client's state field, not contact-specific location.
+        """
         return queryset.filter(client__state__in=states)
     
     @staticmethod
     def filter_by_city(queryset, cities: List[str]):
-        """Filter contacts by city."""
+        """
+        Filter contacts by city.
+        
+        **Note:** Currently filters by client's city field, not contact-specific location.
+        """
         return queryset.filter(client__city__in=cities)
     
     @staticmethod
     def filter_by_postal_code(queryset, postal_codes: List[str]):
-        """Filter contacts by postal code."""
+        """
+        Filter contacts by postal code.
+        
+        **Note:** Currently filters by client's postal code field, not contact-specific location.
+        """
         return queryset.filter(client__postal_code__in=postal_codes)
 
 
