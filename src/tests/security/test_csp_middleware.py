@@ -5,30 +5,29 @@ Security Task: SEC-4 - Add Content-Security-Policy header
 """
 
 import pytest
-from django.conf import settings
+from django.http import HttpResponse
 from django.test import RequestFactory, override_settings
 from config.csp_middleware import ContentSecurityPolicyMiddleware
 
 
-@pytest.mark.django_db
+def get_mock_response():
+    """Mock response for middleware."""
+    return HttpResponse("OK")
+
+
 class TestContentSecurityPolicyMiddleware:
     """Test CSP middleware behavior in production and development modes."""
     
     def setup_method(self):
         """Set up test fixtures."""
         self.factory = RequestFactory()
-        self.middleware = ContentSecurityPolicyMiddleware(get_response=lambda r: self._get_response())
-    
-    def _get_response(self):
-        """Mock response for middleware."""
-        from django.http import HttpResponse
-        return HttpResponse("OK")
+        self.middleware = ContentSecurityPolicyMiddleware(get_response=lambda r: get_mock_response())
     
     @override_settings(DEBUG=False)
     def test_csp_header_added_in_production(self):
         """CSP header should be present when DEBUG=False."""
         request = self.factory.get("/")
-        response = self.middleware.process_response(request, self._get_response())
+        response = self.middleware.process_response(request, get_mock_response())
         
         assert "Content-Security-Policy" in response
         csp_header = response["Content-Security-Policy"]
@@ -43,7 +42,7 @@ class TestContentSecurityPolicyMiddleware:
     def test_csp_header_not_added_in_development(self):
         """CSP header should NOT be present when DEBUG=True."""
         request = self.factory.get("/")
-        response = self.middleware.process_response(request, self._get_response())
+        response = self.middleware.process_response(request, get_mock_response())
         
         assert "Content-Security-Policy" not in response
     
@@ -56,7 +55,7 @@ class TestContentSecurityPolicyMiddleware:
     def test_csp_directives_from_settings(self):
         """CSP directives should be built from settings."""
         request = self.factory.get("/")
-        response = self.middleware.process_response(request, self._get_response())
+        response = self.middleware.process_response(request, get_mock_response())
         
         csp_header = response["Content-Security-Policy"]
         
@@ -73,7 +72,7 @@ class TestContentSecurityPolicyMiddleware:
     def test_csp_report_uri(self):
         """CSP report-uri directive should be included if configured."""
         request = self.factory.get("/")
-        response = self.middleware.process_response(request, self._get_response())
+        response = self.middleware.process_response(request, get_mock_response())
         
         csp_header = response["Content-Security-Policy"]
         assert "report-uri https://csp-report.example.com/report" in csp_header
@@ -82,7 +81,7 @@ class TestContentSecurityPolicyMiddleware:
     def test_csp_prevents_inline_scripts(self):
         """CSP should not allow 'unsafe-inline' for scripts by default."""
         request = self.factory.get("/")
-        response = self.middleware.process_response(request, self._get_response())
+        response = self.middleware.process_response(request, get_mock_response())
         
         csp_header = response["Content-Security-Policy"]
         
@@ -94,7 +93,7 @@ class TestContentSecurityPolicyMiddleware:
     def test_csp_allows_inline_styles(self):
         """CSP should allow 'unsafe-inline' for styles (required for React)."""
         request = self.factory.get("/")
-        response = self.middleware.process_response(request, self._get_response())
+        response = self.middleware.process_response(request, get_mock_response())
         
         csp_header = response["Content-Security-Policy"]
         
