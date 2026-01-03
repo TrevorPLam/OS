@@ -27,7 +27,7 @@ Find documentation by what you're trying to accomplish:
 - **First time setup** → [SETUP.md](SETUP.md)
 - **Understanding the project** → [README.md](../README.md)
 - **Contributing code** → [CONTRIBUTING.md](../CONTRIBUTING.md)
-- **Learning the system** → [01-tutorials/getting-started.md](01-tutorials/getting-started.md)
+- **Learning the system** → [01-tutorials/](01-tutorials/)
 
 ### Development
 - **Implementing a feature** → [TODO.md](../TODO.md) → [CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md) → [REPO_MAP.md](REPO_MAP.md)
@@ -36,7 +36,7 @@ Find documentation by what you're trying to accomplish:
 - **Understanding decisions** → [05-decisions/](05-decisions/)
 
 ### Operations
-- **Deploying to production** → [02-how-to/production-deployment.md](02-how-to/production-deployment.md)
+- **Deploying to production** → [02-how-to/](02-how-to/)
 - **Troubleshooting** → [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 - **Running operations** → [OPERATIONS.md](OPERATIONS.md)
 - **Runbooks** → [runbooks/](runbooks/)
@@ -57,21 +57,20 @@ Find documentation by what you're trying to accomplish:
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Complete system architecture
 - [DOMAIN_MODEL.md](DOMAIN_MODEL.md) - Core entities and relationships
 - [PILLARS.md](PILLARS.md) - Feature areas and capabilities
-- [03-reference/tier-system.md](03-reference/tier-system.md) - Architecture governance
-- [04-explanation/security/boundary-rules.md](04-explanation/security/boundary-rules.md) - Boundary enforcement
-- [04-explanation/security/threat-model.md](04-explanation/security/threat-model.md) - Security analysis
+- [BOUNDARY_RULES.md](BOUNDARY_RULES.md) - Boundary enforcement
+- [THREAT_MODEL.md](THREAT_MODEL.md) - Security analysis
 
 ### API Documentation
 - [ENDPOINTS.md](ENDPOINTS.md) - API reference
-- [03-reference/api-usage.md](03-reference/api-usage.md) - Complete API docs
+- [03-reference/api/](03-reference/api/) - Complete API docs
 - [03-reference/policies/api-versioning.md](03-reference/policies/api-versioning.md) - Version lifecycle
 - [03-reference/policies/api-deprecation.md](03-reference/policies/api-deprecation.md) - Deprecation process
 - API docs at `/api/docs/` (Swagger UI when running)
 
 ### Security & Compliance
 - [SECURITY_BASELINE.md](SECURITY_BASELINE.md) - Security requirements
-- [04-explanation/security/threat-model.md](04-explanation/security/threat-model.md) - Threat analysis
-- [04-explanation/security/boundary-rules.md](04-explanation/security/boundary-rules.md) - Security boundaries
+- [THREAT_MODEL.md](THREAT_MODEL.md) - Threat analysis
+- [BOUNDARY_RULES.md](BOUNDARY_RULES.md) - Security boundaries
 - [compliance/](compliance/) - Compliance documentation
 - [../SECURITY.md](../SECURITY.md) - Security vulnerability reporting
 
@@ -85,7 +84,7 @@ Find documentation by what you're trying to accomplish:
 
 ### Operations
 - [OPERATIONS.md](OPERATIONS.md) - Setup and running
-- [02-how-to/production-deployment.md](02-how-to/production-deployment.md) - Production deployment
+- [02-how-to/](02-how-to/) - Production deployment guides
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues
 - [runbooks/](runbooks/) - Operational procedures
 
