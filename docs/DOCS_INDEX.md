@@ -142,7 +142,6 @@ These are the single source of truth for their topics:
 - [ENDPOINTS.md](ENDPOINTS.md) - API reference
 - [SECURITY_BASELINE.md](SECURITY_BASELINE.md) - Security standards
 - [OPERATIONS.md](OPERATIONS.md) - Operations guide
-- [codingconstitution.md](codingconstitution.md) - Detailed governance
 
 ### Supporting Reference (not duplicates)
 - [CODEBASECONSTITUTION_STARTER.md](CODEBASECONSTITUTION_STARTER.md) - Template reference
