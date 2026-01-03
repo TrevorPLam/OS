@@ -1127,7 +1127,8 @@ class Contact(models.Model):
         Returns:
             bool: True if contact has active consent, False otherwise
         """
-        # Import here to avoid circular dependency
+        # Access ConsentRecord dynamically since it's defined later in the file
+        from modules.clients.models import ConsentRecord
         status = ConsentRecord.get_current_consent(self, consent_type)
         return status["has_consent"]
     
@@ -1166,6 +1167,8 @@ class Contact(models.Model):
         Returns:
             ConsentRecord: The created consent record
         """
+        # Access ConsentRecord dynamically since it's defined later in the file
+        from modules.clients.models import ConsentRecord
         return ConsentRecord.objects.create(
             contact=self,
             consent_type=consent_type,
@@ -1209,6 +1212,8 @@ class Contact(models.Model):
         Returns:
             ConsentRecord: The created consent record
         """
+        # Access ConsentRecord dynamically since it's defined later in the file
+        from modules.clients.models import ConsentRecord
         return ConsentRecord.objects.create(
             contact=self,
             consent_type=consent_type,
@@ -1233,6 +1238,8 @@ class Contact(models.Model):
                     ...
                 }
         """
+        # Access ConsentRecord dynamically since it's defined later in the file
+        from modules.clients.models import ConsentRecord
         status = {}
         for consent_type, _ in ConsentRecord.CONSENT_TYPE_CHOICES:
             status[consent_type] = ConsentRecord.get_current_consent(self, consent_type)

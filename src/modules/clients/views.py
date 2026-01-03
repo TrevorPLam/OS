@@ -28,6 +28,7 @@ from modules.clients.models import (
     ClientPortalUser,
     Organization,
     ConsentRecord,
+    Contact,
 )
 from modules.clients.permissions import DenyPortalAccess, IsPortalUserOrFirmUser
 from modules.clients.serializers import (
@@ -44,6 +45,8 @@ from modules.clients.serializers import (
     ClientSerializer,
     OrganizationSerializer,
     ConsentRecordSerializer,
+    ConsentRecordCreateSerializer,
+    ConsentProofExportSerializer,
 )
 from modules.firm.utils import FirmScopedMixin, get_request_firm
 
@@ -1071,8 +1074,6 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         This endpoint allows creating new consent records with proper validation.
         The record hash will be automatically computed on save.
         """
-        from modules.clients.serializers import ConsentRecordCreateSerializer
-        
         serializer = ConsentRecordCreateSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         
@@ -1101,7 +1102,6 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         firm = get_request_firm(request)
         
         try:
-            from modules.clients.models import Contact
             contact = Contact.objects.get(id=contact_id, client__firm=firm)
         except Contact.DoesNotExist:
             return Response(
@@ -1127,7 +1127,6 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         firm = get_request_firm(request)
         
         try:
-            from modules.clients.models import Contact
             contact = Contact.objects.get(id=contact_id, client__firm=firm)
         except Contact.DoesNotExist:
             return Response(
@@ -1165,7 +1164,6 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         firm = get_request_firm(request)
         
         try:
-            from modules.clients.models import Contact
             contact = Contact.objects.get(id=contact_id, client__firm=firm)
         except Contact.DoesNotExist:
             return Response(
@@ -1200,7 +1198,6 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         firm = get_request_firm(request)
         
         try:
-            from modules.clients.models import Contact
             contact = Contact.objects.get(id=contact_id, client__firm=firm)
         except Contact.DoesNotExist:
             return Response(
@@ -1214,7 +1211,6 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         # Export proof
         proof_data = ConsentRecord.export_consent_proof(contact, consent_type)
         
-        from modules.clients.serializers import ConsentProofExportSerializer
         serializer = ConsentProofExportSerializer(proof_data)
         
         return Response(serializer.data)
