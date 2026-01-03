@@ -8,8 +8,10 @@ Primary outputs (must exist / be maintained):
 
 * docs/DOCS_INDEX.md (the navigation hub)
 * docs/REPO_MAP.md (structure overview)
-* DECISIONS.md (or docs/DECISIONS.md) for durable decisions
+* DECISIONS.md (or docs/05-decisions/) for durable decisions
 * Clean, current root docs (see "Root Allowed Set")
+
+**Note:** This repository uses `docs/05-decisions/` for Architecture Decision Records rather than a standalone DECISIONS.md file.
 
 Secondary outputs (optional):
 
@@ -38,7 +40,9 @@ Required (core operators)
 * TODO.md
 * TODO_COMPLETED.md
 * CHANGELOG.md (optional but recommended; choose root or docs, not both)
-* DECISIONS.md (optional but recommended; choose root or docs, not both)
+* DECISIONS.md (optional but recommended; choose root, docs/, or docs/05-decisions/, not multiple)
+
+**Note:** This repository uses `docs/05-decisions/` (ADR format) rather than a standalone DECISIONS.md file.
 
 Optional root docs (only if actively used)
 

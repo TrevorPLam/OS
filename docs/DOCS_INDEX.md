@@ -75,11 +75,11 @@ Find documentation by what you're trying to accomplish:
 - [../SECURITY.md](../SECURITY.md) - Security vulnerability reporting
 
 ### Governance & Standards
-- [../CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md) - Repository constitution
+- [../CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md) - Repository constitution (canonical)
 - [../READMEAI.md](../READMEAI.md) - AI agent instructions
 - [../CODE_AUDIT.md](../CODE_AUDIT.md) - Code audit pipeline
 - [../DOCS_ROOT.md](../DOCS_ROOT.md) - Documentation governance
-- [codingconstitution.md](codingconstitution.md) - Detailed governance (legacy reference)
+- [codingconstitution.md](codingconstitution.md) - Supporting reference (backward compatibility)
 - [05-decisions/](05-decisions/) - Architecture Decision Records
 
 ### Operations
@@ -146,6 +146,7 @@ These are the single source of truth for their topics:
 
 ### Supporting Reference (not duplicates)
 - [CODEBASECONSTITUTION_STARTER.md](CODEBASECONSTITUTION_STARTER.md) - Template reference
+- [codingconstitution.md](codingconstitution.md) - Supporting reference copy (see root CODEBASECONSTITUTION.md for canonical)
 - [PILLARS.md](PILLARS.md) - Feature categorization
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Issue resolution
 - [GLOSSARY.md](GLOSSARY.md) - Terminology

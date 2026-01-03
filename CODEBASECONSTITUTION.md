@@ -22,7 +22,7 @@ This repository exists to produce software that is:
 ## 2) Authority and Amendments
 
 2.1 **Supremacy**  
-This document outranks all other repo guidance unless explicitly superseded by a newer version of `codingconstitution.md` or a formal ADR that amends it.
+This document outranks all other repo guidance unless explicitly superseded by a newer version of `CODEBASECONSTITUTION.md` or a formal ADR that amends it.
 
 2.2 **Amendment Process**  
 A rule may be changed only by:

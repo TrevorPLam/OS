@@ -11,6 +11,7 @@ This copy is maintained in docs/ for backward compatibility and reference. When 
 
 ---
 
+**Document Status:** Supporting Reference Copy
 Version: 1.0  
 Scope: This document defines the non-negotiable rules for how this repository is built, changed, reviewed, tested, deployed, and operated. If a change conflicts with this constitution, the change is rejected or the constitution is explicitly amended via an ADR.
 
