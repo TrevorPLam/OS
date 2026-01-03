@@ -7,6 +7,7 @@ Supports hierarchical folders and client portal access.
 TIER 0: All documents belong to exactly one Firm for tenant isolation.
 """
 
+import ipaddress
 import uuid
 from typing import Any
 
@@ -1331,9 +1332,6 @@ class SharePermission(models.Model):
         if not self.allowed_ip_addresses:
             return True
         
-        # Import here to avoid circular imports
-        import ipaddress
-        
         try:
             # Parse the incoming IP address
             ip_obj = ipaddress.ip_address(ip_address)
@@ -1363,7 +1361,6 @@ class SharePermission(models.Model):
     def clean(self) -> None:
         """Validate share permission data."""
         from django.core.exceptions import ValidationError
-        import ipaddress
         
         errors = {}
         
