@@ -1,12 +1,55 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 2, 2026
+**Last Updated:** January 3, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
 
 ---
 
-## Recently Completed (January 2, 2026)
+## Recently Completed (January 3, 2026)
+
+### 🟡 Code Quality & Automation Improvements
+
+#### Automation Executor Enhancements (MEDIUM - 2-3 hours) - ✅ **COMPLETED**
+
+- [x] **T-009:** Implement Date String Parsing in Automation Executor (2-3 hours) ✅ **COMPLETED** (January 3, 2026)
+  - Type: QUALITY
+  - Implemented ISO 8601 date string parsing for "wait until date" automation actions
+  - Parse ISO 8601 date strings to datetime objects (supports multiple formats)
+  - Handle timezone conversion properly (naive → aware datetime conversion)
+  - Add error handling for invalid date formats with flow state error tracking
+  - Added comprehensive test coverage for various date formats and timezones
+  - Supports date-only strings (converted to start-of-day datetime)
+  - Supports datetime strings with/without timezone information
+  - References: src/modules/automation/executor.py
+  - Tests: tests/modules/automation/test_executor_date_parsing.py
+
+### 🟡 Security & Access Control Enhancements
+
+#### IP Whitelisting Improvements (MEDIUM - 4-6 hours) - ✅ **COMPLETED**
+
+- [x] **T-005:** Add CIDR Range Support for IP Whitelisting (4-6 hours) ✅ **COMPLETED** (January 3, 2026)
+  - Type: ENHANCE
+  - Implemented CIDR notation support in SharePermission model
+  - IP matching logic using Python's `ipaddress` module for CIDR ranges
+  - Supports both individual IP addresses and network ranges (e.g., "10.0.0.0/8", "192.168.1.0/24")
+  - Added comprehensive validation for IP addresses and CIDR format in model clean()
+  - IPv4 and IPv6 support for both exact IPs and CIDR ranges
+  - Graceful error handling - invalid entries are skipped, valid ones still work
+  - Comprehensive test suite with 19 test cases covering:
+    - Exact IP matching
+    - Class A, B, C network ranges
+    - Mixed IPs and CIDR ranges
+    - IPv6 addresses and ranges
+    - Invalid format handling
+    - Validation testing
+    - Small and large CIDR ranges
+  - References: src/modules/documents/models.py (SharePermission.is_ip_allowed, SharePermission.clean)
+  - Tests: src/tests/documents/test_cidr_ip_whitelisting.py
+
+---
+
+## Previously Completed (January 2, 2026)
 
 ### 🔴 Security & Compliance - Enhanced Security Controls
 

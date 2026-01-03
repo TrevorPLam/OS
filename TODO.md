@@ -402,7 +402,7 @@
   - Add monitoring dashboard for email queue health
   - References: src/modules/marketing/views.py:339
   
-- [ ] **T-005:** Add CIDR Range Support for IP Whitelisting (P2 - 4-6 hours)
+- [x] **T-005:** Add CIDR Range Support for IP Whitelisting (P2 - 4-6 hours) ✅ **COMPLETED** (January 3, 2026)
   - Type: ENHANCE
   - Update IPWhitelist model to support CIDR notation
   - Implement IP matching logic for CIDR ranges (use ipaddress module)
@@ -441,7 +441,7 @@
   - References: src/modules/automation/actions.py (multiple lines)
   - Dependencies: List/segment model implementation (partial)
   
-- [ ] **T-009:** Implement Date String Parsing in Automation Executor (P2 - 2-3 hours)
+- [x] **T-009:** Implement Date String Parsing in Automation Executor (P2 - 2-3 hours) ✅ **COMPLETED** (January 3, 2026)
   - Type: QUALITY
   - Parse ISO 8601 date strings to datetime objects
   - Handle timezone conversion properly

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Automation Improvements** (2026-01-03)
+  - **T-009**: Date string parsing in automation executor
+    - Implemented ISO 8601 date string parsing for "wait until date" automation actions
+    - Automatic timezone-aware datetime conversion from date strings
+    - Handles multiple ISO 8601 formats (with/without timezone, date-only)
+    - Comprehensive error handling for invalid date formats
+    - Added extensive test coverage for date parsing scenarios
+    - Improves workflow reliability when using date-based wait conditions
+
+- **Security & Access Control Enhancements** (2026-01-03)
+  - **T-005**: CIDR range support for IP whitelisting
+    - Implemented CIDR notation support in SharePermission IP whitelisting
+    - Supports both individual IP addresses and CIDR ranges (e.g., "192.168.1.0/24", "10.0.0.0/8")
+    - Uses Python's built-in `ipaddress` module for robust IP matching
+    - Automatic validation of IP addresses and CIDR ranges during model save
+    - IPv4 and IPv6 support for both exact IPs and network ranges
+    - Graceful handling of invalid entries (skips and continues checking other rules)
+    - Comprehensive test coverage with 19 test cases covering various scenarios
+    - Enhances security for external document sharing with flexible network-based access control
+
 ### Changed
 
 - **Dependency Management** (2026-01-03)
