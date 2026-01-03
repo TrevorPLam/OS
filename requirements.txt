@@ -43,19 +43,5 @@ gunicorn==21.2.0
 python-json-logger==2.0.7
 sentry-sdk==1.40.5  # Error tracking and performance monitoring
 
-# Development & Testing
-pytest==7.4.3
-pytest-django==4.7.0
-pytest-cov==4.1.0
-coverage==7.4.0
-factory-boy==3.3.0
-faker==22.0.0
 
-# Code Quality & Linting (required by CI)
-ruff==0.1.9  # Modern Python linter (replaces flake8, isort, pyupgrade)
-black==23.12.1
-
-# Security Scanning (required by CI)
-safety==3.0.1
-import-linter==2.0  # Architectural boundary enforcement (CONST-10)
 bcrypt>=4.0.0

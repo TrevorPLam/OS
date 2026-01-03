@@ -88,6 +88,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # CSP middleware (SEC-4) - must come early to set security headers
+    "config.csp_middleware.ContentSecurityPolicyMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -456,6 +458,39 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    
+    # Content Security Policy (CSP) - SEC-4
+    # Restricts sources of content to prevent XSS and other injection attacks
+    # See SECURITY.md for CSP configuration details
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = (
+        "'self'",
+        # Allow Sentry error reporting
+        "https://browser.sentry-cdn.com",
+    )
+    CSP_STYLE_SRC = (
+        "'self'",
+        "'unsafe-inline'",  # Required for inline styles in React
+    )
+    CSP_IMG_SRC = (
+        "'self'",
+        "data:",  # Allow data URIs for images
+        "https:",  # Allow HTTPS images (e.g., S3, external CDNs)
+    )
+    CSP_FONT_SRC = (
+        "'self'",
+        "data:",
+    )
+    CSP_CONNECT_SRC = (
+        "'self'",
+        # Allow API connections
+        "https://*.sentry.io",  # Sentry error reporting
+    )
+    CSP_FRAME_ANCESTORS = ("'none'",)  # Prevent clickjacking
+    CSP_BASE_URI = ("'self'",)
+    CSP_FORM_ACTION = ("'self'",)
+    CSP_OBJECT_SRC = ("'none'",)
+    CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI", None)  # Optional: CSP violation reporting endpoint
 
 # =============================================================================
 # Error Tracking & Monitoring (Sentry)

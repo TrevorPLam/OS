@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Dependency Management** (2026-01-03)
+  - **DEP-CLEANUP-1, DEP-CLEANUP-2, DEP-CLEANUP-3**: Moved development dependencies to requirements-dev.txt
+    - Moved testing tools (pytest, pytest-django, pytest-cov, coverage, factory-boy, faker) to requirements-dev.txt
+    - Moved code quality tools (ruff, black) to requirements-dev.txt
+    - Moved security scanning tools (safety, import-linter) to requirements-dev.txt
+    - Updated CI/CD pipeline to install requirements-dev.txt for testing, linting, and security scanning jobs
+    - Production Docker image now ~150-180MB smaller (no testing/dev tools in production)
+    - BREAKING CHANGE: Development environments must install both requirements.txt AND requirements-dev.txt
+      ```bash
+      pip install -r requirements.txt -r requirements-dev.txt
+      ```
+  
+  - **SEC-5**: Pin frontend dependency versions
+    - Replaced caret (^) versions with exact versions in package.json
+    - All dependencies now use exact versions from package-lock.json
+    - Ensures reproducible builds across all environments
+    - package-lock.json already committed to repository
+    - Update process documented in SECURITY.md
+
+### Added
+
+- **Security Hardening** (2026-01-03)
+  - **SEC-4**: Content-Security-Policy (CSP) header implementation
+    - Added CSP middleware to set security headers in production
+    - Prevents cross-site scripting (XSS) and code injection attacks
+    - Strict CSP directives: no inline scripts, frame-ancestors='none', object-src='none'
+    - Allows inline styles (required for React), HTTPS images, and Sentry connections
+    - CSP only active in production (DEBUG=False)
+    - Optional CSP violation reporting via CSP_REPORT_URI environment variable
+    - Comprehensive test coverage for CSP middleware
+    - Configuration documented in SECURITY.md
+
 ---
 
 ## [0.7.0] - 2026-01-03
