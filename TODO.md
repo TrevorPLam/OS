@@ -1,6 +1,7 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 2, 2026
+**Last Updated:** January 3, 2026
+**Task Truth Source:** TODO.md
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
 
@@ -359,6 +360,118 @@
 ---
 
 ## Medium Priority
+
+### 🟡 CODE AUDIT - Task Hygiene (MEDIUM - 66-102 hours)
+
+**Status:** Tasks identified from CODE_AUDIT execution (January 3, 2026)  
+**Source:** Inline TODO/FIXME markers in codebase  
+**Dependencies:** Various per task
+
+- [ ] **T-001:** Implement Critical Path Calculation for Project Tasks (P2 - 8-12 hours)
+  - Type: COMPLETE
+  - Implement algorithm to calculate critical path based on task dependencies
+  - Expose critical path data via API endpoint
+  - Add tests for various dependency graphs
+  - Document algorithm complexity and limitations
+  - References: src/api/projects/views.py:520
+  
+- [ ] **T-002:** Integrate Background Job Queue for Webhook Delivery (P1 - 6-8 hours)
+  - Type: COMPLETE
+  - Queue webhook deliveries using JobQueue model (modules/jobs/)
+  - Implement retry logic with exponential backoff
+  - Add monitoring for failed webhook deliveries
+  - Update webhook views to use async delivery
+  - References: src/api/webhooks/views.py:126
+  
+- [ ] **T-003:** Remove Legacy API Endpoints After Frontend Migration (P2 - 2-4 hours)
+  - Type: DEADCODE
+  - Verify frontend exclusively uses /api/v1/ endpoints
+  - Check for any external integrations using legacy endpoints
+  - Document breaking changes in CHANGELOG.md
+  - Remove legacy endpoint code
+  - Run full regression test suite
+  - References: src/config/urls.py:77
+  - Related: docs/API_VERSIONING_POLICY.md, docs/API_DEPRECATION_POLICY.md
+  
+- [ ] **T-004:** Integrate Email Send Jobs with Background Task System (P1 - 8-12 hours)
+  - Type: COMPLETE
+  - Create email send jobs in JobQueue when campaign is executed
+  - Implement email send worker function
+  - Add retry logic for failed sends (SMTP errors, rate limits)
+  - Track send status per recipient (sent, failed, bounced)
+  - Add monitoring dashboard for email queue health
+  - References: src/modules/marketing/views.py:339
+  
+- [ ] **T-005:** Add CIDR Range Support for IP Whitelisting (P2 - 4-6 hours)
+  - Type: ENHANCE
+  - Update IPWhitelist model to support CIDR notation
+  - Implement IP matching logic for CIDR ranges (use ipaddress module)
+  - Add validation for CIDR format
+  - Update admin UI to support CIDR input
+  - Add tests for various CIDR scenarios
+  - References: src/modules/documents/models.py:1324
+  
+- [ ] **T-006:** Implement Notification System for Deal Assignment (P1 - 6-8 hours)
+  - Type: COMPLETE
+  - Send in-app notification when deal is assigned
+  - Send email notification with deal details and link
+  - Make notification preferences configurable per user
+  - Add notification to user notification center
+  - Track notification delivery status
+  - References: src/modules/crm/assignment_automation.py:306, modules/crm/models.py:3028
+  
+- [ ] **T-007:** Implement Webhook System for Stage Automation (P2 - 6-8 hours)
+  - Type: COMPLETE
+  - Integrate with webhook delivery system (src/api/webhooks/)
+  - Support configurable webhook URLs per automation rule
+  - Include deal data in webhook payload
+  - Add HMAC signature for security
+  - Implement retry logic for failed deliveries
+  - References: src/modules/crm/assignment_automation.py:327
+  - Dependencies: T-002 (background job queue for webhooks)
+  
+- [ ] **T-008:** Complete Automation Action Integrations (P1 - 16-24 hours)
+  - Type: COMPLETE
+  - Implement email template loading and rendering
+  - Integrate SMS sending with sms module
+  - Implement task creation logic
+  - Implement list/segment add/remove when model available
+  - Integrate notification delivery
+  - Add comprehensive integration tests
+  - References: src/modules/automation/actions.py (multiple lines)
+  - Dependencies: List/segment model implementation (partial)
+  
+- [ ] **T-009:** Implement Date String Parsing in Automation Executor (P2 - 2-3 hours)
+  - Type: QUALITY
+  - Parse ISO 8601 date strings to datetime objects
+  - Handle timezone conversion properly
+  - Add error handling for invalid date formats
+  - Add tests for various date formats and timezones
+  - References: src/modules/automation/executor.py:306
+  
+- [ ] **T-010:** Implement Geographic Filtering for Client Segmentation (P2 - 8-12 hours)
+  - Type: COMPLETE
+  - Add location fields to Contact model (country, state, city, postal_code)
+  - Implement geographic filters in segmentation module
+  - Support radius search using geospatial queries
+  - Add tests for geographic segmentation
+  - Create migration for new fields
+  - References: src/modules/clients/segmentation.py:94
+  - Dependencies: Contact model schema change
+  
+- [ ] **T-011:** Implement Portal Branding Infrastructure Integrations (P1 - 20-28 hours)
+  - Type: COMPLETE
+  - Implement DNS verification via DNS API (Route53, Cloudflare, or generic)
+  - Integrate with AWS ACM or Let's Encrypt for SSL certificate provisioning
+  - Integrate with email service (AWS SES or SendGrid) for custom domain sending
+  - Implement actual email template rendering
+  - Add error handling and retry logic
+  - Create admin UI for monitoring DNS/SSL/email status
+  - Document setup process for production deployments
+  - References: src/modules/clients/portal_views.py, src/modules/clients/portal_branding.py
+  - Dependencies: AWS/cloud provider configuration
+
+---
 
 ### 🟡 Contact Management & CRM Enhancements
 

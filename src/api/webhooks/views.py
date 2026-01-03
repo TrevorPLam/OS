@@ -123,7 +123,7 @@ class WebhookEndpointViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelV
             status="pending"
         )
         
-        # TODO: Trigger webhook delivery (would be done by background worker)
+        # Tracked in TODO: T-002 (Integrate Background Job Queue for Webhook Delivery)
         # For now, just return the delivery info
         
         delivery_serializer = WebhookDeliverySerializer(delivery)

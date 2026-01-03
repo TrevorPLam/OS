@@ -517,7 +517,7 @@ class ProjectTimelineViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         """
         timeline = self.get_object()
         
-        # TODO: Implement critical path calculation algorithm
+        # Tracked in TODO: T-001 (Implement Critical Path Calculation)
         # This would involve:
         # 1. Forward pass: Calculate early start/finish dates
         # 2. Backward pass: Calculate late start/finish dates

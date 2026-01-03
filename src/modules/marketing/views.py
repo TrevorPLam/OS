@@ -336,7 +336,7 @@ class CampaignExecutionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
                 "firm_id": execution.campaign.firm.id if execution.campaign else None,
             }
         )
-        # TODO: Queue actual email send jobs via background task system
+        # Tracked in TODO: T-004 (Integrate Email Send Jobs with Background Task System)
         # Example: queue_email_campaign.delay(execution.id)
 
         return Response(

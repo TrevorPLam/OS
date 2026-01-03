@@ -3025,7 +3025,7 @@ class DealAlert(models.Model):
         
         from django.utils import timezone
         
-        # TODO: Implement actual notification logic (email, SMS, in-app)
+        # Tracked in TODO: T-006 (Implement Notification System for Deal Assignment)
         # For now, just mark as sent
         self.is_sent = True
         self.sent_at = timezone.now()

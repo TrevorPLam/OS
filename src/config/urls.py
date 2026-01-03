@@ -74,7 +74,7 @@ urlpatterns = [
     # API v1 (current stable version)
     path("api/v1/", include(api_v1_patterns)),
     # Legacy API endpoints (redirect to v1 for backward compatibility during transition)
-    # TODO: Remove legacy endpoints after frontend migration (ASSESS-I5.9)
+    # Tracked in TODO: T-003 (Remove Legacy API Endpoints After Frontend Migration)
     path("api/auth/", RedirectView.as_view(url="/api/v1/auth/", permanent=False)),
     path("api/firm/", RedirectView.as_view(url="/api/v1/firm/", permanent=False)),
     path("api/portal/", RedirectView.as_view(url="/api/v1/portal/", permanent=False)),

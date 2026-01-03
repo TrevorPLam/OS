@@ -75,7 +75,7 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         if not branding.dns_verification_token:
             branding.generate_dns_verification_token()
 
-        # TODO: Implement actual DNS verification
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - DNS)
         # For now, return verification instructions
         return Response(
             {
@@ -113,7 +113,7 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # TODO: Implement actual DNS lookup
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - DNS)
         # 1. Query DNS for TXT record
         # 2. Query DNS for CNAME record
         # 3. Update verification status
@@ -125,7 +125,7 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
             domain=branding.custom_domain,
             verification_type="txt",
             expected_value=branding.dns_verification_token,
-            verified=False,  # TODO: Set based on actual DNS check
+            verified=False,  # Tracked in TODO: T-011 (DNS verification)
         )
 
         return Response(
@@ -167,13 +167,13 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # TODO: Integrate with AWS ACM or Let's Encrypt
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - SSL)
         # 1. Request certificate
         # 2. Store certificate ID
         # 3. Configure CloudFront/ALB
 
         branding.ssl_enabled = True
-        branding.ssl_certificate_id = "mock-cert-id"  # TODO: Real certificate ID
+        branding.ssl_certificate_id = "mock-cert-id"  # Tracked in TODO: T-011 (Real certificate ID)
         branding.save()
 
         return Response(
@@ -199,7 +199,7 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # TODO: Integrate with email service (SES, SendGrid)
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - Email)
         # 1. Send verification email
         # 2. Wait for verification confirmation
         # 3. Update verification status
@@ -330,7 +330,7 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
 
         context = branding.get_email_template_context()
 
-        # TODO: Render actual email template
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - Email Template)
         html_preview = f"""
         <!DOCTYPE html>
         <html>
