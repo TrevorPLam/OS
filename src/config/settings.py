@@ -493,6 +493,37 @@ if not DEBUG:
     CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI", None)  # Optional: CSP violation reporting endpoint
 
 # =============================================================================
+# Webhook Rate Limiting (SEC-2)
+# =============================================================================
+# Rate limiting for webhook endpoints to prevent webhook flooding attacks
+# Default: 100 requests per minute per IP address
+# Format: 'N/period' where period can be 's' (second), 'm' (minute), 'h' (hour), 'd' (day)
+# Examples: '100/m' = 100/minute, '10/s' = 10/second, '1000/h' = 1000/hour
+# Can be overridden per webhook endpoint if needed
+WEBHOOK_RATE_LIMIT = os.environ.get("WEBHOOK_RATE_LIMIT", "100/m")
+
+# =============================================================================
+# Data Retention Configuration (SEC-3)
+# =============================================================================
+# Data retention periods for various data types
+# See docs/DATA_RETENTION_POLICY.md for complete policy
+
+# Webhook event retention (default: 180 days)
+WEBHOOK_RETENTION_DAYS = int(os.environ.get("WEBHOOK_RETENTION_DAYS", "180"))
+
+# Application log retention (default: 90 days)
+LOG_RETENTION_DAYS = int(os.environ.get("LOG_RETENTION_DAYS", "90"))
+
+# Audit log cold storage threshold (default: 365 days)
+AUDIT_LOG_ARCHIVE_DAYS = int(os.environ.get("AUDIT_LOG_ARCHIVE_DAYS", "365"))
+
+# Audit log retention period (minimum: 7 years for compliance)
+AUDIT_LOG_RETENTION_YEARS = 7  # SOX, HIPAA, financial regulations
+
+# Enable automated cleanup jobs (default: true in production)
+ENABLE_AUTOMATED_CLEANUP = os.environ.get("ENABLE_AUTOMATED_CLEANUP", "true").lower() == "true"
+
+# =============================================================================
 # Error Tracking & Monitoring (Sentry)
 # =============================================================================
 # Initialize Sentry for error tracking and performance monitoring

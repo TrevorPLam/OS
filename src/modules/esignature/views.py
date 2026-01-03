@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
+from django_ratelimit.decorators import ratelimit
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -238,12 +239,14 @@ def docusign_callback(request):
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes([])  # No authentication for webhooks (verified by HMAC)
+@ratelimit(key="ip", rate="100/m", method="POST", block=True)
 def docusign_webhook(request):
     """
-    Handle DocuSign webhook callbacks (SEC-1: Idempotency tracking).
+    Handle DocuSign webhook callbacks (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
     
     Processes envelope status updates and stores events.
     SEC-1: Implements idempotency by checking WebhookEvent before processing.
+    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
     """
     from django.db import IntegrityError, transaction
     

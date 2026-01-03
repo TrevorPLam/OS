@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from .models import (
     SMSMessage,
@@ -85,9 +86,10 @@ def _verify_twilio_signature(request):
 
 @csrf_exempt
 @require_POST
+@ratelimit(key="ip", rate="100/m", method="POST", block=True)
 def twilio_status_webhook(request):
     """
-    Handle Twilio delivery status webhook (SEC-1: Idempotency tracking).
+    Handle Twilio delivery status webhook (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
 
     Updates message status when delivery status changes.
 
@@ -98,6 +100,7 @@ def twilio_status_webhook(request):
     - ErrorMessage: Error description if failed (optional)
     
     SEC-1: Implements idempotency by checking SMSWebhookEvent before processing.
+    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
     """
     from django.db import IntegrityError
     from modules.sms.models import SMSWebhookEvent
@@ -201,9 +204,10 @@ def twilio_status_webhook(request):
 
 @csrf_exempt
 @require_POST
+@ratelimit(key="ip", rate="100/m", method="POST", block=True)
 def twilio_inbound_webhook(request):
     """
-    Handle Twilio inbound SMS webhook.
+    Handle Twilio inbound SMS webhook (SEC-2: Rate limiting).
 
     Processes incoming SMS messages, creates conversation threads,
     and checks for opt-out keywords.
@@ -215,6 +219,8 @@ def twilio_inbound_webhook(request):
     - Body: Message text
     - NumMedia: Number of media attachments
     - MediaUrl0, MediaUrl1, ...: Media URLs (if MMS)
+    
+    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
     """
     # CONST-3: Verify Twilio webhook signature
     if not _verify_twilio_signature(request):

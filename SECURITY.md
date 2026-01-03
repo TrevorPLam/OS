@@ -20,6 +20,54 @@ The team will triage reports as quickly as possible, prioritize based on severit
 
 ## Dependency Management
 
+### Webhook Rate Limiting (SEC-2)
+
+All webhook endpoints are rate limited to prevent webhook flooding attacks.
+
+**Default Rate Limit:**
+
+- **100 requests per minute per IP address** for all webhook endpoints
+- Applies to: Stripe, Square, DocuSign, and Twilio (SMS) webhooks
+- Returns HTTP 429 (Too Many Requests) when limit exceeded
+
+**Webhook Endpoints Protected:**
+
+- `/api/v1/finance/stripe/webhook/` - Stripe payment webhooks
+- `/api/v1/finance/square/webhook/` - Square payment webhooks  
+- `/api/v1/esignature/docusign/webhook/` - DocuSign e-signature webhooks
+- `/api/v1/sms/webhook/status/` - Twilio SMS status webhooks
+- `/api/v1/sms/webhook/inbound/` - Twilio inbound SMS webhooks
+
+**Configuring Rate Limits:**
+
+Rate limits can be adjusted via the `WEBHOOK_RATE_LIMIT` environment variable:
+
+```bash
+# Default: 100 requests per minute
+export WEBHOOK_RATE_LIMIT="100/m"
+
+# Examples of other rate limits:
+export WEBHOOK_RATE_LIMIT="200/m"  # 200 per minute
+export WEBHOOK_RATE_LIMIT="10/s"   # 10 per second
+export WEBHOOK_RATE_LIMIT="1000/h" # 1000 per hour
+```
+
+**Monitoring Rate Limit Violations:**
+
+Rate limit violations are logged and can be monitored through application logs:
+
+```
+WARNING: Rate limit exceeded for webhook endpoint from IP 192.168.1.1
+```
+
+**Legitimate Traffic Considerations:**
+
+The default rate limit of 100 requests/minute per IP should accommodate legitimate webhook traffic from providers. If you experience legitimate traffic being blocked:
+
+1. Check your webhook provider's retry behavior
+2. Verify no retry storms are occurring
+3. Adjust `WEBHOOK_RATE_LIMIT` if needed for your volume
+
 ### Content Security Policy (CSP)
 
 The application uses Content Security Policy headers in production to prevent cross-site scripting (XSS) and other code injection attacks.
