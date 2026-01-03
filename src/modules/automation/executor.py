@@ -12,10 +12,11 @@ Implements:
 Integrates with job queue system for async execution.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from modules.jobs.models import JobQueue
 
@@ -303,7 +304,46 @@ class WorkflowExecutor:
         elif wait_type == "until_date":
             # Wait until specific date
             wait_until_date = config.get("wait_until_date")
-            # Tracked in TODO: T-009 (Implement Date String Parsing in Automation Executor)
+            
+            # Parse date string if it's a string (ISO 8601 format)
+            if isinstance(wait_until_date, str):
+                try:
+                    # Parse ISO 8601 date string
+                    parsed_date = parse_datetime(wait_until_date)
+                    if parsed_date is None:
+                        # If parse_datetime fails, try parsing as date only
+                        from django.utils.dateparse import parse_date
+                        date_only = parse_date(wait_until_date)
+                        if date_only:
+                            # Convert date to datetime at start of day in current timezone
+                            parsed_date = timezone.make_aware(
+                                datetime.combine(date_only, datetime.min.time())
+                            )
+                    
+                    if parsed_date is None:
+                        # Invalid date format, log error and continue
+                        flow_state.status = "failed"
+                        flow_state.error_message = f"Invalid date format: {wait_until_date}"
+                        flow_state.save()
+                        return {
+                            "status": "failed",
+                            "error": f"Invalid date format: {wait_until_date}",
+                        }
+                    
+                    # Ensure timezone-aware datetime
+                    if timezone.is_naive(parsed_date):
+                        parsed_date = timezone.make_aware(parsed_date)
+                    
+                    wait_until_date = parsed_date
+                except (ValueError, TypeError) as e:
+                    # Handle parsing errors
+                    flow_state.status = "failed"
+                    flow_state.error_message = f"Error parsing date: {str(e)}"
+                    flow_state.save()
+                    return {
+                        "status": "failed",
+                        "error": f"Error parsing date: {str(e)}",
+                    }
 
             return {
                 "status": "wait",

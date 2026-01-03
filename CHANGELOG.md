@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Automation Improvements** (2026-01-03)
+  - **T-009**: Date string parsing in automation executor
+    - Implemented ISO 8601 date string parsing for "wait until date" automation actions
+    - Automatic timezone-aware datetime conversion from date strings
+    - Handles multiple ISO 8601 formats (with/without timezone, date-only)
+    - Comprehensive error handling for invalid date formats
+    - Added extensive test coverage for date parsing scenarios
+    - Improves workflow reliability when using date-based wait conditions
+
 ### Changed
 
 - **Dependency Management** (2026-01-03)
