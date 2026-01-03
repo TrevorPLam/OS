@@ -8,6 +8,8 @@ TIER 0: All clients MUST belong to exactly one Firm for tenant isolation.
 TIER 2.6: Organizations allow optional cross-client collaboration within a firm.
 """
 
+import hashlib
+import json
 from datetime import date
 from decimal import Decimal
 
@@ -1126,8 +1128,13 @@ class Contact(models.Model):
         
         Returns:
             bool: True if contact has active consent, False otherwise
+        
+        Note:
+            ConsentRecord is defined later in this module. We use globals() to access it
+            at runtime, which is safe because this method is only called after the module
+            is fully loaded. This avoids circular import issues.
         """
-        # ConsentRecord is defined later in this file, so we need to access it dynamically
+        # Access ConsentRecord dynamically (defined later in this file)
         ConsentRecord = globals()['ConsentRecord']
         status = ConsentRecord.get_current_consent(self, consent_type)
         return status["has_consent"]
@@ -2192,9 +2199,6 @@ class ConsentRecord(models.Model):
         Raises:
             ValueError: If attempting to modify an existing record
         """
-        import hashlib
-        import json
-        
         # Prevent modifications to existing records (immutability)
         if self.pk is not None:
             raise ValueError(
@@ -2217,11 +2221,15 @@ class ConsentRecord(models.Model):
         
         # Compute the record hash
         if not self.record_hash:
+            # Ensure timestamp is set (should be auto-set by auto_now_add)
+            if not self.timestamp:
+                raise ValueError("Timestamp must be set before computing hash")
+            
             hash_data = {
                 "contact_id": self.contact_id,
                 "consent_type": self.consent_type,
                 "action": self.action,
-                "timestamp": self.timestamp.isoformat() if self.timestamp else timezone.now().isoformat(),
+                "timestamp": self.timestamp.isoformat(),
                 "previous_hash": self.previous_record_hash,
                 "legal_basis": self.legal_basis,
                 "data_categories": sorted(self.data_categories) if self.data_categories else [],
@@ -2279,10 +2287,7 @@ class ConsentRecord(models.Model):
                     f"Expected: {expected_previous_hash}, Got: {record.previous_record_hash}"
                 )
             
-            # Verify the record hash is correct
-            import hashlib
-            import json
-            
+            # Verify the record hash is correct (imports at top of file)
             hash_data = {
                 "contact_id": record.contact_id,
                 "consent_type": record.consent_type,

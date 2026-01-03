@@ -1095,9 +1095,11 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         serializer.is_valid(raise_exception=True)
         
         # Verify the contact belongs to the current firm
-        firm = get_request_firm(request)
         contact = serializer.validated_data['contact']
-        if contact.client.firm != firm:
+        try:
+            # Use helper method to verify firm membership
+            self._get_firm_contact(request, contact.id)
+        except Contact.DoesNotExist:
             return Response(
                 {"error": "Contact not found or does not belong to your firm"},
                 status=404
