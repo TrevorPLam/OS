@@ -20,6 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
       ```bash
       pip install -r requirements.txt -r requirements-dev.txt
       ```
+  
+  - **SEC-5**: Pin frontend dependency versions
+    - Replaced caret (^) versions with exact versions in package.json
+    - All dependencies now use exact versions from package-lock.json
+    - Ensures reproducible builds across all environments
+    - package-lock.json already committed to repository
+    - Update process documented in SECURITY.md
 
 ---
 
