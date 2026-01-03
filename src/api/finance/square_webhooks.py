@@ -1,15 +1,17 @@
 """
-Square Webhook Handler for payment events (PAY-2).
+Square Webhook Handler for payment events (PAY-2, SEC-1: Idempotency tracking).
 
 Handles asynchronous payment confirmations and updates from Square.
 """
 
 import hashlib
 import hmac
+import json
 import logging
 from decimal import Decimal
 
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -17,7 +19,7 @@ from django.views.decorators.http import require_POST
 
 from modules.core.telemetry import log_event, log_metric, track_duration
 from modules.finance.billing import handle_payment_failure
-from modules.finance.models import Invoice
+from modules.finance.models import Invoice, SquareWebhookEvent
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +28,15 @@ logger = logging.getLogger(__name__)
 @require_POST
 def square_webhook(request):
     """
-    Handle Square webhook events.
+    Handle Square webhook events (SEC-1: Idempotency tracking).
 
     Verifies webhook signature and processes payment events:
     - payment.created: Log payment initiation
     - payment.updated: Update invoice status based on payment status
     - refund.created: Handle refunds
     - refund.updated: Update refund status
+    
+    SEC-1: Implements idempotency by checking SquareWebhookEvent before processing.
     """
     payload = request.body
     signature = request.META.get("HTTP_X_SQUARE_SIGNATURE")
@@ -48,8 +52,6 @@ def square_webhook(request):
         return HttpResponse(status=400)
 
     try:
-        import json
-
         event = json.loads(payload)
     except ValueError as e:
         logger.error("Square webhook invalid payload")
@@ -60,17 +62,62 @@ def square_webhook(request):
         )
         return HttpResponse(status=400)
 
-    # Handle the event
+    # Extract event metadata
+    event_id = event.get("event_id") or event.get("merchant_id", "unknown")  # Square uses event_id
     event_type = event.get("type")
     event_data = event.get("data", {}).get("object", {})
+    
+    # SEC-1: Check for duplicate webhook event
+    # Try to create webhook event record atomically
+    try:
+        # Extract firm from event data (if available)
+        reference_id = event_data.get("reference_id")  # This should be invoice_id
+        firm = None
+        
+        if reference_id:
+            try:
+                invoice = Invoice.objects.select_related("firm").get(id=int(reference_id))
+                firm = invoice.firm
+            except (Invoice.DoesNotExist, ValueError):
+                pass
+        
+        with transaction.atomic():
+            # Try to create webhook event record
+            webhook_event = SquareWebhookEvent.objects.create(
+                firm=firm,  # May be None if we can't determine firm yet
+                square_event_id=event_id,
+                event_type=event_type,
+                event_data=event,
+                processed_successfully=False,  # Will be updated after processing
+            )
+            
+    except IntegrityError:
+        # Duplicate webhook delivery - event already processed
+        logger.info(f"Duplicate Square webhook event received: {event_id}")
+        log_event(
+            "square_webhook_duplicate",
+            provider="square",
+            webhook_type=event_type,
+            event_id=event_id,
+        )
+        log_metric(
+            "square_webhook_duplicate",
+            provider="square",
+            webhook_type=event_type,
+        )
+        # Return 200 OK without reprocessing (SEC-1 acceptance criteria)
+        return HttpResponse(status=200)
 
-    logger.info("Received Square webhook")
+    logger.info(f"Received Square webhook: {event_id}")
     log_event(
         "square_webhook_received",
         provider="square",
         webhook_type=event_type,
+        event_id=event_id,
     )
 
+    # Process the event
+    processing_error = None
     try:
         with track_duration(
             "square_webhook_process",
@@ -78,34 +125,46 @@ def square_webhook(request):
             webhook_type=event_type,
         ):
             if event_type == "payment.created":
-                handle_payment_created(event_data)
+                handle_payment_created(event_data, webhook_event)
             elif event_type == "payment.updated":
-                handle_payment_updated(event_data)
+                handle_payment_updated(event_data, webhook_event)
             elif event_type == "refund.created":
-                handle_refund_created(event_data)
+                handle_refund_created(event_data, webhook_event)
             elif event_type == "refund.updated":
-                handle_refund_updated(event_data)
+                handle_refund_updated(event_data, webhook_event)
             elif event_type == "invoice.published":
-                handle_invoice_published(event_data)
+                handle_invoice_published(event_data, webhook_event)
             elif event_type == "invoice.payment_made":
-                handle_invoice_payment_made(event_data)
+                handle_invoice_payment_made(event_data, webhook_event)
             elif event_type == "invoice.canceled":
-                handle_invoice_canceled(event_data)
+                handle_invoice_canceled(event_data, webhook_event)
             else:
-                logger.info("Unhandled Square event type")
+                logger.info(f"Unhandled Square event type: {event_type}")
                 log_event(
                     "square_webhook_unhandled",
                     provider="square",
                     webhook_type=event_type,
                 )
+        
+        # Mark webhook event as successfully processed
+        webhook_event.processed_successfully = True
+        webhook_event.save(update_fields=["processed_successfully"])
+        
     except Exception as e:
-        logger.error("Error processing Square webhook")
+        processing_error = str(e)
+        logger.error(f"Error processing Square webhook: {e}", exc_info=True)
         log_event(
             "square_webhook_failed",
             provider="square",
             webhook_type=event_type,
             error_class=e.__class__.__name__,
         )
+        
+        # Mark webhook event as failed
+        webhook_event.processed_successfully = False
+        webhook_event.error_message = processing_error
+        webhook_event.save(update_fields=["processed_successfully", "error_message"])
+        
         return HttpResponse(status=500)
 
     log_metric(
@@ -144,7 +203,7 @@ def verify_square_signature(payload: bytes, signature: str, webhook_url: str) ->
     return hmac.compare_digest(signature, expected_signature)
 
 
-def handle_payment_created(payment):
+def handle_payment_created(payment, webhook_event=None):
     """
     Handle payment.created event.
 
@@ -159,7 +218,7 @@ def handle_payment_created(payment):
     )
 
 
-def handle_payment_updated(payment):
+def handle_payment_updated(payment, webhook_event=None):
     """
     Handle payment.updated event.
 
@@ -200,6 +259,12 @@ def handle_payment_updated(payment):
             invoice.autopay_status = "succeeded"
             invoice.autopay_next_charge_at = None
             invoice.save()
+
+            # Link webhook event to invoice (SEC-1)
+            if webhook_event:
+                webhook_event.invoice = invoice
+                webhook_event.firm = invoice.firm
+                webhook_event.save(update_fields=["invoice", "firm"])
 
             logger.info(f"Invoice {invoice.id} updated from Square payment")
             log_metric(
@@ -260,7 +325,7 @@ def handle_payment_updated(payment):
         )
 
 
-def handle_refund_created(refund):
+def handle_refund_created(refund, webhook_event=None):
     """
     Handle refund.created event.
 
@@ -275,7 +340,7 @@ def handle_refund_created(refund):
     )
 
 
-def handle_refund_updated(refund):
+def handle_refund_updated(refund, webhook_event=None):
     """
     Handle refund.updated event.
 
@@ -332,7 +397,7 @@ def handle_refund_updated(refund):
             )
 
 
-def handle_invoice_published(square_invoice):
+def handle_invoice_published(square_invoice, webhook_event=None):
     """
     Handle invoice.published event.
 
@@ -362,7 +427,7 @@ def handle_invoice_published(square_invoice):
         logger.error(f"Error updating invoice from Square publish event: {str(e)}")
 
 
-def handle_invoice_payment_made(square_invoice):
+def handle_invoice_payment_made(square_invoice, webhook_event=None):
     """
     Handle invoice.payment_made event.
 
@@ -407,7 +472,7 @@ def handle_invoice_payment_made(square_invoice):
         )
 
 
-def handle_invoice_canceled(square_invoice):
+def handle_invoice_canceled(square_invoice, webhook_event=None):
     """
     Handle invoice.canceled event.
 
