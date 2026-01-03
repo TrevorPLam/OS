@@ -229,7 +229,7 @@ This prevents future churn and re-arguing.
 Inventory:
 
 * Ecosystem(s): Python (Django/DRF backend)
-* Total dependencies: 35 production + 10 dev = 45 total (7 duplicates)
+* Total dependencies: 35 production + 10 dev (7 duplicates) = 38 unique packages
 * Critical dependencies:
   * Django 4.2.17 (LTS) - Web framework
   * djangorestframework 3.14.0 - REST API
@@ -248,9 +248,10 @@ Findings:
 
 * (P1) **DEP-CLEANUP-1**: Remove development/testing dependencies from requirements.txt
   * Issue: pytest, pytest-django, pytest-cov, coverage, factory-boy, faker are in production requirements
+  * These are testing tools that should only be in requirements-dev.txt
   * Impact: Increases production container size, attack surface, and deployment time
-  * Should be: Only in requirements-dev.txt
-  * Files: requirements.txt (remove 6 packages)
+  * Should be: Only in requirements-dev.txt (note: pytest, pytest-django, pytest-cov, factory-boy are already duplicated in dev)
+  * Files: requirements.txt (remove 6 packages: pytest, pytest-django, pytest-cov, coverage, factory-boy, faker)
   
 * (P1) **DEP-CLEANUP-2**: Remove code quality tools from requirements.txt
   * Issue: ruff, black are in production requirements
@@ -286,6 +287,6 @@ Notes / assumptions:
 * No duplicate functionality detected (one HTTP client: requests, one date lib: standard library, one validation: DRF built-in)
 * Licensing: All dependencies use permissive licenses (MIT, Apache, BSD)
 * Security: cryptography 43.0.1 is current, no known vulnerabilities in listed versions
-* Production container could be ~40% smaller by removing dev/test dependencies (estimated 150-200MB reduction)
+* Production container could be ~40% smaller by removing dev/test dependencies (estimated 150MB-200MB reduction)
 
 ---

@@ -369,30 +369,31 @@
 **Priority:** P1 - Reduces production container size and attack surface
 
 - [ ] **DEP-CLEANUP-1:** Move testing dependencies to requirements-dev.txt only (1-2 hours)
-  - Remove pytest, pytest-django, pytest-cov, coverage from requirements.txt
-  - Remove factory-boy, faker from requirements.txt
-  - Ensure all testing tools are consolidated in requirements-dev.txt only
-  - Verify CI/CD pipeline still works with split dependencies
+  - Remove pytest, pytest-django, pytest-cov, coverage, factory-boy, faker from requirements.txt
+  - Note: pytest, pytest-django, pytest-cov, factory-boy are already in requirements-dev.txt
+  - Add coverage and faker to requirements-dev.txt if not already there
+  - Verify all testing tools are consolidated in requirements-dev.txt only
+  - Update CI/CD pipeline to install requirements-dev.txt for testing stages
   - Document in CHANGELOG.md
-  - Expected impact: ~100MB reduction in production container size
+  - Expected impact: ~80-100MB reduction in production container size
   - Files: requirements.txt, requirements-dev.txt
   - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
 
 - [ ] **DEP-CLEANUP-2:** Move code quality tools to requirements-dev.txt only (1-2 hours)
-  - Remove ruff, black from requirements.txt
-  - Ensure they remain in requirements-dev.txt
-  - Update CI/CD linting jobs to use requirements-dev.txt
+  - Remove ruff, black from requirements.txt (they are already in requirements-dev.txt)
+  - Update CI/CD linting jobs to explicitly use requirements-dev.txt
   - Document in CHANGELOG.md
-  - Expected impact: ~50MB reduction in production container size
+  - Expected impact: ~40-50MB reduction in production container size
   - Files: requirements.txt, requirements-dev.txt
   - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
 
 - [ ] **DEP-CLEANUP-3:** Move security scanning tools to requirements-dev.txt only (1-2 hours)
-  - Remove safety, import-linter from requirements.txt
-  - Ensure they remain in requirements-dev.txt
+  - Remove safety from requirements.txt
+  - Remove import-linter from requirements.txt (it's already in requirements-dev.txt)
+  - Add safety to requirements-dev.txt if not already there
   - Update CI/CD security scanning jobs to use requirements-dev.txt
   - Document in CHANGELOG.md
-  - Expected impact: ~20MB reduction in production container size
+  - Expected impact: ~20-30MB reduction in production container size
   - Files: requirements.txt, requirements-dev.txt
   - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
 
