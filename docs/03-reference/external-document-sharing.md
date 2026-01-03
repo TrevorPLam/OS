@@ -490,9 +490,9 @@ assert share.revoked == True
 
 ---
 
-## Public Access Endpoint (TODO)
+## Public Access Endpoint (Tracked in TODO: T-015)
 
-The public access endpoint needs to be implemented in a separate view that doesn't require authentication:
+The public access endpoint implementation is tracked in TODO: T-015. The endpoint should be implemented in a separate view that doesn't require authentication:
 
 ```python
 # In src/api/public/views.py or similar

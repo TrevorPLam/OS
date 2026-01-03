@@ -316,7 +316,7 @@ For operational issues, see:
 - **Troubleshooting Guide:** `docs/TROUBLESHOOTING.md` (evidence: created in this session)
 - **Runbooks:** `docs/RUNBOOKS/` (evidence: `docs/runbooks/README.md`)
   - Rollback: `docs/RUNBOOKS/ROLLBACK.md` ✅ EXISTS
-  - Incident Response: **UNKNOWN** (marked TODO in runbooks/README.md:18)
+  - Incident Response: **Tracked in TODO: T-012** (to be created)
 
 ---
 

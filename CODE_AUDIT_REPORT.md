@@ -9,15 +9,22 @@
 
 ## Executive Summary
 
-The CODE_AUDIT has been executed successfully, resulting in improved task hygiene and codebase organization. This audit identified 28 inline TODO/FIXME markers and consolidated them into 11 structured, actionable tasks with clear acceptance criteria and file references.
+The CODE_AUDIT has been executed successfully, resulting in improved task hygiene and codebase organization. This audit identified 40 TODO/FIXME markers (28 in code, 12 in documentation) and consolidated them into 15 structured, actionable tasks with clear acceptance criteria and file references.
 
 **Key Outcomes:**
 - ✅ Task truth source documented (TODO.md)
-- ✅ 11 new structured tasks created (T-001 through T-011)
-- ✅ 28 inline TODO markers replaced with task references
+- ✅ 15 new structured tasks created (T-001 through T-015)
+- ✅ 40 TODO markers replaced with task references (28 code + 12 docs)
 - ✅ All tasks prioritized (P0/P1/P2) and categorized by type
-- ✅ Zero actionable items remaining in code comments
+- ✅ Zero actionable items remaining in code comments or documentation
 - ✅ Repository already has extensive spec compliance documentation
+- ✅ Phase 1 (Task Hygiene) fully completed including documentation sweep
+
+**Updates (January 3, 2026 - Evening):**
+- Re-executed Phase 1 Step 2 (Sweep Docs for Tasks) after initial incomplete execution
+- Found and converted 12 additional TODOs in documentation
+- Created 4 additional tasks (T-012 through T-015) for operational runbooks and tooling
+- Updated cross-references in OPERATIONS.md and TROUBLESHOOTING.md
 
 ---
 
@@ -51,10 +58,19 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
 - **Action:** Verified all are properly documented in TODO_COMPLETED.md
 - **Result:** No additional moves needed; archiving is current
 
-**Step 2: Sweep Docs for Tasks** ✅
-- **Files Scanned:** 20+ documentation files
-- **Finding:** No actionable TODO/FIXME items found requiring task creation
-- **Note:** DEFERRED items already properly documented (Slack, SMS, WebSocket integrations)
+**Step 2: Sweep Docs for Tasks** ✅ **RE-EXECUTED** (January 3, 2026 - Evening)
+- **Initial Assessment (Morning):** 20+ documentation files scanned, no TODOs found
+- **Re-Scan (Evening):** Found 12 actionable TODOs in documentation that were missed
+- **Files with TODOs:**
+  - docs/runbooks/README.md: 9 runbook TODOs (Incident Response, Deployment, Backup/Restore, Scaling, Failed Jobs, DB issues, Cache failures, High error rate, Slow response)
+  - docs/STYLE_GUIDE.md: 2 TODOs (Markdown linting, Spell checking)
+  - docs/03-reference/external-document-sharing.md: 1 TODO (Public Access Endpoint)
+- **Actions Taken:**
+  - Created 4 consolidated tasks (T-012 through T-015)
+  - Grouped related runbooks into T-012 (core operational) and T-013 (common failures)
+  - Replaced all 12 TODOs with "Tracked in TODO: T-###" references
+  - Updated cross-references in docs/OPERATIONS.md and docs/TROUBLESHOOTING.md
+- **Result:** Zero actionable TODOs remain in documentation
 
 **Step 3: Sweep Code for Tasks** ✅
 - **Files Scanned:** 15 source files containing TODO/FIXME markers
@@ -69,8 +85,8 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
 - **Finding:** No unused environment variables or obsolete config
 - **Result:** Configuration is clean and current
 
-**Step 5: Normalize, Split, Dedupe** ✅
-- **Action:** All 11 tasks follow required format with:
+**Step 5: Normalize, Split, Dedupe** ✅ **UPDATED**
+- **Action:** All 15 tasks (T-001 through T-015) follow required format with:
   - ID (T-###)
   - Priority (P0/P1/P2)
   - Type (HYGIENE/COMPLETE/QUALITY/DEADCODE/ENHANCE)
@@ -81,26 +97,30 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
   - Dependencies (when applicable)
   - Effort (S/M/L)
 
-**Step 6: Provisional Prioritize** ✅
+**Step 6: Provisional Prioritize** ✅ **UPDATED**
 - **P0 (Critical):** 0 tasks
-- **P1 (High):** 5 tasks
+- **P1 (High):** 6 tasks
   - T-002: Background Job Queue for Webhooks
   - T-004: Email Send Jobs Integration
   - T-006: Deal Assignment Notifications
   - T-008: Complete Automation Integrations
   - T-011: Portal Branding Infrastructure
-- **P2 (Medium):** 6 tasks
+  - T-012: Create Core Operational Runbooks
+- **P2 (Medium):** 9 tasks
   - T-001: Critical Path Calculation
   - T-003: Remove Legacy Endpoints
-  - T-005: CIDR Range Support
+  - T-005: CIDR Range Support (✅ COMPLETED)
   - T-007: Stage Automation Webhooks
-  - T-009: Date Parsing in Automation
+  - T-009: Date Parsing in Automation (✅ COMPLETED)
   - T-010: Geographic Filtering
+  - T-013: Create Common Failure Runbooks
+  - T-014: Implement Documentation Linting Tools
+  - T-015: Implement Public Access Endpoint
 
 **Gate Met:** ✅ All criteria satisfied
-- TODO.md has no completed tasks
-- Docs/code no longer contain executable tasks
-- Top 5 P1 tasks are immediately startable
+- TODO.md has no completed tasks (T-005 and T-009 moved to TODO_COMPLETED.md)
+- Docs/code no longer contain executable tasks (all replaced with "Tracked in TODO: T-###")
+- Top 6 P1 tasks are immediately startable
 
 ---
 
@@ -205,17 +225,18 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 **Completion Date:** January 3, 2026
 
 **Actions Completed:**
-1. **Deduplication:** All 11 tasks are unique and non-overlapping
+1. **Deduplication:** All 15 tasks are unique and non-overlapping
 2. **Priority Ordering:** Tasks ordered by P1 → P2 within TODO.md
 3. **Dependency Chain:** Dependencies documented (T-007 depends on T-002)
-4. **Top 5 Verification:**
+4. **Top 6 P1 Tasks Verification:**
    - T-002 (P1): Webhook background jobs - ✅ Actionable
    - T-004 (P1): Email send jobs - ✅ Actionable
    - T-006 (P1): Deal notifications - ✅ Actionable
    - T-008 (P1): Automation integrations - ✅ Actionable (partial blockers documented)
    - T-011 (P1): Portal infrastructure - ✅ Actionable (AWS config dependency noted)
+   - T-012 (P1): Core operational runbooks - ✅ Actionable
 
-**Gate Met:** ✅ Top 5 tasks are actionable with references
+**Gate Met:** ✅ Top 6 P1 tasks are actionable with references
 
 ---
 
@@ -229,24 +250,33 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 | T-002 | P1 | COMPLETE | Background Job Queue for Webhooks | M (6-8h) | Pending |
 | T-003 | P2 | DEADCODE | Remove Legacy Endpoints | S (2-4h) | Pending |
 | T-004 | P1 | COMPLETE | Email Send Jobs Integration | M (8-12h) | Pending |
-| T-005 | P2 | ENHANCE | CIDR Range Support | S (4-6h) | Pending |
+| T-005 | P2 | ENHANCE | CIDR Range Support | S (4-6h) | ✅ Complete |
 | T-006 | P1 | COMPLETE | Deal Assignment Notifications | M (6-8h) | Pending |
 | T-007 | P2 | COMPLETE | Stage Automation Webhooks | M (6-8h) | Pending |
 | T-008 | P1 | COMPLETE | Complete Automation Integrations | L (16-24h) | Pending |
-| T-009 | P2 | QUALITY | Date Parsing in Automation | S (2-3h) | Pending |
+| T-009 | P2 | QUALITY | Date Parsing in Automation | S (2-3h) | ✅ Complete |
 | T-010 | P2 | COMPLETE | Geographic Filtering | M (8-12h) | Pending |
 | T-011 | P1 | COMPLETE | Portal Branding Infrastructure | L (20-28h) | Pending |
+| T-012 | P1 | COMPLETE | Core Operational Runbooks | M (12-16h) | Pending |
+| T-013 | P2 | COMPLETE | Common Failure Runbooks | M (6-8h) | Pending |
+| T-014 | P2 | ENHANCE | Documentation Linting Tools | S (4-6h) | Pending |
+| T-015 | P2 | COMPLETE | Public Access Endpoint | S (4-6h) | Pending |
 
-**Total Effort:** 66-102 hours  
-**Type Distribution:** 7 COMPLETE, 1 QUALITY, 1 DEADCODE, 1 ENHANCE, 1 HYGIENE
+**Total Effort:** 92-140 hours (66-102 hours remaining after T-005 and T-009 completed)  
+**Type Distribution:** 11 COMPLETE, 1 QUALITY, 1 DEADCODE, 2 ENHANCE
 
 ---
 
 ## Files Modified
 
 ### Documentation
-- **TODO.md:** Added 11 new tasks under "CODE AUDIT - Task Hygiene" section
-- **CODE_AUDIT_REPORT.md:** Created (this file)
+- **TODO.md:** Added 15 tasks (T-001 through T-015) under "CODE AUDIT - Task Hygiene" section
+- **CODE_AUDIT_REPORT.md:** Created and updated (this file)
+- **docs/runbooks/README.md:** Replaced 9 TODO markers with task references (T-012, T-013)
+- **docs/STYLE_GUIDE.md:** Replaced 2 TODO markers with task reference (T-014)
+- **docs/03-reference/external-document-sharing.md:** Replaced TODO with task reference (T-015)
+- **docs/OPERATIONS.md:** Updated runbook reference to point to T-012
+- **docs/TROUBLESHOOTING.md:** Updated runbook references to point to T-012
 
 ### Source Code (TODO Replacements)
 1. src/api/projects/views.py
@@ -262,7 +292,7 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 11. src/modules/clients/portal_views.py
 12. src/modules/clients/portal_branding.py
 
-**Total Files Modified:** 13 files (1 doc + 12 source)
+**Total Files Modified:** 19 files (7 docs + 12 source)
 
 ---
 
