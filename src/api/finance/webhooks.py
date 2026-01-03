@@ -1,5 +1,5 @@
 """
-Stripe Webhook Handler for payment events.
+Stripe Webhook Handler for payment events (SEC-1: Idempotency tracking).
 
 Handles asynchronous payment confirmations and updates.
 """
@@ -9,6 +9,7 @@ from datetime import timedelta
 
 import stripe
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
@@ -16,7 +17,7 @@ from django.views.decorators.http import require_POST
 
 from modules.core.telemetry import log_event, log_metric, track_duration
 from modules.finance.billing import handle_payment_failure
-from modules.finance.models import Invoice
+from modules.finance.models import Invoice, StripeWebhookEvent
 
 logger = logging.getLogger(__name__)
 
@@ -27,13 +28,15 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @require_POST
 def stripe_webhook(request):
     """
-    Handle Stripe webhook events.
+    Handle Stripe webhook events (SEC-1: Idempotency tracking).
 
     Verifies webhook signature and processes payment events:
     - payment_intent.succeeded: Mark invoice as paid
     - payment_intent.payment_failed: Log failure
     - invoice.payment_succeeded: Update invoice status
     - charge.refunded: Handle refunds
+    
+    SEC-1: Implements idempotency by checking StripeWebhookEvent before processing.
     """
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
@@ -61,17 +64,63 @@ def stripe_webhook(request):
         )
         return HttpResponse(status=400)
 
-    # Handle the event
+    # Extract event metadata
+    event_id = event["id"]
     event_type = event["type"]
     event_data = event["data"]["object"]
+    
+    # SEC-1: Check for duplicate webhook event
+    # Try to create webhook event record atomically
+    try:
+        # Extract firm from event metadata (if available)
+        metadata = event_data.get("metadata", {})
+        invoice_id = metadata.get("invoice_id")
+        firm = None
+        
+        if invoice_id:
+            try:
+                invoice = Invoice.objects.select_related("firm").get(id=invoice_id)
+                firm = invoice.firm
+            except Invoice.DoesNotExist:
+                pass
+        
+        with transaction.atomic():
+            # Try to create webhook event record
+            webhook_event = StripeWebhookEvent.objects.create(
+                firm=firm,  # May be None if we can't determine firm yet
+                stripe_event_id=event_id,
+                event_type=event_type,
+                event_data=event,
+                processed_successfully=False,  # Will be updated after processing
+            )
+            
+    except IntegrityError:
+        # Duplicate webhook delivery - event already processed
+        logger.info(f"Duplicate Stripe webhook event received: {event_id}")
+        log_event(
+            "stripe_webhook_duplicate",
+            provider="stripe",
+            webhook_type=event_type,
+            event_id=event_id,
+        )
+        log_metric(
+            "stripe_webhook_duplicate",
+            provider="stripe",
+            webhook_type=event_type,
+        )
+        # Return 200 OK without reprocessing (SEC-1 acceptance criteria)
+        return HttpResponse(status=200)
 
-    logger.info("Received Stripe webhook")
+    logger.info(f"Received Stripe webhook: {event_id}")
     log_event(
         "stripe_webhook_received",
         provider="stripe",
         webhook_type=event_type,
+        event_id=event_id,
     )
 
+    # Process the event
+    processing_error = None
     try:
         with track_duration(
             "stripe_webhook_process",
@@ -79,32 +128,44 @@ def stripe_webhook(request):
             webhook_type=event_type,
         ):
             if event_type == "checkout.session.completed":
-                handle_checkout_session_completed(event_data)
+                handle_checkout_session_completed(event_data, webhook_event)
             elif event_type == "payment_intent.succeeded":
-                handle_payment_intent_succeeded(event_data)
+                handle_payment_intent_succeeded(event_data, webhook_event)
             elif event_type == "payment_intent.payment_failed":
-                handle_payment_intent_failed(event_data)
+                handle_payment_intent_failed(event_data, webhook_event)
             elif event_type == "invoice.payment_succeeded":
-                handle_invoice_payment_succeeded(event_data)
+                handle_invoice_payment_succeeded(event_data, webhook_event)
             elif event_type == "invoice.payment_failed":
-                handle_invoice_payment_failed(event_data)
+                handle_invoice_payment_failed(event_data, webhook_event)
             elif event_type == "charge.refunded":
-                handle_charge_refunded(event_data)
+                handle_charge_refunded(event_data, webhook_event)
             else:
-                logger.info("Unhandled Stripe event type")
+                logger.info(f"Unhandled Stripe event type: {event_type}")
                 log_event(
                     "stripe_webhook_unhandled",
                     provider="stripe",
                     webhook_type=event_type,
                 )
+        
+        # Mark webhook event as successfully processed
+        webhook_event.processed_successfully = True
+        webhook_event.save(update_fields=["processed_successfully"])
+        
     except Exception as e:
-        logger.error("Error processing Stripe webhook")
+        processing_error = str(e)
+        logger.error(f"Error processing Stripe webhook: {e}", exc_info=True)
         log_event(
             "stripe_webhook_failed",
             provider="stripe",
             webhook_type=event_type,
             error_class=e.__class__.__name__,
         )
+        
+        # Mark webhook event as failed
+        webhook_event.processed_successfully = False
+        webhook_event.error_message = processing_error
+        webhook_event.save(update_fields=["processed_successfully", "error_message"])
+        
         return HttpResponse(status=500)
 
     log_metric(
@@ -116,7 +177,7 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 
-def handle_payment_intent_succeeded(payment_intent):
+def handle_payment_intent_succeeded(payment_intent, webhook_event=None):
     """
     Handle successful payment intent.
     Update invoice status to paid.
@@ -152,6 +213,12 @@ def handle_payment_intent_succeeded(payment_intent):
         invoice.autopay_next_charge_at = None
         invoice.save(update_fields=["amount_paid", "status", "paid_date", "autopay_status", "autopay_next_charge_at"])
 
+        # Link webhook event to invoice (SEC-1)
+        if webhook_event:
+            webhook_event.invoice = invoice
+            webhook_event.firm = invoice.firm
+            webhook_event.save(update_fields=["invoice", "firm"])
+
         logger.info("Invoice updated from payment intent")
         log_metric(
             "stripe_payment_intent_succeeded",
@@ -177,7 +244,7 @@ def handle_payment_intent_succeeded(payment_intent):
         )
 
 
-def handle_payment_intent_failed(payment_intent):
+def handle_payment_intent_failed(payment_intent, webhook_event=None):
     """
     Handle failed payment intent.
     Log the failure for manual review.
@@ -204,11 +271,18 @@ def handle_payment_intent_failed(payment_intent):
             invoice.autopay_status = "failed"
             invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
             invoice.save(update_fields=["autopay_status", "autopay_next_charge_at"])
+            
+            # Link webhook event to invoice (SEC-1)
+            if webhook_event:
+                webhook_event.invoice = invoice
+                webhook_event.firm = invoice.firm
+                webhook_event.save(update_fields=["invoice", "firm"])
+                
         except Invoice.DoesNotExist:
             pass
 
 
-def handle_invoice_payment_succeeded(stripe_invoice):
+def handle_invoice_payment_succeeded(stripe_invoice, webhook_event=None):
     """
     Handle successful Stripe invoice payment.
     """
@@ -235,6 +309,12 @@ def handle_invoice_payment_succeeded(stripe_invoice):
         invoice.autopay_next_charge_at = None
         invoice.save(update_fields=["amount_paid", "status", "paid_date", "autopay_status", "autopay_next_charge_at"])
 
+        # Link webhook event to invoice (SEC-1)
+        if webhook_event:
+            webhook_event.invoice = invoice
+            webhook_event.firm = invoice.firm
+            webhook_event.save(update_fields=["invoice", "firm"])
+
         logger.info("Invoice marked as paid from Stripe invoice")
         log_metric(
             "stripe_invoice_payment_succeeded",
@@ -252,7 +332,7 @@ def handle_invoice_payment_succeeded(stripe_invoice):
         )
 
 
-def handle_invoice_payment_failed(stripe_invoice):
+def handle_invoice_payment_failed(stripe_invoice, webhook_event=None):
     """
     Handle failed Stripe invoice payment.
     """
@@ -274,6 +354,13 @@ def handle_invoice_payment_failed(stripe_invoice):
             invoice.autopay_status = "failed"
             invoice.autopay_next_charge_at = timezone.now() + timedelta(days=3)
             invoice.save(update_fields=["autopay_status", "autopay_next_charge_at"])
+            
+            # Link webhook event to invoice (SEC-1)
+            if webhook_event:
+                webhook_event.invoice = invoice
+                webhook_event.firm = invoice.firm
+                webhook_event.save(update_fields=["invoice", "firm"])
+                
         except Invoice.DoesNotExist:
             logger.error("Invoice not found for Stripe invoice failure")
             log_event(
@@ -283,7 +370,7 @@ def handle_invoice_payment_failed(stripe_invoice):
             )
 
 
-def handle_charge_refunded(charge):
+def handle_charge_refunded(charge, webhook_event=None):
     """
     Handle refunded charge.
     Update invoice to reflect refund.
@@ -308,6 +395,12 @@ def handle_charge_refunded(charge):
 
         invoice.save()
 
+        # Link webhook event to invoice (SEC-1)
+        if webhook_event:
+            webhook_event.invoice = invoice
+            webhook_event.firm = invoice.firm
+            webhook_event.save(update_fields=["invoice", "firm"])
+
         logger.info("Invoice refunded")
         log_metric(
             "stripe_charge_refunded",
@@ -325,7 +418,7 @@ def handle_charge_refunded(charge):
         )
 
 
-def handle_checkout_session_completed(session):
+def handle_checkout_session_completed(session, webhook_event=None):
     """
     Handle completed Stripe Checkout session.
 
@@ -360,6 +453,12 @@ def handle_checkout_session_completed(session):
             invoice.status = "partial"
 
         invoice.save(update_fields=["amount_paid", "status", "paid_date"])
+
+        # Link webhook event to invoice (SEC-1)
+        if webhook_event:
+            webhook_event.invoice = invoice
+            webhook_event.firm = invoice.firm
+            webhook_event.save(update_fields=["invoice", "firm"])
 
         logger.info("Invoice updated from checkout session")
         log_metric(

@@ -177,10 +177,19 @@ class Envelope(models.Model):
 
 class WebhookEvent(models.Model):
     """
-    DocuSign webhook event log.
+    DocuSign webhook event log (SEC-1: Idempotency tracking).
     
-    Stores webhook events received from DocuSign for debugging and audit trail.
+    Stores webhook events received from DocuSign for debugging, audit trail,
+    and idempotency checking to prevent duplicate processing.
     """
+    
+    # TIER 0: Firm tenancy (for idempotency queries)
+    firm = models.ForeignKey(
+        Firm,
+        on_delete=models.CASCADE,
+        related_name="docusign_webhook_events",
+        help_text="Firm this webhook event belongs to"
+    )
     
     envelope = models.ForeignKey(
         Envelope,
@@ -191,7 +200,12 @@ class WebhookEvent(models.Model):
         help_text="Envelope this event is for (null if envelope not found)"
     )
     
+    # DocuSign event tracking
     envelope_id = models.CharField(max_length=255, help_text="DocuSign envelope ID from webhook")
+    event_id = models.CharField(
+        max_length=255,
+        help_text="DocuSign event ID (unique identifier from DocuSign webhook)"
+    )
     event_type = models.CharField(max_length=100, help_text="Type of event (e.g., envelope-completed)")
     event_status = models.CharField(max_length=50, help_text="Status from event (e.g., completed)")
     
@@ -211,9 +225,17 @@ class WebhookEvent(models.Model):
         verbose_name = "Webhook Event"
         verbose_name_plural = "Webhook Events"
         indexes = [
-            models.Index(fields=["envelope_id"]),
-            models.Index(fields=["received_at"]),
-            models.Index(fields=["processed"]),
+            models.Index(fields=["firm", "envelope_id"], name="esig_wh_fir_env_idx"),
+            models.Index(fields=["envelope_id"], name="esig_wh_env_idx"),
+            models.Index(fields=["received_at"], name="esig_wh_rcv_idx"),
+            models.Index(fields=["processed"], name="esig_wh_pro_idx"),
+            models.Index(fields=["event_id"], name="esig_wh_evt_id_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["event_id"],
+                name="esignature_webhook_event_unique"
+            )
         ]
         ordering = ["-received_at"]
     

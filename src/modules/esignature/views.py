@@ -240,10 +240,13 @@ def docusign_callback(request):
 @permission_classes([])  # No authentication for webhooks (verified by HMAC)
 def docusign_webhook(request):
     """
-    Handle DocuSign webhook callbacks.
+    Handle DocuSign webhook callbacks (SEC-1: Idempotency tracking).
     
     Processes envelope status updates and stores events.
+    SEC-1: Implements idempotency by checking WebhookEvent before processing.
     """
+    from django.db import IntegrityError, transaction
+    
     try:
         # Get webhook signature for verification
         signature = request.META.get("HTTP_X_DOCUSIGN_SIGNATURE_1", "")
@@ -270,29 +273,46 @@ def docusign_webhook(request):
         event_type = payload_data.get("event") or payload_data.get("eventType", "unknown")
         event_status = payload_data.get("status") or payload_data.get("data", {}).get("envelopeSummary", {}).get("status", "unknown")
         
+        # Extract event ID (use generated ID from envelope + event + timestamp if not provided)
+        event_id = payload_data.get("eventId") or payload_data.get("generatedDateTime") or f"{envelope_id}_{event_type}_{event_status}"
+        
         if not envelope_id:
             logger.warning("Webhook payload missing envelope ID")
             return HttpResponse(status=400)
         
         # Find envelope in database
+        envelope = None
+        firm = None
         try:
-            envelope = Envelope.objects.get(envelope_id=envelope_id)
+            envelope = Envelope.objects.select_related("firm").get(envelope_id=envelope_id)
+            firm = envelope.firm
         except Envelope.DoesNotExist:
-            envelope = None
             logger.warning(f"Received webhook for unknown envelope: {envelope_id}")
         
-        # Create webhook event log
-        webhook_event = WebhookEvent.objects.create(
-            envelope=envelope,
-            envelope_id=envelope_id,
-            event_type=event_type,
-            event_status=event_status,
-            payload=payload_data,
-            headers={
-                "signature": signature,
-                "user_agent": request.META.get("HTTP_USER_AGENT", ""),
-            },
-        )
+        # SEC-1: Check for duplicate webhook event
+        # Try to create webhook event record atomically
+        try:
+            with transaction.atomic():
+                # Try to create webhook event log
+                webhook_event = WebhookEvent.objects.create(
+                    firm=firm,  # May be None if envelope not found
+                    envelope=envelope,
+                    envelope_id=envelope_id,
+                    event_id=event_id,  # Unique identifier for this specific event
+                    event_type=event_type,
+                    event_status=event_status,
+                    payload=payload_data,
+                    headers={
+                        "signature": signature,
+                        "user_agent": request.META.get("HTTP_USER_AGENT", ""),
+                    },
+                )
+                
+        except IntegrityError:
+            # Duplicate webhook delivery - event already processed
+            logger.info(f"Duplicate DocuSign webhook event received: {event_id}")
+            # Return 200 OK without reprocessing (SEC-1 acceptance criteria)
+            return HttpResponse(status=200)
         
         # Update envelope status if found
         if envelope:

@@ -87,7 +87,7 @@ def _verify_twilio_signature(request):
 @require_POST
 def twilio_status_webhook(request):
     """
-    Handle Twilio delivery status webhook.
+    Handle Twilio delivery status webhook (SEC-1: Idempotency tracking).
 
     Updates message status when delivery status changes.
 
@@ -96,7 +96,12 @@ def twilio_status_webhook(request):
     - MessageStatus: New status (delivered, failed, undelivered, etc.)
     - ErrorCode: Error code if failed (optional)
     - ErrorMessage: Error description if failed (optional)
+    
+    SEC-1: Implements idempotency by checking SMSWebhookEvent before processing.
     """
+    from django.db import IntegrityError
+    from modules.sms.models import SMSWebhookEvent
+    
     # CONST-3: Verify Twilio webhook signature
     if not _verify_twilio_signature(request):
         logger.error("Invalid Twilio signature for status webhook")
@@ -117,11 +122,35 @@ def twilio_status_webhook(request):
         logger.info(f"Status webhook: {message_sid} -> {new_status}")
 
         # Find message by provider SID
+        message = None
+        firm = None
         try:
-            message = SMSMessage.objects.get(provider_message_sid=message_sid)
+            message = SMSMessage.objects.select_related('firm').get(provider_message_sid=message_sid)
+            firm = message.firm
         except SMSMessage.DoesNotExist:
             logger.warning(f"Message not found for SID: {message_sid}")
             return HttpResponse(status=404)
+
+        # SEC-1: Check for duplicate webhook event
+        # Try to create webhook event record atomically
+        try:
+            with transaction.atomic():
+                # Try to create webhook event log
+                webhook_event = SMSWebhookEvent.objects.create(
+                    firm=firm,
+                    twilio_message_sid=message_sid,
+                    event_type='status_callback',
+                    webhook_type='status',
+                    message_status=new_status,
+                    sms_message=message,
+                    event_data=webhook_data,
+                )
+                
+        except IntegrityError:
+            # Duplicate webhook delivery - event already processed
+            logger.info(f"Duplicate Twilio status webhook received: {message_sid} (status)")
+            # Return 200 OK without reprocessing (SEC-1 acceptance criteria)
+            return HttpResponse(status=200)
 
         # Update message status
         with transaction.atomic():
@@ -156,6 +185,10 @@ def twilio_status_webhook(request):
             # Update campaign stats if part of campaign
             if message.campaign:
                 _update_campaign_stats(message.campaign)
+            
+            # Mark webhook event as successfully processed
+            webhook_event.processed_successfully = True
+            webhook_event.save(update_fields=['processed_successfully'])
 
         logger.info(f"Updated message {message.id} status to {message.status}")
 
@@ -188,6 +221,9 @@ def twilio_inbound_webhook(request):
         logger.error("Invalid Twilio signature for inbound webhook")
         return HttpResponse("Forbidden - Invalid signature", status=403)
     
+    from django.db import IntegrityError
+    from modules.sms.models import SMSWebhookEvent
+    
     try:
         # Parse webhook data
         twilio_service = TwilioService()
@@ -213,6 +249,30 @@ def twilio_inbound_webhook(request):
             return HttpResponse(status=404)
 
         firm = our_phone.firm
+
+        # SEC-1: Check for duplicate webhook event
+        # Try to create webhook event record atomically
+        try:
+            with transaction.atomic():
+                # Try to create webhook event log
+                webhook_event = SMSWebhookEvent.objects.create(
+                    firm=firm,
+                    twilio_message_sid=message_sid,
+                    event_type='inbound_message',
+                    webhook_type='inbound',
+                    message_status='received',
+                    event_data=webhook_data,
+                )
+                
+        except IntegrityError:
+            # Duplicate webhook delivery - event already processed
+            logger.info(f"Duplicate Twilio inbound webhook received: {message_sid} (inbound)")
+            # Return 200 OK without reprocessing (SEC-1 acceptance criteria)
+            return HttpResponse(
+                '<?xml version="1.0" encoding="UTF-8"?><Response></Response>',
+                content_type='text/xml',
+                status=200
+            )
 
         # Check for opt-out keywords
         is_opt_out = _check_opt_out_keywords(message_body)
@@ -245,6 +305,12 @@ def twilio_inbound_webhook(request):
                 contact=conversation.contact,
                 lead=conversation.lead,
             )
+
+            # Link webhook event to message and conversation (SEC-1)
+            webhook_event.sms_message = sms_message
+            webhook_event.conversation = conversation
+            webhook_event.processed_successfully = True
+            webhook_event.save(update_fields=['sms_message', 'conversation', 'processed_successfully'])
 
             # Update conversation
             conversation.message_count += 1

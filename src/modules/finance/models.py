@@ -1584,6 +1584,98 @@ class StripeWebhookEvent(models.Model):
         return f"{self.event_type} - {self.stripe_event_id} ({self.firm.name})"
 
 
+class SquareWebhookEvent(models.Model):
+    """
+    Track Square webhook events to prevent duplicate processing (SEC-1).
+    
+    Stores webhook event IDs to ensure idempotent processing of Square webhooks.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="square_webhook_events",
+        help_text="Firm this webhook event belongs to",
+    )
+    
+    # Square event tracking
+    square_event_id = models.CharField(
+        max_length=255,
+        help_text="Square webhook event ID (unique identifier from Square)"
+    )
+    event_type = models.CharField(
+        max_length=100,
+        help_text="Square event type (e.g., payment.created, invoice.published)"
+    )
+    
+    # Processing metadata
+    processed_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this event was processed"
+    )
+    processed_successfully = models.BooleanField(
+        default=True,
+        help_text="Whether event was processed successfully"
+    )
+    error_message = models.TextField(
+        blank=True,
+        help_text="Error message if processing failed"
+    )
+    
+    # Related objects (optional, for tracking)
+    invoice = models.ForeignKey(
+        "finance.Invoice",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="square_webhook_events",
+        help_text="Invoice related to this event (if applicable)"
+    )
+    payment = models.ForeignKey(
+        "finance.Payment",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="square_webhook_events",
+        help_text="Payment related to this event (if applicable)"
+    )
+    
+    # Raw event data (for debugging/audit)
+    event_data = models.JSONField(
+        default=dict,
+        help_text="Raw Square event data (for audit/debugging)"
+    )
+    
+    # Audit fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "finance_square_webhook_events"
+        ordering = ["-processed_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "event_type"], name="finance_sq_evt_idx"),
+            models.Index(fields=["firm", "processed_at"], name="finance_sq_pro_idx"),
+            models.Index(fields=["square_event_id"], name="finance_sq_evt_id_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["square_event_id"],
+                name="finance_square_event_unique"
+            )
+        ]
+        verbose_name = "Square Webhook Event"
+        verbose_name_plural = "Square Webhook Events"
+    
+    def __str__(self) -> str:
+        return f"{self.event_type} - {self.square_event_id} ({self.firm.name})"
+
+
 class ProjectProfitability(models.Model):
     """
     Project Profitability Analysis (Task 3.3).
