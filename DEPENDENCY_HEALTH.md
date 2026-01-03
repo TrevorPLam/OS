@@ -287,6 +287,6 @@ Notes / assumptions:
 * No duplicate functionality detected (one HTTP client: requests, one date lib: standard library, one validation: DRF built-in)
 * Licensing: All dependencies use permissive licenses (MIT, Apache, BSD)
 * Security: cryptography 43.0.1 is current, no known vulnerabilities in listed versions
-* Production container could be ~40% smaller by removing dev/test dependencies (estimated 150MB-200MB reduction)
+* Production container could be ~40% smaller by removing dev/test dependencies (estimated 140-180MB reduction)
 
 ---

@@ -370,8 +370,8 @@
 
 - [ ] **DEP-CLEANUP-1:** Move testing dependencies to requirements-dev.txt only (1-2 hours)
   - Remove pytest, pytest-django, pytest-cov, coverage, factory-boy, faker from requirements.txt
-  - Note: pytest, pytest-django, pytest-cov, factory-boy are already in requirements-dev.txt
-  - Add coverage and faker to requirements-dev.txt if not already there
+  - Note: pytest, pytest-django, pytest-cov, factory-boy are already in requirements-dev.txt (duplicates)
+  - Add coverage==7.4.0 and faker==22.0.0 to requirements-dev.txt (not currently there)
   - Verify all testing tools are consolidated in requirements-dev.txt only
   - Update CI/CD pipeline to install requirements-dev.txt for testing stages
   - Document in CHANGELOG.md
