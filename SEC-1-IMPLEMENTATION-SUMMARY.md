@@ -1,8 +1,8 @@
 # SEC-1: Webhook Idempotency Tracking Implementation Summary
 
-**Status:** COMPLETE (Code implementation done, migrations pending)
+**Status:** MIGRATIONS CREATED - Ready for deployment
 **Priority:** P1 (Critical)
-**Time Spent:** ~8 hours
+**Time Spent:** ~10 hours
 
 ## Implementation Summary
 
@@ -12,6 +12,7 @@
 - [x] ✅ Track processed webhook IDs (Stripe, DocuSign, Square, SMS)
 - [x] ✅ Return 200 OK for duplicate webhooks without reprocessing
 - [x] ✅ Add database unique constraint on (webhook_provider, external_event_id)
+- [x] ✅ Create database migrations
 
 ### Models Added/Updated
 
@@ -71,46 +72,47 @@
 - Links webhook events to messages and conversations
 - Separate tracking for status vs inbound webhooks
 
-## Database Migrations Required
+## Database Migrations Created
 
-The following migrations need to be created and applied:
+The following migrations have been created:
 
 ### Finance Module
-```bash
-python src/manage.py makemigrations finance
-```
+**File:** `src/modules/finance/migrations/0013_squarewebhookevent_sec1.py`
 
-**Expected changes:**
+**Changes:**
 - Create `finance_square_webhook_events` table
-- Add fields: firm, square_event_id, event_type, event_data, etc.
+- Add fields: firm, square_event_id, event_type, event_data, processed_at, etc.
 - Add unique constraint on `square_event_id`
-- Add indexes for performance
+- Add indexes for performance (firm+event_type, firm+processed_at, square_event_id)
+- Add foreign keys to Invoice and Payment models
 
 ### SMS Module
-```bash
-python src/manage.py makemigrations sms
-```
+**File:** `src/modules/sms/migrations/0002_smswebhookevent_sec1.py`
 
-**Expected changes:**
+**Changes:**
 - Create `sms_webhook_events` table
-- Add fields: firm, twilio_message_sid, webhook_type, event_data, etc.
+- Add fields: firm, twilio_message_sid, webhook_type, event_data, processed_at, etc.
 - Add unique constraint on `(twilio_message_sid, webhook_type)`
-- Add indexes for performance
+- Add indexes for performance (firm+event_type, firm+processed_at, twilio_message_sid)
+- Add foreign keys to SMSMessage and SMSConversation models
 
 ### E-Signature Module
-```bash
-python src/manage.py makemigrations esignature
-```
-
-**Expected changes:**
-- Add `firm` field to `esignature_webhook_events` table
-- Add `event_id` field to `esignature_webhook_events` table
-- Add unique constraint on `event_id`
-- Add new indexes
+**Status:** WebhookEvent model already exists in initial migration (0001_initial.py)
+- Includes firm, event_id, envelope_id fields
+- Unique constraint on `event_id` already present
+- No additional migration needed
 
 ### Apply Migrations
+
+To apply migrations in development or production:
+
 ```bash
+# Apply all pending migrations
 python src/manage.py migrate
+
+# Or apply specific app migrations
+python src/manage.py migrate finance
+python src/manage.py migrate sms
 ```
 
 ## Testing Recommendations
@@ -143,8 +145,8 @@ python src/manage.py migrate
 ## Rollout Steps
 
 1. ✅ Code changes committed (all webhook handlers updated)
-2. ⏳ Create database migrations
-3. ⏳ Test in development environment
+2. ✅ Database migrations created
+3. ⏳ Test migrations in development environment
 4. ⏳ Deploy to staging
 5. ⏳ Monitor for duplicate webhook detection
 6. ⏳ Deploy to production
