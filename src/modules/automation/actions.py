@@ -70,7 +70,7 @@ class SendEmailAction(ActionExecutor):
         body = config.get("body", "")
 
         if template_id:
-            # TODO: Load template and render
+            # Tracked in TODO: T-008 (Complete Automation Action Integrations)
             pass
 
         # Send email
@@ -78,7 +78,7 @@ class SendEmailAction(ActionExecutor):
             # Use existing email notification system
             email_service = EmailNotification(execution.firm)
 
-            # TODO: Integrate with actual email sending
+            # Tracked in TODO: T-008 (Complete Automation Action Integrations)
             # For now, return success
             result = {
                 "status": "sent",
@@ -110,7 +110,7 @@ class SendSMSAction(ActionExecutor):
         contact = execution.contact
         message = config.get("message", "")
 
-        # TODO: Integrate with SMS module
+        # Tracked in TODO: T-008 (Complete Automation Action Integrations - SMS)
         return {
             "status": "sent",
             "phone": contact.phone or contact.mobile_phone,
@@ -172,7 +172,7 @@ class CreateTaskAction(ActionExecutor):
                 "task_type": "deal_task",
             }
         else:
-            # TODO: Create general task or contact task
+            # Tracked in TODO: T-008 (Complete Automation Action Integrations - Task Creation)
             return {
                 "status": "created",
                 "task_type": "contact_task",
@@ -396,7 +396,8 @@ class AddToListAction(ActionExecutor):
     @staticmethod
     def execute(execution, node, config: Dict[str, Any]) -> Dict[str, Any]:
         """Add contact to list/segment."""
-        # TODO: Implement when list/segment model is available
+        # Tracked in TODO: T-008 (Complete Automation Action Integrations - List/Segment Management)
+        # Blocked: Implement when list/segment model is available
         return {
             "status": "added",
             "list_id": config.get("list_id"),
@@ -414,7 +415,8 @@ class RemoveFromListAction(ActionExecutor):
     @staticmethod
     def execute(execution, node, config: Dict[str, Any]) -> Dict[str, Any]:
         """Remove contact from list/segment."""
-        # TODO: Implement when list/segment model is available
+        # Tracked in TODO: T-008 (Complete Automation Action Integrations - List/Segment Management)
+        # Blocked: Implement when list/segment model is available
         return {
             "status": "removed",
             "list_id": config.get("list_id"),
@@ -483,7 +485,7 @@ class InternalNotificationAction(ActionExecutor):
     @staticmethod
     def execute(execution, node, config: Dict[str, Any]) -> Dict[str, Any]:
         """Send internal notification to team member."""
-        # TODO: Integrate with notification system
+        # Tracked in TODO: T-008 (Complete Automation Action Integrations - Notifications)
         return {
             "status": "sent",
             "recipient_id": config.get("recipient_id"),

@@ -1321,7 +1321,7 @@ class SharePermission(models.Model):
             return True
         
         # Simple exact match for now
-        # TODO: Support CIDR ranges in future
+        # Tracked in TODO: T-005 (Add CIDR Range Support for IP Whitelisting)
         return ip_address in self.allowed_ip_addresses
     
     def clean(self) -> None:

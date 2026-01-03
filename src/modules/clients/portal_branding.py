@@ -335,7 +335,7 @@ class PortalBranding(models.Model):
         Returns:
             bool: True if verification successful
         """
-        # TODO: Implement DNS verification logic
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - DNS)
         # 1. Check for DNS TXT record with verification token
         # 2. Check for CNAME record pointing to platform
         # 3. Update verification status
@@ -353,7 +353,7 @@ class PortalBranding(models.Model):
         Returns:
             str: Certificate ID
         """
-        # TODO: Integrate with AWS ACM or Let's Encrypt
+        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - SSL)
         # 1. Request certificate for custom domain
         # 2. Store certificate ID
         # 3. Enable SSL

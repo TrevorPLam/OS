@@ -303,7 +303,7 @@ class StageAutomation(models.Model):
     
     def _execute_send_notification(self, deal) -> bool:
         """Send a notification about the deal."""
-        # TODO: Implement notification system
+        # Tracked in TODO: T-006 (Implement Notification System for Deal Assignment)
         logger.info(f"Would send notification for deal {deal.id}")
         return True
     
@@ -324,7 +324,7 @@ class StageAutomation(models.Model):
     
     def _execute_run_webhook(self, deal) -> bool:
         """Run a webhook for the deal."""
-        # TODO: Implement webhook system
+        # Tracked in TODO: T-007 (Implement Webhook System for Stage Automation)
         logger.info(f"Would run webhook for deal {deal.id}")
         return True
 

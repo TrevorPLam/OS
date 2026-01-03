@@ -91,7 +91,7 @@ class GeographicSegmenter:
         Returns:
             Filtered queryset (currently unchanged - placeholder)
         """
-        # TODO: Implement proper geographic filtering when location fields are added
+        # Tracked in TODO: T-010 (Implement Geographic Filtering for Client Segmentation)
         return queryset
     
     @staticmethod
