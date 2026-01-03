@@ -4,7 +4,7 @@ Thanks for your interest in improving ConsultantPro. This guide outlines expecta
 
 ## Ground Rules
 
-- **Follow tier governance:** No tier skipping. See [Tier System Reference](docs/03-reference/tier-system.md) for authoritative rules.
+- **Follow tier governance:** No tier skipping. See ARCHITECTURE.md for tier definitions and rules.
 - **Preserve tenant isolation:** Security and privacy are the highest priority.
 - **Keep docs accurate:** Update documentation in the same change set as code changes.
 

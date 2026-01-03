@@ -2,7 +2,8 @@
 
 **Purpose:** Directory-by-directory explanation of the ConsultantPro codebase.
 
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-03
+**Canonical Status:** Canonical
 **Evidence:** Based on static analysis of repository structure and code inspection.
 
 ---
@@ -23,12 +24,16 @@
 
 ### Documentation (Root Level)
 ```
-├── README.md             # Main entry: quickstart, architecture overview (evidence: README.md:1-170)
-├── CONTRIBUTING.md       # Development workflow, test guidance (evidence: CONTRIBUTING.md:1-37)
-├── SECURITY.md           # Security vulnerability reporting (evidence: SECURITY.md:1-20)
-├── CHANGELOG.md          # Release history (evidence: README.md:28)
-├── TODO.md               # Current work & roadmap (evidence: TODO.md:1-505)
-└── codingconstitution.md # PLANNED: Symlink to docs/codingconstitution.md
+├── README.md                  # Main entry: quickstart, architecture overview (evidence: README.md:1-170)
+├── READMEAI.md               # AI agent operating instructions (evidence: READMEAI.md:1-165)
+├── CODEBASECONSTITUTION.md   # Repository governance and standards (canonical)
+├── CODE_AUDIT.md             # Code audit pipeline definition (evidence: CODE_AUDIT.md:1-150)
+├── DOCS_ROOT.md              # Documentation governance rules (evidence: DOCS_ROOT.md:1-250)
+├── CONTRIBUTING.md           # Development workflow, test guidance (evidence: CONTRIBUTING.md:1-37)
+├── SECURITY.md               # Security vulnerability reporting (evidence: SECURITY.md:1-20)
+├── CHANGELOG.md              # Release history (evidence: README.md:28)
+├── TODO.md                   # Current work & roadmap (evidence: TODO.md:1-505)
+└── TODO_COMPLETED.md         # Completed tasks archive (evidence: TODO_COMPLETED.md:1-2000+)
 ```
 
 ---

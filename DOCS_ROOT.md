@@ -2,6 +2,7 @@
 
 Precedence: CODEBASECONSTITUTION.md → READMEAI.md → specs/* → this document.
 
+Purpose: keep repository documentation accurate, deduped, navigable, and "single-source-of-truth" over time. This document defines what belongs in root vs /docs, how to sanitize and update docs, and how to prevent doc drift.
 Purpose: keep repository documentation accurate, deduped, navigable, and “single-source-of-truth” over time. This document defines what belongs in root vs /docs, how to sanitize and update docs, and how to prevent doc drift.
 
 Primary outputs (must exist / be maintained):

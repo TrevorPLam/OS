@@ -1,18 +1,7 @@
 # Coding Constitution
 
-**NOTICE:** This document has been promoted to root-level governance.  
-**Canonical Location:** [../CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md)  
-**Status:** Supporting (reference copy)  
-**Last Sync:** 2026-01-03
-
-For the authoritative version, see [CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md) in the repository root.
-
-This copy is maintained in docs/ for backward compatibility and reference. When in doubt, the root version is authoritative.
-
----
-
-**Document Status:** Supporting Reference Copy
 Version: 1.0  
+Status: Canonical  
 Scope: This document defines the non-negotiable rules for how this repository is built, changed, reviewed, tested, deployed, and operated. If a change conflicts with this constitution, the change is rejected or the constitution is explicitly amended via an ADR.
 
 ---
@@ -33,7 +22,7 @@ This repository exists to produce software that is:
 ## 2) Authority and Amendments
 
 2.1 **Supremacy**  
-This document outranks all other repo guidance unless explicitly superseded by a newer version of `codingconstitution.md` or a formal ADR that amends it.
+This document outranks all other repo guidance unless explicitly superseded by a newer version of `CODEBASECONSTITUTION.md` or a formal ADR that amends it.
 
 2.2 **Amendment Process**  
 A rule may be changed only by:

@@ -31,7 +31,10 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 
 ### 🤖 AI & Governance
 - **[READMEAI.md](../READMEAI.md)** - AI agent operating instructions
-- **[Coding Constitution](codingconstitution.md)** - Repository governance and standards
+- **[Coding Constitution](../CODEBASECONSTITUTION.md)** - Repository governance and standards
+- **[Code Audit](../CODE_AUDIT.md)** - Code audit pipeline
+- **[Documentation Governance](../DOCS_ROOT.md)** - Documentation standards and structure
+- **[Detailed Constitution](codingconstitution.md)** - Extended governance reference
 - **[Starter Constitution](CODEBASECONSTITUTION_STARTER.md)** - Starter template reference
 
 ### API Documentation
