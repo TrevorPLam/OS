@@ -1,6 +1,7 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 2, 2026
+**Last Updated:** January 3, 2026
+**Task Truth Source:** TODO.md
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
 
