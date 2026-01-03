@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
+from django.utils.dateparse import parse_date, parse_datetime
 
 from modules.jobs.models import JobQueue
 
@@ -312,7 +312,6 @@ class WorkflowExecutor:
                     parsed_date = parse_datetime(wait_until_date)
                     if parsed_date is None:
                         # If parse_datetime fails, try parsing as date only
-                        from django.utils.dateparse import parse_date
                         date_only = parse_date(wait_until_date)
                         if date_only:
                             # Convert date to datetime at start of day in current timezone
