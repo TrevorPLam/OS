@@ -36,6 +36,71 @@
 
 ## Critical & High Priority
 
+### 🔴 Security Hardening (From Security Review 2026-01-03)
+
+#### Security Improvements (HIGH - 24-36 hours)
+**Status:** Security findings from comprehensive security review  
+**Dependencies:** None  
+**Priority:** Address P1 findings before adding new features
+
+- [ ] **SEC-1:** Implement webhook idempotency tracking (P1 - 8-12 hours)
+  - Add idempotency_key field to WebhookEvent models
+  - Track processed webhook IDs (Stripe, DocuSign, Square, SMS)
+  - Return 200 OK for duplicate webhooks without reprocessing
+  - Add database unique constraint on (webhook_provider, external_event_id)
+  - **Acceptance Criteria:**
+    - Duplicate webhook deliveries are detected and ignored
+    - No duplicate invoice updates or state changes from retried webhooks
+    - Webhook processing history includes idempotency key
+  
+- [ ] **SEC-2:** Add rate limiting to webhook endpoints (P1 - 6-8 hours)
+  - Implement rate limiting on Stripe webhook endpoint (100/min per IP)
+  - Implement rate limiting on Square webhook endpoint (100/min per IP)
+  - Implement rate limiting on DocuSign webhook endpoint (100/min per IP)
+  - Implement rate limiting on SMS webhook endpoint (100/min per IP)
+  - Log rate limit violations for monitoring
+  - **Acceptance Criteria:**
+    - Webhook endpoints reject excessive requests (429 status)
+    - Rate limits are configurable via settings
+    - Legitimate traffic is not blocked
+    - Rate limit violations are logged and monitored
+
+- [ ] **SEC-3:** Document and implement data retention policies (P2 - 4-6 hours)
+  - Document retention periods for logs (90 days)
+  - Document retention periods for webhook events (180 days)
+  - Document retention periods for audit trails (7 years)
+  - Implement automated cleanup job for expired records
+  - Update privacy policy documentation
+  - **Acceptance Criteria:**
+    - Data retention policy documented in docs/
+    - Automated cleanup runs weekly
+    - GDPR compliance maintained
+    - Audit logs preserved per compliance requirements
+
+- [ ] **SEC-4:** Add Content-Security-Policy header (P2 - 2-3 hours)
+  - Configure CSP header in Django settings for production
+  - Set strict CSP directives (script-src, style-src, etc.)
+  - Test CSP with frontend application
+  - Document CSP configuration in SECURITY.md
+  - **Acceptance Criteria:**
+    - CSP header present in production responses
+    - Frontend application functions correctly
+    - CSP violations logged for monitoring
+    - No inline scripts or styles violate CSP
+
+- [ ] **SEC-5:** Pin frontend dependency versions (P2 - 1-2 hours)
+  - Replace caret (^) versions with exact versions in package.json
+  - Generate package-lock.json if not present
+  - Document dependency update process
+  - Add script to check for outdated dependencies
+  - **Acceptance Criteria:**
+    - All dependencies use exact versions (no ^ or ~)
+    - package-lock.json committed to repository
+    - Build is reproducible
+    - Update process documented
+
+---
+
 ### 🔥 Marketing & Automation
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours)
