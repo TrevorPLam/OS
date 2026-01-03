@@ -788,3 +788,104 @@ class SMSOptOut(models.Model):
 
     def __str__(self):
         return f"Opt-out: {self.phone_number}"
+
+
+class SMSWebhookEvent(models.Model):
+    """
+    Track SMS/Twilio webhook events to prevent duplicate processing (SEC-1).
+    
+    Stores webhook event IDs to ensure idempotent processing of Twilio webhooks.
+    """
+    
+    # TIER 0: Firm tenancy
+    firm = models.ForeignKey(
+        Firm,
+        on_delete=models.CASCADE,
+        related_name="sms_webhook_events",
+        help_text="Firm this webhook event belongs to",
+    )
+    
+    # Twilio event tracking
+    twilio_message_sid = models.CharField(
+        max_length=255,
+        help_text="Twilio message SID (unique identifier from Twilio)"
+    )
+    event_type = models.CharField(
+        max_length=100,
+        help_text="Event type (status_callback, inbound_message)"
+    )
+    webhook_type = models.CharField(
+        max_length=50,
+        help_text="Webhook type: status or inbound"
+    )
+    message_status = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Message status from webhook (for status callbacks)"
+    )
+    
+    # Processing metadata
+    processed_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this event was processed"
+    )
+    processed_successfully = models.BooleanField(
+        default=True,
+        help_text="Whether event was processed successfully"
+    )
+    error_message = models.TextField(
+        blank=True,
+        help_text="Error message if processing failed"
+    )
+    
+    # Related objects (optional, for tracking)
+    sms_message = models.ForeignKey(
+        SMSMessage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_events",
+        help_text="SMS message related to this event (if applicable)"
+    )
+    conversation = models.ForeignKey(
+        SMSConversation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="webhook_events",
+        help_text="Conversation related to this event (if applicable)"
+    )
+    
+    # Raw event data (for debugging/audit)
+    event_data = models.JSONField(
+        default=dict,
+        help_text="Raw Twilio webhook data (for audit/debugging)"
+    )
+    
+    # Audit fields
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    # TIER 0: Managers
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+    
+    class Meta:
+        db_table = "sms_webhook_events"
+        ordering = ["-processed_at", "-created_at"]
+        indexes = [
+            models.Index(fields=["firm", "event_type"], name="sms_wh_fir_evt_idx"),
+            models.Index(fields=["firm", "processed_at"], name="sms_wh_fir_pro_idx"),
+            models.Index(fields=["twilio_message_sid"], name="sms_wh_msg_sid_idx"),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["twilio_message_sid", "webhook_type"],
+                name="sms_webhook_event_unique"
+            )
+        ]
+        verbose_name = "SMS Webhook Event"
+        verbose_name_plural = "SMS Webhook Events"
+    
+    def __str__(self) -> str:
+        return f"{self.event_type} - {self.twilio_message_sid} ({self.firm.name})"
