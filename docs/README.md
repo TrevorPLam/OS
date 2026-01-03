@@ -13,19 +13,29 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 
 ## Key Documentation
 
-### Getting Started
+### 🚀 Quick Start
+- **[Setup Guide](SETUP.md)** - Development environment setup (Python, PostgreSQL, Docker)
+- **[Documentation Index](DOCS_INDEX.md)** - Navigate all documentation
 - **[Getting Started Tutorial](01-tutorials/getting-started.md)** - Complete setup guide for new developers
 - **[Contributing Guide](../CONTRIBUTING.md)** - Development workflow
 - **[Definition of Done](03-reference/policies/definition-of-done.md)** - PR checklist and quality gates
 
-### Architecture & Design
-- **[Architecture Overview](04-explanation/architecture-overview.md)** - System design and key concepts
+### 🏗️ Architecture & Design
+- **[Architecture Overview](ARCHITECTURE.md)** - Complete system architecture (multi-tenant SaaS)
+- **[Domain Model](DOMAIN_MODEL.md)** - Core entities and relationships
+- **[Platform Pillars](PILLARS.md)** - Feature areas and capabilities
 - **[Repository Map](REPO_MAP.md)** - Directory-by-directory codebase explanation
 - **[Tier System Reference](03-reference/tier-system.md)** - Architecture governance model
 - **[Boundary Rules](04-explanation/security/boundary-rules.md)** - Architectural boundary enforcement
 - **[Threat Model](04-explanation/security/threat-model.md)** - Security threat analysis
 
+### 🤖 AI & Governance
+- **[READMEAI.md](../READMEAI.md)** - AI agent operating instructions
+- **[Coding Constitution](codingconstitution.md)** - Repository governance and standards
+- **[Starter Constitution](CODEBASECONSTITUTION_STARTER.md)** - Starter template reference
+
 ### API Documentation
+- **[API Endpoints](ENDPOINTS.md)** - API reference and OpenAPI documentation
 - **[API Reference](03-reference/api-usage.md)** - Complete API documentation
 - **[API Versioning Policy](03-reference/policies/api-versioning.md)** - API version lifecycle and support
 - **[API Deprecation Policy](03-reference/policies/api-deprecation.md)** - Deprecation process and guidelines
@@ -37,6 +47,8 @@ Use this guide to find the right documentation quickly. We follow the [Diátaxis
 - **[Runbooks](runbooks/README.md)** - Operational procedures
 
 ### Compliance & Privacy
+- **[Security Baseline](SECURITY_BASELINE.md)** - Security requirements and standards
+- **[Permissions Model](PERMISSIONS.md)** - Authorization and permission system
 - **[GDPR Data Export](04-explanation/implementations/gdpr-data-export.md)** - Right to access and data portability
 - **[Data Retention](04-explanation/implementations/data-retention.md)** - Automated data retention policies
 - **[Security Compliance](SECURITY_COMPLIANCE.md)** - Security compliance documentation
