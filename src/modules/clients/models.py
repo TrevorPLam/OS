@@ -1127,8 +1127,8 @@ class Contact(models.Model):
         Returns:
             bool: True if contact has active consent, False otherwise
         """
-        # Access ConsentRecord dynamically since it's defined later in the file
-        from modules.clients.models import ConsentRecord
+        # ConsentRecord is defined later in this file, so we need to access it dynamically
+        ConsentRecord = globals()['ConsentRecord']
         status = ConsentRecord.get_current_consent(self, consent_type)
         return status["has_consent"]
     
@@ -1167,8 +1167,8 @@ class Contact(models.Model):
         Returns:
             ConsentRecord: The created consent record
         """
-        # Access ConsentRecord dynamically since it's defined later in the file
-        from modules.clients.models import ConsentRecord
+        # ConsentRecord is defined later in this file, so we need to access it dynamically
+        ConsentRecord = globals()['ConsentRecord']
         return ConsentRecord.objects.create(
             contact=self,
             consent_type=consent_type,
@@ -1212,8 +1212,8 @@ class Contact(models.Model):
         Returns:
             ConsentRecord: The created consent record
         """
-        # Access ConsentRecord dynamically since it's defined later in the file
-        from modules.clients.models import ConsentRecord
+        # ConsentRecord is defined later in this file, so we need to access it dynamically
+        ConsentRecord = globals()['ConsentRecord']
         return ConsentRecord.objects.create(
             contact=self,
             consent_type=consent_type,
@@ -1238,8 +1238,8 @@ class Contact(models.Model):
                     ...
                 }
         """
-        # Access ConsentRecord dynamically since it's defined later in the file
-        from modules.clients.models import ConsentRecord
+        # ConsentRecord is defined later in this file, so we need to access it dynamically
+        ConsentRecord = globals()['ConsentRecord']
         status = {}
         for consent_type, _ in ConsentRecord.CONSENT_TYPE_CHOICES:
             status[consent_type] = ConsentRecord.get_current_consent(self, consent_type)
@@ -2194,7 +2194,6 @@ class ConsentRecord(models.Model):
         """
         import hashlib
         import json
-        from django.utils import timezone
         
         # Prevent modifications to existing records (immutability)
         if self.pk is not None:

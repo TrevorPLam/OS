@@ -1066,6 +1066,23 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         
         return queryset
     
+    def _get_firm_contact(self, request, contact_id):
+        """
+        Helper method to get a contact and verify it belongs to the current firm.
+        
+        Args:
+            request: The request object
+            contact_id: ID of the contact to retrieve
+        
+        Returns:
+            Contact: The contact object if found and belongs to firm
+        
+        Raises:
+            Contact.DoesNotExist: If contact not found or doesn't belong to firm
+        """
+        firm = get_request_firm(request)
+        return Contact.objects.get(id=contact_id, client__firm=firm)
+    
     @action(detail=False, methods=["post"], url_path="create")
     def create_consent_record(self, request):
         """
@@ -1082,8 +1099,8 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         contact = serializer.validated_data['contact']
         if contact.client.firm != firm:
             return Response(
-                {"error": "Contact does not belong to your firm"},
-                status=403
+                {"error": "Contact not found or does not belong to your firm"},
+                status=404
             )
         
         consent_record = serializer.save()
@@ -1099,10 +1116,8 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         
         Returns records ordered by timestamp (newest first).
         """
-        firm = get_request_firm(request)
-        
         try:
-            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+            contact = self._get_firm_contact(request, contact_id)
         except Contact.DoesNotExist:
             return Response(
                 {"error": "Contact not found or does not belong to your firm"},
@@ -1112,7 +1127,7 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         with self.with_query_timeout():
             records = ConsentRecord.objects.filter(
                 contact=contact
-            ).select_related("actor").order_by("-timestamp")
+            ).select_related("actor", "contact", "contact__client").order_by("-timestamp")
         
         serializer = self.get_serializer(records, many=True)
         return Response(serializer.data)
@@ -1124,10 +1139,8 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         
         Returns the latest action for each consent type.
         """
-        firm = get_request_firm(request)
-        
         try:
-            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+            contact = self._get_firm_contact(request, contact_id)
         except Contact.DoesNotExist:
             return Response(
                 {"error": "Contact not found or does not belong to your firm"},
@@ -1161,10 +1174,8 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         
         Validates the cryptographic hash chain for all consent records.
         """
-        firm = get_request_firm(request)
-        
         try:
-            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+            contact = self._get_firm_contact(request, contact_id)
         except Contact.DoesNotExist:
             return Response(
                 {"error": "Contact not found or does not belong to your firm"},
@@ -1195,10 +1206,8 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         Returns complete consent history with chain verification.
         This export can be provided to the data subject or regulatory authorities.
         """
-        firm = get_request_firm(request)
-        
         try:
-            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+            contact = self._get_firm_contact(request, contact_id)
         except Contact.DoesNotExist:
             return Response(
                 {"error": "Contact not found or does not belong to your firm"},
