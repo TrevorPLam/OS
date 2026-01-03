@@ -2,7 +2,8 @@
 
 **Purpose:** Directory-by-directory explanation of the ConsultantPro codebase.
 
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-03
+**Canonical Status:** Canonical
 **Evidence:** Based on static analysis of repository structure and code inspection.
 
 ---
