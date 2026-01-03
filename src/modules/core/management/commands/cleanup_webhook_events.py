@@ -128,6 +128,8 @@ class Command(BaseCommand):
                         retention_days=retention_days,
                     )
                 except ImportError:
+                    # Telemetry module not available (development environment)
+                    logger.debug("Telemetry module not available, skipping metrics")
                     pass
 
         except Exception as e:
@@ -181,9 +183,9 @@ class Command(BaseCommand):
         """
         Clean up DocuSign webhook events older than cutoff date.
         
-        Note: DocuSign WebhookEvent uses 'received_at' field, while other
-        webhook models use 'processed_at'. This is intentional as DocuSign
-        events have separate 'received_at' and 'processed_at' fields.
+        Note: DocuSign WebhookEvent uses 'received_at' field for the cutoff check,
+        while other webhook models use 'processed_at'. This is intentional as 
+        DocuSign events have separate 'received_at' and 'processed_at' timestamps.
         """
         try:
             from modules.esignature.models import WebhookEvent

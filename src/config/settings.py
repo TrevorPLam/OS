@@ -497,6 +497,8 @@ if not DEBUG:
 # =============================================================================
 # Rate limiting for webhook endpoints to prevent webhook flooding attacks
 # Default: 100 requests per minute per IP address
+# Format: 'N/period' where period can be 's' (second), 'm' (minute), 'h' (hour), 'd' (day)
+# Examples: '100/m' = 100/minute, '10/s' = 10/second, '1000/h' = 1000/hour
 # Can be overridden per webhook endpoint if needed
 WEBHOOK_RATE_LIMIT = os.environ.get("WEBHOOK_RATE_LIMIT", "100/m")
 
