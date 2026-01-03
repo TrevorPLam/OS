@@ -1115,6 +1115,128 @@ class Contact(models.Model):
         """Confirm contact's email address (move from unconfirmed to active)."""
         if self.status == self.STATUS_UNCONFIRMED:
             self.change_status(self.STATUS_ACTIVE, reason="Email confirmed", changed_by=changed_by)
+    
+    # CRM-INT-4: Consent tracking helper methods
+    def has_consent(self, consent_type):
+        """
+        Check if contact has current consent for a specific type.
+        
+        Args:
+            consent_type: Consent type to check (use ConsentRecord.CONSENT_TYPE_* constants)
+        
+        Returns:
+            bool: True if contact has active consent, False otherwise
+        """
+        # Import here to avoid circular dependency
+        status = ConsentRecord.get_current_consent(self, consent_type)
+        return status["has_consent"]
+    
+    def grant_consent(
+        self,
+        consent_type,
+        source,
+        legal_basis="consent",
+        data_categories=None,
+        consent_text="",
+        consent_version="",
+        source_url="",
+        ip_address=None,
+        user_agent="",
+        actor=None,
+        metadata=None
+    ):
+        """
+        Grant consent for this contact.
+        
+        Creates a new consent record with action=GRANTED.
+        
+        Args:
+            consent_type: Type of consent (use ConsentRecord.CONSENT_TYPE_* constants)
+            source: Source of consent (e.g., 'signup_form', 'email_campaign')
+            legal_basis: Legal basis for processing (default: 'consent')
+            data_categories: List of data categories (default: empty list)
+            consent_text: The exact consent text shown to user
+            consent_version: Version of the consent text
+            source_url: URL where consent was captured
+            ip_address: IP address from which consent was given
+            user_agent: User agent string
+            actor: User who created this record (if staff action)
+            metadata: Additional metadata dict
+        
+        Returns:
+            ConsentRecord: The created consent record
+        """
+        return ConsentRecord.objects.create(
+            contact=self,
+            consent_type=consent_type,
+            action=ConsentRecord.ACTION_GRANTED,
+            legal_basis=legal_basis,
+            data_categories=data_categories or [],
+            consent_text=consent_text,
+            consent_version=consent_version,
+            source=source,
+            source_url=source_url,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            actor=actor,
+            metadata=metadata or {}
+        )
+    
+    def revoke_consent(
+        self,
+        consent_type,
+        source,
+        reason="",
+        ip_address=None,
+        user_agent="",
+        actor=None,
+        metadata=None
+    ):
+        """
+        Revoke consent for this contact.
+        
+        Creates a new consent record with action=REVOKED.
+        
+        Args:
+            consent_type: Type of consent to revoke
+            source: Source of revocation (e.g., 'unsubscribe_link', 'portal_settings')
+            reason: Reason for revocation (stored in notes)
+            ip_address: IP address from which consent was revoked
+            user_agent: User agent string
+            actor: User who created this record (if staff action)
+            metadata: Additional metadata dict
+        
+        Returns:
+            ConsentRecord: The created consent record
+        """
+        return ConsentRecord.objects.create(
+            contact=self,
+            consent_type=consent_type,
+            action=ConsentRecord.ACTION_REVOKED,
+            source=source,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            actor=actor,
+            metadata=metadata or {},
+            notes=reason
+        )
+    
+    def get_consent_status(self):
+        """
+        Get current consent status for all consent types.
+        
+        Returns:
+            dict: Dictionary mapping consent types to their current status
+                {
+                    'marketing': {'has_consent': bool, 'timestamp': datetime, ...},
+                    'email': {'has_consent': bool, 'timestamp': datetime, ...},
+                    ...
+                }
+        """
+        status = {}
+        for consent_type, _ in ConsentRecord.CONSENT_TYPE_CHOICES:
+            status[consent_type] = ConsentRecord.get_current_consent(self, consent_type)
+        return status
 
     def clean(self):
         """

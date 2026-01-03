@@ -522,3 +522,141 @@ class TestGDPRCompliance:
         
         assert record.consent_text == "I agree to the Terms of Service and Privacy Policy"
         assert record.consent_version == "v2.1"
+
+
+class TestContactConsentHelpers:
+    """Test Contact model helper methods for consent tracking (CRM-INT-4)."""
+
+    def test_has_consent_no_records(self, contact):
+        """Test has_consent returns False when no records exist."""
+        assert contact.has_consent(ConsentRecord.CONSENT_TYPE_MARKETING) is False
+
+    def test_has_consent_granted(self, contact):
+        """Test has_consent returns True when consent is granted."""
+        contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="signup_form"
+        )
+        
+        assert contact.has_consent(ConsentRecord.CONSENT_TYPE_MARKETING) is True
+
+    def test_has_consent_revoked(self, contact):
+        """Test has_consent returns False after consent is revoked."""
+        # Grant consent
+        contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="signup_form"
+        )
+        
+        # Revoke consent
+        contact.revoke_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="unsubscribe_link"
+        )
+        
+        assert contact.has_consent(ConsentRecord.CONSENT_TYPE_MARKETING) is False
+
+    def test_grant_consent_creates_record(self, contact, firm_user):
+        """Test grant_consent creates a proper consent record."""
+        record = contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_EMAIL,
+            source="email_preferences",
+            legal_basis=ConsentRecord.LEGAL_BASIS_CONSENT,
+            data_categories=[ConsentRecord.DATA_CATEGORY_CONTACT],
+            consent_text="I want to receive email updates",
+            consent_version="v1.0",
+            source_url="https://example.com/preferences",
+            ip_address="192.168.1.1",
+            user_agent="Mozilla/5.0",
+            actor=firm_user,
+            metadata={"utm_source": "email"}
+        )
+        
+        assert record.contact == contact
+        assert record.consent_type == ConsentRecord.CONSENT_TYPE_EMAIL
+        assert record.action == ConsentRecord.ACTION_GRANTED
+        assert record.legal_basis == ConsentRecord.LEGAL_BASIS_CONSENT
+        assert record.data_categories == [ConsentRecord.DATA_CATEGORY_CONTACT]
+        assert record.consent_text == "I want to receive email updates"
+        assert record.ip_address == "192.168.1.1"
+        assert record.actor == firm_user
+
+    def test_revoke_consent_creates_record(self, contact, firm_user):
+        """Test revoke_consent creates a proper consent record."""
+        # First grant consent
+        contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_SMS,
+            source="signup"
+        )
+        
+        # Then revoke it
+        record = contact.revoke_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_SMS,
+            source="preferences_page",
+            reason="User requested unsubscribe",
+            ip_address="192.168.1.2",
+            user_agent="Chrome",
+            actor=firm_user,
+            metadata={"page": "settings"}
+        )
+        
+        assert record.contact == contact
+        assert record.consent_type == ConsentRecord.CONSENT_TYPE_SMS
+        assert record.action == ConsentRecord.ACTION_REVOKED
+        assert record.ip_address == "192.168.1.2"
+        assert "unsubscribe" in record.notes
+        assert record.actor == firm_user
+
+    def test_get_consent_status_all_types(self, contact):
+        """Test get_consent_status returns status for all consent types."""
+        # Grant some consents
+        contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="test"
+        )
+        contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_EMAIL,
+            source="test"
+        )
+        
+        status = contact.get_consent_status()
+        
+        # Should have all consent types
+        assert len(status) == len(ConsentRecord.CONSENT_TYPE_CHOICES)
+        
+        # Check specific statuses
+        assert status[ConsentRecord.CONSENT_TYPE_MARKETING]["has_consent"] is True
+        assert status[ConsentRecord.CONSENT_TYPE_EMAIL]["has_consent"] is True
+        assert status[ConsentRecord.CONSENT_TYPE_SMS]["has_consent"] is False
+        assert status[ConsentRecord.CONSENT_TYPE_PHONE]["has_consent"] is False
+
+    def test_grant_consent_minimal_params(self, contact):
+        """Test grant_consent with minimal required parameters."""
+        record = contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="api"
+        )
+        
+        assert record.id is not None
+        assert record.contact == contact
+        assert record.action == ConsentRecord.ACTION_GRANTED
+        assert record.data_categories == []
+        assert record.metadata == {}
+
+    def test_revoke_consent_minimal_params(self, contact):
+        """Test revoke_consent with minimal required parameters."""
+        # Grant first
+        contact.grant_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="test"
+        )
+        
+        # Revoke
+        record = contact.revoke_consent(
+            consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
+            source="api"
+        )
+        
+        assert record.id is not None
+        assert record.action == ConsentRecord.ACTION_REVOKED
+
