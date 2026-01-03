@@ -1311,22 +1311,59 @@ class SharePermission(models.Model):
         """
         Check if an IP address is allowed to access the share.
         
+        Supports both individual IP addresses and CIDR ranges.
+        
         Args:
-            ip_address: The IP address to check
+            ip_address: The IP address to check (e.g., "192.168.1.1")
             
         Returns:
             True if allowed (or no restrictions), False otherwise
+            
+        Examples:
+            >>> perm.allowed_ip_addresses = ["192.168.1.1", "10.0.0.0/8"]
+            >>> perm.is_ip_allowed("192.168.1.1")  # Exact match
+            True
+            >>> perm.is_ip_allowed("10.5.10.20")  # In CIDR range
+            True
+            >>> perm.is_ip_allowed("172.16.0.1")  # Not in list
+            False
         """
         if not self.allowed_ip_addresses:
             return True
         
-        # Simple exact match for now
-        # Tracked in TODO: T-005 (Add CIDR Range Support for IP Whitelisting)
-        return ip_address in self.allowed_ip_addresses
+        # Import here to avoid circular imports
+        import ipaddress
+        
+        try:
+            # Parse the incoming IP address
+            ip_obj = ipaddress.ip_address(ip_address)
+        except ValueError:
+            # Invalid IP address format
+            return False
+        
+        # Check against each entry in allowed_ip_addresses
+        for allowed_entry in self.allowed_ip_addresses:
+            try:
+                # Try to parse as CIDR network
+                if "/" in allowed_entry:
+                    network = ipaddress.ip_network(allowed_entry, strict=False)
+                    if ip_obj in network:
+                        return True
+                else:
+                    # Try exact IP match
+                    allowed_ip = ipaddress.ip_address(allowed_entry)
+                    if ip_obj == allowed_ip:
+                        return True
+            except ValueError:
+                # Invalid entry in allowed_ip_addresses, skip it
+                continue
+        
+        return False
     
     def clean(self) -> None:
         """Validate share permission data."""
         from django.core.exceptions import ValidationError
+        import ipaddress
         
         errors = {}
         
@@ -1338,6 +1375,26 @@ class SharePermission(models.Model):
         # Watermark validation
         if self.apply_watermark and not self.watermark_text:
             errors["watermark_text"] = "Watermark text is required when watermark is enabled."
+        
+        # Validate IP addresses and CIDR ranges
+        if self.allowed_ip_addresses:
+            invalid_ips = []
+            for ip_entry in self.allowed_ip_addresses:
+                try:
+                    if "/" in ip_entry:
+                        # Validate CIDR notation
+                        ipaddress.ip_network(ip_entry, strict=False)
+                    else:
+                        # Validate IP address
+                        ipaddress.ip_address(ip_entry)
+                except ValueError:
+                    invalid_ips.append(ip_entry)
+            
+            if invalid_ips:
+                errors["allowed_ip_addresses"] = (
+                    f"Invalid IP address or CIDR format: {', '.join(invalid_ips)}. "
+                    "Use formats like '192.168.1.1' or '10.0.0.0/8'."
+                )
         
         if errors:
             raise ValidationError(errors)

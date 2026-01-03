@@ -402,7 +402,7 @@
   - Add monitoring dashboard for email queue health
   - References: src/modules/marketing/views.py:339
   
-- [ ] **T-005:** Add CIDR Range Support for IP Whitelisting (P2 - 4-6 hours)
+- [x] **T-005:** Add CIDR Range Support for IP Whitelisting (P2 - 4-6 hours) ✅ **COMPLETED** (January 3, 2026)
   - Type: ENHANCE
   - Update IPWhitelist model to support CIDR notation
   - Implement IP matching logic for CIDR ranges (use ipaddress module)
