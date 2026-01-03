@@ -178,7 +178,13 @@ class Command(BaseCommand):
             return 0
 
     def _cleanup_docusign_webhooks(self, cutoff_date, dry_run):
-        """Clean up DocuSign webhook events older than cutoff date."""
+        """
+        Clean up DocuSign webhook events older than cutoff date.
+        
+        Note: DocuSign WebhookEvent uses 'received_at' field, while other
+        webhook models use 'processed_at'. This is intentional as DocuSign
+        events have separate 'received_at' and 'processed_at' fields.
+        """
         try:
             from modules.esignature.models import WebhookEvent
 
@@ -205,7 +211,7 @@ class Command(BaseCommand):
             from modules.sms.models import SMSWebhookEvent
 
             old_events = SMSWebhookEvent.objects.filter(
-                received_at__lt=cutoff_date
+                processed_at__lt=cutoff_date
             )
             count = old_events.count()
 
