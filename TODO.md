@@ -361,10 +361,10 @@
 
 ## Medium Priority
 
-### 🟡 CODE AUDIT - Task Hygiene (MEDIUM - 66-102 hours)
+### 🟡 CODE AUDIT - Task Hygiene (MEDIUM - 92-140 hours)
 
-**Status:** Tasks identified from CODE_AUDIT execution (January 3, 2026)  
-**Source:** Inline TODO/FIXME markers in codebase  
+**Status:** Tasks identified from CODE_AUDIT execution (January 3, 2026 - Updated January 3, 2026)  
+**Source:** Inline TODO/FIXME markers in codebase and documentation  
 **Dependencies:** Various per task
 
 - [ ] **T-001:** Implement Critical Path Calculation for Project Tasks (P2 - 8-12 hours)
@@ -470,6 +470,51 @@
   - Document setup process for production deployments
   - References: src/modules/clients/portal_views.py, src/modules/clients/portal_branding.py
   - Dependencies: AWS/cloud provider configuration
+
+- [ ] **T-012:** Create Core Operational Runbooks (P1 - 12-16 hours)
+  - Type: COMPLETE
+  - Create critical operational runbooks for platform operations and incident response
+  - Implement runbooks for: Incident Response, Deployment Procedures, Backup/Restore, Scaling, Failed Jobs Recovery
+  - Each runbook should follow standard template (Overview, Symptoms, Impact, Investigation, Resolution, Prevention)
+  - Include specific commands, verification steps, and related resources
+  - Test all commands on staging environment before documenting
+  - Fulfills Constitution Section 12.6 requirements for operational documentation
+  - References: docs/runbooks/README.md (lines 18, 24, 30, 36, 42)
+  - Related: docs/OPERATIONS.md, docs/TROUBLESHOOTING.md
+  
+- [ ] **T-013:** Create Common Failure Runbooks (P2 - 6-8 hours)
+  - Type: COMPLETE
+  - Create runbooks for common failure scenarios and troubleshooting
+  - Implement runbooks for: Database Connection Issues, Cache Failures, High Error Rate, Slow Response Times
+  - Follow standard runbook template with clear symptoms, investigation steps, and resolution procedures
+  - Include specific monitoring queries and thresholds
+  - Test resolution procedures on staging
+  - References: docs/runbooks/README.md (lines 50-53)
+  - Related: docs/TROUBLESHOOTING.md
+  
+- [ ] **T-014:** Implement Documentation Linting and Quality Tools (P2 - 4-6 hours)
+  - Type: ENHANCE
+  - Add markdown linting to documentation workflow
+  - Implement spell checking for documentation
+  - Configure markdownlint rules (already have .markdownlint.jsonc)
+  - Integrate into CI/CD pipeline
+  - Add pre-commit hooks for documentation quality
+  - Document usage in CONTRIBUTING.md
+  - References: docs/STYLE_GUIDE.md:314-315
+  - Related: .markdownlint.jsonc, .pre-commit-config.yaml
+  
+- [ ] **T-015:** Implement Public Access Endpoint for External Shares (P2 - 4-6 hours)
+  - Type: COMPLETE
+  - Create public endpoint for accessing shared documents without authentication
+  - Implement PublicShareView in src/api/public/views.py
+  - No authentication/permission classes required
+  - Support password verification for protected shares
+  - Track access in ExternalShareAccessLog
+  - Increment download counts
+  - Add rate limiting for public endpoints
+  - Add comprehensive tests for public access flows
+  - References: docs/03-reference/external-document-sharing.md:493-510
+  - Dependencies: ExternalShare model (already implemented)
 
 ---
 

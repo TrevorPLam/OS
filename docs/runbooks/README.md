@@ -15,31 +15,31 @@ Per Constitution Section 12.6:
    - Feature flag rollback
    - Configuration rollback
 
-2. **[Incident Response](./INCIDENT_RESPONSE.md)** 🚧 TODO
+2. **[Incident Response](./INCIDENT_RESPONSE.md)** 🚧 Tracked in TODO: T-012
    - Incident classification
    - Communication protocols
    - Escalation procedures
    - Post-incident review
 
-3. **[Deployment Procedures](./DEPLOYMENT.md)** 🚧 TODO
+3. **[Deployment Procedures](./DEPLOYMENT.md)** 🚧 Tracked in TODO: T-012
    - Pre-deployment checklist
    - Deployment steps
    - Smoke testing
    - Monitoring
 
-4. **[Backup and Restore](./BACKUP_RESTORE.md)** 🚧 TODO
+4. **[Backup and Restore](./BACKUP_RESTORE.md)** 🚧 Tracked in TODO: T-012
    - Database backup procedures
    - File storage backup
    - Restore procedures
    - DR testing
 
-5. **[Scaling Procedures](./SCALING.md)** 🚧 TODO
+5. **[Scaling Procedures](./SCALING.md)** 🚧 Tracked in TODO: T-012
    - Horizontal scaling (adding instances)
    - Vertical scaling (increasing resources)
    - Database scaling
    - Cache scaling
 
-6. **[Failed Jobs Recovery](./FAILED_JOBS.md)** 🚧 TODO
+6. **[Failed Jobs Recovery](./FAILED_JOBS.md)** 🚧 Tracked in TODO: T-012
    - Job queue monitoring
    - DLQ processing
    - Manual retry procedures
@@ -47,10 +47,10 @@ Per Constitution Section 12.6:
 
 ### Common Failure Runbooks
 
-7. **[Database Connection Issues](./db-connection-failure.md)** 🚧 TODO
-8. **[Cache Failures](./cache-failure.md)** 🚧 TODO
-9. **[High Error Rate](./high-error-rate.md)** 🚧 TODO
-10. **[Slow Response Times](./slow-response-times.md)** 🚧 TODO
+7. **[Database Connection Issues](./db-connection-failure.md)** 🚧 Tracked in TODO: T-013
+8. **[Cache Failures](./cache-failure.md)** 🚧 Tracked in TODO: T-013
+9. **[High Error Rate](./high-error-rate.md)** 🚧 Tracked in TODO: T-013
+10. **[Slow Response Times](./slow-response-times.md)** 🚧 Tracked in TODO: T-013
 
 ## Runbook Template
 
@@ -95,9 +95,9 @@ How to prevent this issue in the future.
 
 This runbooks directory fulfills Constitution Section 12.6 requirements:
 - ✅ Rollback procedures documented
-- 🚧 Common failure scenarios (to be completed)
-- 🚧 Critical workflow documentation (to be completed)
-- 🚧 Incident response procedures (to be completed)
+- 🚧 Common failure scenarios (Tracked in TODO: T-013)
+- 🚧 Critical workflow documentation (Tracked in TODO: T-012)
+- 🚧 Incident response procedures (Tracked in TODO: T-012)
 
 ## Contributing
 
