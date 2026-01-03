@@ -14,6 +14,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django_ratelimit.decorators import ratelimit
 
 from modules.core.telemetry import log_event, log_metric, track_duration
 from modules.finance.billing import handle_payment_failure
@@ -26,9 +27,10 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @csrf_exempt
 @require_POST
+@ratelimit(key="ip", rate="100/m", method="POST", block=True)
 def stripe_webhook(request):
     """
-    Handle Stripe webhook events (SEC-1: Idempotency tracking).
+    Handle Stripe webhook events (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
 
     Verifies webhook signature and processes payment events:
     - payment_intent.succeeded: Mark invoice as paid
@@ -37,6 +39,7 @@ def stripe_webhook(request):
     - charge.refunded: Handle refunds
     
     SEC-1: Implements idempotency by checking StripeWebhookEvent before processing.
+    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
     """
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")

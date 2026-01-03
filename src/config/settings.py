@@ -493,6 +493,14 @@ if not DEBUG:
     CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI", None)  # Optional: CSP violation reporting endpoint
 
 # =============================================================================
+# Webhook Rate Limiting (SEC-2)
+# =============================================================================
+# Rate limiting for webhook endpoints to prevent webhook flooding attacks
+# Default: 100 requests per minute per IP address
+# Can be overridden per webhook endpoint if needed
+WEBHOOK_RATE_LIMIT = os.environ.get("WEBHOOK_RATE_LIMIT", "100/m")
+
+# =============================================================================
 # Error Tracking & Monitoring (Sentry)
 # =============================================================================
 # Initialize Sentry for error tracking and performance monitoring
