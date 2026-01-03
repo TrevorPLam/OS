@@ -1,10 +1,10 @@
 # READMEAI.md — AI Operating Console (Root)
 Document Type: Governance
-Version: 1.3.1
+Version: 1.4.0
 Last Updated: 2026-01-03
 Owner: Repository Root
 Status: Active
-Dependencies: CODEBASECONSTITUTION.md; TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; docs/CHANGELOG.md; docs/AI_WORKFLOWS.md; docs/SECURITY_BASELINE.md; docs/EMERGENCY_PROTOCOL.md; docs/DEPRECATION.md; docs/AI_TOOL_QUALIFICATION.md; docs/DECISION_LOG.md
+Dependencies: docs/codingconstitution.md; TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; CHANGELOG.md; docs/SECURITY_BASELINE.md
 
 Purpose: Single operational entrypoint for any AI working in this repository. Follow exactly.
 
@@ -13,10 +13,10 @@ Purpose: Single operational entrypoint for any AI working in this repository. Fo
 ------------------------------------------------------------
 If instructions conflict, follow this order (highest wins):
 
-1) Constitution (CODEBASECONSTITUTION.md + Amendments)
+1) Constitution (docs/codingconstitution.md)
 2) READMEAI.md (this file)
 3) TODO.md (current priorities and acceptance criteria)
-4) docs/AI_WORKFLOWS.md (how to execute task types)
+4) docs/README.md (documentation map)
 5) All other documentation
 
 Rule: The Constitution may only be changed via the Amendment process.
@@ -49,12 +49,11 @@ Rule: The Constitution may only be changed via the Amendment process.
 ------------------------------------------------------------
 Before executing any task, read:
 
-1) Constitution (CODEBASECONSTITUTION.md)
+1) Constitution (docs/codingconstitution.md)
 2) TODO.md
 3) docs/README.md (Documentation map)
 4) docs/REPO_MAP.md
-5) docs/codingconstitution.md (if exists - comprehensive governance)
-6) Relevant module documentation for the task at hand
+5) Relevant module documentation for the task at hand
 
 If any required file is missing:
 - Check if it exists at an alternate location (docs/ vs root)
