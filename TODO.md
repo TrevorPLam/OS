@@ -361,6 +361,51 @@
 
 ---
 
+### 🟡 Dependency Management & Code Quality
+
+#### Dependency Cleanup (MEDIUM - 4-6 hours)
+**Status:** Remove development dependencies from production requirements  
+**Dependencies:** None  
+**Priority:** P1 - Reduces production container size and attack surface
+
+- [ ] **DEP-CLEANUP-1:** Move testing dependencies to requirements-dev.txt only (1-2 hours)
+  - Remove pytest, pytest-django, pytest-cov, coverage from requirements.txt
+  - Remove factory-boy, faker from requirements.txt
+  - Ensure all testing tools are consolidated in requirements-dev.txt only
+  - Verify CI/CD pipeline still works with split dependencies
+  - Document in CHANGELOG.md
+  - Expected impact: ~100MB reduction in production container size
+  - Files: requirements.txt, requirements-dev.txt
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+- [ ] **DEP-CLEANUP-2:** Move code quality tools to requirements-dev.txt only (1-2 hours)
+  - Remove ruff, black from requirements.txt
+  - Ensure they remain in requirements-dev.txt
+  - Update CI/CD linting jobs to use requirements-dev.txt
+  - Document in CHANGELOG.md
+  - Expected impact: ~50MB reduction in production container size
+  - Files: requirements.txt, requirements-dev.txt
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+- [ ] **DEP-CLEANUP-3:** Move security scanning tools to requirements-dev.txt only (1-2 hours)
+  - Remove safety, import-linter from requirements.txt
+  - Ensure they remain in requirements-dev.txt
+  - Update CI/CD security scanning jobs to use requirements-dev.txt
+  - Document in CHANGELOG.md
+  - Expected impact: ~20MB reduction in production container size
+  - Files: requirements.txt, requirements-dev.txt
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+- [ ] **DEP-AUDIT-1:** Evaluate micro-dependencies for standard library alternatives (research task - 2-3 hours)
+  - Evaluate python-json-logger vs custom formatter with standard library
+  - Evaluate qrcode package vs inline QR generation with Pillow
+  - Document decision in DEPENDENCY_HEALTH.md
+  - If removing, create follow-up implementation tasks
+  - Type: ENHANCE (optimization)
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+---
+
 ### 🟡 Integration & Automation
 
 #### Site & Event Tracking (MEDIUM - 28-36 hours)
