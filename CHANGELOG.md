@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Dependency Management** (2026-01-03)
+  - **DEP-CLEANUP-1, DEP-CLEANUP-2, DEP-CLEANUP-3**: Moved development dependencies to requirements-dev.txt
+    - Moved testing tools (pytest, pytest-django, pytest-cov, coverage, factory-boy, faker) to requirements-dev.txt
+    - Moved code quality tools (ruff, black) to requirements-dev.txt
+    - Moved security scanning tools (safety, import-linter) to requirements-dev.txt
+    - Updated CI/CD pipeline to install requirements-dev.txt for testing, linting, and security scanning jobs
+    - Production Docker image now ~150-180MB smaller (no testing/dev tools in production)
+    - BREAKING CHANGE: Development environments must install both requirements.txt AND requirements-dev.txt
+      ```bash
+      pip install -r requirements.txt -r requirements-dev.txt
+      ```
+
 ---
 
 ## [0.7.0] - 2026-01-03

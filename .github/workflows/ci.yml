@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 black isort import-linter
+        pip install -r requirements-dev.txt
 
     - name: Run flake8
       run: |
@@ -98,7 +98,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt -r requirements-dev.txt
 
     - name: Create logs directory
       run: mkdir -p src/logs
@@ -182,7 +182,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Install safety and bandit
-      run: pip install safety bandit
+      run: pip install -r requirements-dev.txt
 
     - name: Check for security vulnerabilities
       run: |
@@ -199,7 +199,6 @@ jobs:
     - name: Check architectural boundaries
       run: |
         # CONST-10: Enforce import boundaries with import-linter
-        pip install import-linter==2.0
         lint-imports --config .importlinter
 
     - name: Scan for secrets
@@ -265,7 +264,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt -r requirements-dev.txt
 
     - name: Generate OpenAPI schema
       run: |
