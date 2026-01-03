@@ -54,14 +54,13 @@
     - Webhook processing history includes idempotency key
   
 - [ ] **SEC-2:** Add rate limiting to webhook endpoints (P1 - 6-8 hours)
-  - Implement rate limiting on Stripe webhook endpoint (100/min per IP)
-  - Implement rate limiting on Square webhook endpoint (100/min per IP)
-  - Implement rate limiting on DocuSign webhook endpoint (100/min per IP)
-  - Implement rate limiting on SMS webhook endpoint (100/min per IP)
+  - Implement configurable webhook rate limiting (default: 100 requests/min per IP)
+  - Apply rate limiting to all webhook endpoints: Stripe, Square, DocuSign, SMS
+  - Add WEBHOOK_RATE_LIMIT setting to configuration
   - Log rate limit violations for monitoring
   - **Acceptance Criteria:**
-    - Webhook endpoints reject excessive requests (429 status)
-    - Rate limits are configurable via settings
+    - All webhook endpoints reject excessive requests (429 status)
+    - Rate limits are configurable via settings (per-endpoint if needed)
     - Legitimate traffic is not blocked
     - Rate limit violations are logged and monitored
 

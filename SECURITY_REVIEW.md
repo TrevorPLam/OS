@@ -328,8 +328,8 @@ Top findings:
 - No injection vectors discovered
 
 #### P1 (High) - 2 Findings
-* **(P1) Missing webhook idempotency handling** - Stripe and DocuSign webhooks process events but lack explicit idempotency key tracking to prevent duplicate processing if webhooks are retried.
-* **(P1) Missing rate limiting on some webhook endpoints** - While auth endpoints have rate limiting, webhook endpoints (Stripe, Square, DocuSign, SMS) lack rate limiting which could allow webhook flooding attacks.
+* **(P1) Missing webhook idempotency handling** - Webhook endpoints (Stripe, DocuSign, Square, SMS) process events but lack explicit idempotency key tracking to prevent duplicate processing if webhooks are retried.
+* **(P1) Missing rate limiting on webhook endpoints** - While auth endpoints have rate limiting, webhook endpoints (Stripe, Square, DocuSign, SMS) lack rate limiting which could allow webhook flooding attacks.
 
 #### P2 (Hardening) - 3 Findings
 * **(P2) No explicit data retention policy documented** - While GDPR features exist (CRM-INT-4 in TODO.md), there's no explicit retention policy for logs, webhook events, or user data.
