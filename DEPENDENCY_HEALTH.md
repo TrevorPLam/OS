@@ -224,23 +224,71 @@ This prevents future churn and re-arguing.
 
 ## Dependency Health Summary (Append Below Each Review)
 
-## Dependency Health Summary — YYYY-MM-DD
+## Dependency Health Summary — 2026-01-03
 
 Inventory:
 
-* Ecosystem(s):
+* Ecosystem(s): Python (Django/DRF backend)
+* Total dependencies: 35 production + 10 dev (7 duplicates) = 38 unique packages
 * Critical dependencies:
+  * Django 4.2.17 (LTS) - Web framework
+  * djangorestframework 3.14.0 - REST API
+  * psycopg2-binary 2.9.9 - PostgreSQL driver
+  * djangorestframework-simplejwt 5.3.1 - JWT auth
+  * cryptography 43.0.1 - Cryptographic primitives
+  * boto3 1.34.11 - AWS S3 storage
+  * stripe 7.9.0 - Payment processing
+  * sentry-sdk 1.40.5 - Error tracking
 * Duplicates/overlap suspected:
+  * **7 duplicate packages** in both requirements.txt and requirements-dev.txt
+  * Testing frameworks in production requirements
+  * Code quality tools in production requirements
 
 Findings:
 
-* (P1) …
-* (P2) …
+* (P1) **DEP-CLEANUP-1**: Remove development/testing dependencies from requirements.txt
+  * Issue: pytest, pytest-django, pytest-cov, coverage, factory-boy, faker are in production requirements
+  * These are testing tools that should only be in requirements-dev.txt
+  * Impact: Increases production container size, attack surface, and deployment time
+  * Duplicates: pytest, pytest-django, pytest-cov, factory-boy (already in requirements-dev.txt)
+  * Need to add: coverage==7.4.0, faker==22.0.0 (not currently in requirements-dev.txt)
+  * Files: requirements.txt (remove 6 packages), requirements-dev.txt (add 2 packages)
+  
+* (P1) **DEP-CLEANUP-2**: Remove code quality tools from requirements.txt
+  * Issue: ruff, black are in production requirements
+  * Impact: Unnecessary packages in production environment
+  * Duplicates: Both are already in requirements-dev.txt
+  * Files: requirements.txt (remove 2 packages)
+  
+* (P2) **DEP-CLEANUP-3**: Remove security scanning tools from requirements.txt
+  * Issue: safety, import-linter are in production requirements
+  * Impact: These are CI/development tools, not needed in production
+  * Duplicate: import-linter is already in requirements-dev.txt
+  * Need to add: safety==3.0.1 (not currently in requirements-dev.txt)
+  * Files: requirements.txt (remove 2 packages), requirements-dev.txt (add 1 package)
+  
+* (P2) **DEP-AUDIT-1**: Review micro-dependencies for standard library alternatives
+  * Issue: python-json-logger could use standard library logging with custom formatter
+  * Issue: qrcode dependency adds ~200KB, could inline QR generation with Pillow
+  * Impact: Minor dependency reduction, simpler maintenance
+  * Decision needed: Keep for simplicity vs remove for minimalism
 
 Tasks created:
 
-* T-### …
+* DEP-CLEANUP-1 (P1/QUALITY): Move testing dependencies to requirements-dev.txt only
+* DEP-CLEANUP-2 (P1/QUALITY): Move code quality tools to requirements-dev.txt only
+* DEP-CLEANUP-3 (P2/QUALITY): Move security scanning tools to requirements-dev.txt only
+* DEP-AUDIT-1 (P2/ENHANCE): Evaluate replacing micro-dependencies with standard library
 
-## Notes / assumptions:
+Notes / assumptions:
+
+* All critical dependencies (Django, DRF, PostgreSQL, auth, S3, Stripe) are well-maintained and necessary
+* No abandoned or unmaintained dependencies detected
+* All dependencies serve clear purposes per module comments in requirements.txt
+* Django 4.2 LTS is a good choice (support until April 2026, should plan upgrade to Django 5.0 LTS in Q2 2026)
+* No duplicate functionality detected (one HTTP client: requests, one date lib: standard library, one validation: DRF built-in)
+* Licensing: All dependencies use permissive licenses (MIT, Apache, BSD)
+* Security: cryptography 43.0.1 is current, no known vulnerabilities in listed versions
+* Production container could be ~40% smaller by removing dev/test dependencies (estimated 140-180MB reduction)
 
 ---

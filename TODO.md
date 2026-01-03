@@ -425,6 +425,52 @@
 
 ---
 
+### 🟡 Dependency Management & Code Quality
+
+#### Dependency Cleanup (MEDIUM - 4-6 hours)
+**Status:** Remove development dependencies from production requirements  
+**Dependencies:** None  
+**Priority:** P1 - Reduces production container size and attack surface
+
+- [ ] **DEP-CLEANUP-1:** Move testing dependencies to requirements-dev.txt only (1-2 hours)
+  - Remove pytest, pytest-django, pytest-cov, coverage, factory-boy, faker from requirements.txt
+  - Duplicates (already in requirements-dev.txt): pytest, pytest-django, pytest-cov, factory-boy
+  - Need to add to requirements-dev.txt: coverage==7.4.0, faker==22.0.0
+  - Verify all testing tools are consolidated in requirements-dev.txt only
+  - Update CI/CD pipeline to install requirements-dev.txt for testing stages
+  - Document in CHANGELOG.md
+  - Expected impact: ~80-100MB reduction in production container size
+  - Files: requirements.txt, requirements-dev.txt
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+- [ ] **DEP-CLEANUP-2:** Move code quality tools to requirements-dev.txt only (1-2 hours)
+  - Remove ruff, black from requirements.txt (both are already duplicated in requirements-dev.txt)
+  - Update CI/CD linting jobs to explicitly use requirements-dev.txt
+  - Document in CHANGELOG.md
+  - Expected impact: ~40-50MB reduction in production container size
+  - Files: requirements.txt, requirements-dev.txt
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+- [ ] **DEP-CLEANUP-3:** Move security scanning tools to requirements-dev.txt only (1-2 hours)
+  - Remove safety, import-linter from requirements.txt
+  - Duplicate (already in requirements-dev.txt): import-linter
+  - Need to add to requirements-dev.txt: safety==3.0.1
+  - Update CI/CD security scanning jobs to use requirements-dev.txt
+  - Document in CHANGELOG.md
+  - Expected impact: ~20-30MB reduction in production container size
+  - Files: requirements.txt, requirements-dev.txt
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+- [ ] **DEP-AUDIT-1:** Evaluate micro-dependencies for standard library alternatives (research task - 2-3 hours)
+  - Evaluate python-json-logger vs custom formatter with standard library
+  - Evaluate qrcode package vs inline QR generation with Pillow
+  - Document decision in DEPENDENCY_HEALTH.md
+  - If removing, create follow-up implementation tasks
+  - Type: ENHANCE (optimization)
+  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+
+---
+
 ### 🟡 Integration & Automation
 
 #### Site & Event Tracking (MEDIUM - 28-36 hours)
