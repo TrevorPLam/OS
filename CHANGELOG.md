@@ -28,6 +28,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - package-lock.json already committed to repository
     - Update process documented in SECURITY.md
 
+### Added
+
+- **Security Hardening** (2026-01-03)
+  - **SEC-4**: Content-Security-Policy (CSP) header implementation
+    - Added CSP middleware to set security headers in production
+    - Prevents cross-site scripting (XSS) and code injection attacks
+    - Strict CSP directives: no inline scripts, frame-ancestors='none', object-src='none'
+    - Allows inline styles (required for React), HTTPS images, and Sentry connections
+    - CSP only active in production (DEBUG=False)
+    - Optional CSP violation reporting via CSP_REPORT_URI environment variable
+    - Comprehensive test coverage for CSP middleware
+    - Configuration documented in SECURITY.md
+
 ---
 
 ## [0.7.0] - 2026-01-03
