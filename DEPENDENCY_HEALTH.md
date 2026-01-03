@@ -250,20 +250,22 @@ Findings:
   * Issue: pytest, pytest-django, pytest-cov, coverage, factory-boy, faker are in production requirements
   * These are testing tools that should only be in requirements-dev.txt
   * Impact: Increases production container size, attack surface, and deployment time
-  * Should be: Only in requirements-dev.txt (note: pytest, pytest-django, pytest-cov, factory-boy are already duplicated in dev)
-  * Files: requirements.txt (remove 6 packages: pytest, pytest-django, pytest-cov, coverage, factory-boy, faker)
+  * Duplicates: pytest, pytest-django, pytest-cov, factory-boy (already in requirements-dev.txt)
+  * Need to add: coverage==7.4.0, faker==22.0.0 (not currently in requirements-dev.txt)
+  * Files: requirements.txt (remove 6 packages), requirements-dev.txt (add 2 packages)
   
 * (P1) **DEP-CLEANUP-2**: Remove code quality tools from requirements.txt
   * Issue: ruff, black are in production requirements
   * Impact: Unnecessary packages in production environment
-  * Should be: Only in requirements-dev.txt
+  * Duplicates: Both are already in requirements-dev.txt
   * Files: requirements.txt (remove 2 packages)
   
 * (P2) **DEP-CLEANUP-3**: Remove security scanning tools from requirements.txt
   * Issue: safety, import-linter are in production requirements
   * Impact: These are CI/development tools, not needed in production
-  * Should be: Only in requirements-dev.txt
-  * Files: requirements.txt (remove 2 packages)
+  * Duplicate: import-linter is already in requirements-dev.txt
+  * Need to add: safety==3.0.1 (not currently in requirements-dev.txt)
+  * Files: requirements.txt (remove 2 packages), requirements-dev.txt (add 1 package)
   
 * (P2) **DEP-AUDIT-1**: Review micro-dependencies for standard library alternatives
   * Issue: python-json-logger could use standard library logging with custom formatter
