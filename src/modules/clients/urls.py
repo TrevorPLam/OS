@@ -26,6 +26,7 @@ from modules.clients.views import (
     ClientProposalViewSet,
     ClientViewSet,
     OrganizationViewSet,
+    ConsentRecordViewSet,
 )
 from modules.clients.health_score_views import (
     ClientHealthScoreViewSet,
@@ -50,6 +51,8 @@ router.register(r"portal-branding", PortalBrandingViewSet, basename="portal-bran
 router.register(r"domain-verification", DomainVerificationRecordViewSet, basename="domain-verification")
 # Health Score (CRM-INT-2)
 router.register(r"health-scores", ClientHealthScoreViewSet, basename="health-score")
+# Consent Chain Tracking (CRM-INT-4)
+router.register(r"consent-records", ConsentRecordViewSet, basename="consent-record")
 
 urlpatterns = [
     path("", include(router.urls)),

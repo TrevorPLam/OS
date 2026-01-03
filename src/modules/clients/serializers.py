@@ -16,6 +16,8 @@ from modules.clients.models import (
     ClientPortalUser,
     ClientHealthScore,
     Organization,
+    Contact,
+    ConsentRecord,
 )
 
 
@@ -1200,4 +1202,191 @@ class ClientHealthScoreSerializer(serializers.ModelSerializer):
             "last_calculated_at",
             "created_at",
         ]
+
+
+class ConsentRecordSerializer(serializers.ModelSerializer):
+    """
+    Serializer for ConsentRecord model (CRM-INT-4).
+    
+    Provides read-only access to consent records with full audit trail.
+    Consent records are immutable - they cannot be updated or deleted.
+    """
+    
+    contact_name = serializers.SerializerMethodField()
+    contact_email = serializers.SerializerMethodField()
+    consent_type_display = serializers.CharField(source='get_consent_type_display', read_only=True)
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
+    legal_basis_display = serializers.CharField(source='get_legal_basis_display', read_only=True)
+    actor_email = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ConsentRecord
+        fields = [
+            "id",
+            "contact",
+            "contact_name",
+            "contact_email",
+            "consent_type",
+            "consent_type_display",
+            "action",
+            "action_display",
+            "legal_basis",
+            "legal_basis_display",
+            "data_categories",
+            "consent_text",
+            "consent_version",
+            "source",
+            "source_url",
+            "timestamp",
+            "ip_address",
+            "user_agent",
+            "actor",
+            "actor_email",
+            "previous_record_hash",
+            "record_hash",
+            "metadata",
+            "notes",
+        ]
+        read_only_fields = [
+            "id",
+            "timestamp",
+            "previous_record_hash",
+            "record_hash",
+            "contact_name",
+            "contact_email",
+            "consent_type_display",
+            "action_display",
+            "legal_basis_display",
+            "actor_email",
+        ]
+    
+    def get_contact_name(self, obj):
+        """Return full name of the contact."""
+        return obj.contact.full_name if obj.contact else None
+    
+    def get_contact_email(self, obj):
+        """Return email of the contact."""
+        return obj.contact.email if obj.contact else None
+    
+    def get_actor_email(self, obj):
+        """Return email of the actor (if any)."""
+        return obj.actor.email if obj.actor else None
+    
+    def validate(self, data):
+        """
+        Validate consent record data.
+        
+        Ensures:
+        - Consent type is valid
+        - Action is valid
+        - Data categories are valid (if provided)
+        """
+        # Validate data categories if provided
+        if 'data_categories' in data and data['data_categories']:
+            valid_categories = [choice[0] for choice in ConsentRecord.DATA_CATEGORY_CHOICES]
+            for category in data['data_categories']:
+                if category not in valid_categories:
+                    raise serializers.ValidationError({
+                        'data_categories': f"Invalid data category: {category}. "
+                                          f"Must be one of: {', '.join(valid_categories)}"
+                    })
+        
+        return data
+
+
+class ConsentRecordCreateSerializer(serializers.Serializer):
+    """
+    Serializer for creating new consent records (CRM-INT-4).
+    
+    This is a separate serializer from ConsentRecordSerializer to enforce
+    that only specific fields can be set during creation.
+    """
+    
+    contact = serializers.PrimaryKeyRelatedField(
+        queryset=Contact.objects.all(),
+        help_text="Contact this consent record belongs to"
+    )
+    consent_type = serializers.ChoiceField(
+        choices=ConsentRecord.CONSENT_TYPE_CHOICES,
+        help_text="Type of consent being tracked"
+    )
+    action = serializers.ChoiceField(
+        choices=ConsentRecord.ACTION_CHOICES,
+        help_text="Action taken (granted/revoked/updated)"
+    )
+    legal_basis = serializers.ChoiceField(
+        choices=ConsentRecord.LEGAL_BASIS_CHOICES,
+        default=ConsentRecord.LEGAL_BASIS_CONSENT,
+        help_text="Legal basis for processing (GDPR Article 6)"
+    )
+    data_categories = serializers.ListField(
+        child=serializers.ChoiceField(choices=ConsentRecord.DATA_CATEGORY_CHOICES),
+        default=list,
+        help_text="List of data categories this consent applies to"
+    )
+    consent_text = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="The exact consent text shown to the user"
+    )
+    consent_version = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Version of the consent text"
+    )
+    source = serializers.CharField(
+        help_text="Source of consent (e.g., 'signup_form', 'email_campaign')"
+    )
+    source_url = serializers.URLField(
+        required=False,
+        allow_blank=True,
+        help_text="URL where consent was captured"
+    )
+    ip_address = serializers.IPAddressField(
+        required=False,
+        allow_null=True,
+        help_text="IP address from which consent was given/revoked"
+    )
+    user_agent = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="User agent string from the browser/client"
+    )
+    metadata = serializers.JSONField(
+        required=False,
+        default=dict,
+        help_text="Additional metadata"
+    )
+    notes = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Internal notes"
+    )
+    
+    def create(self, validated_data):
+        """
+        Create a new consent record.
+        
+        The record hash will be automatically computed on save.
+        """
+        # Get the actor from the request context (if available)
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['actor'] = request.user
+        
+        return ConsentRecord.objects.create(**validated_data)
+
+
+class ConsentProofExportSerializer(serializers.Serializer):
+    """
+    Serializer for consent proof export (CRM-INT-4).
+    
+    Used to export complete consent history for GDPR compliance.
+    """
+    
+    contact = serializers.DictField(read_only=True)
+    export_timestamp = serializers.DateTimeField(read_only=True)
+    chain_verification = serializers.DictField(read_only=True)
+    consent_records = serializers.ListField(read_only=True)
+
 

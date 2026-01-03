@@ -27,6 +27,7 @@ from modules.clients.models import (
     ClientNote,
     ClientPortalUser,
     Organization,
+    ConsentRecord,
 )
 from modules.clients.permissions import DenyPortalAccess, IsPortalUserOrFirmUser
 from modules.clients.serializers import (
@@ -42,6 +43,7 @@ from modules.clients.serializers import (
     ClientProposalSerializer,
     ClientSerializer,
     OrganizationSerializer,
+    ConsentRecordSerializer,
 )
 from modules.firm.utils import FirmScopedMixin, get_request_firm
 
@@ -1012,3 +1014,208 @@ class ClientEngagementHistoryViewSet(QueryTimeoutMixin, PortalAccessMixin, views
             return Response(
                 {"client_name": client.company_name, "total_versions": engagements.count(), "timeline": serializer.data}
             )
+
+
+class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for ConsentRecord (CRM-INT-4).
+    
+    Provides read-only access to consent records with chain verification and export.
+    Consent records are immutable - they cannot be updated or deleted via API.
+    
+    TIER 0: Uses FirmScopedMixin for automatic tenant isolation via contact->client->firm.
+    """
+    
+    serializer_class = ConsentRecordSerializer
+    permission_classes = [IsAuthenticated, DenyPortalAccess]
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.OrderingFilter,
+        BoundedSearchFilter,
+    ]
+    filterset_fields = {
+        "contact": ["exact"],
+        "consent_type": ["exact", "in"],
+        "action": ["exact", "in"],
+        "legal_basis": ["exact", "in"],
+        "timestamp": ["gte", "lte", "date"],
+    }
+    search_fields = ["contact__first_name", "contact__last_name", "contact__email", "source"]
+    ordering_fields = ["timestamp", "consent_type", "action"]
+    ordering = ["-timestamp"]
+    
+    def get_queryset(self):
+        """
+        Get consent records for the current firm.
+        
+        TIER 0: Auto-filters by firm via contact->client->firm relationship.
+        """
+        firm = get_request_firm(self.request)
+        
+        with self.with_query_timeout():
+            queryset = ConsentRecord.objects.filter(
+                contact__client__firm=firm
+            ).select_related(
+                "contact",
+                "contact__client",
+                "actor"
+            )
+        
+        return queryset
+    
+    @action(detail=False, methods=["post"], url_path="create")
+    def create_consent_record(self, request):
+        """
+        Create a new consent record.
+        
+        This endpoint allows creating new consent records with proper validation.
+        The record hash will be automatically computed on save.
+        """
+        from modules.clients.serializers import ConsentRecordCreateSerializer
+        
+        serializer = ConsentRecordCreateSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        
+        # Verify the contact belongs to the current firm
+        firm = get_request_firm(request)
+        contact = serializer.validated_data['contact']
+        if contact.client.firm != firm:
+            return Response(
+                {"error": "Contact does not belong to your firm"},
+                status=403
+            )
+        
+        consent_record = serializer.save()
+        
+        # Return the created record
+        output_serializer = ConsentRecordSerializer(consent_record)
+        return Response(output_serializer.data, status=201)
+    
+    @action(detail=False, methods=["get"], url_path="by-contact/(?P<contact_id>[0-9]+)")
+    def by_contact(self, request, contact_id=None):
+        """
+        Get all consent records for a specific contact.
+        
+        Returns records ordered by timestamp (newest first).
+        """
+        firm = get_request_firm(request)
+        
+        try:
+            from modules.clients.models import Contact
+            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+        except Contact.DoesNotExist:
+            return Response(
+                {"error": "Contact not found or does not belong to your firm"},
+                status=404
+            )
+        
+        with self.with_query_timeout():
+            records = ConsentRecord.objects.filter(
+                contact=contact
+            ).select_related("actor").order_by("-timestamp")
+        
+        serializer = self.get_serializer(records, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=["get"], url_path="current-status/(?P<contact_id>[0-9]+)")
+    def current_status(self, request, contact_id=None):
+        """
+        Get current consent status for a contact across all consent types.
+        
+        Returns the latest action for each consent type.
+        """
+        firm = get_request_firm(request)
+        
+        try:
+            from modules.clients.models import Contact
+            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+        except Contact.DoesNotExist:
+            return Response(
+                {"error": "Contact not found or does not belong to your firm"},
+                status=404
+            )
+        
+        # Get current status for each consent type
+        consent_status = {}
+        for consent_type, display_name in ConsentRecord.CONSENT_TYPE_CHOICES:
+            status = ConsentRecord.get_current_consent(contact, consent_type)
+            consent_status[consent_type] = {
+                "display_name": display_name,
+                "has_consent": status["has_consent"],
+                "latest_action": status["latest_action"],
+                "timestamp": status["timestamp"].isoformat() if status["timestamp"] else None,
+            }
+        
+        return Response({
+            "contact": {
+                "id": contact.id,
+                "name": contact.full_name,
+                "email": contact.email,
+            },
+            "consent_status": consent_status,
+        })
+    
+    @action(detail=False, methods=["get"], url_path="verify-chain/(?P<contact_id>[0-9]+)")
+    def verify_chain(self, request, contact_id=None):
+        """
+        Verify the integrity of the consent chain for a contact.
+        
+        Validates the cryptographic hash chain for all consent records.
+        """
+        firm = get_request_firm(request)
+        
+        try:
+            from modules.clients.models import Contact
+            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+        except Contact.DoesNotExist:
+            return Response(
+                {"error": "Contact not found or does not belong to your firm"},
+                status=404
+            )
+        
+        # Get consent_type filter if provided
+        consent_type = request.query_params.get('consent_type')
+        
+        # Verify chain
+        verification = ConsentRecord.verify_chain(contact, consent_type)
+        
+        return Response({
+            "contact": {
+                "id": contact.id,
+                "name": contact.full_name,
+                "email": contact.email,
+            },
+            "consent_type": consent_type,
+            "verification": verification,
+        })
+    
+    @action(detail=False, methods=["get"], url_path="export-proof/(?P<contact_id>[0-9]+)")
+    def export_proof(self, request, contact_id=None):
+        """
+        Export consent proof for a contact (GDPR right to access).
+        
+        Returns complete consent history with chain verification.
+        This export can be provided to the data subject or regulatory authorities.
+        """
+        firm = get_request_firm(request)
+        
+        try:
+            from modules.clients.models import Contact
+            contact = Contact.objects.get(id=contact_id, client__firm=firm)
+        except Contact.DoesNotExist:
+            return Response(
+                {"error": "Contact not found or does not belong to your firm"},
+                status=404
+            )
+        
+        # Get consent_type filter if provided
+        consent_type = request.query_params.get('consent_type')
+        
+        # Export proof
+        proof_data = ConsentRecord.export_consent_proof(contact, consent_type)
+        
+        from modules.clients.serializers import ConsentProofExportSerializer
+        serializer = ConsentProofExportSerializer(proof_data)
+        
+        return Response(serializer.data)
+
