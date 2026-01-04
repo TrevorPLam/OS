@@ -99,28 +99,25 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
 
 **Step 6: Provisional Prioritize** ✅ **UPDATED**
 - **P0 (Critical):** 0 tasks
-- **P1 (High):** 6 tasks
+- **P1 (High):** 5 tasks
   - T-002: Background Job Queue for Webhooks
   - T-004: Email Send Jobs Integration
   - T-006: Deal Assignment Notifications
   - T-008: Complete Automation Integrations
   - T-011: Portal Branding Infrastructure
-  - T-012: Create Core Operational Runbooks
-- **P2 (Medium):** 9 tasks
+- **P2 (Medium):** 7 tasks
   - T-001: Critical Path Calculation
   - T-003: Remove Legacy Endpoints
   - T-005: CIDR Range Support (✅ COMPLETED)
   - T-007: Stage Automation Webhooks
   - T-009: Date Parsing in Automation (✅ COMPLETED)
   - T-010: Geographic Filtering
-  - T-013: Create Common Failure Runbooks
-  - T-014: Implement Documentation Linting Tools
   - T-015: Implement Public Access Endpoint
 
 **Gate Met:** ✅ All criteria satisfied
-- TODO.md has no completed tasks (T-005 and T-009 moved to TODO_COMPLETED.md)
+- TODO.md has no completed tasks (T-005, T-009, T-012, T-013, and T-014 moved to TODO_COMPLETED.md)
 - Docs/code no longer contain executable tasks (all replaced with "Tracked in TODO: T-###")
-- Top 6 P1 tasks are immediately startable
+- Top 5 P1 tasks are immediately startable
 
 ---
 
@@ -257,12 +254,12 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 | T-009 | P2 | QUALITY | Date Parsing in Automation | S (2-3h) | ✅ Complete |
 | T-010 | P2 | COMPLETE | Geographic Filtering | M (8-12h) | Pending |
 | T-011 | P1 | COMPLETE | Portal Branding Infrastructure | L (20-28h) | Pending |
-| T-012 | P1 | COMPLETE | Core Operational Runbooks | M (12-16h) | Pending |
-| T-013 | P2 | COMPLETE | Common Failure Runbooks | M (6-8h) | Pending |
-| T-014 | P2 | ENHANCE | Documentation Linting Tools | S (4-6h) | Pending |
+| T-012 | P1 | COMPLETE | Core Operational Runbooks | M (12-16h) | ✅ Complete |
+| T-013 | P2 | COMPLETE | Common Failure Runbooks | M (6-8h) | ✅ Complete |
+| T-014 | P2 | ENHANCE | Documentation Linting Tools | S (4-6h) | ✅ Complete |
 | T-015 | P2 | COMPLETE | Public Access Endpoint | S (4-6h) | Pending |
 
-**Total Effort:** 92-140 hours (66-102 hours remaining after T-005 and T-009 completed)  
+**Total Effort:** 92-140 hours (36-80 hours remaining after T-005, T-009, T-012, T-013, and T-014 completed)
 **Type Distribution:** 11 COMPLETE, 1 QUALITY, 1 DEADCODE, 2 ENHANCE
 
 ---

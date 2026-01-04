@@ -311,8 +311,8 @@ Documentation quality is enforced by CI:
 
 1. **Structure validation:** `scripts/validate_docs_structure.py` (evidence: docs/Makefile:16)
 2. **Link checking:** lychee (evidence: .github/workflows/docs.yml:31-39)
-3. **Tracked in TODO: T-014** Markdown linting (to be added)
-4. **Tracked in TODO: T-014** Spell checking (to be added)
+3. Markdown linting via `markdownlint` (see `.github/workflows/docs-quality.yml`)
+4. Spell checking via `cspell` (see `.github/workflows/docs-quality.yml`)
 
 **Local check:**
 ```bash
