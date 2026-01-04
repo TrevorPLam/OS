@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
+from modules.core.rate_limiting import enforce_webhook_rate_limit
 from modules.core.telemetry import log_event, log_metric, track_duration
 from modules.finance.billing import handle_payment_failure
 from modules.finance.models import Invoice, SquareWebhookEvent
@@ -27,7 +28,12 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_POST
-@ratelimit(key="ip", rate="100/m", method="POST", block=True)
+@ratelimit(
+    key="ip",
+    rate=settings.WEBHOOK_RATE_LIMITS["square"],
+    method="POST",
+    block=False,
+)
 def square_webhook(request):
     """
     Handle Square webhook events (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
@@ -39,8 +45,14 @@ def square_webhook(request):
     - refund.updated: Update refund status
     
     SEC-1: Implements idempotency by checking SquareWebhookEvent before processing.
-    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
+    SEC-2: Rate limited per settings to prevent webhook flooding.
     """
+    rate_limit_response = enforce_webhook_rate_limit(
+        request, provider="square", endpoint="square_webhook"
+    )
+    if rate_limit_response:
+        return rate_limit_response
+
     payload = request.body
     signature = request.META.get("HTTP_X_SQUARE_SIGNATURE")
     webhook_url = settings.SQUARE_WEBHOOK_URL

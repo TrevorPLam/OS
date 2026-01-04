@@ -22,12 +22,60 @@ This file contains all completed tasks that have been migrated from TODO.md.
     - No duplicate invoice updates or state changes from retried webhooks
     - Webhook processing history includes idempotency key
 
+#### Security Improvements (HIGH - 24-36 hours) - ✅ **COMPLETED**
+
+- [x] **SEC-2:** Add rate limiting to webhook endpoints (P1 - 6-8 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Configurable webhook rate limiting (global + per-endpoint overrides)
+  - Applied to Stripe, Square, DocuSign, and Twilio webhooks
+  - Rate limit violations logged for monitoring
+  - **Acceptance Criteria:**
+    - Excess requests return HTTP 429
+    - Limits configurable via settings
+    - Rate limit violations logged
+
+- [x] **SEC-3:** Document and implement data retention policies (P2 - 4-6 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Retention periods documented for logs, webhook events, and audit trails
+  - Automated cleanup commands documented and configured
+  - Privacy policy documentation updated
+  - **Acceptance Criteria:**
+    - Policy documented in docs/
+    - Cleanup job defined and scheduled
+    - Audit logs preserved per compliance requirements
+
+- [x] **SEC-4:** Add Content-Security-Policy header (P2 - 2-3 hours) ✅ **COMPLETED** (January 4, 2026)
+  - CSP middleware configured for production responses
+  - CSP violation reporting endpoint added
+  - **Acceptance Criteria:**
+    - CSP header present in production responses
+    - CSP violations logged
+
+- [x] **SEC-5:** Pin frontend dependency versions (P2 - 1-2 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Exact versions in package.json
+  - package-lock.json committed
+  - Dependency update process documented
+  - Outdated dependency check script added
+
 ### 🟡 Dependency Management & Code Quality
 
 - [x] **DEP-AUDIT-1:** Evaluate micro-dependencies for standard library alternatives (research task - 2-3 hours) ✅ **COMPLETED** (January 4, 2026)
   - Evaluated python-json-logger vs standard library formatter
   - Evaluated qrcode vs Pillow/standard library options
   - Documented decisions in DEPENDENCY_HEALTH.md
+
+- [x] **DEP-CLEANUP-1:** Move testing dependencies to requirements-dev.txt only (1-2 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Testing dependencies consolidated in requirements-dev.txt
+  - CI updated to install requirements-dev.txt for testing
+  - Documented in CHANGELOG.md
+
+- [x] **DEP-CLEANUP-2:** Move code quality tools to requirements-dev.txt only (1-2 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Black and Ruff kept in requirements-dev.txt only
+  - CI lint stages use requirements-dev.txt
+  - Documented in CHANGELOG.md
+
+- [x] **DEP-CLEANUP-3:** Move security scanning tools to requirements-dev.txt only (1-2 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Safety and import-linter consolidated in requirements-dev.txt
+  - CI security scans use requirements-dev.txt
+  - Documented in CHANGELOG.md
 
 ### 🔥 Marketing & Automation
 

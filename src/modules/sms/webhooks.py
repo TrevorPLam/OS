@@ -7,12 +7,16 @@ Processes Twilio webhooks for delivery status updates and inbound SMS messages.
 import logging
 import os
 import re
+
+from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
+
+from modules.core.rate_limiting import enforce_webhook_rate_limit
 
 from .models import (
     SMSMessage,
@@ -86,7 +90,12 @@ def _verify_twilio_signature(request):
 
 @csrf_exempt
 @require_POST
-@ratelimit(key="ip", rate="100/m", method="POST", block=True)
+@ratelimit(
+    key="ip",
+    rate=settings.WEBHOOK_RATE_LIMITS["sms_status"],
+    method="POST",
+    block=False,
+)
 def twilio_status_webhook(request):
     """
     Handle Twilio delivery status webhook (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
@@ -100,11 +109,17 @@ def twilio_status_webhook(request):
     - ErrorMessage: Error description if failed (optional)
     
     SEC-1: Implements idempotency by checking SMSWebhookEvent before processing.
-    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
+    SEC-2: Rate limited per settings to prevent webhook flooding.
     """
     from django.db import IntegrityError
     from modules.sms.models import SMSWebhookEvent
-    
+
+    rate_limit_response = enforce_webhook_rate_limit(
+        request, provider="twilio", endpoint="twilio_status_webhook"
+    )
+    if rate_limit_response:
+        return rate_limit_response
+
     # CONST-3: Verify Twilio webhook signature
     if not _verify_twilio_signature(request):
         logger.error("Invalid Twilio signature for status webhook")
@@ -205,7 +220,12 @@ def twilio_status_webhook(request):
 
 @csrf_exempt
 @require_POST
-@ratelimit(key="ip", rate="100/m", method="POST", block=True)
+@ratelimit(
+    key="ip",
+    rate=settings.WEBHOOK_RATE_LIMITS["sms_inbound"],
+    method="POST",
+    block=False,
+)
 def twilio_inbound_webhook(request):
     """
     Handle Twilio inbound SMS webhook (SEC-2: Rate limiting).
@@ -221,13 +241,19 @@ def twilio_inbound_webhook(request):
     - NumMedia: Number of media attachments
     - MediaUrl0, MediaUrl1, ...: Media URLs (if MMS)
     
-    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
+    SEC-2: Rate limited per settings to prevent webhook flooding.
     """
+    rate_limit_response = enforce_webhook_rate_limit(
+        request, provider="twilio", endpoint="twilio_inbound_webhook"
+    )
+    if rate_limit_response:
+        return rate_limit_response
+
     # CONST-3: Verify Twilio webhook signature
     if not _verify_twilio_signature(request):
         logger.error("Invalid Twilio signature for inbound webhook")
         return HttpResponse("Forbidden - Invalid signature", status=403)
-    
+
     from django.db import IntegrityError
     from modules.sms.models import SMSWebhookEvent
     

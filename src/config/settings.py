@@ -490,7 +490,9 @@ if not DEBUG:
     CSP_BASE_URI = ("'self'",)
     CSP_FORM_ACTION = ("'self'",)
     CSP_OBJECT_SRC = ("'none'",)
-    CSP_REPORT_URI = os.environ.get("CSP_REPORT_URI", None)  # Optional: CSP violation reporting endpoint
+    CSP_REPORT_URI = os.environ.get(
+        "CSP_REPORT_URI", "/api/security/csp-report/"
+    )  # Optional: CSP violation reporting endpoint
 
 # =============================================================================
 # Webhook Rate Limiting (SEC-2)
@@ -501,6 +503,13 @@ if not DEBUG:
 # Examples: '100/m' = 100/minute, '10/s' = 10/second, '1000/h' = 1000/hour
 # Can be overridden per webhook endpoint if needed
 WEBHOOK_RATE_LIMIT = os.environ.get("WEBHOOK_RATE_LIMIT", "100/m")
+WEBHOOK_RATE_LIMITS = {
+    "stripe": os.environ.get("STRIPE_WEBHOOK_RATE_LIMIT", WEBHOOK_RATE_LIMIT),
+    "square": os.environ.get("SQUARE_WEBHOOK_RATE_LIMIT", WEBHOOK_RATE_LIMIT),
+    "docusign": os.environ.get("DOCUSIGN_WEBHOOK_RATE_LIMIT", WEBHOOK_RATE_LIMIT),
+    "sms_status": os.environ.get("TWILIO_STATUS_WEBHOOK_RATE_LIMIT", WEBHOOK_RATE_LIMIT),
+    "sms_inbound": os.environ.get("TWILIO_INBOUND_WEBHOOK_RATE_LIMIT", WEBHOOK_RATE_LIMIT),
+}
 
 # =============================================================================
 # Data Retention Configuration (SEC-3)

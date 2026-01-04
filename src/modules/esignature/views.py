@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from modules.clients.models import Proposal
 from modules.esignature.docusign_service import DocuSignService
 from modules.esignature.models import DocuSignConnection, Envelope, WebhookEvent
+from modules.core.rate_limiting import enforce_webhook_rate_limit
 from modules.esignature.serializers import (
     DocuSignConnectionSerializer,
     EnvelopeSerializer,
@@ -239,16 +240,27 @@ def docusign_callback(request):
 @csrf_exempt
 @api_view(["POST"])
 @permission_classes([])  # No authentication for webhooks (verified by HMAC)
-@ratelimit(key="ip", rate="100/m", method="POST", block=True)
+@ratelimit(
+    key="ip",
+    rate=settings.WEBHOOK_RATE_LIMITS["docusign"],
+    method="POST",
+    block=False,
+)
 def docusign_webhook(request):
     """
     Handle DocuSign webhook callbacks (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
     
     Processes envelope status updates and stores events.
     SEC-1: Implements idempotency by checking WebhookEvent before processing.
-    SEC-2: Rate limited to 100 requests/minute per IP to prevent webhook flooding.
+    SEC-2: Rate limited per settings to prevent webhook flooding.
     """
     from django.db import IntegrityError, transaction
+
+    rate_limit_response = enforce_webhook_rate_limit(
+        request, provider="docusign", endpoint="docusign_webhook"
+    )
+    if rate_limit_response:
+        return rate_limit_response
     
     try:
         # Get webhook signature for verification

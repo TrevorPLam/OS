@@ -21,6 +21,19 @@ Thanks for your interest in improving ConsultantPro. This guide outlines expecta
 pytest
 ```
 
+## Dependency Updates
+
+### Frontend Dependencies
+
+1. Check for outdated packages:
+   ```bash
+   cd src/frontend
+   npm run deps:check
+   ```
+2. Update `package.json` with exact versions (no `^` or `~` ranges).
+3. Run `npm install` to refresh `package-lock.json`.
+4. Include both `package.json` and `package-lock.json` in the same commit.
+
 ## Documentation Updates
 
 - Use `docs/README.md` as the documentation map.
@@ -33,4 +46,3 @@ pytest
 - Clearly describe **what** changed and **why**.
 - Call out any migrations, configuration updates, or operational impacts.
 - Confirm that relevant documentation was updated.
-

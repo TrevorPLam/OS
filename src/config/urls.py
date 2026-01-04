@@ -14,6 +14,7 @@ from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
 
+from .csp_report import csp_report
 from .health import health_check, readiness_check
 
 # Public API router (no authentication required)
@@ -66,6 +67,8 @@ urlpatterns = [
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    # Security reporting endpoints
+    path("api/security/csp-report/", csp_report, name="csp-report"),
     # Public API (no authentication - for file uploads, share links, etc.)
     path("api/public/", include(public_router.urls)),
     # Webhooks (not versioned - webhook URLs should remain stable)
