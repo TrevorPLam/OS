@@ -206,6 +206,13 @@ class WebhookEvent(models.Model):
         max_length=255,
         help_text="DocuSign event ID (unique identifier from DocuSign webhook)"
     )
+    idempotency_key = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Idempotency key for this webhook event"
+    )
     event_type = models.CharField(max_length=100, help_text="Type of event (e.g., envelope-completed)")
     event_status = models.CharField(max_length=50, help_text="Status from event (e.g., completed)")
     

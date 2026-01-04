@@ -1510,6 +1510,13 @@ class StripeWebhookEvent(models.Model):
         unique=True,
         help_text="Stripe webhook event ID (unique identifier from Stripe)"
     )
+    idempotency_key = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Idempotency key for this webhook event"
+    )
     event_type = models.CharField(
         max_length=100,
         help_text="Stripe event type (e.g., payment_intent.succeeded, charge.dispute.created)"
@@ -1603,6 +1610,13 @@ class SquareWebhookEvent(models.Model):
     square_event_id = models.CharField(
         max_length=255,
         help_text="Square webhook event ID (unique identifier from Square)"
+    )
+    idempotency_key = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Idempotency key for this webhook event"
     )
     event_type = models.CharField(
         max_length=100,

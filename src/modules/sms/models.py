@@ -810,6 +810,13 @@ class SMSWebhookEvent(models.Model):
         max_length=255,
         help_text="Twilio message SID (unique identifier from Twilio)"
     )
+    idempotency_key = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True,
+        help_text="Idempotency key for this webhook event"
+    )
     event_type = models.CharField(
         max_length=100,
         help_text="Event type (status_callback, inbound_message)"
