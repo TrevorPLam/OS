@@ -10,7 +10,7 @@ endif
 
 NPM ?= npm
 
-.PHONY: setup lint test build dev
+.PHONY: setup lint test build dev deps-check
 
 setup:
 	$(Q)$(NPM) ci
@@ -26,3 +26,6 @@ build:
 
 dev:
 	$(Q)$(NPM) run dev
+
+deps-check:
+	$(Q)$(NPM) run deps:check

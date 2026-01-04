@@ -40,54 +40,9 @@
 ### 🔴 Security Hardening (From Security Review 2026-01-03)
 
 #### Security Improvements (HIGH - 24-36 hours)
-**Status:** Security findings from comprehensive security review  
+**Status:** ✅ Completed (see TODO_COMPLETED.md)  
 **Dependencies:** None  
 **Priority:** Address P1 findings before adding new features
-
-- [ ] **SEC-2:** Add rate limiting to webhook endpoints (P1 - 6-8 hours)
-  - Implement configurable webhook rate limiting (default: 100 requests/min per IP)
-  - Apply rate limiting to all webhook endpoints: Stripe, Square, DocuSign, SMS
-  - Add WEBHOOK_RATE_LIMIT setting to configuration
-  - Log rate limit violations for monitoring
-  - **Acceptance Criteria:**
-    - All webhook endpoints reject excessive requests (429 status)
-    - Rate limits are configurable via settings (per-endpoint if needed)
-    - Legitimate traffic is not blocked
-    - Rate limit violations are logged and monitored
-
-- [ ] **SEC-3:** Document and implement data retention policies (P2 - 4-6 hours)
-  - Document retention periods for logs (90 days)
-  - Document retention periods for webhook events (180 days)
-  - Document retention periods for audit trails (7 years)
-  - Implement automated cleanup job for expired records
-  - Update privacy policy documentation
-  - **Acceptance Criteria:**
-    - Data retention policy documented in docs/
-    - Automated cleanup runs weekly
-    - GDPR compliance maintained
-    - Audit logs preserved per compliance requirements
-
-- [ ] **SEC-4:** Add Content-Security-Policy header (P2 - 2-3 hours)
-  - Configure CSP header in Django settings for production
-  - Set strict CSP directives (script-src, style-src, etc.)
-  - Test CSP with frontend application
-  - Document CSP configuration in SECURITY.md
-  - **Acceptance Criteria:**
-    - CSP header present in production responses
-    - Frontend application functions correctly
-    - CSP violations logged for monitoring
-    - No inline scripts or styles violate CSP
-
-- [ ] **SEC-5:** Pin frontend dependency versions (P2 - 1-2 hours)
-  - Replace caret (^) versions with exact versions in package.json
-  - Generate package-lock.json if not present
-  - Document dependency update process
-  - Add script to check for outdated dependencies
-  - **Acceptance Criteria:**
-    - All dependencies use exact versions (no ^ or ~)
-    - package-lock.json committed to repository
-    - Build is reproducible
-    - Update process documented
 
 ---
 
@@ -255,34 +210,7 @@
 **Dependencies:** None  
 **Priority:** P1 - Reduces production container size and attack surface
 
-- [ ] **DEP-CLEANUP-1:** Move testing dependencies to requirements-dev.txt only (1-2 hours)
-  - Remove pytest, pytest-django, pytest-cov, coverage, factory-boy, faker from requirements.txt
-  - Duplicates (already in requirements-dev.txt): pytest, pytest-django, pytest-cov, factory-boy
-  - Need to add to requirements-dev.txt: coverage==7.4.0, faker==22.0.0
-  - Verify all testing tools are consolidated in requirements-dev.txt only
-  - Update CI/CD pipeline to install requirements-dev.txt for testing stages
-  - Document in CHANGELOG.md
-  - Expected impact: ~80-100MB reduction in production container size
-  - Files: requirements.txt, requirements-dev.txt
-  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
-
-- [ ] **DEP-CLEANUP-2:** Move code quality tools to requirements-dev.txt only (1-2 hours)
-  - Remove ruff, black from requirements.txt (both are already duplicated in requirements-dev.txt)
-  - Update CI/CD linting jobs to explicitly use requirements-dev.txt
-  - Document in CHANGELOG.md
-  - Expected impact: ~40-50MB reduction in production container size
-  - Files: requirements.txt, requirements-dev.txt
-  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
-
-- [ ] **DEP-CLEANUP-3:** Move security scanning tools to requirements-dev.txt only (1-2 hours)
-  - Remove safety, import-linter from requirements.txt
-  - Duplicate (already in requirements-dev.txt): import-linter
-  - Need to add to requirements-dev.txt: safety==3.0.1
-  - Update CI/CD security scanning jobs to use requirements-dev.txt
-  - Document in CHANGELOG.md
-  - Expected impact: ~20-30MB reduction in production container size
-  - Files: requirements.txt, requirements-dev.txt
-  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
+**Status:** ✅ Completed (see TODO_COMPLETED.md)
 
 ---
 

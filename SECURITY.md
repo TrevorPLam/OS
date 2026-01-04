@@ -52,6 +52,16 @@ export WEBHOOK_RATE_LIMIT="10/s"   # 10 per second
 export WEBHOOK_RATE_LIMIT="1000/h" # 1000 per hour
 ```
 
+**Per-endpoint Overrides (optional):**
+
+```bash
+export STRIPE_WEBHOOK_RATE_LIMIT="150/m"
+export SQUARE_WEBHOOK_RATE_LIMIT="150/m"
+export DOCUSIGN_WEBHOOK_RATE_LIMIT="150/m"
+export TWILIO_STATUS_WEBHOOK_RATE_LIMIT="150/m"
+export TWILIO_INBOUND_WEBHOOK_RATE_LIMIT="150/m"
+```
+
 **Monitoring Rate Limit Violations:**
 
 Rate limit violations are logged and can be monitored through application logs:
@@ -117,6 +127,12 @@ Set the `CSP_REPORT_URI` environment variable to enable CSP violation reporting:
 
 ```bash
 export CSP_REPORT_URI=https://your-csp-reporting-endpoint.com/report
+```
+
+By default, CSP reports are accepted at:
+
+```
+/api/security/csp-report/
 ```
 
 **Customizing CSP:**
