@@ -284,14 +284,6 @@
   - Files: requirements.txt, requirements-dev.txt
   - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
 
-- [ ] **DEP-AUDIT-1:** Evaluate micro-dependencies for standard library alternatives (research task - 2-3 hours)
-  - Evaluate python-json-logger vs custom formatter with standard library
-  - Evaluate qrcode package vs inline QR generation with Pillow
-  - Document decision in DEPENDENCY_HEALTH.md
-  - If removing, create follow-up implementation tasks
-  - Type: ENHANCE (optimization)
-  - References: DEPENDENCY_HEALTH.md (2026-01-03 review)
-
 ---
 
 ### 🟡 Integration & Automation

@@ -22,6 +22,13 @@ This file contains all completed tasks that have been migrated from TODO.md.
     - No duplicate invoice updates or state changes from retried webhooks
     - Webhook processing history includes idempotency key
 
+### 🟡 Dependency Management & Code Quality
+
+- [x] **DEP-AUDIT-1:** Evaluate micro-dependencies for standard library alternatives (research task - 2-3 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Evaluated python-json-logger vs standard library formatter
+  - Evaluated qrcode vs Pillow/standard library options
+  - Documented decisions in DEPENDENCY_HEALTH.md
+
 ### 🔥 Marketing & Automation
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours) - ✅ **COMPLETED**

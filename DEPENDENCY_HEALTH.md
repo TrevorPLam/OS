@@ -218,6 +218,13 @@ Create a short section in DECISIONS.md whenever you choose:
 * a payments SDK
 * an ORM/database layer
 
+---
+
+## Dependency Health Summary (2026-01-04)
+
+* **python-json-logger**: Keep. Used in `src/config/settings.py` to emit JSON logs via `pythonjsonlogger.jsonlogger.JsonFormatter`. Standard library alternatives would require a custom formatter and structured logging policy updates.
+* **qrcode**: Keep. Used in `src/modules/auth/mfa_views.py` to generate MFA QR codes. Standard library lacks QR generation; Pillow does not provide QR encoding.
+
 This prevents future churn and re-arguing.
 
 ---
