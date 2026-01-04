@@ -1,8 +1,311 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 3, 2026
+**Last Updated:** January 4, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 4, 2026)
+
+### 🔴 Security Hardening
+
+#### Webhook Idempotency Tracking (HIGH - 8-12 hours) - ✅ **COMPLETED**
+
+- [x] **SEC-1:** Implement webhook idempotency tracking (P1 - 8-12 hours) ✅ **COMPLETED** (January 3, 2026)
+  - Add idempotency_key field to WebhookEvent models
+  - Track processed webhook IDs (Stripe, DocuSign, Square, SMS)
+  - Return 200 OK for duplicate webhooks without reprocessing
+  - Add database unique constraint on (webhook_provider, external_event_id)
+  - **Acceptance Criteria:**
+    - Duplicate webhook deliveries are detected and ignored
+    - No duplicate invoice updates or state changes from retried webhooks
+    - Webhook processing history includes idempotency key
+
+### 🔥 Marketing & Automation
+
+#### Marketing Automation Workflow Builder (HIGH - 48-64 hours) - ✅ **COMPLETED**
+
+- [x] **AUTO-1:** Design automation workflow architecture (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Workflow model with nodes and edges
+  - Define trigger types
+  - Define action types
+  - State management design
+
+- [x] **AUTO-2:** Implement automation triggers (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Form submission triggers
+  - Email action triggers (open, click, reply)
+  - Site tracking triggers
+  - Deal change triggers
+  - Score threshold triggers
+  - Date-based triggers
+
+- [x] **AUTO-3:** Implement automation actions (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Send email action
+  - Wait conditions (time delay, until date, until condition)
+  - If/Else branching logic
+  - Add/Remove tags and lists
+  - Update contact fields
+  - Create/Update deal
+  - Create task
+  - Webhook action
+
+- [x] **AUTO-4:** Build visual workflow builder UI (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Drag-and-drop workflow canvas
+  - Node configuration panels
+  - Connection management
+  - Workflow validation
+  - Testing mode
+
+- [x] **AUTO-5:** Add automation execution engine (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Workflow execution scheduler
+  - Contact flow tracking
+  - Goal tracking and completion
+  - Error handling and retry logic
+
+- [x] **AUTO-6:** Create automation analytics (4-6 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Flow visualization with drop-off points
+  - Goal conversion rates
+  - Performance metrics per automation
+
+### 🔥 Client Portal
+
+#### Client Portal Enhancements (HIGH - 112-156 hours) - ✅ **COMPLETED**
+
+##### Branding & Customization (HIGH - 32-44 hours)
+- [x] **PORTAL-1:** Implement custom domain support (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Custom domain (portal.yourcompany.com)
+  - SSL certificate automation
+  - DNS configuration wizard
+  - Domain verification
+
+- [x] **PORTAL-2:** Add visual branding (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Custom logo upload and display
+  - Custom color palette (brand colors)
+  - Custom fonts
+  - Remove platform branding option
+
+- [x] **PORTAL-3:** Build white-label login (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Branded login page
+  - Custom login URL slug
+  - Remove platform branding
+  - Firm-specific welcome message
+
+- [x] **PORTAL-4:** Implement custom emails (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Send from custom domain
+  - Custom email templates (full HTML)
+  - Email header/footer customization
+  - Brand consistency across all emails
+
+### 🔥 Payment Processing
+
+#### Payment Processing Integration (HIGH - 32-48 hours) - ✅ **COMPLETED**
+
+- [x] **PAY-1:** Implement Stripe Payment Processing (16-24 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Stripe account connection (OAuth or API keys)
+  - Payment intent creation
+  - Checkout session for invoice payments
+  - Webhook handlers for payment events
+  - Automatic invoice status updates on payment
+  - Payment method management (cards, ACH)
+  - Recurring billing support (subscriptions)
+
+- [x] **PAY-2:** Add Square Payment Processing (16-24 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Square OAuth connection
+  - Payment API integration
+  - Invoice payment links
+  - Webhook handlers for Square events
+  - Payment reconciliation
+  - Refund handling
+
+### 🔥 Scheduling Platform (Complete Calendly Replacement)
+
+#### Core Event Types Architecture (HIGH - 40-56 hours) - ✅ **COMPLETED**
+
+- [x] **CAL-1:** Implement event type categories (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - One-on-One event types
+  - Group event types (one-to-many)
+  - Collective event types (multiple hosts, overlapping availability)
+  - Round Robin event types (distribute across team)
+
+- [x] **CAL-2:** Add multiple duration options (4-6 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Multiple duration choices per event (15/30/60 min, custom)
+  - Duration selection UI for bookers
+  - Duration-based pricing (if applicable)
+
+- [x] **CAL-3:** Implement rich event descriptions (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
+  - WYSIWYG editor with formatting
+  - Link embedding
+  - Image upload and display
+  - Internal name vs public display name
+
+- [x] **CAL-4:** Add event customization features (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Custom URL slugs per event
+  - Event color coding
+  - Event-specific availability overrides
+  - Event status management (active/inactive/archived)
+
+- [x] **CAL-5:** Implement scheduling constraints (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Daily meeting limit per event type
+  - Rolling availability window (e.g., "next 30 days")
+  - Min/Max notice periods (1 hour - 30 days)
+  - Event-specific buffer time configuration
+
+- [x] **CAL-6:** Build meeting lifecycle management (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Meeting states (scheduled, rescheduled, canceled, completed)
+  - No-Show tracking
+  - Awaiting Confirmation (for group polls)
+  - Full audit trail for state transitions
+
+#### Advanced Availability Engine (HIGH - 48-64 hours) - ✅ **COMPLETED**
+
+- [x] **AVAIL-1:** Expand calendar integrations (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - iCloud Calendar (iCal feed support)
+  - Generic iCal/vCal support
+  - Multiple calendar support (check across calendars)
+  - All-day event handling (configurable busy/available)
+  - Tentative/optional event handling
+
+- [x] **AVAIL-2:** Build comprehensive availability rules (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Per-day working hours (different each day) [Already implemented]
+  - Date-specific overrides [Already implemented via exceptions]
+  - Recurring unavailability blocks
+  - Holiday blocking (auto-detect + custom)
+  - Start time intervals (15/30/60 min) [Already implemented via slot_rounding_minutes]
+  - Meeting padding/buffer enforcement [Already implemented]
+  - Min/max meeting gap configuration
+
+- [x] **AVAIL-3:** Add advanced availability features (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Secret events (direct link only, hidden from public)
+  - Password-protected booking
+  - Invitee blacklist/whitelist (email domains)
+  - Location-based availability (different schedules per location)
+  - Capacity scheduling (max 2-1000 attendees) [Already implemented in AppointmentType model]
+
+- [x] **AVAIL-4:** Implement timezone intelligence (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Auto-detect invitee timezone
+  - Display times in invitee's local timezone
+  - Timezone conversion for all availability calculations
+  - Daylight saving time handling
+  - Multiple timezone support for distributed teams
+
+#### Team Scheduling & Distribution (HIGH - 56-72 hours) - ✅ **COMPLETED**
+
+- [x] **TEAM-1:** Implement Collective Events (16-20 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Venn diagram availability logic (only overlapping free time)
+  - Multi-host support (2-10 hosts per event)
+  - Host substitution workflow
+  - Required vs optional host configuration
+  - Performance optimization for multi-calendar queries
+
+- [x] **TEAM-2:** Build advanced Round Robin (16-20 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Strict round robin distribution (equal regardless of availability)
+  - Optimize for availability (favor most available)
+  - Weighted distribution (configurable weights per team member)
+  - Prioritize by capacity (route to least-booked)
+  - Equal distribution tracking (count meetings)
+  - Automatic rebalancing when imbalanced
+  - Capacity limits per person per day
+  - Fallback logic when no one available
+  - Manual assignment overrides
+
+- [x] **TEAM-3:** Implement Group Events (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - One-to-many (host with multiple invitees)
+  - Max attendees capacity (2-1000)
+  - Waitlist when full
+  - Attendee list management
+  - Group communication
+
+- [x] **TEAM-4:** Build Polling Events (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Propose multiple time options
+  - Voting interface for invitees
+  - Auto-schedule when consensus reached
+  - Manual override option
+  - Poll expiration
+
+#### Complete Workflow Automation (HIGH - 60-80 hours) - ✅ **COMPLETED**
+
+- [x] **FLOW-1:** Implement reminder system (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Email reminders (24h, 1h before)
+  - SMS reminders
+  - Calendar invitations (ICS)
+  - Custom reminder timing
+
+- [x] **FLOW-2:** Add follow-up sequences (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Thank you emails post-meeting
+  - Feedback surveys
+  - No-show follow-ups
+  - Rescheduling prompts
+
+- [x] **FLOW-3:** Build confirmation workflows (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Require manual host confirmation
+  - Auto-confirm after criteria met
+  - Rejection workflows
+  - Waitlist promotion
+
+- [x] **FLOW-4:** Implement routing rules (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Form-based routing (qualify before scheduling)
+  - Hidden field routing
+  - Answer-based routing
+  - Priority/VIP routing
+
+- [x] **FLOW-5:** Add custom questions (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Pre-booking questions
+  - Question types (text, multiple choice, dropdown)
+  - Conditional questions
+  - Required/optional fields
+  - Answer validation
+
+### 🟡 Contact Management & CRM Enhancements
+
+#### Contact Management Enhancements (MEDIUM - 24-32 hours) - ✅ **COMPLETED**
+
+- [x] **CONTACT-1:** Add contact states and lifecycle (4-6 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Contact state model (Active, Unsubscribed, Bounced, Unconfirmed, Inactive)
+  - State transition logic
+  - State-based filtering
+
+- [x] **CONTACT-2:** Implement bulk operations (8-12 hours) ✅ **COMPLETED** (January 2, 2026)
+  - CSV/Excel import with field mapping UI
+  - Duplicate detection and merge rules
+  - Bulk update API
+  - Import history and error tracking
+
+- [x] **CONTACT-3:** Add contact merging (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Merge conflict resolution UI
+  - Activity consolidation
+  - Association transfer (deals, projects, etc.)
+
+- [x] **CONTACT-4:** Enhance segmentation (6-8 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Geographic segmentation (radius search, by country, state, city, postal code)
+  - Advanced segment builder with nested conditions
+  - Pre-built segments for common use cases
+  - Dynamic segment evaluation with AND/OR logic
+
+#### CRM Intelligence Enhancements (MEDIUM - 48-64 hours) - ✅ **COMPLETED**
+
+- [x] **CRM-INT-1:** Implement Contact 360° Graph View (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Visual graph visualization of contact relationships
+  - Interactive graph exploration (zoom, pan, filter)
+  - Relationship strength indicators
+  - Connection path highlighting
+  - Export graph as image
+
+- [x] **CRM-INT-2:** Build Dynamic Client Health Score (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Real-time health score calculation (0-100)
+  - Multi-factor scoring (engagement, payments, communication, project delivery)
+  - Configurable weight per factor
+  - Health score history and trends
+  - Alert thresholds (score drops >20 points)
+  - Dashboard widget for at-risk clients
+
+- [x] **CRM-INT-3:** Add Relationship Enrichment API (12-16 hours) ✅ **COMPLETED** (January 2, 2026)
+  - Clearbit integration for company data enrichment
+  - ZoomInfo integration for contact data enrichment
+  - LinkedIn profile linking
+  - Auto-enrich on contact creation
+  - Scheduled re-enrichment (24hr refresh)
+  - Enrichment data quality tracking
 
 ---
 
@@ -1067,4 +1370,3 @@ The codebase has been analyzed against the Coding Constitution. All **12 deviati
 ---
 
 ## Sprints 1-5 Completed (January 1, 2026)
-
