@@ -77,6 +77,25 @@ This file contains all completed tasks that have been migrated from TODO.md.
   - CI security scans use requirements-dev.txt
   - Documented in CHANGELOG.md
 
+### 🟡 Operational Runbooks
+
+- [x] **T-012:** Create Core Operational Runbooks (P1 - 12-16 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Added Incident Response, Deployment Procedures, Backup and Restore, Scaling Procedures, and Failed Jobs Recovery runbooks using the standard template.
+  - Linked runbooks from `docs/runbooks/README.md` and updated Constitution compliance status.
+  - Included investigation, resolution, and validation steps with verifiable commands.
+
+- [x] **T-013:** Create Common Failure Runbooks (P2 - 6-8 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Authored runbooks for database connection issues, cache failures, high error rates, and slow response times.
+  - Documented symptoms, investigation, resolution, and prevention guidance for recurring failures.
+  - Cross-referenced related operational runbooks to aid triage.
+
+### 🟡 Documentation Quality Tooling
+
+- [x] **T-014:** Implement Documentation Linting and Quality Tools (P2 - 4-6 hours) ✅ **COMPLETED** (January 4, 2026)
+  - Documented markdown linting and spell-check steps in `docs/STYLE_GUIDE.md` to match the CI workflow.
+  - Confirmed docs-quality workflow runs markdownlint and cspell with existing configuration files.
+  - Kept docs/Makefile targets aligned for local `make docs-check` usage.
+
 ### 🔥 Marketing & Automation
 
 #### Marketing Automation Workflow Builder (HIGH - 48-64 hours) - ✅ **COMPLETED**
