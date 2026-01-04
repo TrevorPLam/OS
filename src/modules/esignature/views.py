@@ -302,6 +302,7 @@ def docusign_webhook(request):
                     envelope=envelope,
                     envelope_id=envelope_id,
                     event_id=event_id,  # Unique identifier for this specific event
+                    idempotency_key=event_id,
                     event_type=event_type,
                     event_status=event_status,
                     payload=payload_data,

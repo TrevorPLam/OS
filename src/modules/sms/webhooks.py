@@ -142,6 +142,7 @@ def twilio_status_webhook(request):
                 webhook_event = SMSWebhookEvent.objects.create(
                     firm=firm,
                     twilio_message_sid=message_sid,
+                    idempotency_key=f"{message_sid}:status",
                     event_type='status_callback',
                     webhook_type='status',
                     message_status=new_status,
@@ -264,6 +265,7 @@ def twilio_inbound_webhook(request):
                 webhook_event = SMSWebhookEvent.objects.create(
                     firm=firm,
                     twilio_message_sid=message_sid,
+                    idempotency_key=f"{message_sid}:inbound",
                     event_type='inbound_message',
                     webhook_type='inbound',
                     message_status='received',

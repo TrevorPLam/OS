@@ -92,6 +92,7 @@ def stripe_webhook(request):
             webhook_event = StripeWebhookEvent.objects.create(
                 firm=firm,  # May be None if we can't determine firm yet
                 stripe_event_id=event_id,
+                idempotency_key=event_id,
                 event_type=event_type,
                 event_data=event,
                 processed_successfully=False,  # Will be updated after processing

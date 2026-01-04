@@ -89,6 +89,7 @@ def square_webhook(request):
             webhook_event = SquareWebhookEvent.objects.create(
                 firm=firm,  # May be None if we can't determine firm yet
                 square_event_id=event_id,
+                idempotency_key=event_id,
                 event_type=event_type,
                 event_data=event,
                 processed_successfully=False,  # Will be updated after processing

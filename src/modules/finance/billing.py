@@ -465,6 +465,7 @@ def handle_dispute_opened(stripe_dispute_data: dict, firm=None, stripe_event_id:
         StripeWebhookEvent.objects.create(
             firm=invoice.firm,
             stripe_event_id=stripe_event_id,
+            idempotency_key=stripe_event_id,
             event_type="charge.dispute.created",
             invoice=invoice,
             event_data=stripe_dispute_data,
@@ -540,6 +541,7 @@ def handle_dispute_closed(stripe_dispute_data: dict, firm=None, stripe_event_id:
         StripeWebhookEvent.objects.create(
             firm=dispute.firm,
             stripe_event_id=stripe_event_id,
+            idempotency_key=stripe_event_id,
             event_type="charge.dispute.closed",
             invoice=dispute.invoice,
             dispute=dispute,
