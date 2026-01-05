@@ -582,7 +582,7 @@ class SiteMessageTargetingView(APIView):
             site_message=message,
             visitor_id=visitor_id,
             occurred_at__gte=today_start,
-            kind__in=["delivered", "view"],
+            kind="delivered",
         ).count()
         return recent_impressions >= message.frequency_cap
 
