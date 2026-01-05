@@ -168,7 +168,7 @@
   color: #4a5568;
 }
 
-.btn-secondary {
+.site-messages .btn-secondary {
   background: #edf2f7;
   border: 1px solid #cbd5e0;
   color: #2d3748;
@@ -177,7 +177,7 @@
   cursor: pointer;
 }
 
-.btn {
+.site-messages .btn {
   background: #ffffff;
   border: 1px solid #cbd5e0;
   border-radius: 8px;
@@ -185,7 +185,7 @@
   cursor: pointer;
 }
 
-.btn-primary {
+.site-messages .btn-primary {
   background: #667eea;
   color: #ffffff;
   border: none;
