@@ -9,17 +9,30 @@ export const TrackingDashboard = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchData = async () => {
       try {
         const data = await trackingApi.getSummary()
-        setSummary(data)
+        if (isMounted) {
+          setSummary(data)
+        }
       } catch (err) {
-        setError('Unable to load tracking data. Please confirm tracking is enabled.')
+        if (isMounted) {
+          setError('Unable to load tracking data. Please confirm tracking is enabled.')
+        }
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
+
     fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const recentEvents = useMemo(() => summary?.recent_events ?? [], [summary])
