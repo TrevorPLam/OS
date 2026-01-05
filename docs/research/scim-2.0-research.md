@@ -43,12 +43,22 @@
 
 ## Implementation Risks & Mitigations
 
-- **Drift with IdPs:** Differences in attribute mappings; mitigate with mapping templates per provider.  
-- **Bulk Operations:** Large payloads may stress DB; cap `count` and paginate in IdP configs.  
+- **Drift with IdPs:** Differences in attribute mappings; mitigate with mapping templates per provider.
+- **Bulk Operations:** Large payloads may stress DB; cap `count` and paginate in IdP configs.
 - **Role Escalation:** Strict validation on role changes; require elevated token scope for admin assignments.
+
+## Edge Cases & Test Matrix
+
+- **PATCH Replace vs Add:** Validate correct behavior when attributes move between operations; ensure `remove` on non-existent paths returns proper `scimType`.
+- **Case Sensitivity:** SCIM userName comparisons are case insensitive; enforce normalized indexes to prevent duplicates across case variations.
+- **Filter Semantics:** Support composite filters (e.g., `userName eq "a" and active eq true`) and handle pagination boundaries correctly when `startIndex + count` exceeds total results.
+- **Concurrency:** Reject updates when `If-Match` etag is stale; include `weak etag` handling per RFC guidance.
+- **Deprovision vs Delete:** Preserve users with `active=false` for auditability; hard deletes only allowed for firm administrators with elevated scope.
+- **Schema Extensibility:** Reject unregistered extensions; ensure custom attributes remain namespaced under `urn:consultantpro:tenant:1.0`.
 
 ## Acceptance Criteria (SCIM-1)
 
-- Documented SCIM 2.0 scope, endpoints, and security expectations.  
-- Tenant-aware data model extensions identified.  
+- Documented SCIM 2.0 scope, endpoints, and security expectations.
+- Tenant-aware data model extensions identified.
 - Risks and mitigations captured to inform SCIM-2 implementation.
+- Edge cases and test expectations documented to seed SCIM-2 through SCIM-5 acceptance tests.

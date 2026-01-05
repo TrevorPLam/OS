@@ -1,6 +1,6 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 7, 2026
+**Last Updated:** January 5, 2026
 **Task Truth Source:** TODO.md
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
@@ -87,8 +87,36 @@
   - Cache-busting via client config version
   - Fallback strategy when delivery API is unavailable
 
+#### LLM Enablement (MEDIUM - 12-16 hours)
+**Status:** Safe GPT-4 usage for meeting prep and content
+**Dependencies:** Research complete (see TODO_COMPLETED)
+
+- [ ] **LLM-1:** Implement firm-scoped LLM client with safety filters and cost metering (6-8 hours)
+  - Add OpenAI/Azure OpenAI wrapper with retries, timeouts, and zero-retention settings
+  - Enforce prompt/input redaction, output moderation, and audit logging per request
+  - Meter token usage per firm with admin-visible quotas
+
+- [ ] **LLM-2:** Add meeting prep background job with caching and fallbacks (6-8 hours)
+  - Build Celery task to generate summaries with cache keying by firm + meeting context hash
+  - Deliver results asynchronously with webhook/notification hooks and deterministic fallback text
+  - Expose admin controls for enabling/disabling LLM features per firm
+
+#### Workflow Engine Foundations (MEDIUM - 14-18 hours)
+**Status:** Event-driven orchestration baseline
+**Dependencies:** Research complete (see TODO_COMPLETED)
+
+- [ ] **ORCH-1:** Implement event-driven workflow runner skeleton using Celery/Redis (6-8 hours)
+  - Define run states, correlation IDs, and retry/backoff policy
+  - Emit structured events and metrics for queue depth and handler latency
+  - Provide DLQ handling and idempotency keys per step
+
+- [ ] **ORCH-2:** Create workflow definition schema and persistence with versioning (8-10 hours)
+  - Store signed YAML/JSON workflow definitions with validation
+  - Add per-tenant concurrency limits and rate caps
+  - Build replay API for failed steps respecting idempotency
+
 #### Additional Native Integrations (MEDIUM - 16-24 hours per integration)
-**Status:** Expand integration ecosystem  
+**Status:** Expand integration ecosystem
 **Dependencies:** None
 
 - [ ] **INT-4:** Zoom integration (12-16 hours)
@@ -464,6 +492,10 @@
 - [ ] **SCIM-3:** Implement SCIM group provisioning endpoints (4-6 hours)
 - [ ] **SCIM-4:** Add SCIM authentication and authorization (2-4 hours)
 - [ ] **SCIM-5:** Create SCIM configuration UI (2-4 hours)
+- [ ] **SCIM-6:** Build SCIM edge-case and conformance test suite (3-4 hours)
+  - Cover PATCH add/replace/remove combinations and ETag concurrency checks
+  - Validate case-insensitive usernames, composite filters, and pagination bounds
+  - Assert extension namespace enforcement and audit logging coverage
 
 #### Audit Review UI (LOW - 12-16 hours)
 **Status:** Enhanced audit log interface  
@@ -482,9 +514,13 @@
 - [ ] **MARKET-3:** Implement integration installation workflow (6-8 hours)
 - [ ] **MARKET-4:** Add integration configuration UI (4-6 hours)
 - [ ] **MARKET-5:** Create integration marketplace catalog UI (3-4 hours)
+- [ ] **MARKET-6:** Implement manifest validation and sandbox runner (6-8 hours)
+  - Validate signed manifests and requested scopes before install
+  - Enforce sandbox execution with allowlisted egress and resource limits
+  - Add integration health telemetry and auto-disable on repeated failures
 
 #### Records Management System (LOW - 16-24 hours)
-**Status:** Immutable record keeping  
+**Status:** Immutable record keeping
 **Dependencies:** None
 
 - [ ] **REC-1:** Design immutable records architecture (3-4 hours)
@@ -693,9 +729,14 @@
 ### 🟢 Infrastructure & Advanced Features
 
 #### Infrastructure & Architecture Foundations (LOW - 120-160 hours)
-**Status:** Advanced infrastructure for scalability  
-**Dependencies:** None  
+**Status:** Advanced infrastructure for scalability
+**Dependencies:** None
 **🔬 Research:** Neo4j, Kafka, Elasticsearch setup and architecture
+
+- [ ] **INFRA-0:** Define Kafka baseline and topic conventions (6-8 hours)
+  - Produce IaC template for single/three-node Kafka with schema registry
+  - Document topic naming, retention, and compaction defaults per domain
+  - Publish producer/consumer client patterns with idempotency guidance
 
 - [ ] **INFRA-1:** Implement Neo4j Activity Graph Database (40-56 hours)
   - Graph database setup
@@ -764,13 +805,9 @@
 The following tasks require additional research before implementation planning:
 
 #### Medium Priority Research
-- **LLM Integration:** GPT-4 API integration strategy for meeting prep and content generation
-- **Workflow Engine Architecture:** Event-driven vs polling-based automation execution
+_No open medium-priority research items (moved to TODO_COMPLETED and translated into LLM/ORCH tasks)._ 
 
 #### Low Priority Research
-- **Event Bus Technology:** Kafka vs RabbitMQ vs AWS EventBridge for event-driven architecture
-- **SCIM 2.0 Specification:** Full implementation requirements and edge cases
-- **Marketplace Architecture:** Security model and sandboxing for third-party integrations
 - **ERP Systems:** SAP, Oracle, NetSuite API capabilities and limitations
 - **E-commerce Platforms:** Shopify, WooCommerce, BigCommerce integration patterns
 - **Meeting Recording:** Gong, Chorus.ai integration capabilities
