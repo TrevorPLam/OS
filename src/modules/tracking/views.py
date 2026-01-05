@@ -838,7 +838,7 @@ class SiteMessageAnalyticsExportView(APIView):
             delivered=Count("id", filter=Q(kind="delivered")),
             views=Count("id", filter=Q(kind="view")),
             clicks=Count("id", filter=Q(kind="click")),
-        )
+        ).order_by("-clicks", "-views")
 
         buffer = io.StringIO()
         writer = csv.writer(buffer)
