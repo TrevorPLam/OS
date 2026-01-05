@@ -19,7 +19,7 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from modules.clients.models import Contact
-from modules.crm.models import Deal, Lead
+from modules.crm.models import Deal
 from modules.firm.models import Firm
 
 from .models import WorkflowExecution, WorkflowTrigger
