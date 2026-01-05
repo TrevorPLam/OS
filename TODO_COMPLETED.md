@@ -8,6 +8,30 @@ This file contains all completed tasks that have been migrated from TODO.md.
 
 ## Recently Completed (January 5, 2026)
 
+### 🟡 Code Audit - Task Hygiene
+
+- [x] **T-001:** Implement Critical Path Calculation for Project Tasks ✅ **COMPLETED** (January 5, 2026)  
+  - Added CPM-style critical path calculation utilities in `src/modules/projects/critical_path.py`.  
+  - Updated project timeline recalculation to persist early/late dates, slack, and critical path metadata.  
+  - Added unit tests in `src/tests/projects/test_critical_path.py` and updated Gantt chart documentation.
+
+- [x] **T-002:** Integrate Background Job Queue for Webhook Delivery ✅ **COMPLETED** (January 5, 2026)  
+  - Queued webhook deliveries and retries via `JobQueue` with scheduled retry support.  
+  - Updated webhook documentation to reflect async delivery flow.
+
+- [x] **T-003:** Remove Legacy API Endpoints After Frontend Migration ✅ **COMPLETED** (January 5, 2026)  
+  - Removed legacy `/api/*` redirects from `src/config/urls.py`.  
+  - Documented API versioning changes in `CHANGELOG.md` and versioning policies.
+
+- [x] **T-004:** Integrate Email Send Jobs with Background Task System ✅ **COMPLETED** (January 5, 2026)  
+  - Added per-recipient tracking model for campaign sends.  
+  - Queued campaign send jobs and added worker handler in `src/modules/marketing/jobs.py`.  
+  - Updated marketing capability documentation.
+
+- [x] **T-006:** Implement Notification System for Deal Assignment ✅ **COMPLETED** (January 5, 2026)  
+  - Deal assignment automations now create `DealAlert` records and send email notifications.  
+  - Preferences are respected via firm profile notification settings.
+
 ### 🟢 Platform Transformation
 
 - [x] **EVENT-1:** Design unified event bus architecture (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  

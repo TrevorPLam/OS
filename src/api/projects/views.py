@@ -512,26 +512,98 @@ class ProjectTimelineViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         - TaskSchedule early/late dates
         - TaskSchedule slack values
         
-        For now, returns a placeholder response. Full implementation requires
-        critical path algorithm (CPM - Critical Path Method).
+        Uses CPM-style critical path calculation to update scheduling fields
+        and critical path metadata.
         """
         timeline = self.get_object()
-        
-        # Tracked in TODO: T-001 (Implement Critical Path Calculation)
-        # This would involve:
-        # 1. Forward pass: Calculate early start/finish dates
-        # 2. Backward pass: Calculate late start/finish dates
-        # 3. Calculate slack (late - early)
-        # 4. Identify critical path (tasks with zero slack)
-        
+
         from django.utils import timezone
-        timeline.last_calculated_at = timezone.now()
+        from modules.projects.critical_path import (
+            TaskNode,
+            DependencyEdge,
+            calculate_critical_path,
+        )
+        from modules.projects.models import TaskDependency, TaskSchedule
+
+        project = timeline.project
+        schedules = TaskSchedule.objects.filter(task__project=project).select_related("task")
+        dependencies = TaskDependency.objects.filter(predecessor__project=project)
+
+        tasks = [
+            TaskNode(
+                task_id=schedule.task_id,
+                duration_days=schedule.planned_duration_days or 1,
+                planned_start_date=schedule.planned_start_date,
+            )
+            for schedule in schedules
+        ]
+        dependency_edges = [
+            DependencyEdge(
+                predecessor_id=dependency.predecessor_id,
+                successor_id=dependency.successor_id,
+                dependency_type=dependency.dependency_type,
+                lag_days=dependency.lag_days,
+            )
+            for dependency in dependencies
+        ]
+
+        try:
+            schedule_map, critical_ids, critical_duration = calculate_critical_path(
+                tasks=tasks,
+                dependencies=dependency_edges,
+                project_start_date=project.start_date,
+            )
+        except ValueError as exc:
+            return Response(
+                {"error": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        updated_at = timezone.now()
+        milestone_count = 0
+        completed_tasks = 0
+
+        for schedule in schedules:
+            computed = schedule_map.get(schedule.task_id)
+            if not computed:
+                continue
+            schedule.early_start_date = computed.early_start
+            schedule.early_finish_date = computed.early_finish
+            schedule.late_start_date = computed.late_start
+            schedule.late_finish_date = computed.late_finish
+            schedule.total_slack_days = computed.total_slack_days
+            schedule.is_on_critical_path = computed.is_critical
+            schedule.save(
+                update_fields=[
+                    "early_start_date",
+                    "early_finish_date",
+                    "late_start_date",
+                    "late_finish_date",
+                    "total_slack_days",
+                    "is_on_critical_path",
+                    "updated_at",
+                ]
+            )
+
+            if schedule.is_milestone:
+                milestone_count += 1
+            if schedule.task.status == "done":
+                completed_tasks += 1
+
+        timeline.critical_path_task_ids = critical_ids
+        timeline.critical_path_duration_days = critical_duration
+        timeline.total_tasks = schedules.count()
+        timeline.completed_tasks = completed_tasks
+        timeline.milestone_count = milestone_count
+        timeline.last_calculated_at = updated_at
         timeline.calculation_metadata = {
-            "message": "Critical path algorithm not yet implemented",
-            "calculated_at": timezone.now().isoformat(),
+            "calculated_at": updated_at.isoformat(),
+            "dependency_types": ["finish_to_start", "start_to_start", "finish_to_finish", "start_to_finish"],
+            "complexity": "O(V+E)",
+            "notes": "Planned start dates are treated as minimum constraints.",
         }
         timeline.save()
-        
+
         serializer = self.get_serializer(timeline)
         return Response(serializer.data)
 

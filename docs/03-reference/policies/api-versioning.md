@@ -47,14 +47,12 @@ The following changes require a new API version:
 
 ### Legacy Endpoints
 
-Legacy endpoints (without `/v1/` prefix) redirect to v1 during transition period:
-- `/api/auth/` → `/api/v1/auth/` (301 redirect)
-- `/api/crm/` → `/api/v1/crm/` (301 redirect)
-- etc.
+Legacy endpoints (without `/v1/` prefix) have been removed after frontend migration.
+All clients must use `/api/v1/` routes.
 
 **Deprecation Timeline:**
-- Legacy endpoints will be removed after frontend migration
-- Minimum 1 version cycle (3-6 months) notice before removal
+- Legacy endpoints were removed after frontend migration
+- Minimum 1 version cycle (3-6 months) notice was provided before removal
 
 ### Client Migration
 

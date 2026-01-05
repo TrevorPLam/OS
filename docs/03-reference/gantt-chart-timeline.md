@@ -59,7 +59,9 @@ Triggers recalculation of critical path and timeline data. This would update:
 - TaskSchedule early/late dates
 - TaskSchedule slack values
 
-**Note:** Full critical path algorithm (CPM - Critical Path Method) implementation is pending. Currently returns placeholder response.
+**Note:** Critical path calculation uses a CPM-style forward/backward pass (O(V+E)).
+Planned start dates are treated as minimum constraints, and all dependency types
+(`finish_to_start`, `start_to_start`, `finish_to_finish`, `start_to_finish`) are supported.
 
 ### TaskSchedule
 

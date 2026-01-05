@@ -303,8 +303,20 @@ class StageAutomation(models.Model):
     
     def _execute_send_notification(self, deal) -> bool:
         """Send a notification about the deal."""
-        # Tracked in TODO: T-006 (Implement Notification System for Deal Assignment)
-        logger.info(f"Would send notification for deal {deal.id}")
+        from modules.crm.models import DealAlert
+
+        if not deal.owner:
+            return False
+
+        alert = DealAlert.objects.create(
+            deal=deal,
+            alert_type="owner_change",
+            priority="medium",
+            title=f"Deal assigned: {deal.name}",
+            message=f"{deal.name} has been assigned to {deal.owner.get_full_name() or deal.owner.email}.",
+        )
+        alert.recipients.add(deal.owner)
+        alert.send_notification()
         return True
     
     def _execute_update_field(self, deal) -> bool:
