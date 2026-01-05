@@ -61,4 +61,4 @@
 - Documented SCIM 2.0 scope, endpoints, and security expectations.
 - Tenant-aware data model extensions identified.
 - Risks and mitigations captured to inform SCIM-2 implementation.
-- Edge cases and test expectations documented to seed SCIM-2 through SCIM-5 acceptance tests.
+- Edge cases and test expectations documented to seed SCIM-2 through SCIM-6 acceptance tests.
