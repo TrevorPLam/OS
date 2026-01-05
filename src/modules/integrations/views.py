@@ -176,11 +176,21 @@ class IntegrationHealthView(APIView):
                     }
                 )
 
+        from django.db.models import Count
+
         slack_cards = []
+        slack_error_counts = {
+            row["integration_id"]: row["count"]
+            for row in SlackMessageLog.objects.filter(
+                firm=firm,
+                status="error",
+                occurred_at__gte=since,
+            )
+            .values("integration_id")
+            .annotate(count=Count("id"))
+        }
         for integration in SlackIntegration.objects.filter(firm=firm):
-            error_count = SlackMessageLog.objects.filter(
-                firm=firm, integration=integration, status="error", occurred_at__gte=since
-            ).count()
+            error_count = slack_error_counts.get(integration.id, 0)
             status_label = "warning" if error_count >= 3 else integration.status
             slack_cards.append(
                 {
