@@ -172,8 +172,11 @@ export class TrackingClient {
 
     try {
       if (this.options.transport === 'beacon' && navigator.sendBeacon) {
-        navigator.sendBeacon(this.options.endpoint, JSON.stringify({ events: batch }))
-        return
+        const success = navigator.sendBeacon(this.options.endpoint, JSON.stringify({ events: batch }))
+        if (success) {
+          return
+        }
+        // fall through to fetch if beacon fails
       }
 
       const response = await fetch(this.options.endpoint, {
