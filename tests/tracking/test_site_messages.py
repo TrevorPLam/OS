@@ -1,5 +1,7 @@
 import uuid
 
+from unittest import mock
+
 import pytest
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -10,44 +12,48 @@ from modules.tracking.models import SiteMessage, SiteMessageImpression
 
 @pytest.mark.django_db
 def test_site_message_targeting_enforces_segments_and_frequency():
-    firm = Firm.objects.create(name="Targeted Firm", slug="targeted-firm")
-    visitor_id = uuid.uuid4()
-    session_id = uuid.uuid4()
+    # Freeze time so frequency-cap logic based on "today" is deterministic
+    fixed_now = timezone.now()
 
-    message = SiteMessage.objects.create(
-        firm=firm,
-        name="Segmented Banner",
-        message_type="banner",
-        status="published",
-        targeting_rules={"segments": ["vip"]},
-        content={"headline": "Welcome VIP"},
-        frequency_cap=1,
-    )
+    with mock.patch("django.utils.timezone.now", return_value=fixed_now):
+        firm = Firm.objects.create(name="Targeted Firm", slug="targeted-firm")
+        visitor_id = uuid.uuid4()
+        session_id = uuid.uuid4()
 
-    client = APIClient()
-    payload = {
-        "firm_slug": firm.slug,
-        "visitor_id": visitor_id,
-        "session_id": session_id,
-        "url": "https://example.com/pricing",
-        "segments": ["vip"],
-    }
+        message = SiteMessage.objects.create(
+            firm=firm,
+            name="Segmented Banner",
+            message_type="banner",
+            status="published",
+            targeting_rules={"segments": ["vip"]},
+            content={"headline": "Welcome VIP"},
+            frequency_cap=1,
+        )
 
-    response = client.post("/api/v1/tracking/site-messages/display/", payload, format="json")
-    assert response.status_code == 200
-    data = response.json().get("messages", [])
-    assert len(data) == 1
-    delivery_id = data[0]["delivery_id"]
+        client = APIClient()
+        payload = {
+            "firm_slug": firm.slug,
+            "visitor_id": visitor_id,
+            "session_id": session_id,
+            "url": "https://example.com/pricing",
+            "segments": ["vip"],
+        }
 
-    # Record a view to exhaust the frequency cap
-    SiteMessageImpression.objects.create(
-        firm=firm,
-        site_message=message,
-        visitor_id=visitor_id,
-        session=None,
-        delivery_id=uuid.UUID(delivery_id),
-        kind="view",
-        occurred_at=timezone.now(),
+        response = client.post("/api/v1/tracking/site-messages/display/", payload, format="json")
+        assert response.status_code == 200
+        data = response.json().get("messages", [])
+        assert len(data) == 1
+        delivery_id = data[0]["delivery_id"]
+
+        # Record a view to exhaust the frequency cap within the same day window
+        SiteMessageImpression.objects.create(
+            firm=firm,
+            site_message=message,
+            visitor_id=visitor_id,
+            session=None,
+            delivery_id=uuid.UUID(delivery_id),
+            kind="view",
+            occurred_at=fixed_now,
     )
 
     response = client.post("/api/v1/tracking/site-messages/display/", payload, format="json")
