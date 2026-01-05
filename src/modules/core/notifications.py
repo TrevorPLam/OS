@@ -528,7 +528,17 @@ class SlackNotification:
             return False
 
         service = SlackService(integration)
-        ok = service.send_message(text=_message, channel=_channel, attachments=_attachments or [])
+        try:
+            ok = service.send_message(text=_message, channel=_channel, attachments=_attachments or [])
+        except Exception as exc:
+            log_event(
+                "notification_slack_failed",
+                channel="slack",
+                error_class=exc.__class__.__name__,
+                error_message=str(exc),
+            )
+            logger.error(f"Failed to send Slack notification: {exc.__class__.__name__}: {exc}")
+            return False
         log_event("notification_slack_sent" if ok else "notification_slack_failed", channel="slack")
         return ok
 
