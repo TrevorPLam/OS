@@ -504,9 +504,9 @@ class SlackNotification:
 
     @staticmethod
     def send(
-        _channel: str,
-        _message: str,
-        _attachments: list[dict[str, Any]] | None = None,
+        channel: str,
+        message: str,
+        attachments: list[dict[str, Any]] | None = None,
         firm=None,
     ) -> bool:
         """
