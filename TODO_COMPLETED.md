@@ -52,6 +52,28 @@ This file contains all completed tasks that have been migrated from TODO.md.
   - Added `PublicShareViewSet` public endpoints with password, IP, and download limit enforcement.  
   - Updated external share documentation in `docs/03-reference/external-document-sharing.md`.  
 
+### 🟡 Integration & Automation
+
+- [x] **TRACK-1:** Design tracking architecture ✅ **COMPLETED** (January 5, 2026)  
+  - Authored end-to-end tracking blueprint covering SDK, ingestion, consent, observability, and automation hooks in `docs/03-reference/site-tracking-architecture.md`.  
+  - Documented configuration, resilience, and rollout controls aligned with GDPR/CCPA readiness.  
+
+- [x] **TRACK-2:** Implement JavaScript tracking library ✅ **COMPLETED** (January 5, 2026)  
+  - Added front-end tracking client with visitor/session identifiers, consent gating, page view auto-tracking, beacon transport, and queueing in `src/frontend/src/tracking`.  
+  - Wired optional runtime instantiation via `VITE_TRACKING_*` env vars with default endpoint `/api/v1/tracking/collect/`.  
+
+- [x] **TRACK-3:** Add custom event tracking ✅ **COMPLETED** (January 5, 2026)  
+  - Exposed `trackEvent` and `identify` helpers for arbitrary events/properties and contact linkage.  
+  - Validated ingestion payloads and property size limits with new serializers and tests.  
+
+- [x] **TRACK-4:** Build tracking dashboard ✅ **COMPLETED** (January 5, 2026)  
+  - Delivered authenticated tracking dashboard UI with stats, top pages/events, and recent activity in `src/frontend/src/pages/TrackingDashboard.tsx`.  
+  - Added summary API endpoint returning firm-scoped rollups for visitors, events, and timelines.  
+
+- [x] **TRACK-5:** Integrate with automation triggers ✅ **COMPLETED** (January 5, 2026)  
+  - Ingestion endpoint now emits `site_page_view` and `site_custom_event` triggers into the automation engine with idempotent discriminators.  
+  - Added new trigger evaluation rules for URL/ event-name filters and enforced firm membership on tracking data access.  
+
 ### 🟢 Platform Transformation
 
 - [x] **EVENT-1:** Design unified event bus architecture (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  

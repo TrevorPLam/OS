@@ -17,6 +17,7 @@ Reference documentation is information-oriented and designed for quick lookup of
 ### Platform
 - [Platform Capabilities](platform-capabilities.md) - Comprehensive inventory of implemented and planned features
 - [Tier System](tier-system.md) - UNKNOWN (verify existence)
+- [Site & Event Tracking Architecture](site-tracking-architecture.md) - Tracking SDK, ingestion, and automation contracts
 
 ## What Makes Good Reference?
 

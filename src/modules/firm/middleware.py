@@ -51,6 +51,7 @@ class FirmContextMiddleware(MiddlewareMixin):
         "/api/schema/",
         "/api/redoc/",
         "/admin/",
+        "/api/v1/tracking/collect",
     ]
 
     # Platform operator endpoints (require platform role, not firm context)

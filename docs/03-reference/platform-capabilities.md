@@ -231,6 +231,18 @@ This document provides a comprehensive inventory of ConsultantPro's implemented 
 
 ---
 
+## Tracking & Personalization
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Page view tracking | ✅ | Ingestion endpoint `/api/v1/tracking/collect/` with session + consent handling |
+| Custom event tracking | ✅ | SDK helper `trackEvent` with property payloads |
+| Tracking dashboard | ✅ | Authenticated dashboard with top pages/events and recent activity |
+| Automation triggers from site events | ✅ | Workflow triggers `site_page_view` and `site_custom_event` |
+| Consent-aware visitor/session IDs | ✅ | SDK-managed visitor/session identifiers with pending/granted/denied states |
+
+---
+
 ## Client Onboarding
 
 | Feature | Status | Notes |

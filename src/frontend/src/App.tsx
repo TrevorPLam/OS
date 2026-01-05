@@ -30,6 +30,7 @@ import CalendarSync from './pages/CalendarSync'
 import CalendarOAuthCallback from './pages/CalendarOAuthCallback'
 import Automation from './pages/Automation'
 import WorkflowBuilder from './pages/WorkflowBuilder'
+import TrackingDashboard from './pages/TrackingDashboard'
 
 function App() {
   return (
@@ -80,6 +81,7 @@ function App() {
                 <Route path="/assets" element={<AssetManagement />} />
                 <Route path="/knowledge" element={<KnowledgeCenter />} />
                 <Route path="/communications" element={<Communications />} />
+                <Route path="/analytics/tracking" element={<TrackingDashboard />} />
                 
                 {/* Calendar Sync Route */}
                 <Route path="/calendar-sync" element={<CalendarSync />} />
