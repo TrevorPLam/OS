@@ -33,7 +33,13 @@ class Migration(migrations.Migration):
                 ("last_error", models.TextField(blank=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
-            ],
+                (
+                    "firm",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="firm.firm",
+                    ),
+                ),
             options={
                 "db_table": "integrations_google_analytics",
                 "ordering": ["-created_at"],
