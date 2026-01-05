@@ -219,8 +219,12 @@ class AuditEventAdmin(admin.ModelAdmin):
     )
     date_hierarchy = "timestamp"
 
-
-@admin.register(PlatformUserProfile)
+    def has_delete_permission(self, request, obj=None):
+        """
+        Prevent deletion of audit events via the admin (including bulk delete),
+        preserving the immutability and retention guarantees of the audit log.
+        """
+        return False
 class PlatformUserProfileAdmin(admin.ModelAdmin):
     list_display = (
         "user",
