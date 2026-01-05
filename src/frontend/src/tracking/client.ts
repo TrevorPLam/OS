@@ -270,7 +270,7 @@ export class TrackingClient {
         // eslint-disable-next-line no-console
         console.error('[tracking] site message fetch failed', error)
       }
-      if (cached) {
+      if (cached && !this.isCacheExpired(cached)) {
         return cached.messages
       }
       return []
