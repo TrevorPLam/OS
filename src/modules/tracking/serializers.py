@@ -24,7 +24,8 @@ def validate_tracking_key(
             return key, False
 
     fallback = getattr(settings, "TRACKING_PUBLIC_KEY", None)
-    if fallback and hmac.compare_digest(fallback, secret) and not key_qs.exists():
+    active_keys_exist = TrackingKey.objects.filter(firm=firm, is_active=True).exists()
+    if fallback and hmac.compare_digest(fallback, secret) and not active_keys_exist:
         return None, True
     raise serializers.ValidationError("Invalid or inactive tracking key")
 
