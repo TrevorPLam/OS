@@ -4,12 +4,17 @@ Firm Module API Views.
 Provides endpoints for firm-level operations and break-glass session management.
 """
 
+import csv
+import json
 import logging
+from datetime import datetime
 
+from django.http import HttpResponse
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 
 from modules.firm.audit import audit
@@ -20,9 +25,22 @@ from modules.firm.export import (
 )
 from modules.firm.models import FirmOffboardingRecord
 from modules.firm.permissions import IsFirmOwnerOrAdmin
+from modules.firm.audit import AuditEvent
+from modules.firm.audit_serializers import AuditEventSerializer
 from modules.firm.utils import get_active_break_glass_session, get_firm_or_403
 
 logger = logging.getLogger(__name__)
+
+
+class CanReviewAuditEvents(BasePermission):
+    """Permission gate for audit review and export actions."""
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        required_permission = "firm.export_audit_events" if view.action == "export" else "firm.review_audit_events"
+        return request.user.has_perm(required_permission)
 
 
 class BreakGlassStatusViewSet(viewsets.ViewSet):
@@ -123,6 +141,126 @@ class BreakGlassStatusViewSet(viewsets.ViewSet):
         session.save()
 
         return Response({"success": True, "message": "Break-glass session ended successfully"})
+
+
+class AuditEventViewSet(viewsets.ReadOnlyModelViewSet):
+    """Firm-scoped audit event review with filtering and export."""
+
+    serializer_class = AuditEventSerializer
+    permission_classes = [IsAuthenticated, IsFirmOwnerOrAdmin, CanReviewAuditEvents]
+
+    def get_queryset(self):
+        firm = get_firm_or_403(self.request)
+        queryset = (
+            AuditEvent.objects.select_related("actor", "reviewed_by")
+            .filter(firm=firm)
+            .order_by("-timestamp")
+        )
+        return self._apply_filters(queryset)
+
+    def _apply_filters(self, queryset):
+        params = self.request.query_params
+        category = params.get("category")
+        severity = params.get("severity")
+        action = params.get("action")
+        actor_email = params.get("actor_email")
+        request_id = params.get("request_id")
+        outcome = params.get("outcome")
+        target_model = params.get("target_model")
+
+        if category:
+            queryset = queryset.filter(category__iexact=category)
+        if severity:
+            queryset = queryset.filter(severity__iexact=severity)
+        if action:
+            queryset = queryset.filter(action__icontains=action)
+        if actor_email:
+            queryset = queryset.filter(actor_email__icontains=actor_email)
+        if request_id:
+            queryset = queryset.filter(request_id=request_id)
+        if outcome:
+            queryset = queryset.filter(outcome__iexact=outcome)
+        if target_model:
+            queryset = queryset.filter(target_model__iexact=target_model)
+
+        start = self._parse_datetime(params.get("occurred_after") or params.get("start"))
+        end = self._parse_datetime(params.get("occurred_before") or params.get("end"))
+
+        if start:
+            queryset = queryset.filter(timestamp__gte=start)
+        if end:
+            queryset = queryset.filter(timestamp__lte=end)
+
+        return queryset
+
+    def _parse_datetime(self, value: str | None) -> datetime | None:
+        if not value:
+            return None
+
+        parsed = parse_datetime(value)
+        if parsed:
+            return parsed
+
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
+
+    @action(detail=False, methods=["get"], url_path="export")
+    def export(self, request):
+        queryset = self.get_queryset()
+        try:
+            requested_limit = int(request.query_params.get("limit", 5000))
+        except (TypeError, ValueError):
+            requested_limit = 5000
+        limit = max(1, min(requested_limit, 5000))
+        queryset = queryset[:limit]
+
+        if fmt == "csv":
+            return self._export_csv(queryset)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({"count": queryset.count(), "results": serializer.data})
+
+    def _export_csv(self, queryset):
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename=audit-events.csv"
+        fieldnames = [
+            "timestamp",
+            "category",
+            "action",
+            "severity",
+            "actor_email",
+            "actor_role",
+            "target_model",
+            "target_id",
+            "target_repr",
+            "outcome",
+            "reason",
+            "request_id",
+            "metadata",
+        ]
+        writer = csv.DictWriter(response, fieldnames=fieldnames)
+        writer.writeheader()
+        for event in queryset:
+            writer.writerow(
+                {
+                    "timestamp": event.timestamp.isoformat(),
+                    "category": event.category,
+                    "action": event.action,
+                    "severity": event.severity,
+                    "actor_email": event.actor_email,
+                    "actor_role": event.actor_role,
+                    "target_model": event.target_model,
+                    "target_id": event.target_id,
+                    "target_repr": event.target_repr,
+                    "outcome": event.outcome,
+                    "reason": event.reason,
+                    "request_id": event.request_id,
+                    "metadata": json.dumps(event.metadata or {}),
+                }
+            )
+        return response
 
 
 class FirmOffboardingViewSet(viewsets.ViewSet):

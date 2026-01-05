@@ -11,6 +11,13 @@
 
 Provide a clear UX blueprint for the Audit Review dashboard so engineers and designers can implement AUDIT-2 through AUDIT-4 without ambiguity while preserving tenant isolation and security controls.
 
+## Backend Readiness (AUDIT-2 to AUDIT-4)
+
+- **API endpoints:** `/api/v1/firm/audit-events/` now exposes firm-scoped audit events with filters for category, severity, actors, targets, outcomes, request IDs, and occurred_at ranges.
+- **Exports:** `/api/v1/firm/audit-events/export/` supports JSON (default) and CSV output, capped to 5,000 records per request. Exports inherit the active filters to keep investigations focused.
+- **Permissions:** Access requires authenticated firm owners/admins with `review_audit_events`; exports additionally require `export_audit_events`. Both list and export endpoints enforce firm context via middleware.
+- **Admin review UI:** Django admin now includes an `AuditEvent` view with filters, search, and date hierarchy to provide a quick review surface while the dedicated dashboard ships.
+
 ## Layout Overview
 
 1. **Header Bar** — Title, firm selector (scoped to current firm), date range picker, and export buttons (CSV/JSON).  
