@@ -117,7 +117,7 @@ export class TrackingClient {
     const storedSession = read(SESSION_KEY)
     const lastSeenRaw = read(SESSION_LAST_SEEN_KEY)
     const lastSeen = lastSeenRaw ? new Date(lastSeenRaw) : undefined
-    const timeoutMs = (this.options.sessionTimeoutMinutes || SESSION_TIMEOUT_MINUTES_DEFAULT) * 60 * 1000
+    const timeoutMs = this.options.sessionTimeoutMinutes * 60 * 1000
     const now = new Date()
     const sessionExpired = !lastSeen || now.getTime() - lastSeen.getTime() > timeoutMs
 
