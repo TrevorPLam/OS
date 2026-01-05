@@ -113,7 +113,7 @@ class TrackingEventViewSet(viewsets.ReadOnlyModelViewSet):
     def _is_member(user, firm) -> bool:
         return (
             getattr(user, "is_authenticated", False)
-            and FirmMembership.objects.filter(user=user, firm=firm, status="active").exists()
+            and FirmMembership.objects.filter(user=user, firm=firm, is_active=True).exists()
         )
 
 
