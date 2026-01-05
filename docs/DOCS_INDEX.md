@@ -59,6 +59,9 @@ Find documentation by what you're trying to accomplish:
 - [PILLARS.md](PILLARS.md) - Feature areas and capabilities
 - [BOUNDARY_RULES.md](BOUNDARY_RULES.md) - Boundary enforcement
 - [THREAT_MODEL.md](THREAT_MODEL.md) - Security analysis
+- [03-reference/event-bus-architecture.md](03-reference/event-bus-architecture.md) - Event bus topology and contracts
+- [03-reference/integration-marketplace-architecture.md](03-reference/integration-marketplace-architecture.md) - Marketplace data model and flows
+- [04-explanation/audit-review-dashboard.md](04-explanation/audit-review-dashboard.md) - Audit dashboard UX blueprint
 
 ### API Documentation
 - [ENDPOINTS.md](ENDPOINTS.md) - API reference
@@ -93,6 +96,10 @@ Find documentation by what you're trying to accomplish:
 - [02-how-to/](02-how-to/) - Problem-solving guides
 - [06-user-guides/](06-user-guides/) - End-user documentation
 - [07-api-client/](07-api-client/) - API client guides
+
+### Research & Spikes
+- [research/scim-2.0-research.md](research/scim-2.0-research.md) - SCIM provisioning scope and security
+- [research/ecommerce-platform-research.md](research/ecommerce-platform-research.md) - E-commerce platform comparison and rollout plan
 
 ## By Role
 

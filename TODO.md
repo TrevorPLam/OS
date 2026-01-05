@@ -1,6 +1,6 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 4, 2026
+**Last Updated:** January 5, 2026
 **Task Truth Source:** TODO.md
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
@@ -640,7 +640,6 @@
 **Dependencies:** None  
 **🔬 Research:** Event bus technology selection (Kafka, RabbitMQ, AWS EventBridge)
 
-- [ ] **EVENT-1:** Design unified event bus architecture (3-4 hours)
 - [ ] **EVENT-2:** Implement event publisher service (4-6 hours)
 - [ ] **EVENT-3:** Create event subscriber/handler framework (4-6 hours)
 - [ ] **EVENT-4:** Add event routing and filtering logic (3-4 hours)
@@ -651,7 +650,6 @@
 **Dependencies:** None  
 **🔬 Research:** SCIM 2.0 specification
 
-- [ ] **SCIM-1:** Research SCIM 2.0 specification (2-4 hours)
 - [ ] **SCIM-2:** Implement SCIM user provisioning endpoints (6-8 hours)
 - [ ] **SCIM-3:** Implement SCIM group provisioning endpoints (4-6 hours)
 - [ ] **SCIM-4:** Add SCIM authentication and authorization (2-4 hours)
@@ -661,7 +659,6 @@
 **Status:** Enhanced audit log interface  
 **Dependencies:** None
 
-- [ ] **AUDIT-1:** Design audit review dashboard wireframes (2-3 hours)
 - [ ] **AUDIT-2:** Implement audit log query and filter backend (4-6 hours)
 - [ ] **AUDIT-3:** Create audit review UI components (4-5 hours)
 - [ ] **AUDIT-4:** Add audit export functionality (CSV/JSON) (2-2 hours)
@@ -671,7 +668,6 @@
 **Dependencies:** None  
 **🔬 Research:** Marketplace architecture and security model
 
-- [ ] **MARKET-1:** Design integration marketplace architecture (3-4 hours)
 - [ ] **MARKET-2:** Create integration registry model (4-6 hours)
 - [ ] **MARKET-3:** Implement integration installation workflow (6-8 hours)
 - [ ] **MARKET-4:** Add integration configuration UI (4-6 hours)
@@ -715,7 +711,6 @@
 **Dependencies:** None  
 **🔬 Research:** E-commerce platforms (Shopify, WooCommerce, BigCommerce)
 
-- [ ] **ECOM-1:** Research e-commerce platforms (2-4 hours)
 - [ ] **ECOM-2:** Design e-commerce integration models (4-6 hours)
 - [ ] **ECOM-3:** Implement Shopify integration (12-16 hours)
 - [ ] **ECOM-4:** Add abandoned cart tracking (6-8 hours)
