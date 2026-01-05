@@ -194,9 +194,9 @@ class SiteMessageTargetRequestSerializer(serializers.Serializer):
 
     def validate_contact_id(self, value: int) -> int:
         firm = getattr(self, "_firm", None)
-        if not firm:
+        if not firm or value is None:
             return value
-        if value and not Contact.objects.filter(firm=firm, id=value).exists():
+        if not Contact.objects.filter(firm=firm, id=value).exists():
             raise serializers.ValidationError("Contact does not exist for this firm")
         return value
 
