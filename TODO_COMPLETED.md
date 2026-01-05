@@ -1,8 +1,36 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 5, 2026
+**Last Updated:** January 6, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 6, 2026)
+
+### 🟡 Integration & Automation
+
+- [x] **TRACK-6:** Add firm-managed tracking keys and rotation ✅ **COMPLETED** (January 6, 2026)  
+  - Added firm-scoped tracking keys with rotation, downloadable client bundles, and audit trails.  
+  - Persisted tracking key usage on events and exposed management endpoints at `/api/v1/tracking/keys/`.
+
+- [x] **TRACK-7:** Implement ingestion rate limiting and abuse monitoring ✅ **COMPLETED** (January 6, 2026)  
+  - Enforced per-firm, per-key, and per-IP rate limiting for tracking ingestion with abuse event logging.  
+  - Added default-key warnings and surfaced ingestion abuse via analytics endpoints.
+
+- [x] **TRACK-8:** Expand tracking analytics ✅ **COMPLETED** (January 6, 2026)  
+  - Enhanced tracking summary with time-series rollups, referrer/campaign breakdowns, filters, and CSV export.  
+  - Added fallback-key indicators to prompt rotation off legacy defaults.
+
+### 🟡 Web Personalization & Site Messages
+
+- [x] **PERS-1:** Design site message system ✅ **COMPLETED** (January 6, 2026)  
+  - Introduced firm-scoped SiteMessage model covering message types, targeting rules, activation windows, and frequency caps.  
+  - Documented architecture and governance in `docs/03-reference/site-messages.md`.
+
+- [x] **PERS-2:** Implement message builder ✅ **COMPLETED** (January 6, 2026)  
+  - Delivered authenticated CRUD API at `/api/v1/tracking/site-messages/` for drafting/publishing site messages.  
+  - Builder supports structured content, personalization tokens, embedded form schemas, and status transitions.
 
 ---
 

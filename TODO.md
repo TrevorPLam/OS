@@ -1,6 +1,6 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 5, 2026
+**Last Updated:** January 6, 2026
 **Task Truth Source:** TODO.md
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
@@ -73,34 +73,10 @@
 **Status:** Critical for behavioral automation  
 **Dependencies:** AUTO-1 through AUTO-6
 
-- [ ] **TRACK-6:** Add firm-managed tracking keys and rotation (4-6 hours)
-  - Per-firm public/secret key issuance with audit history
-  - Key rotation workflow and client configuration download
-  - Warning banner when default/global key is still in use
-  
-- [ ] **TRACK-7:** Implement ingestion rate limiting and abuse monitoring (3-4 hours)
-  - Per-firm quotas plus burst limits
-  - Alerting for anomalous spikes and blocked token/IP ranges
-  - Dashboard surface for ingestion health signals
-  
-- [ ] **TRACK-8:** Expand tracking analytics (4-6 hours)
-  - Time-series charts (7/30/90 day) for visits and events
-  - Referrer/campaign breakdowns and CSV export
-  - Drill-down filters for URL path and event name
-
 #### Web Personalization & Site Messages (MEDIUM - 20-28 hours)
 **Status:** Extends site tracking with on-site engagement  
 **Dependencies:** TRACK-1 through TRACK-5
 
-- [ ] **PERS-1:** Design site message system (3-4 hours)
-  - Message types (modal, slide-in, banner)
-  - Targeting rules engine
-  
-- [ ] **PERS-2:** Implement message builder (6-8 hours)
-  - Message template editor
-  - Personalization tokens
-  - Form integration
-  
 - [ ] **PERS-3:** Add targeting and display logic (6-8 hours)
   - Segment-based targeting
   - Behavior-based targeting
