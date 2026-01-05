@@ -1,6 +1,6 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 7, 2026
+**Last Updated:** January 5, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
 
@@ -167,10 +167,32 @@ This file contains all completed tasks that have been migrated from TODO.md.
 
 ### 🟡 Contact Management & CRM Enhancements
 
-- [x] **CRM-INT-4:** Implement Consent Chain Tracking (12-16 hours) ✅ **COMPLETED** (January 5, 2026)  
-  - Delivered immutable consent ledger with hash chaining in `src/modules/clients/models.py`.  
-  - Added consent proof export and verification coverage in `src/modules/clients/tests/test_consent_tracking.py`.  
+- [x] **CRM-INT-4:** Implement Consent Chain Tracking (12-16 hours) ✅ **COMPLETED** (January 5, 2026)
+  - Delivered immutable consent ledger with hash chaining in `src/modules/clients/models.py`.
+  - Added consent proof export and verification coverage in `src/modules/clients/tests/test_consent_tracking.py`.
   - Documented consent method export fields for compliance reporting.
+
+### 🔬 Research - Platform & Integrations
+
+- [x] **LLM Integration Research:** GPT-4 strategy for meeting prep ✅ **COMPLETED** (January 5, 2026)
+  - Documented firm-scoped context building, prompt safety, caching, and cost controls in `docs/research/llm-integration-research.md`.
+  - Recommended service layer, observability, and fallback patterns to guide LLM-1/LLM-2.
+
+- [x] **Workflow Engine Architecture Research:** Event-driven vs polling ✅ **COMPLETED** (January 5, 2026)
+  - Compared orchestration models and selected event-driven Celery/Redis baseline with replay, rate limits, and isolation.
+  - Captured recommendations and controls in `docs/research/workflow-engine-architecture-research.md` for ORCH tasks.
+
+- [x] **Event Bus Technology Research:** Kafka vs RabbitMQ vs EventBridge ✅ **COMPLETED** (January 5, 2026)
+  - Evaluated brokers, recommended Kafka default with schema registry, and documented envelope conventions.
+  - Recorded guidance and mitigations in `docs/research/event-bus-technology-research.md` to inform INFRA-0/INFRA-2.
+
+- [x] **SCIM 2.0 Specification Research:** Edge cases and conformance ✅ **COMPLETED** (January 5, 2026)
+  - Added edge-case matrix (PATCH semantics, etags, filters, deprovisioning) to `docs/research/scim-2.0-research.md`.
+  - Established acceptance tests to feed SCIM-2 through SCIM-6 implementation.
+
+- [x] **Marketplace Architecture Research:** Sandbox and security model ✅ **COMPLETED** (January 5, 2026)
+  - Defined manifest signing, consent, and sandbox execution controls with telemetry expectations.
+  - Documented architecture in `docs/research/marketplace-architecture-research.md` for MARKET-6 follow-ups.
 
 ### 🟡 Compliance
 
