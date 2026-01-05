@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Project Scheduling** (2026-01-05)
+  - **T-001**: Critical path calculation for project timelines
+    - CPM-style forward/backward pass to calculate early/late dates and slack
+    - Critical path task IDs cached on ProjectTimeline and TaskSchedule
+    - Critical path duration metadata added to timeline calculation metadata
+
+- **Webhook Delivery Queue** (2026-01-05)
+  - **T-002**: Queue webhook deliveries via JobQueue
+    - Test and retry actions now enqueue delivery jobs for async processing
+    - Retry scheduling uses exponential backoff with scheduled_at
+
+- **Campaign Sending** (2026-01-05)
+  - **T-004**: Campaign executions now queue email send jobs in JobQueue
+    - Jobs include recipient metadata and correlation IDs for tracing
+
+- **Deal Assignment Notifications** (2026-01-05)
+  - **T-006**: Deal assignment now triggers in-app alerts and email notifications
+    - Honors user notification preferences stored on firm profiles
+
 - **Automation Improvements** (2026-01-03)
   - **T-009**: Date string parsing in automation executor
     - Implemented ISO 8601 date string parsing for "wait until date" automation actions
@@ -49,6 +68,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Ensures reproducible builds across all environments
     - package-lock.json already committed to repository
     - Update process documented in SECURITY.md
+
+- **API Versioning** (2026-01-05)
+  - **T-003**: Removed legacy non-versioned API redirects
+    - All clients must use `/api/v1/` endpoints
+    - BREAKING CHANGE: Legacy `/api/*` redirects are no longer available
 
 ### Added
 

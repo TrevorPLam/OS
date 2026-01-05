@@ -79,31 +79,6 @@ urlpatterns = [
     path("webhooks/docusign/", include("modules.esignature.urls")),  # Includes webhook at /webhooks/docusign/webhook/
     # API v1 (current stable version)
     path("api/v1/", include(api_v1_patterns)),
-    # Legacy API endpoints (redirect to v1 for backward compatibility during transition)
-    # Tracked in TODO: T-003 (Remove Legacy API Endpoints After Frontend Migration)
-    path("api/auth/", RedirectView.as_view(url="/api/v1/auth/", permanent=False)),
-    path("api/firm/", RedirectView.as_view(url="/api/v1/firm/", permanent=False)),
-    path("api/portal/", RedirectView.as_view(url="/api/v1/portal/", permanent=False)),
-    path("api/crm/", RedirectView.as_view(url="/api/v1/crm/", permanent=False)),
-    path("api/clients/", RedirectView.as_view(url="/api/v1/clients/", permanent=False)),
-    path("api/projects/", RedirectView.as_view(url="/api/v1/projects/", permanent=False)),
-    path("api/finance/", RedirectView.as_view(url="/api/v1/finance/", permanent=False)),
-    path("api/documents/", RedirectView.as_view(url="/api/v1/documents/", permanent=False)),
-    path("api/assets/", RedirectView.as_view(url="/api/v1/assets/", permanent=False)),
-    path("api/pricing/", RedirectView.as_view(url="/api/v1/pricing/", permanent=False)),
-    path("api/calendar/", RedirectView.as_view(url="/api/v1/calendar/", permanent=False)),
-    path("api/email-ingestion/", RedirectView.as_view(url="/api/v1/email-ingestion/", permanent=False)),
-    path("api/communications/", RedirectView.as_view(url="/api/v1/communications/", permanent=False)),
-    path("api/knowledge/", RedirectView.as_view(url="/api/v1/knowledge/", permanent=False)),
-    path("api/support/", RedirectView.as_view(url="/api/v1/support/", permanent=False)),
-    path("api/onboarding/", RedirectView.as_view(url="/api/v1/onboarding/", permanent=False)),
-    path("api/marketing/", RedirectView.as_view(url="/api/v1/marketing/", permanent=False)),
-    path("api/automation/", RedirectView.as_view(url="/api/v1/automation/", permanent=False)),
-    path("api/snippets/", RedirectView.as_view(url="/api/v1/snippets/", permanent=False)),
-    path("api/sms/", RedirectView.as_view(url="/api/v1/sms/", permanent=False)),
-    path("api/webhooks/", RedirectView.as_view(url="/api/v1/webhooks/", permanent=False)),
-    path("api/accounting/", RedirectView.as_view(url="/api/v1/accounting/", permanent=False)),
-    path("api/esignature/", RedirectView.as_view(url="/api/v1/esignature/", permanent=False)),
 ]
 
 # Serve media files in development

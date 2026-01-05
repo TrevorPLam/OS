@@ -3022,14 +3022,59 @@ class DealAlert(models.Model):
         """
         if self.is_sent:
             return
-        
+
+        import logging
+        from django.conf import settings
         from django.utils import timezone
-        
-        # Tracked in TODO: T-006 (Implement Notification System for Deal Assignment)
-        # For now, just mark as sent
-        self.is_sent = True
-        self.sent_at = timezone.now()
-        self.save(update_fields=["is_sent", "sent_at", "updated_at"])
+
+        from modules.core.notifications import EmailNotification
+        from modules.firm.models import FirmMembership
+
+        logger = logging.getLogger(__name__)
+        sent_count = 0
+        failed_count = 0
+
+        for recipient in self.recipients.all():
+            membership = (
+                FirmMembership.objects.filter(firm=self.deal.firm, user=recipient, is_active=True)
+                .select_related("profile")
+                .first()
+            )
+            preferences = {}
+            if membership and hasattr(membership, "profile") and membership.profile:
+                preferences = membership.profile.notification_preferences or {}
+            deal_prefs = preferences.get("deal_assignment", {"email": True, "in_app": True})
+
+            if deal_prefs.get("email", True):
+                frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")
+                deal_link = f"{frontend_url}/crm/deals/{self.deal.id}"
+                subject = f"Deal assigned: {self.deal.name}"
+                html_content = (
+                    f"<p>A deal has been assigned to you.</p>"
+                    f"<p><strong>{self.deal.name}</strong></p>"
+                    f"<p>Value: {self.deal.value}</p>"
+                    f"<p><a href=\"{deal_link}\">View deal</a></p>"
+                )
+                success = EmailNotification.send(
+                    to=recipient.email,
+                    subject=subject,
+                    html_content=html_content,
+                )
+                if success:
+                    sent_count += 1
+                else:
+                    failed_count += 1
+
+        if sent_count:
+            self.is_sent = True
+            self.sent_at = timezone.now()
+            self.save(update_fields=["is_sent", "sent_at", "updated_at"])
+
+        if failed_count:
+            logger.warning(
+                "Failed to deliver deal alert notifications",
+                extra={"deal_id": self.deal.id, "failed": failed_count},
+            )
     
     def acknowledge(self, user):
         """Acknowledge the alert."""

@@ -122,7 +122,7 @@ Event types follow a hierarchical naming convention: `resource.action`
 When an event occurs in the system (e.g., client created), the application:
 1. Identifies all active webhook endpoints subscribed to that event type
 2. Creates a WebhookDelivery record for each endpoint
-3. Queues deliveries for processing
+3. Queues deliveries for processing via JobQueue (job_type: `webhook_delivery`)
 
 ### 2. Delivery Attempt
 
@@ -150,7 +150,8 @@ If delivery fails and retries remain:
    - Retry 3: `retry_delay_seconds * (2^2)` = 240s
 2. Set status to "retrying"
 3. Set `next_retry_at` timestamp
-4. Background worker processes retries when `next_retry_at` is reached
+4. Queue a retry job in JobQueue with `scheduled_at = next_retry_at`
+5. Background worker processes retries when `scheduled_at` is reached
 
 ### 4. Final Status
 

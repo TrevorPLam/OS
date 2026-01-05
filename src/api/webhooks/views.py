@@ -15,8 +15,10 @@ from rest_framework.response import Response
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
 from modules.clients.permissions import DenyPortalAccess
+from modules.core.observability import get_correlation_id
 from modules.firm.utils import FirmScopedMixin, get_request_firm
 from modules.webhooks.models import WebhookDelivery, WebhookEndpoint
+from modules.webhooks.queue import queue_webhook_delivery
 
 from .serializers import (
     WebhookDeliverySerializer,
@@ -122,13 +124,13 @@ class WebhookEndpointViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelV
             payload=payload,
             status="pending"
         )
-        
-        # Tracked in TODO: T-002 (Integrate Background Job Queue for Webhook Delivery)
-        # For now, just return the delivery info
+
+        correlation_id = get_correlation_id(request)
+        queue_webhook_delivery(delivery, correlation_id=correlation_id)
         
         delivery_serializer = WebhookDeliverySerializer(delivery)
         return Response({
-            "message": "Test event created",
+            "message": "Test event queued for delivery",
             "delivery": delivery_serializer.data
         })
     
@@ -227,6 +229,13 @@ class WebhookDeliveryViewSet(QueryTimeoutMixin, viewsets.ReadOnlyModelViewSet):
         delivery.status = "retrying"
         delivery.next_retry_at = delivery.calculate_next_retry_time()
         delivery.save()
+
+        correlation_id = get_correlation_id(request)
+        queue_webhook_delivery(
+            delivery,
+            correlation_id=correlation_id,
+            scheduled_at=delivery.next_retry_at,
+        )
         
         serializer = self.get_serializer(delivery)
         return Response({

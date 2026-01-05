@@ -170,6 +170,11 @@ All CRM models enforce firm-level tenant isolation:
 
 ## Implementation Notes
 
+### Deal Assignment Notifications
+
+- Deal assignment automations create DealAlert records and send email notifications.
+- Delivery respects user notification preferences stored on firm profiles.
+
 ### Task 3.1 Completion
 
 Task 3.1 "Build Account & Contact relationship graph (CRM)" includes:

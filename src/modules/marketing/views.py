@@ -359,8 +359,7 @@ class CampaignExecutionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         """
         Send campaign immediately.
 
-        In production, this would trigger email send jobs.
-        For now, it marks the campaign as sending.
+        Queues an email send job for background processing.
         """
         execution = self.get_object()
 
@@ -375,26 +374,15 @@ class CampaignExecutionViewSet(QueryTimeoutMixin, viewsets.ModelViewSet):
         execution.started_at = timezone.now()
         execution.save(update_fields=["status", "started_at"])
 
-        # Trigger email send jobs
-        # In production, this would queue background jobs for each recipient
-        # For now, log the send request and mark as queued
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(
-            f"Campaign execution {execution.id} queued for sending",
-            extra={
-                "campaign_id": execution.campaign.id if execution.campaign else None,
-                "template_id": execution.email_template.id if execution.email_template else None,
-                "segment_id": execution.segment.id if execution.segment else None,
-                "firm_id": execution.campaign.firm.id if execution.campaign else None,
-            }
-        )
-        # Tracked in TODO: T-004 (Integrate Email Send Jobs with Background Task System)
-        # Example: queue_email_campaign.delay(execution.id)
+        from modules.core.observability import get_correlation_id
+        from modules.marketing.queue import queue_campaign_execution
+
+        correlation_id = get_correlation_id(request)
+        queue_campaign_execution(execution, correlation_id=correlation_id)
 
         return Response(
             {
-                "message": "Campaign is being sent",
+                "message": "Campaign queued for sending",
                 "execution": CampaignExecutionSerializer(execution).data,
             },
             status=status.HTTP_200_OK,
