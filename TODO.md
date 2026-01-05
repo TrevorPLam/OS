@@ -85,6 +85,19 @@
 
 **Status:** ✅ Completed (see TODO_COMPLETED.md)
 
+#### Dependency Hygiene Follow-ups (MEDIUM - 2-4 hours)
+- [ ] **DEP-PIN-1 (P2/QUALITY):** Pin bcrypt to an exact version for reproducible builds (1-2 hours)
+  - Acceptance Criteria:
+    - `requirements.txt` uses an exact bcrypt version (no range specifier).
+    - Document the chosen version inline with a short rationale.
+  - References: `requirements.txt`
+
+- [ ] **DEP-FE-1 (P2/QUALITY):** Align frontend lint tooling with declared dependencies (1-2 hours)
+  - Acceptance Criteria:
+    - `npm run lint` succeeds with declared devDependencies.
+    - `src/frontend/package.json` includes the required lint dependencies (or the lint script is removed if unused).
+  - References: `src/frontend/package.json`
+
 ---
 
 ### 🟡 Integration & Automation

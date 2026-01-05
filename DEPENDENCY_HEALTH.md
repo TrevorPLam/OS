@@ -299,3 +299,38 @@ Notes / assumptions:
 * Production container could be ~40% smaller by removing dev/test dependencies (estimated 140-180MB reduction)
 
 ---
+
+## Dependency Health Summary — 2026-01-05
+
+Inventory:
+
+* Ecosystem(s): Python (Django/DRF backend), Node/React frontend
+* Manifests: `requirements.txt`, `requirements-dev.txt`, `src/frontend/package.json`
+* Critical dependencies:
+  * Django 4.2.17, djangorestframework 3.14.0, psycopg2-binary 2.9.9
+  * djangorestframework-simplejwt 5.3.1, cryptography 43.0.1
+  * boto3 1.34.11, stripe 7.9.0
+  * React 18.3.1, Vite 5.4.21, axios 1.13.2
+* Duplicates/overlap: None observed within each ecosystem
+
+Findings:
+
+* (P2) **DEP-PIN-1**: bcrypt is not pinned to an exact version in `requirements.txt`.
+  * Impact: Builds are less deterministic and could drift across environments.
+  * File: `requirements.txt`
+
+* (P2) **DEP-FE-1**: Frontend lint script references eslint but eslint is not declared in `devDependencies`.
+  * Impact: `npm run lint` can fail without a global eslint install.
+  * File: `src/frontend/package.json`
+
+Tasks created:
+
+* DEP-PIN-1 (P2/QUALITY): Pin bcrypt to a specific version for reproducible builds.
+* DEP-FE-1 (P2/QUALITY): Align frontend lint tooling with declared dependencies.
+
+Notes / assumptions:
+
+* Dependency sets are otherwise minimal and role-focused.
+* No dependency changes executed in this review.
+
+---
