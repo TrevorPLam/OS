@@ -9,6 +9,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
+from config.throttling import AnonymousRateThrottle
 from rest_framework.response import Response
 
 from modules.core.notifications import EmailNotification
@@ -350,3 +351,138 @@ class PublicFileRequestViewSet(viewsets.ViewSet):
         except Exception as e:
             # Don't fail the upload if notification fails
             print(f"Failed to send upload notification: {e}")
+
+
+class PublicShareViewSet(viewsets.ViewSet):
+    """
+    Public ViewSet for external share access (no authentication required).
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [AnonymousRateThrottle]
+
+    def _get_share(self, token):
+        return ExternalShare.objects.select_related("document", "firm").filter(share_token=token).first()
+
+    def _get_password(self, request):
+        return request.query_params.get("password") or request.data.get("password", "")
+
+    def _check_access(self, request, share: ExternalShare):
+        if share.revoked:
+            return Response({"error": "This share has been revoked."}, status=status.HTTP_403_FORBIDDEN)
+        if share.is_expired:
+            return Response({"error": "This share has expired."}, status=status.HTTP_410_GONE)
+        if share.is_download_limit_reached:
+            return Response({"error": "Download limit reached."}, status=status.HTTP_403_FORBIDDEN)
+
+        if share.require_password:
+            password = self._get_password(request)
+            if not share.verify_password(password):
+                ShareAccess.log_access(
+                    firm_id=share.firm_id,
+                    external_share=share,
+                    action="failed_password",
+                    success=False,
+                    ip_address=request.META.get("REMOTE_ADDR"),
+                    user_agent=request.META.get("HTTP_USER_AGENT", ""),
+                )
+                return Response({"error": "Invalid password."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        permissions = getattr(share, "permissions", None)
+        if permissions and not permissions.is_ip_allowed(request.META.get("REMOTE_ADDR", "")):
+            ShareAccess.log_access(
+                firm_id=share.firm_id,
+                external_share=share,
+                action="failed_ip",
+                success=False,
+                ip_address=request.META.get("REMOTE_ADDR"),
+                user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            )
+            return Response({"error": "IP address not allowed."}, status=status.HTTP_403_FORBIDDEN)
+
+        return None
+
+    def retrieve(self, request, pk=None):
+        """
+        Get share details by token.
+
+        GET /api/public/shares/{token}/
+        """
+        share = self._get_share(pk)
+        if not share:
+            return Response({"error": "Invalid share link."}, status=status.HTTP_404_NOT_FOUND)
+
+        access_error = self._check_access(request, share)
+        if access_error:
+            return access_error
+
+        ShareAccess.log_access(
+            firm_id=share.firm_id,
+            external_share=share,
+            action="view",
+            success=True,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+
+        document = share.document
+        return Response(
+            {
+                "share_token": str(share.share_token),
+                "access_type": share.access_type,
+                "expires_at": share.expires_at,
+                "download_count": share.download_count,
+                "max_downloads": share.max_downloads,
+                "document": {
+                    "id": document.id if document else None,
+                    "name": document.name if document else None,
+                    "file_type": document.file_type if document else None,
+                    "file_size_bytes": document.file_size_bytes if document else None,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["get"])
+    def download(self, request, pk=None):
+        """
+        Generate a presigned URL for share download.
+
+        GET /api/public/shares/{token}/download/
+        """
+        share = self._get_share(pk)
+        if not share:
+            return Response({"error": "Invalid share link."}, status=status.HTTP_404_NOT_FOUND)
+
+        if share.access_type not in ["download", "comment"]:
+            return Response({"error": "Download not allowed for this share."}, status=status.HTTP_403_FORBIDDEN)
+
+        access_error = self._check_access(request, share)
+        if access_error:
+            return access_error
+
+        if not share.document:
+            return Response({"error": "No document available for this share."}, status=status.HTTP_404_NOT_FOUND)
+
+        s3_service = S3Service()
+        presigned_url = s3_service.generate_presigned_url(
+            share.document.decrypted_s3_key(),
+            bucket=share.document.decrypted_s3_bucket(),
+            expiration=3600,
+        )
+
+        share.increment_download_count()
+        ShareAccess.log_access(
+            firm_id=share.firm_id,
+            external_share=share,
+            action="download",
+            success=True,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            metadata={"document_id": share.document_id},
+        )
+
+        return Response(
+            {"download_url": presigned_url, "expires_in": 3600},
+            status=status.HTTP_200_OK,
+        )

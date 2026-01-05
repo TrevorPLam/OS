@@ -1,7 +1,7 @@
 # DOMAIN_MODEL.md — Core Domain Entities
 Document Type: Reference
 Version: 1.0.0
-Last Updated: 2026-01-03
+Last Updated: 2026-01-05
 Owner: Repository Root
 Status: Active
 Canonical Status: Canonical
@@ -51,6 +51,10 @@ This document outlines the primary domain entities in ConsultantPro.
 - Branded portal per firm
 - Custom domain support
 - Document sharing, messaging
+
+**Contact**
+- Individual people at a client
+- Location fields for segmentation (country/state/city/postal code, optional lat/lon)
 
 **Project**
 - Client engagements

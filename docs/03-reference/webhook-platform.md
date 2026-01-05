@@ -448,6 +448,31 @@ All webhooks send a JSON payload with the following structure:
 }
 ```
 
+### Example: Deal Stage Automation Event
+
+```json
+{
+  "event_id": "deal-stage-123-uuid",
+  "event_type": "crm.deal.stage_automation",
+  "timestamp": "2026-01-01T10:00:00Z",
+  "firm_id": 123,
+  "data": {
+    "deal": {
+      "id": 123,
+      "name": "Expansion Opportunity",
+      "stage_id": 45,
+      "pipeline_id": 9,
+      "value": "25000.00",
+      "currency": "USD"
+    }
+  },
+  "metadata": {
+    "automation_id": 77,
+    "automation_name": "Notify on Proposal"
+  }
+}
+```
+
 ## Best Practices
 
 ### For Webhook Senders (ConsultantPro)

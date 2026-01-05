@@ -15,16 +15,18 @@ Each action executor follows standard interface:
 - execute(execution, node, config) -> result
 """
 
-import time
 from datetime import timedelta
 from typing import Any, Dict
 
 from django.utils import timezone
+from django.template import Context, Template
 
 from modules.core.notifications import EmailNotification
-from modules.crm.models import Contact, Deal, DealTask, Tag
-from modules.marketing.models import Campaign
-from modules.webhooks.models import WebhookEndpoint
+from modules.crm.models import Deal, DealTask
+from modules.marketing.models import EmailTemplate, Segment, SegmentMembership, Tag
+from modules.projects.models import Task
+from modules.sms.models import SMSMessage, SMSPhoneNumber
+from modules.sms.twilio_service import TwilioService
 
 
 class ActionExecutor:
@@ -68,18 +70,31 @@ class SendEmailAction(ActionExecutor):
         template_id = config.get("template_id")
         subject = config.get("subject", "")
         body = config.get("body", "")
+        html_content = config.get("html_content")
+        text_content = config.get("text_content")
 
         if template_id:
-            # Tracked in TODO: T-008 (Complete Automation Action Integrations)
-            pass
+            template = EmailTemplate.objects.filter(firm=execution.firm, id=template_id).first()
+            if not template:
+                return {"status": "failed", "error": "Email template not found"}
+
+            context = _build_merge_context(execution)
+            subject = Template(template.subject_line).render(Context(context))
+            html_content = Template(template.html_content).render(Context(context))
+            text_content = template.plain_text_content or ""
+            if text_content:
+                text_content = Template(text_content).render(Context(context))
+            template.mark_used()
 
         # Send email
         try:
-            # Use existing email notification system
-            email_service = EmailNotification(execution.firm)
+            EmailNotification.send(
+                to=contact.email,
+                subject=subject,
+                html_content=html_content or body,
+                text_content=text_content,
+            )
 
-            # Tracked in TODO: T-008 (Complete Automation Action Integrations)
-            # For now, return success
             result = {
                 "status": "sent",
                 "email": contact.email,
@@ -109,13 +124,76 @@ class SendSMSAction(ActionExecutor):
         """Send SMS to contact."""
         contact = execution.contact
         message = config.get("message", "")
+        from_number = config.get("from_number")
+        media_urls = config.get("media_urls")
 
-        # Tracked in TODO: T-008 (Complete Automation Action Integrations - SMS)
+        if not message:
+            return {"status": "failed", "error": "Missing SMS message"}
+
+        to_number = contact.mobile_phone or contact.phone
+        if not to_number:
+            return {"status": "failed", "error": "Contact has no phone number"}
+
+        phone_record = None
+        if from_number:
+            phone_record = SMSPhoneNumber.objects.filter(firm=execution.firm, phone_number=from_number).first()
+        if not phone_record:
+            phone_record = SMSPhoneNumber.objects.filter(firm=execution.firm, is_default=True).first()
+        if not phone_record:
+            return {"status": "failed", "error": "No SMS sender number configured"}
+
+        sms_message = SMSMessage.objects.create(
+            firm=execution.firm,
+            from_number=phone_record,
+            to_number=to_number,
+            direction="outbound",
+            message_body=message,
+            status="queued",
+            contact_id=contact.id,
+        )
+
+        service = TwilioService()
+        result = service.send_sms(
+            to_number=to_number,
+            message=message,
+            from_number=phone_record.phone_number,
+            media_urls=media_urls,
+        )
+
+        if result.get("success"):
+            sms_message.status = "sent"
+            sms_message.provider_message_sid = result.get("message_sid", "")
+            sms_message.provider_status = result.get("status", "")
+            sms_message.price = result.get("price")
+            sms_message.price_currency = result.get("price_currency") or sms_message.price_currency
+            sms_message.sent_at = timezone.now()
+            sms_message.error_code = ""
+            sms_message.error_message = ""
+        else:
+            sms_message.status = "failed"
+            sms_message.error_code = result.get("error_code", "")
+            sms_message.error_message = result.get("error", "SMS send failed")
+        sms_message.save(
+            update_fields=[
+                "status",
+                "provider_message_sid",
+                "provider_status",
+                "price",
+                "price_currency",
+                "sent_at",
+                "error_code",
+                "error_message",
+                "updated_at",
+            ]
+        )
+
         return {
-            "status": "sent",
-            "phone": contact.phone or contact.mobile_phone,
+            "status": "sent" if result.get("success") else "failed",
+            "phone": to_number,
             "message": message,
-            "sent_at": timezone.now().isoformat(),
+            "provider_message_sid": sms_message.provider_message_sid,
+            "sent_at": sms_message.sent_at.isoformat() if sms_message.sent_at else None,
+            "error": sms_message.error_message,
         }
 
 
@@ -171,12 +249,26 @@ class CreateTaskAction(ActionExecutor):
                 "task_id": task.id,
                 "task_type": "deal_task",
             }
-        else:
-            # Tracked in TODO: T-008 (Complete Automation Action Integrations - Task Creation)
+        project_id = config.get("project_id") or execution.context_data.get("project_id")
+        if project_id:
+            task = Task.objects.create(
+                project_id=project_id,
+                title=title or f"Follow up with {contact.full_name}",
+                description=description,
+                due_date=due_date.date(),
+                assigned_to_id=assigned_to_id,
+                priority=config.get("priority", "medium"),
+            )
             return {
                 "status": "created",
-                "task_type": "contact_task",
+                "task_id": task.id,
+                "task_type": "project_task",
             }
+
+        return {
+            "status": "failed",
+            "error": "No deal or project context for task creation",
+        }
 
 
 class CreateDealAction(ActionExecutor):
@@ -396,11 +488,25 @@ class AddToListAction(ActionExecutor):
     @staticmethod
     def execute(execution, node, config: Dict[str, Any]) -> Dict[str, Any]:
         """Add contact to list/segment."""
-        # Tracked in TODO: T-008 (Complete Automation Action Integrations - List/Segment Management)
-        # Blocked: Implement when list/segment model is available
+        segment_id = config.get("list_id")
+        if not segment_id:
+            return {"status": "failed", "error": "Missing list_id"}
+
+        segment = Segment.objects.filter(firm=execution.firm, id=segment_id).first()
+        if not segment:
+            return {"status": "failed", "error": "Segment not found"}
+
+        membership, created = SegmentMembership.objects.get_or_create(
+            segment=segment,
+            entity_type="contact",
+            entity_id=execution.contact.id,
+            defaults={"added_by": getattr(execution, "created_by", None)},
+        )
+
         return {
             "status": "added",
-            "list_id": config.get("list_id"),
+            "list_id": segment_id,
+            "created": created,
         }
 
 
@@ -415,12 +521,20 @@ class RemoveFromListAction(ActionExecutor):
     @staticmethod
     def execute(execution, node, config: Dict[str, Any]) -> Dict[str, Any]:
         """Remove contact from list/segment."""
-        # Tracked in TODO: T-008 (Complete Automation Action Integrations - List/Segment Management)
-        # Blocked: Implement when list/segment model is available
-        return {
-            "status": "removed",
-            "list_id": config.get("list_id"),
-        }
+        segment_id = config.get("list_id")
+        if not segment_id:
+            return {"status": "failed", "error": "Missing list_id"}
+
+        membership = SegmentMembership.objects.filter(
+            segment_id=segment_id,
+            entity_type="contact",
+            entity_id=execution.contact.id,
+        ).first()
+        if membership:
+            membership.delete()
+            return {"status": "removed", "list_id": segment_id}
+
+        return {"status": "not_found", "list_id": segment_id}
 
 
 class WebhookAction(ActionExecutor):
@@ -485,11 +599,54 @@ class InternalNotificationAction(ActionExecutor):
     @staticmethod
     def execute(execution, node, config: Dict[str, Any]) -> Dict[str, Any]:
         """Send internal notification to team member."""
-        # Tracked in TODO: T-008 (Complete Automation Action Integrations - Notifications)
+        recipient_id = config.get("recipient_id")
+        message = config.get("message", "")
+        subject = config.get("subject", "Automation Notification")
+
+        if not recipient_id:
+            return {"status": "failed", "error": "Missing recipient_id"}
+
+        from django.contrib.auth import get_user_model
+        from modules.firm.models import FirmMembership
+
+        User = get_user_model()
+        recipient = User.objects.filter(id=recipient_id, is_active=True).first()
+        if not recipient:
+            return {"status": "failed", "error": "Recipient not found"}
+
+        is_member = FirmMembership.objects.filter(
+            firm=execution.firm,
+            user=recipient,
+            is_active=True,
+        ).exists()
+        if not is_member:
+            return {"status": "failed", "error": "Recipient not in firm"}
+
+        EmailNotification.send(
+            to=recipient.email,
+            subject=subject,
+            text_content=message,
+        )
+
         return {
             "status": "sent",
-            "recipient_id": config.get("recipient_id"),
+            "recipient_id": recipient_id,
         }
+
+
+def _build_merge_context(execution) -> Dict[str, Any]:
+    contact = execution.contact
+    return {
+        "contact": contact,
+        "contact_first_name": getattr(contact, "first_name", ""),
+        "contact_last_name": getattr(contact, "last_name", ""),
+        "contact_full_name": getattr(contact, "full_name", ""),
+        "contact_email": getattr(contact, "email", ""),
+        "firm_name": execution.firm.name,
+        "workflow_name": execution.workflow.name,
+        "trigger_type": execution.trigger_type,
+        "trigger_data": execution.trigger_data,
+    }
 
 
 # Action executor registry

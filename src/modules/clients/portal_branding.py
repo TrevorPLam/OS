@@ -423,6 +423,28 @@ class PortalBranding(models.Model):
             "custom_footer": self.email_custom_html_footer,
         }
 
+    def render_email_html(self, body_html: str) -> str:
+        """
+        Render branded HTML email content with optional custom header/footer.
+        """
+        context = self.get_email_template_context()
+        header = context["custom_header"] or (
+            f"<div style=\"background:{context['header_color']};padding:16px;text-align:left;\">"
+            f"<img src=\"{context['logo_url']}\" alt=\"{context['firm_name']}\" "
+            "style=\"height:32px;\" />"
+            "</div>"
+            if context["logo_url"]
+            else f"<div style=\"background:{context['header_color']};padding:16px;color:#fff;\">"
+            f"{context['firm_name']}</div>"
+        )
+        footer = context["custom_footer"] or (
+            f"<div style=\"padding:16px;color:#6b7280;font-size:12px;\">"
+            f"{context['footer_text'] or ''}"
+            f"{'<br>' + context['signature'] if context['signature'] else ''}"
+            "</div>"
+        )
+        return f"{header}<div style=\"padding:16px;\">{body_html}</div>{footer}"
+
 
 class DomainVerificationRecord(models.Model):
     """

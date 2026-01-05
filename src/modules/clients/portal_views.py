@@ -4,7 +4,9 @@ API Views for Client Portal Branding (PORTAL-1 through PORTAL-4).
 TIER 0: All ViewSets use FirmScopedMixin for automatic tenant isolation.
 """
 
+from django.conf import settings
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -17,6 +19,43 @@ from .portal_serializers import (
     DomainVerificationRecordSerializer,
     PortalBrandingSerializer,
 )
+
+
+def _dns_lookup(name: str, record_type: str) -> list[str]:
+    import time
+    import requests
+
+    last_error = None
+    for attempt in range(3):
+        try:
+            response = requests.get(
+                "https://cloudflare-dns.com/dns-query",
+                params={"name": name, "type": record_type},
+                headers={"Accept": "application/dns-json"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            payload = response.json()
+            answers = payload.get("Answer", [])
+            return [answer.get("data", "") for answer in answers if answer.get("data")]
+        except Exception as exc:
+            last_error = exc
+            time.sleep(1 + attempt)
+    raise last_error
+
+
+def _acm_client():
+    import boto3
+
+    region = getattr(settings, "AWS_REGION", None) or getattr(settings, "AWS_DEFAULT_REGION", None) or "us-east-1"
+    return boto3.client("acm", region_name=region)
+
+
+def _ses_client():
+    import boto3
+
+    region = getattr(settings, "AWS_REGION", None) or getattr(settings, "AWS_DEFAULT_REGION", None) or "us-east-1"
+    return boto3.client("ses", region_name=region)
 
 
 class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
@@ -75,8 +114,6 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
         if not branding.dns_verification_token:
             branding.generate_dns_verification_token()
 
-        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - DNS)
-        # For now, return verification instructions
         return Response(
             {
                 "domain": branding.custom_domain,
@@ -113,27 +150,60 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - DNS)
-        # 1. Query DNS for TXT record
-        # 2. Query DNS for CNAME record
-        # 3. Update verification status
-        # 4. Create verification record
+        txt_record_name = f"_consultantpro-verify.{branding.custom_domain}"
+        cname_target = branding.dns_cname_target or f"{request.firm.slug}.consultantpro.app"
 
-        # Create verification record
-        verification = DomainVerificationRecord.objects.create(
+        txt_verified = False
+        cname_verified = False
+        txt_values = []
+        cname_values = []
+        error_message = ""
+
+        try:
+            txt_values = _dns_lookup(txt_record_name, "TXT")
+            cname_values = _dns_lookup(branding.custom_domain, "CNAME")
+
+            txt_verified = branding.dns_verification_token in [
+                value.strip('"') for value in txt_values
+            ]
+            cname_verified = any(cname_target.rstrip(".") in value.rstrip(".") for value in cname_values)
+        except Exception as exc:
+            error_message = str(exc)
+
+        DomainVerificationRecord.objects.create(
             branding=branding,
             domain=branding.custom_domain,
             verification_type="txt",
             expected_value=branding.dns_verification_token,
-            verified=False,  # Tracked in TODO: T-011 (DNS verification)
+            actual_value=", ".join(txt_values),
+            verified=txt_verified,
+            error_message=error_message,
         )
+        DomainVerificationRecord.objects.create(
+            branding=branding,
+            domain=branding.custom_domain,
+            verification_type="cname",
+            expected_value=cname_target,
+            actual_value=", ".join(cname_values),
+            verified=cname_verified,
+            error_message=error_message,
+        )
+
+        branding.custom_domain_verified = txt_verified and cname_verified
+        if branding.custom_domain_verified:
+            branding.custom_domain_verified_at = timezone.now()
+        branding.save(update_fields=["custom_domain_verified", "custom_domain_verified_at", "updated_at"])
 
         return Response(
             {
                 "domain": branding.custom_domain,
-                "verified": verification.verified,
-                "checked_at": verification.checked_at,
-                "error": verification.error_message,
+                "verified": branding.custom_domain_verified,
+                "checked_at": timezone.now(),
+                "txt_verified": txt_verified,
+                "cname_verified": cname_verified,
+                "txt_records": txt_values,
+                "cname_records": cname_values,
+                "error": error_message,
             }
         )
 
@@ -167,14 +237,28 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - SSL)
-        # 1. Request certificate
-        # 2. Store certificate ID
-        # 3. Configure CloudFront/ALB
+        last_error = None
+        for attempt in range(3):
+            try:
+                client = _acm_client()
+                response = client.request_certificate(
+                    DomainName=branding.custom_domain,
+                    ValidationMethod="DNS",
+                )
+                certificate_arn = response.get("CertificateArn")
+                branding.ssl_certificate_id = certificate_arn or ""
+                branding.ssl_enabled = bool(certificate_arn)
+                branding.save(update_fields=["ssl_certificate_id", "ssl_enabled", "updated_at"])
+                last_error = None
+                break
+            except Exception as exc:
+                last_error = exc
 
-        branding.ssl_enabled = True
-        branding.ssl_certificate_id = "mock-cert-id"  # Tracked in TODO: T-011 (Real certificate ID)
-        branding.save()
+        if last_error:
+            return Response(
+                {"error": f"SSL provisioning failed: {last_error}"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         return Response(
             {
@@ -199,10 +283,21 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Tracked in TODO: T-011 (Implement Portal Branding Infrastructure Integrations - Email)
-        # 1. Send verification email
-        # 2. Wait for verification confirmation
-        # 3. Update verification status
+        last_error = None
+        for attempt in range(3):
+            try:
+                client = _ses_client()
+                client.verify_email_identity(EmailAddress=branding.email_from_address)
+                last_error = None
+                break
+            except Exception as exc:
+                last_error = exc
+
+        if last_error:
+            return Response(
+                {"error": f"Email verification failed: {last_error}"},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         return Response(
             {

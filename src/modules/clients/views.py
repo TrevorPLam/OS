@@ -1186,13 +1186,17 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
             compliance_reason="You are receiving this email to confirm your subscription.",
         )
 
+        html_content = (
+            "<p>Please confirm your subscription by clicking the link below:</p>"
+            f"<p><a href=\"{confirm_url}\">Confirm subscription</a></p>"
+        )
+        if branding:
+            html_content = branding.render_email_html(html_content)
+
         EmailNotification.send(
             to=[contact.email],
             subject="Confirm your subscription",
-            html_content=(
-                "<p>Please confirm your subscription by clicking the link below:</p>"
-                f"<p><a href=\"{confirm_url}\">Confirm subscription</a></p>"
-            ),
+            html_content=html_content,
             text_content=f"Confirm your subscription: {confirm_url}",
             from_email=sender_email,
             from_name=sender_name,
