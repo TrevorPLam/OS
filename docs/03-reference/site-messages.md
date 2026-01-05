@@ -1,7 +1,7 @@
 # Site Message System & Builder
 **Document Type:** Reference  
 **Version:** 1.0.0  
-**Last Updated:** 2026-01-06  
+**Last Updated:** 2026-01-08  
 **Owner:** Web Personalization  
 **Status:** Draft (Ready for implementation)  
 **Dependencies:** READMEAI.md; TODO.md; CODEBASECONSTITUTION.md; docs/03-reference/site-tracking-architecture.md
@@ -48,7 +48,13 @@ Rules stored as JSON with keys:
   - Applies targeting: segments intersection, audience flags (anonymous vs known), behavioral rules (`url_contains`, `event_name_contains`, minimum sessions/page views).
   - Enforces frequency caps per visitor/day and honors `active_from` / `active_until` windows.
   - Returns publishable messages with `delivery_id` and resolved variant content for A/B buckets (stable per visitor).
+- Manifest endpoint: `POST /api/v1/tracking/site-messages/manifest/` (public, signed). Request includes `firm_slug`, `tracking_key`, optional `tracking_key_id`.
+  - Returns active message metadata, a signed manifest payload, and `config_version` for cache busting.
+  - SDKs should cache delivery responses keyed by `config_version` + manifest signature and fall back to cached data on network failure.
 - Impression endpoint: `POST /api/v1/tracking/site-messages/impressions/` to log `view|click` tied to `delivery_id`.
+- Analytics endpoint: `GET /api/v1/tracking/site-messages/analytics/` (auth required; `can_view_reports`).
+  - Returns rollups by message + variant with delivered/view/click counts and rate calculations.
+- Analytics export: `GET /api/v1/tracking/site-messages/analytics/export/` returns CSV rollups.
 
 ## Observability & Auditing
 - Track builder actions via standard request logging (user + firm).

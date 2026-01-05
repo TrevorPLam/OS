@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { trackingApi, TrackingSummary } from '../api/tracking'
+import { SiteMessageAnalyticsResponse, trackingApi, TrackingSummary } from '../api/tracking'
 
 const formatNumber = (value: number | undefined) => value?.toLocaleString() ?? '0'
 
 export const TrackingDashboard = () => {
   const [summary, setSummary] = useState<TrackingSummary | null>(null)
+  const [siteMessageAnalytics, setSiteMessageAnalytics] = useState<SiteMessageAnalyticsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -13,9 +14,19 @@ export const TrackingDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const data = await trackingApi.getSummary()
+        const [summaryResult, siteMessageResult] = await Promise.allSettled([
+          trackingApi.getSummary(),
+          trackingApi.getSiteMessageAnalytics(),
+        ])
         if (isMounted) {
-          setSummary(data)
+          if (summaryResult.status === 'fulfilled') {
+            setSummary(summaryResult.value)
+          } else {
+            throw summaryResult.reason
+          }
+          if (siteMessageResult.status === 'fulfilled') {
+            setSiteMessageAnalytics(siteMessageResult.value)
+          }
         }
       } catch (err) {
         if (isMounted) {
@@ -38,6 +49,7 @@ export const TrackingDashboard = () => {
   const recentEvents = useMemo(() => summary?.recent_events ?? [], [summary])
   const topPages = useMemo(() => summary?.top_pages ?? [], [summary])
   const topEvents = useMemo(() => summary?.top_events ?? [], [summary])
+  const topMessages = useMemo(() => siteMessageAnalytics?.top_messages ?? [], [siteMessageAnalytics])
 
   if (loading) {
     return <div>Loading tracking analytics...</div>
@@ -108,6 +120,44 @@ export const TrackingDashboard = () => {
               </li>
             ))}
           </ul>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <h3>Top Site Messages</h3>
+            <p className="text-muted">Impressions and clicks for top-performing variants</p>
+          </div>
+          {siteMessageAnalytics?.export_path && (
+            <a className="button button-secondary" href={siteMessageAnalytics.export_path}>
+              Export CSV
+            </a>
+          )}
+        </div>
+        <div className="table">
+          <div className="table-head">
+            <div>Message</div>
+            <div>Delivered</div>
+            <div>Views</div>
+            <div>Clicks</div>
+            <div>Click Rate</div>
+          </div>
+          <div className="table-body">
+            {topMessages.length === 0 && <div className="text-muted">No site message data yet.</div>}
+            {topMessages.map((message) => (
+              <div key={`${message.site_message_id}-${message.variant || 'default'}`} className="table-row">
+                <div>
+                  <div>{message.site_message_name}</div>
+                  {message.variant && <div className="text-muted">Variant: {message.variant}</div>}
+                </div>
+                <div>{message.delivered}</div>
+                <div>{message.views}</div>
+                <div>{message.clicks}</div>
+                <div>{(message.click_rate * 100).toFixed(1)}%</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

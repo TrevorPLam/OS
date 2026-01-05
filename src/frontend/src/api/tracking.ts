@@ -39,6 +39,24 @@ export interface SiteMessage extends SiteMessagePayload {
   variant?: string | null
 }
 
+export interface SiteMessageAnalyticsEntry {
+  site_message_id: number
+  site_message_name: string
+  variant?: string
+  delivered: number
+  views: number
+  clicks: number
+  view_rate: number
+  click_rate: number
+}
+
+export interface SiteMessageAnalyticsResponse {
+  window_days: number
+  rollups: SiteMessageAnalyticsEntry[]
+  top_messages: SiteMessageAnalyticsEntry[]
+  export_path?: string
+}
+
 export const trackingApi = {
   async getSummary(): Promise<TrackingSummary> {
     const response = await apiClient.get('/tracking/summary/')
@@ -77,6 +95,11 @@ export const trackingApi = {
 
   async evaluateMessages(payload: Record<string, unknown>): Promise<{ messages: SiteMessage[] }> {
     const response = await apiClient.post('/tracking/site-messages/display/', payload)
+    return response.data
+  },
+
+  async getSiteMessageAnalytics(params?: Record<string, string | number>): Promise<SiteMessageAnalyticsResponse> {
+    const response = await apiClient.get('/tracking/site-messages/analytics/', { params })
     return response.data
   },
 }

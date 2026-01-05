@@ -77,15 +77,7 @@
 **Status:** Extends site tracking with on-site engagement  
 **Dependencies:** TRACK-1 through TRACK-5
 
-- [ ] **PERS-5:** Add impression analytics and exports (4-6 hours)
-  - Impression/click rollups by message and variant
-  - CSV export for onsite engagement
-  - Dashboard widgets for top-performing messages
-  
-- [ ] **PERS-6:** Add SDK delivery caching (3-5 hours)
-  - Signed delivery manifest for active messages
-  - Cache-busting via client config version
-  - Fallback strategy when delivery API is unavailable
+_All tasks completed — see TODO_COMPLETED.md for PERS-5 through PERS-6._
 
 #### LLM Enablement (MEDIUM - 12-16 hours)
 **Status:** Safe GPT-4 usage for meeting prep and content
@@ -105,15 +97,7 @@
 **Status:** Event-driven orchestration baseline
 **Dependencies:** Research complete (see TODO_COMPLETED)
 
-- [ ] **ORCH-1:** Implement event-driven workflow runner skeleton using Celery/Redis (6-8 hours)
-  - Define run states, correlation IDs, and retry/backoff policy
-  - Emit structured events and metrics for queue depth and handler latency
-  - Provide DLQ handling and idempotency keys per step
-
-- [ ] **ORCH-2:** Create workflow definition schema and persistence with versioning (8-10 hours)
-  - Store signed YAML/JSON workflow definitions with validation
-  - Add per-tenant concurrency limits and rate caps
-  - Build replay API for failed steps respecting idempotency
+_All tasks completed — see TODO_COMPLETED.md for ORCH-1 through ORCH-2._
 
 #### Additional Native Integrations (MEDIUM - 16-24 hours per integration)
 **Status:** Expand integration ecosystem
@@ -140,10 +124,7 @@
   - Status webhooks (sent, viewed, signed)
   - Signed document retrieval and storage
   
-- [ ] **INT-7:** Integration health monitoring (4-6 hours)
-  - Health cards for Slack/Salesforce/GA connectors
-  - Admin alerts on repeated sync failures
-  - Token expiry warnings
+_All tasks completed — see TODO_COMPLETED.md for INT-7._
   
 - [ ] **INT-8:** Credential vault + rotation (6-8 hours)
   - Move integration secrets to encrypted vault
