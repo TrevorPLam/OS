@@ -108,6 +108,12 @@ Individual nodes in workflow canvas.
 - `webhook` - Send webhook
 - `internal_notification` - Send notification
 
+**Action Integrations (T-008):**
+- `send_email` supports template-based rendering via `EmailTemplate` merge fields.
+- `send_sms` uses firm default SMS number with Twilio integration.
+- `add_to_list` / `remove_from_list` manage manual segment membership records.
+- `internal_notification` delivers email notifications to firm members.
+
 **Control Flow Nodes:**
 - `condition` - If/else branching
 - `wait_time` - Wait for time

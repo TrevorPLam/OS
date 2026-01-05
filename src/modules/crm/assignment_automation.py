@@ -336,8 +336,92 @@ class StageAutomation(models.Model):
     
     def _execute_run_webhook(self, deal) -> bool:
         """Run a webhook for the deal."""
-        # Tracked in TODO: T-007 (Implement Webhook System for Stage Automation)
-        logger.info(f"Would run webhook for deal {deal.id}")
+        import json
+        import uuid
+
+        from django.utils import timezone
+
+        from modules.core.observability import generate_correlation_id
+        from modules.webhooks.models import WebhookDelivery, WebhookEndpoint
+        from modules.webhooks.queue import queue_webhook_delivery
+
+        webhook_endpoint_id = self.action_config.get("webhook_endpoint_id")
+        webhook_url = self.action_config.get("webhook_url")
+        webhook_name = self.action_config.get("webhook_name") or f"Stage Automation: {self.name}"
+
+        if not webhook_endpoint_id and not webhook_url:
+            logger.warning("Stage automation webhook missing endpoint configuration", extra={"automation_id": self.id})
+            return False
+
+        if webhook_endpoint_id:
+            endpoint = WebhookEndpoint.objects.filter(id=webhook_endpoint_id, firm=self.firm).first()
+        else:
+            endpoint, _ = WebhookEndpoint.objects.get_or_create(
+                firm=self.firm,
+                url=webhook_url,
+                defaults={
+                    "name": webhook_name,
+                    "description": f"Stage automation webhook for {self.name}",
+                    "status": "active",
+                    "subscribed_events": ["crm.deal.stage_automation"],
+                },
+            )
+            self.action_config["webhook_endpoint_id"] = endpoint.id
+            self.save(update_fields=["action_config", "updated_at"])
+
+        if not endpoint:
+            logger.warning("Stage automation webhook endpoint not found", extra={"automation_id": self.id})
+            return False
+
+        payload = {
+            "event_id": f"deal-stage-{deal.id}-{uuid.uuid4()}",
+            "event_type": "crm.deal.stage_automation",
+            "timestamp": timezone.now().isoformat(),
+            "firm_id": self.firm_id,
+            "data": {
+                "deal": {
+                    "id": deal.id,
+                    "name": deal.name,
+                    "value": str(deal.value),
+                    "currency": deal.currency,
+                    "stage_id": deal.stage_id,
+                    "pipeline_id": deal.pipeline_id,
+                    "owner_id": deal.owner_id,
+                    "account_id": deal.account_id,
+                    "contact_id": deal.contact_id,
+                    "expected_close_date": deal.expected_close_date.isoformat()
+                    if deal.expected_close_date
+                    else None,
+                    "actual_close_date": deal.actual_close_date.isoformat() if deal.actual_close_date else None,
+                    "is_won": deal.is_won,
+                    "is_lost": deal.is_lost,
+                    "updated_at": deal.updated_at.isoformat(),
+                },
+            },
+            "metadata": {
+                "automation_id": self.id,
+                "automation_name": self.name,
+                "action_type": self.action_type,
+            },
+        }
+
+        signature = endpoint.generate_signature(json.dumps(payload, separators=(",", ":"), sort_keys=True))
+        delivery = WebhookDelivery.objects.create(
+            webhook_endpoint=endpoint,
+            event_type=payload["event_type"],
+            event_id=payload["event_id"],
+            payload=payload,
+            status="pending",
+            signature=signature,
+        )
+
+        correlation_id = generate_correlation_id()
+        queue_webhook_delivery(delivery, correlation_id=correlation_id)
+
+        logger.info(
+            "Queued stage automation webhook delivery",
+            extra={"automation_id": self.id, "delivery_id": delivery.id},
+        )
         return True
 
 

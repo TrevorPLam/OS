@@ -5,7 +5,7 @@ Organized by business domain modules.
 """
 
 from api.clients.public_views import PublicOptInConfirmViewSet, PublicUnsubscribeViewSet
-from api.documents.public_views import PublicFileRequestViewSet
+from api.documents.public_views import PublicFileRequestViewSet, PublicShareViewSet
 from api.finance.webhooks import stripe_webhook
 from django.conf import settings
 from django.conf.urls.static import static
@@ -21,6 +21,7 @@ from .health import health_check, readiness_check
 # Public API router (no authentication required)
 public_router = DefaultRouter()
 public_router.register(r"file-requests", PublicFileRequestViewSet, basename="public-file-request")
+public_router.register(r"shares", PublicShareViewSet, basename="public-share")
 public_router.register(r"confirm-opt-in", PublicOptInConfirmViewSet, basename="public-opt-in")
 public_router.register(r"unsubscribe", PublicUnsubscribeViewSet, basename="public-unsubscribe")
 

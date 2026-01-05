@@ -967,6 +967,26 @@ class Contact(models.Model):
     job_title = models.CharField(max_length=200, blank=True, help_text="Job title at the client organization")
     department = models.CharField(max_length=100, blank=True, help_text="Department within the organization")
 
+    # Location Information (T-010)
+    country = models.CharField(max_length=100, blank=True, help_text="Country for this contact")
+    state = models.CharField(max_length=100, blank=True, help_text="State or province for this contact")
+    city = models.CharField(max_length=100, blank=True, help_text="City for this contact")
+    postal_code = models.CharField(max_length=20, blank=True, help_text="Postal or ZIP code for this contact")
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Latitude for geographic filtering",
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Longitude for geographic filtering",
+    )
+
     # Contact Preferences
     is_primary_contact = models.BooleanField(
         default=False, help_text="Whether this is the primary contact for the client"
@@ -1051,6 +1071,10 @@ class Contact(models.Model):
             models.Index(fields=["phone"], name="clients_contact_phone_idx"),
             models.Index(fields=["client", "status"], name="clients_contact_cli_sta_idx"),
             models.Index(fields=["status"], name="clients_contact_status_idx"),
+            models.Index(fields=["country"], name="clients_contact_country_idx"),
+            models.Index(fields=["state"], name="clients_contact_state_idx"),
+            models.Index(fields=["city"], name="clients_contact_city_idx"),
+            models.Index(fields=["postal_code"], name="clients_contact_postal_idx"),
         ]
         unique_together = [["client", "email"]]
 

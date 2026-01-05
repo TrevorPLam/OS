@@ -490,115 +490,23 @@ assert share.revoked == True
 
 ---
 
-## Public Access Endpoint (Tracked in TODO: T-015)
+## Public Access Endpoint (Implemented)
 
-The public access endpoint implementation is tracked in TODO: T-015. The endpoint should be implemented in a separate view that doesn't require authentication:
+Public share access is implemented in `src/api/documents/public_views.py` as `PublicShareViewSet` and is mounted at `/api/public/shares/`.
 
-```python
-# In src/api/public/views.py or similar
+**Endpoints:**
+- `GET /api/public/shares/{share_token}/` - Retrieve share metadata (password optional)
+- `GET /api/public/shares/{share_token}/download/?password=...` - Generate presigned download URL
 
-class PublicShareView(APIView):
-    """
-    Public endpoint for accessing shared documents.
-    
-    No authentication required.
-    """
-    permission_classes = []  # No auth required
-    authentication_classes = []
-    
-    def get(self, request, share_token):
-        """
-        GET /api/public/shares/{share_token}/
-        
-        Query params:
-        - password: Optional password if share is protected
-        """
-        try:
-            share = ExternalShare.objects.get(share_token=share_token)
-        except ExternalShare.DoesNotExist:
-            ShareAccess.log_access(
-                firm_id=None,  # Unknown firm
-                external_share=None,
-                action="failed_not_found",
-                success=False,
-                ip_address=request.META.get('REMOTE_ADDR'),
-            )
-            return Response({"error": "Share not found"}, status=404)
-        
-        # Check if share is valid
-        if not share.is_active:
-            action = "failed_expired" if share.is_expired else \
-                     "failed_revoked" if share.revoked else \
-                     "failed_limit"
-            ShareAccess.log_access(
-                firm_id=share.firm_id,
-                external_share=share,
-                action=action,
-                success=False,
-                ip_address=request.META.get('REMOTE_ADDR'),
-            )
-            return Response({"error": "Share is no longer active"}, status=403)
-        
-        # Check password
-        password = request.query_params.get('password')
-        if share.require_password:
-            if not password or not share.verify_password(password):
-                ShareAccess.log_access(
-                    firm_id=share.firm_id,
-                    external_share=share,
-                    action="failed_password",
-                    success=False,
-                    ip_address=request.META.get('REMOTE_ADDR'),
-                )
-                return Response({"error": "Invalid password"}, status=401)
-        
-        # Check permissions (IP restriction)
-        if hasattr(share, 'permissions'):
-            perms = share.permissions
-            ip_address = request.META.get('REMOTE_ADDR')
-            if not perms.is_ip_allowed(ip_address):
-                ShareAccess.log_access(
-                    firm_id=share.firm_id,
-                    external_share=share,
-                    action="failed_ip",
-                    success=False,
-                    ip_address=ip_address,
-                )
-                return Response({"error": "Access denied from this IP"}, status=403)
-        
-        # Generate download URL
-        from modules.documents.services import S3Service
-        s3_service = S3Service()
-        download_url = s3_service.generate_presigned_url(
-            share.document.decrypted_s3_key(),
-            bucket=share.document.decrypted_s3_bucket(),
-            expiration=3600,
-        )
-        
-        # Log successful access
-        ShareAccess.log_access(
-            firm_id=share.firm_id,
-            external_share=share,
-            action="view" if share.access_type == "view" else "download",
-            success=True,
-            ip_address=request.META.get('REMOTE_ADDR'),
-            user_agent=request.META.get('HTTP_USER_AGENT'),
-        )
-        
-        # Increment download count if downloading
-        if share.access_type == "download":
-            share.increment_download_count()
-        
-        return Response({
-            "document_name": share.document.name,
-            "access_type": share.access_type,
-            "download_url": download_url,
-            "expires_in": 3600,
-            "permissions": {
-                "allow_print": share.permissions.allow_print if hasattr(share, 'permissions') else True,
-                "allow_copy": share.permissions.allow_copy if hasattr(share, 'permissions') else True,
-            }
-        })
+**Behavior:**
+- No authentication required (`AllowAny`) with anonymous throttling.
+- Validates password (if required), expiration, revocation, and download limits.
+- Enforces IP restrictions when `SharePermission.allowed_ip_addresses` is set.
+- Logs all access attempts via `ShareAccess`.
+
+```http
+GET /api/public/shares/{share_token}/?password=secret
+GET /api/public/shares/{share_token}/download/?password=secret
 ```
 
 ---

@@ -8,7 +8,10 @@ Provides advanced segmentation and filtering capabilities:
 - Dynamic segment evaluation
 """
 from typing import Dict, List, Optional, Any
-from django.db.models import Q, F, Count, Avg, Sum, Max, Min
+from django.db import connection
+from django.db.models import Q, F, Count, Avg, Sum, Max, Min, Value, FloatField, Func
+from django.db.models.expressions import ExpressionWrapper
+from django.db.models.functions import Cos, Sin, Radians
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -91,46 +94,91 @@ class GeographicSegmenter:
         Returns:
             Filtered queryset (currently unchanged - placeholder)
         """
-        # Tracked in TODO: T-010 (Implement Geographic Filtering for Client Segmentation)
-        return queryset
+        queryset = queryset.filter(latitude__isnull=False, longitude__isnull=False)
+
+        if connection.vendor == "sqlite":
+            contact_coords = queryset.values("id", "latitude", "longitude")
+            matching_ids = [
+                row["id"]
+                for row in contact_coords
+                if GeographicSegmenter.calculate_distance(
+                    center_lat,
+                    center_lon,
+                    float(row["latitude"]),
+                    float(row["longitude"]),
+                )
+                <= radius_km
+            ]
+            return queryset.filter(id__in=matching_ids)
+
+        lat1 = Value(center_lat)
+        lon1 = Value(center_lon)
+
+        distance_expr = ExpressionWrapper(
+            GeographicSegmenter.EARTH_RADIUS_KM
+            * Func(
+                Cos(Radians(lat1))
+                * Cos(Radians(F("latitude")))
+                * Cos(Radians(F("longitude")) - Radians(lon1))
+                + Sin(Radians(lat1)) * Sin(Radians(F("latitude"))),
+                function="ACOS",
+            ),
+            output_field=FloatField(),
+        )
+
+        return queryset.annotate(distance_km=distance_expr).filter(distance_km__lte=radius_km)
     
     @staticmethod
     def filter_by_country(queryset, countries: List[str]):
         """
         Filter contacts by country.
         
-        **Note:** Currently filters by client's country field, not contact-specific location.
-        If contact-specific location is needed, add a related Address model or
-        geographic fields directly to the Contact model.
+        Falls back to client country when contact country is empty.
         """
-        return queryset.filter(client__country__in=countries)
+        return queryset.filter(
+            Q(country__in=countries) |
+            Q(country__isnull=True, client__country__in=countries) |
+            Q(country__exact="", client__country__in=countries)
+        )
     
     @staticmethod
     def filter_by_state(queryset, states: List[str]):
         """
         Filter contacts by state/province.
         
-        **Note:** Currently filters by client's state field, not contact-specific location.
+        Falls back to client state when contact state is empty.
         """
-        return queryset.filter(client__state__in=states)
+        return queryset.filter(
+            Q(state__in=states) |
+            Q(state__isnull=True, client__state__in=states) |
+            Q(state__exact="", client__state__in=states)
+        )
     
     @staticmethod
     def filter_by_city(queryset, cities: List[str]):
         """
         Filter contacts by city.
         
-        **Note:** Currently filters by client's city field, not contact-specific location.
+        Falls back to client city when contact city is empty.
         """
-        return queryset.filter(client__city__in=cities)
+        return queryset.filter(
+            Q(city__in=cities) |
+            Q(city__isnull=True, client__city__in=cities) |
+            Q(city__exact="", client__city__in=cities)
+        )
     
     @staticmethod
     def filter_by_postal_code(queryset, postal_codes: List[str]):
         """
         Filter contacts by postal code.
         
-        **Note:** Currently filters by client's postal code field, not contact-specific location.
+        Falls back to client postal code when contact postal code is empty.
         """
-        return queryset.filter(client__postal_code__in=postal_codes)
+        return queryset.filter(
+            Q(postal_code__in=postal_codes) |
+            Q(postal_code__isnull=True, client__postal_code__in=postal_codes) |
+            Q(postal_code__exact="", client__postal_code__in=postal_codes)
+        )
 
 
 class SegmentCondition:

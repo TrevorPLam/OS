@@ -276,6 +276,57 @@ class Segment(models.Model):
         self.save(update_fields=["member_count", "last_refreshed_at"])
 
 
+class SegmentMembership(models.Model):
+    """
+    Explicit segment membership for manual list management.
+
+    Used when segments are managed manually (auto_update = False).
+    """
+
+    ENTITY_TYPE_CHOICES = [
+        ("lead", "Lead"),
+        ("prospect", "Prospect"),
+        ("client", "Client"),
+        ("contact", "Contact"),
+        ("account", "Account"),
+    ]
+
+    segment = models.ForeignKey(
+        Segment,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+        help_text="Segment/list this membership belongs to",
+    )
+    entity_type = models.CharField(
+        max_length=20,
+        choices=ENTITY_TYPE_CHOICES,
+        help_text="Type of entity included in the segment",
+    )
+    entity_id = models.BigIntegerField(
+        help_text="ID of the entity included in the segment",
+    )
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="segment_memberships_added",
+        help_text="User who added this membership",
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "marketing_segment_memberships"
+        ordering = ["-added_at"]
+        indexes = [
+            models.Index(fields=["segment", "entity_type"], name="marketing_segmem_seg_ent_idx"),
+            models.Index(fields=["entity_type", "entity_id"], name="marketing_segmem_ent_idx"),
+        ]
+        unique_together = [["segment", "entity_type", "entity_id"]]
+
+    def __str__(self) -> str:
+        return f"{self.segment.name}: {self.entity_type}#{self.entity_id}"
+
+
 class EmailTemplate(models.Model):
     """
     Email template for marketing campaigns.

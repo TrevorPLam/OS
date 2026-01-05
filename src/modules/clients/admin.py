@@ -17,6 +17,7 @@ from modules.clients.models import (
     EngagementLine,
     Organization,
 )
+from modules.clients.portal_branding import DomainVerificationRecord, PortalBranding
 
 
 @admin.register(Client)
@@ -224,6 +225,36 @@ class ClientEngagementAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+
+@admin.register(PortalBranding)
+class PortalBrandingAdmin(admin.ModelAdmin):
+    list_display = (
+        "firm",
+        "custom_domain",
+        "custom_domain_verified",
+        "ssl_enabled",
+        "email_from_address",
+        "email_from_address_verified",
+        "updated_at",
+    )
+    list_filter = ("custom_domain_verified", "ssl_enabled", "email_from_address_verified")
+    search_fields = ("firm__name", "custom_domain", "email_from_address")
+    readonly_fields = ("custom_domain_verified_at", "created_at", "updated_at")
+
+
+@admin.register(DomainVerificationRecord)
+class DomainVerificationRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "branding",
+        "domain",
+        "verification_type",
+        "verified",
+        "checked_at",
+    )
+    list_filter = ("verification_type", "verified")
+    search_fields = ("domain",)
+    readonly_fields = ("checked_at",)
 
 
 @admin.register(ClientComment)

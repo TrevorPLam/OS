@@ -32,6 +32,26 @@ This file contains all completed tasks that have been migrated from TODO.md.
   - Deal assignment automations now create `DealAlert` records and send email notifications.  
   - Preferences are respected via firm profile notification settings.
 
+- [x] **T-007:** Implement Webhook System for Stage Automation ✅ **COMPLETED** (January 5, 2026)  
+  - Added stage automation webhook payloads and queued deliveries via `WebhookDelivery` + `JobQueue`.  
+  - Included deal metadata, HMAC signatures, and delivery retry handling in `modules/webhooks/jobs.py`.  
+
+- [x] **T-008:** Complete Automation Action Integrations ✅ **COMPLETED** (January 5, 2026)  
+  - Added email template rendering, SMS sending, task creation, list membership, and notifications in `src/modules/automation/actions.py`.  
+  - Added automation action integration tests in `src/tests/automation/test_actions.py`.  
+
+- [x] **T-010:** Implement Geographic Filtering for Client Segmentation ✅ **COMPLETED** (January 5, 2026)  
+  - Added contact location fields + migrations and implemented radius filtering in `src/modules/clients/segmentation.py`.  
+  - Added geographic segmentation coverage in `src/tests/clients/test_geographic_segmentation.py`.  
+
+- [x] **T-011:** Implement Portal Branding Infrastructure Integrations ✅ **COMPLETED** (January 5, 2026)  
+  - Implemented DNS verification checks, SSL provisioning, SES verification, and admin monitoring views.  
+  - Added portal branding setup reference in `docs/03-reference/portal-branding.md`.  
+
+- [x] **T-015:** Implement Public Access Endpoint for External Shares ✅ **COMPLETED** (January 5, 2026)  
+  - Added `PublicShareViewSet` public endpoints with password, IP, and download limit enforcement.  
+  - Updated external share documentation in `docs/03-reference/external-document-sharing.md`.  
+
 ### 🟢 Platform Transformation
 
 - [x] **EVENT-1:** Design unified event bus architecture (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  
