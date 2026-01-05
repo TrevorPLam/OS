@@ -1,8 +1,26 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 5, 2026
+**Last Updated:** January 8, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 8, 2026)
+
+### 🟢 Audit Review UI
+
+- [x] **AUDIT-2:** Implement audit log query and filter backend ✅ **COMPLETED** (January 8, 2026)
+  - Added firm-scoped audit event API with category/severity/actor/target filters and date-range support.
+  - Enforced review permissions and firm context to keep investigations tenant-isolated.
+
+- [x] **AUDIT-3:** Create audit review UI components ✅ **COMPLETED** (January 8, 2026)
+  - Registered `AuditEvent` in Django admin with filters, search, and date hierarchy for compliance reviewers.
+  - Documented backend readiness for dashboard consumption in `docs/04-explanation/audit-review-dashboard.md`.
+
+- [x] **AUDIT-4:** Add audit export functionality (CSV/JSON) ✅ **COMPLETED** (January 8, 2026)
+  - Added `/api/v1/firm/audit-events/export/` with JSON and CSV responses inheriting current filters.
+  - Capped exports to 5,000 records per request and included metadata payloads for downstream analysis.
 
 ---
 

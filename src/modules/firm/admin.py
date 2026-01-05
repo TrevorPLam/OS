@@ -1,7 +1,8 @@
 from django.contrib import admin
 
-from .models import BreakGlassSession, Firm, FirmMembership, PlatformUserProfile
+from modules.firm.audit import AuditEvent
 from modules.firm.profile_extensions import UserProfile
+from .models import BreakGlassSession, Firm, FirmMembership, PlatformUserProfile
 
 
 @admin.register(Firm)
@@ -166,6 +167,57 @@ class BreakGlassSessionAdmin(admin.ModelAdmin):
         ("Revocation", {"fields": ("revoked_at", "revoked_reason")}),
         ("Review", {"fields": ("reviewed_at", "reviewed_by")}),
     )
+
+
+@admin.register(AuditEvent)
+class AuditEventAdmin(admin.ModelAdmin):
+    list_display = (
+        "timestamp",
+        "firm",
+        "category",
+        "action",
+        "severity",
+        "actor_email",
+        "target_model",
+        "outcome",
+    )
+    list_filter = (
+        "firm",
+        "category",
+        "severity",
+        "outcome",
+        "timestamp",
+    )
+    search_fields = (
+        "action",
+        "actor_email",
+        "target_model",
+        "target_id",
+        "request_id",
+    )
+    readonly_fields = (
+        "firm",
+        "category",
+        "action",
+        "severity",
+        "actor",
+        "actor_email",
+        "actor_role",
+        "target_model",
+        "target_id",
+        "target_repr",
+        "timestamp",
+        "reason",
+        "outcome",
+        "metadata",
+        "ip_address",
+        "user_agent",
+        "request_id",
+        "reviewed_at",
+        "reviewed_by",
+        "review_notes",
+    )
+    date_hierarchy = "timestamp"
 
 
 @admin.register(PlatformUserProfile)
