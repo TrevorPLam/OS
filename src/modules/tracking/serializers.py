@@ -211,7 +211,7 @@ class SiteMessageTargetRequestSerializer(serializers.Serializer):
 
 class SiteMessageManifestRequestSerializer(serializers.Serializer):
     firm_slug = serializers.SlugField(max_length=255)
-    tracking_key = serializers.CharField(max_length=255)
+    tracking_secret = serializers.CharField(max_length=255, source="tracking_key")
     tracking_key_id = serializers.UUIDField(required=False)
 
     def validate_firm_slug(self, value: str) -> str:
@@ -224,8 +224,7 @@ class SiteMessageManifestRequestSerializer(serializers.Serializer):
     def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         firm = getattr(self, "_firm", None) or Firm.objects.get(slug=attrs["firm_slug"])
         self._tracking_key, self._used_fallback_key = validate_tracking_key(
-            firm=firm, secret=attrs["tracking_key"], public_id=attrs.get("tracking_key_id")
-        )
+            firm=firm, secret=attrs["tracking_secret"], public_id=attrs.get("tracking_key_id")
         return attrs
 
     @property
