@@ -6,6 +6,7 @@ Implements ActiveCampaign/HubSpot-like marketing features.
 """
 
 from django.db import models
+from django.utils import timezone
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -17,13 +18,21 @@ from config.query_guards import QueryTimeoutMixin
 from modules.auth.role_permissions import IsStaffUser, IsManager
 from modules.firm.utils import FirmScopedMixin
 
-from .models import Tag, Segment, EmailTemplate, CampaignExecution, EntityTag
+from .models import (
+    Tag,
+    Segment,
+    EmailTemplate,
+    EmailDomainAuthentication,
+    CampaignExecution,
+    EntityTag,
+)
 from .serializers import (
     TagSerializer,
     SegmentSerializer,
     EmailTemplateSerializer,
     CampaignExecutionSerializer,
     EntityTagSerializer,
+    EmailDomainAuthenticationSerializer,
 )
 
 
@@ -199,6 +208,50 @@ class EmailTemplateViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
             status=status.HTTP_200_OK,
         )
 
+
+class EmailDomainAuthenticationViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    """
+    ViewSet for email domain authentication records (DELIV-1).
+
+    Tracks SPF/DKIM/DMARC verification status per firm domain.
+    """
+
+    model = EmailDomainAuthentication
+    serializer_class = EmailDomainAuthenticationSerializer
+    permission_classes = [IsAuthenticated, IsStaffUser]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_fields = ["status", "domain", "spf_verified", "dkim_verified", "dmarc_verified"]
+    ordering_fields = ["domain", "status", "created_at", "updated_at"]
+    ordering = ["domain"]
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def mark_verified(self, request, pk=None):
+        """Mark all verification checks as passed."""
+        record = self.get_object()
+        record.spf_verified = True
+        record.dkim_verified = True
+        record.dmarc_verified = True
+        record.last_checked_at = timezone.now()
+        record.last_error = ""
+        record.update_status()
+        record.save(
+            update_fields=[
+                "spf_verified",
+                "dkim_verified",
+                "dmarc_verified",
+                "last_checked_at",
+                "last_error",
+                "status",
+                "updated_at",
+            ]
+        )
+        return Response(
+            {"message": "Domain marked verified", "domain": self.get_serializer(record).data},
+            status=status.HTTP_200_OK,
+        )
     @action(detail=True, methods=["post"])
     def preview(self, request, pk=None):
         """

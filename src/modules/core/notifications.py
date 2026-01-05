@@ -10,6 +10,8 @@ Email templates are rendered using Django's template system.
 """
 
 import logging
+from dataclasses import dataclass
+from email.utils import formataddr
 from typing import Any
 
 from django.conf import settings
@@ -20,6 +22,69 @@ from django.utils.html import strip_tags
 from modules.core.telemetry import log_event, log_metric, track_duration
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class EmailComplianceDetails:
+    """Compliance details for email footer and headers."""
+
+    sender_name: str | None = None
+    sender_email: str | None = None
+    reply_to: list[str] | None = None
+    physical_address: str | None = None
+    unsubscribe_url: str | None = None
+    company_name: str | None = None
+    compliance_reason: str | None = None
+
+
+def _format_from_email(from_email: str, from_name: str | None) -> str:
+    if from_name:
+        return formataddr((from_name, from_email))
+    return from_email
+
+
+def _build_compliance_footer(compliance: EmailComplianceDetails) -> tuple[str, str]:
+    footer_lines = []
+    company_name = compliance.company_name or "ConsultantPro"
+
+    if compliance.compliance_reason:
+        footer_lines.append(compliance.compliance_reason)
+
+    if compliance.physical_address:
+        footer_lines.append(f"Mailing address: {compliance.physical_address}")
+
+    if compliance.unsubscribe_url:
+        footer_lines.append(f"Unsubscribe: {compliance.unsubscribe_url}")
+
+    footer_lines.append(f"Sent by {company_name}.")
+
+    text_footer = "\n".join(footer_lines)
+    html_footer = (
+        "<hr>"
+        "<p style=\"color: #666; font-size: 12px; line-height: 1.5;\">"
+        + "<br>".join(footer_lines)
+        + "</p>"
+    )
+
+    return html_footer, text_footer
+
+
+def _apply_compliance_footer(
+    html_content: str | None,
+    text_content: str | None,
+    compliance: EmailComplianceDetails,
+) -> tuple[str | None, str | None]:
+    html_footer, text_footer = _build_compliance_footer(compliance)
+
+    if html_content:
+        html_content = f"{html_content}\n{html_footer}"
+
+    if text_content:
+        text_content = f"{text_content}\n\n{text_footer}"
+    elif html_content:
+        text_content = f"{strip_tags(html_content)}\n\n{text_footer}"
+
+    return html_content, text_content
 
 
 class EmailNotification:
@@ -44,9 +109,11 @@ class EmailNotification:
         html_content: str | None = None,
         text_content: str | None = None,
         from_email: str | None = None,
+        from_name: str | None = None,
         cc: list[str] | None = None,
         bcc: list[str] | None = None,
         reply_to: list[str] | None = None,
+        compliance: EmailComplianceDetails | None = None,
     ) -> bool:
         """
         Send email notification.
@@ -59,9 +126,11 @@ class EmailNotification:
             html_content: Direct HTML content (if not using template)
             text_content: Plain text content (auto-generated from HTML if not provided)
             from_email: Sender email (defaults to settings.DEFAULT_FROM_EMAIL)
+            from_name: Sender name to include in the From header
             cc: CC recipients
             bcc: BCC recipients
             reply_to: Reply-To addresses
+            compliance: Optional compliance footer and sender identification details
 
         Returns:
             True if email sent successfully, False otherwise
@@ -72,6 +141,11 @@ class EmailNotification:
                 if not from_email:
                     from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@consultantpro.com")
 
+                if compliance and compliance.sender_email:
+                    from_email = compliance.sender_email
+                if compliance and compliance.sender_name:
+                    from_name = compliance.sender_name
+
                 # Render HTML content from template if provided
                 if template and context is not None:
                     html_content = render_to_string(template, context)
@@ -80,16 +154,29 @@ class EmailNotification:
                 if html_content and not text_content:
                     text_content = strip_tags(html_content)
 
+                if compliance:
+                    html_content, text_content = _apply_compliance_footer(
+                        html_content,
+                        text_content,
+                        compliance,
+                    )
+
+                resolved_reply_to = reply_to
+                if compliance and compliance.reply_to:
+                    resolved_reply_to = compliance.reply_to
+
+                formatted_from_email = _format_from_email(from_email, from_name)
+
                 # Create email message
                 if html_content:
                     email = EmailMultiAlternatives(
                         subject=subject,
                         body=text_content or "",
-                        from_email=from_email,
+                        from_email=formatted_from_email,
                         to=to if isinstance(to, list) else [to],
                         cc=cc,
                         bcc=bcc,
-                        reply_to=reply_to,
+                        reply_to=resolved_reply_to,
                     )
                     email.attach_alternative(html_content, "text/html")
                 else:
@@ -97,11 +184,11 @@ class EmailNotification:
                     email = EmailMultiAlternatives(
                         subject=subject,
                         body=text_content or "",
-                        from_email=from_email,
+                        from_email=formatted_from_email,
                         to=to if isinstance(to, list) else [to],
                         cc=cc,
                         bcc=bcc,
-                        reply_to=reply_to,
+                        reply_to=resolved_reply_to,
                     )
 
                 # Send email

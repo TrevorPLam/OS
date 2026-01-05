@@ -417,6 +417,81 @@ class EmailTemplate(models.Model):
         self.save(update_fields=["times_used", "last_used_at"])
 
 
+class EmailDomainAuthentication(models.Model):
+    """
+    Domain authentication records for email deliverability (DELIV-1).
+
+    Tracks SPF, DKIM, and DMARC verification status per firm domain.
+    """
+
+    STATUS_PENDING = "pending"
+    STATUS_VERIFIED = "verified"
+    STATUS_FAILED = "failed"
+
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_VERIFIED, "Verified"),
+        (STATUS_FAILED, "Failed"),
+    ]
+
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        related_name="email_domains",
+        help_text="Firm that owns this sending domain",
+    )
+    domain = models.CharField(max_length=255, help_text="Sending domain (e.g., example.com)")
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        help_text="Overall verification status",
+    )
+
+    spf_record = models.CharField(max_length=500, blank=True, help_text="Expected SPF record")
+    dkim_record = models.CharField(max_length=500, blank=True, help_text="Expected DKIM record")
+    dmarc_record = models.CharField(max_length=500, blank=True, help_text="Expected DMARC record")
+    spf_verified = models.BooleanField(default=False)
+    dkim_verified = models.BooleanField(default=False)
+    dmarc_verified = models.BooleanField(default=False)
+    last_checked_at = models.DateTimeField(null=True, blank=True)
+    last_error = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_email_domains",
+    )
+
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "marketing_email_domains"
+        ordering = ["domain"]
+        indexes = [
+            models.Index(fields=["firm", "domain"], name="marketing_dom_fir_dom_idx"),
+            models.Index(fields=["firm", "status"], name="marketing_dom_fir_sta_idx"),
+        ]
+        unique_together = [["firm", "domain"]]
+
+    def __str__(self):
+        return f"{self.domain} ({self.get_status_display()})"
+
+    def update_status(self):
+        """Update overall status based on SPF/DKIM/DMARC checks."""
+        if self.spf_verified and self.dkim_verified and self.dmarc_verified:
+            self.status = self.STATUS_VERIFIED
+        elif self.spf_verified or self.dkim_verified or self.dmarc_verified:
+            self.status = self.STATUS_PENDING
+        else:
+            self.status = self.STATUS_FAILED
+        self.save(update_fields=["status", "updated_at"])
+
+
 class CampaignExecution(models.Model):
     """
     Campaign execution tracking.

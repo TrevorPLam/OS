@@ -6,6 +6,7 @@ from .views import (
     TagViewSet,
     SegmentViewSet,
     EmailTemplateViewSet,
+    EmailDomainAuthenticationViewSet,
     CampaignExecutionViewSet,
     EntityTagViewSet,
 )
@@ -14,6 +15,7 @@ router = DefaultRouter()
 router.register(r"tags", TagViewSet, basename="tag")
 router.register(r"segments", SegmentViewSet, basename="segment")
 router.register(r"email-templates", EmailTemplateViewSet, basename="email-template")
+router.register(r"email-domains", EmailDomainAuthenticationViewSet, basename="email-domain")
 router.register(r"campaign-executions", CampaignExecutionViewSet, basename="campaign-execution")
 router.register(r"entity-tags", EntityTagViewSet, basename="entity-tag")
 

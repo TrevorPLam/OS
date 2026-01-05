@@ -49,6 +49,7 @@ class PortalBrandingSerializer(serializers.ModelSerializer):
             "email_from_address",
             "email_from_address_verified",
             "email_reply_to",
+            "email_physical_address",
             "email_header_logo_url",
             "email_header_color",
             "email_footer_text",

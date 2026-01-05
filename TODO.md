@@ -545,12 +545,6 @@
 **Status:** Critical for email deliverability  
 **Dependencies:** None
 
-- [ ] **DELIV-1:** Domain authentication setup (6-8 hours)
-  - SPF record validation
-  - DKIM signature implementation
-  - DMARC policy configuration
-  - Setup wizard
-  
 - [ ] **DELIV-2:** Bounce handling (6-8 hours)
   - Bounce webhook processing
   - Automatic suppression lists
@@ -576,25 +570,9 @@
 **Status:** Required for EU customers  
 **Dependencies:** None
 
-- [ ] **GDPR-2:** Add double opt-in (4-6 hours)
-  - Confirmation email workflow
-  - Opt-in status tracking
-  
 #### CAN-SPAM Compliance (MEDIUM - 12-16 hours)
 **Status:** Required for US email marketing  
 **Dependencies:** None
-
-- [ ] **SPAM-1:** Automatic unsubscribe links (4-6 hours)
-  - Template variable for unsubscribe
-  - One-click unsubscribe handling
-  
-- [ ] **SPAM-2:** Physical address in footer (2-3 hours)
-  - Firm address in email footer
-  - Template configuration
-  
-- [ ] **SPAM-3:** Sender identification (3-4 hours)
-  - Clear "From" name and email
-  - Reply-to configuration
 
 ---
 

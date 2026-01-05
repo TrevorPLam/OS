@@ -8,6 +8,8 @@ TIER 2.5: Firm admin ViewSets use DenyPortalAccess to block portal users.
 TIER 2.6: Organizations enable cross-client collaboration within firms.
 """
 
+from django.conf import settings
+from django.urls import reverse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from permissions import PortalAccessMixin, PortalFirmAccessPermission
@@ -18,6 +20,7 @@ from rest_framework.response import Response
 
 from config.filters import BoundedSearchFilter
 from config.query_guards import QueryTimeoutMixin
+from modules.clients.portal_branding import PortalBranding
 from modules.clients.models import (
     Client,
     ClientChatThread,
@@ -29,6 +32,8 @@ from modules.clients.models import (
     Organization,
     ConsentRecord,
     Contact,
+    EmailOptInRequest,
+    EmailUnsubscribeToken,
 )
 from modules.clients.permissions import DenyPortalAccess, IsPortalUserOrFirmUser
 from modules.clients.serializers import (
@@ -48,6 +53,7 @@ from modules.clients.serializers import (
     ConsentRecordCreateSerializer,
     ConsentProofExportSerializer,
 )
+from modules.core.notifications import EmailComplianceDetails, EmailNotification
 from modules.firm.utils import FirmScopedMixin, get_request_firm
 
 
@@ -1110,6 +1116,97 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         # Return the created record
         output_serializer = ConsentRecordSerializer(consent_record)
         return Response(output_serializer.data, status=201)
+
+    @action(detail=False, methods=["post"], url_path="request-double-opt-in")
+    def request_double_opt_in(self, request):
+        """
+        Initiate double opt-in for a contact.
+
+        Sends a confirmation email with a public opt-in link.
+        """
+        contact_id = request.data.get("contact_id")
+        if not contact_id:
+            return Response({"error": "contact_id is required"}, status=400)
+
+        try:
+            contact = self._get_firm_contact(request, contact_id)
+        except Contact.DoesNotExist:
+            return Response(
+                {"error": "Contact not found or does not belong to your firm"},
+                status=404,
+            )
+
+        consent_text = request.data.get("consent_text", "")
+        consent_version = request.data.get("consent_version", "")
+        source = request.data.get("source", "signup_form")
+        source_url = request.data.get("source_url", "")
+
+        opt_in_request = EmailOptInRequest.create_request(
+            contact,
+            requested_by=request.user,
+            source=source,
+            source_url=source_url,
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+            consent_text=consent_text,
+            consent_version=consent_version,
+        )
+
+        unsubscribe_token = EmailUnsubscribeToken.create_token(
+            contact,
+            source="double_opt_in",
+            ip_address=request.META.get("REMOTE_ADDR"),
+            user_agent=request.META.get("HTTP_USER_AGENT", ""),
+        )
+
+        confirm_url = request.build_absolute_uri(
+            reverse("public-opt-in-detail", args=[opt_in_request.token])
+        )
+        unsubscribe_url = request.build_absolute_uri(
+            reverse("public-unsubscribe-detail", args=[unsubscribe_token.token])
+        )
+
+        branding = PortalBranding.objects.filter(firm=contact.client.firm).first()
+        sender_name = branding.email_from_name if branding and branding.email_from_name else contact.client.firm.name
+        sender_email = (
+            branding.email_from_address
+            if branding and branding.email_from_address
+            else getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@consultantpro.com")
+        )
+        reply_to = [branding.email_reply_to] if branding and branding.email_reply_to else None
+        physical_address = branding.email_physical_address if branding else ""
+
+        compliance = EmailComplianceDetails(
+            sender_name=sender_name,
+            sender_email=sender_email,
+            reply_to=reply_to,
+            physical_address=physical_address,
+            unsubscribe_url=unsubscribe_url,
+            company_name=contact.client.firm.name,
+            compliance_reason="You are receiving this email to confirm your subscription.",
+        )
+
+        EmailNotification.send(
+            to=[contact.email],
+            subject="Confirm your subscription",
+            html_content=(
+                "<p>Please confirm your subscription by clicking the link below:</p>"
+                f"<p><a href=\"{confirm_url}\">Confirm subscription</a></p>"
+            ),
+            text_content=f"Confirm your subscription: {confirm_url}",
+            from_email=sender_email,
+            from_name=sender_name,
+            compliance=compliance,
+        )
+
+        return Response(
+            {
+                "status": "confirmation_sent",
+                "contact_id": contact.id,
+                "opt_in_request_id": opt_in_request.id,
+            },
+            status=201,
+        )
     
     @action(detail=False, methods=["get"], url_path="by-contact/(?P<contact_id>[0-9]+)")
     def by_contact(self, request, contact_id=None):
@@ -1225,4 +1322,3 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         serializer = ConsentProofExportSerializer(proof_data)
         
         return Response(serializer.data)
-
