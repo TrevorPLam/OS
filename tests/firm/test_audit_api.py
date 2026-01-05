@@ -85,7 +85,7 @@ def test_audit_events_filter_by_time_range(audit_api_client):
     )
 
     start = (earlier + timezone.timedelta(days=1)).isoformat()
-    response = client.get(f"/api/v1/firm/audit-events/?occurred_after={start}")
+    response = client.get("/api/v1/firm/audit-events/", {"occurred_after": start})
     assert response.status_code == 200
 
     results = response.json()["results"]
