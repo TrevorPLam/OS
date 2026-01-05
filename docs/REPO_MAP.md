@@ -16,10 +16,13 @@ This repository is a governance-first template. The application-specific archite
 Hierarchy (what to read first):
 1) `CODEBASECONSTITUTION.md`
 2) `READMEAI.md`
-3) `PROJECT_STATUS.md`
-4) `repo.manifest.yaml`
-5) `specs/*`
-6) `docs/*`
+3) `AGENTS.md`
+4) `TODO.md`
+5) Runbooks (`CODEAUDIT.md`, `SECURITYAUDIT.md`, `DEPENDENCYAUDIT.md`, `RELEASEAUDIT.md`, `DOCSAUDIT.md`)
+6) `repo.manifest.yaml`
+7) `PROJECT_STATUS.md`
+8) `specs/*` (non-binding notes)
+9) `docs/*`
 
 ---
 
@@ -27,10 +30,9 @@ Hierarchy (what to read first):
 - `README.md` → points agents to `READMEAI.md`
 - `READMEAI.md` → AI operating console
 - `CODEBASECONSTITUTION.md` → highest authority
-- `BOOTSTRAP_GUIDE.md` → how to start (human + AI)
 - `PROJECT_STATUS.md` → current truth + next step
 - `repo.manifest.yaml` → how to run/verify/ship (machine-readable)
-- `TODO.md` → derived board (generated)
+- `TODO.md` → task truth source
 - `SECURITY.md` → reporting + baseline expectations
 - `CHANGELOG.md` + `VERSION` → release hygiene
 
@@ -39,7 +41,7 @@ Hierarchy (what to read first):
 ## 3) specs/
 - `specs/project-spec.md` → what/why
 - `specs/technical-plan.md` → how
-- `specs/project-tasks.md (non-binding notes) (non-binding notes) (optional, non-binding)` → tasks source of truth (verifiable)
+- `specs/*` → non-binding notes; convert to tasks in `TODO.md` when actionable
 
 ---
 
@@ -55,14 +57,14 @@ Hierarchy (what to read first):
 
 ---
 
-## 5) scripts/
-- `scripts/bootstrap.sh` → initialize hooks + regenerate TODO
-- `scripts/sync-todo.sh` → derive TODO.md from tasks
-- `scripts/ai-audit.sh` → governance gate
-- `scripts/security-scan.sh` → secrets hygiene
-- `scripts/check.sh` → best-effort checks
-- `scripts/validate-enhancements.sh` → validate template consistency
-- `scripts/new-repo.sh` → stamp this template into another repo
+## 5) docs/scripts/
+- `docs/scripts/bootstrap.sh` → initialize hooks + regenerate TODO
+- `docs/scripts/sync-todo.sh` → generate TODO artifacts (informational)
+- `docs/scripts/ai-audit.sh` → governance gate
+- `docs/scripts/security-scan.sh` → secrets hygiene
+- `docs/scripts/check.sh` → best-effort checks
+- `docs/scripts/validate-enhancements.sh` → validate template consistency
+- `docs/scripts/new-repo.sh` → stamp this template into another repo
 
 ---
 

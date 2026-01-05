@@ -310,27 +310,11 @@ Response:
 
 ## Remaining Tasks (TODO.md)
 
-### DEAL-3: Build Pipeline Visualization UI (8-12 hours)
-- Kanban board view of deals by stage
-- Drag-and-drop stage transitions
-- Pipeline filtering and search
-- Deal card UI with key metrics
-
-### DEAL-4: Add Forecasting and Analytics (8-12 hours)
-- ✅ Weighted pipeline forecasting (implemented in API)
-- Win/loss tracking
-- Pipeline performance reports
-- Revenue projection calculations
-
-### DEAL-5: Implement Assignment Automation (6-8 hours)
-- Round-robin deal assignment
-- Territory-based routing
-- Deal stage automation triggers
-
-### DEAL-6: Add Deal Splitting and Rotting Alerts (6-8 hours)
-- ✅ Deal splitting for multiple owners (implemented in model)
-- ✅ Stale deal detection (implemented in model)
-- Automated reminder system
+Tracked in TODO:
+- T-018 (DEAL-3) Pipeline visualization UI
+- T-019 (DEAL-4) Forecasting and analytics expansion
+- T-020 (DEAL-5) Assignment automation
+- T-021 (DEAL-6) Deal splitting/rotting alert automation
 
 ## Security & Multi-Tenancy
 

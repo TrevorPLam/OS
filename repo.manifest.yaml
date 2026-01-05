@@ -20,6 +20,6 @@ verification:
     Commands are repo-specific. If a command is missing, record UNKNOWN and create a task
     to add it. Prefer cost-free local verification.
   recommended:
-    - scripts/ai-audit.sh
-    - scripts/check.sh
-    - scripts/security-scan.sh
+    - docs/scripts/ai-audit.sh
+    - docs/scripts/check.sh
+    - docs/scripts/security-scan.sh

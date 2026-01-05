@@ -46,3 +46,16 @@ Required outputs:
   - (none)
 - Questions for Trevor:
   - (none)
+
+### 2026-01-05 — Summary
+- Agent: AGENT
+- Scope: docs/ directory, root docs, specs/, repo.manifest.yaml
+- Findings:
+  - Removed pipeline task leakage from docs and moved tasks into TODO.md with references.
+  - Corrected doc navigation links and indexes to match current repo structure.
+  - Updated governance docs to reflect docs/scripts usage and TODO truth source.
+- Tasks created/updated:
+  - T-018, T-019, T-020, T-021 (pipeline deal management remaining work)
+  - T-022, T-023, T-024 (missing reference docs tracked)
+- Questions for Trevor:
+  - (none)

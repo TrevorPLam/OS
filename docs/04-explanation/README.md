@@ -6,9 +6,9 @@ Explanation docs help you understand *why* things work the way they do. They pro
 
 ## Available Explanations
 
-- [Architecture Overview](architecture-overview.md) - High-level system design and component interactions
-- [Security Model](security-model.md) - Multi-tenancy, privacy, and threat mitigation
-- [Documentation Best Practices](documentation-best-practices.md) - How we organize and write documentation
+- [Architecture Overview](../ARCHITECTURE.md) - High-level system design and component interactions
+- [Security Baseline](../SECURITY_BASELINE.md) - Multi-tenancy, privacy, and threat mitigation
+- [Documentation Style Guide](../STYLE_GUIDE.md) - How we organize and write documentation
 
 ## What Makes Good Explanation?
 

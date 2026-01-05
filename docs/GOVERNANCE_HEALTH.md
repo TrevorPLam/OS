@@ -13,12 +13,12 @@ This document defines what “healthy governance” means for this repo.
 
 ## Health checks (quick)
 Run (optional):
-- `scripts/ai-audit.sh` (file presence + basic invariants)
-- `scripts/check.sh` (lint/test/build if available)
-- `scripts/security-scan.sh` (lightweight checks)
+- `docs/scripts/ai-audit.sh` (file presence + basic invariants)
+- `docs/scripts/check.sh` (lint/test/build if available)
+- `docs/scripts/security-scan.sh` (lightweight checks)
 
 Optional helper:
-- `scripts/sync-todo.sh` generates `TODO.generated.md` from `specs/project-tasks.md` (non-binding; informational only)
+- `docs/scripts/sync-todo.sh` generates `TODO.generated.md` from `specs/project-tasks.md` (non-binding; informational only)
 
 ## Failure policy
 - If an invariant fails, create a task in `TODO.md` and mark it `BLOCKED` if external action is required.

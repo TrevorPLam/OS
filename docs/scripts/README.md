@@ -31,7 +31,7 @@ This directory contains utility scripts for the ConsultantPro project. Scripts a
 
 ```bash
 # Check for violations
-python scripts/lint_firm_scoping.py
+python docs/scripts/lint_firm_scoping.py
 
 # Run as part of pre-commit
 pre-commit run lint-firm-scoping --all-files
@@ -81,7 +81,7 @@ pre-commit run --all-files
 
 ```bash
 # Check for violations
-python scripts/lint_firm_scoping.py
+python docs/scripts/lint_firm_scoping.py
 
 # Expected output if violations found:
 # ================================================================================
@@ -110,7 +110,7 @@ These scripts are designed to run in CI/CD pipelines:
 # Example GitHub Actions workflow
 - name: Run TIER 0 Linting
   run: |
-    python scripts/lint_firm_scoping.py
+    python docs/scripts/lint_firm_scoping.py
 ```
 
 ## Future Enhancements
