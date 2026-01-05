@@ -1,8 +1,111 @@
+# ConsultantPro — Completed Tasks Archive (Governance Format)
+
+**Task Truth Source:** TODO.md
+**Schema:** Each entry includes ID, Priority, Type, Title, Owner (AGENT or Trevor), Context, Acceptance Criteria, References, Dependencies, Effort, Completion Date.
+
+## Recently Completed
+
+- ID: AUDIT-2
+  Priority: P2
+  Type: COMPLETE
+  Title: Implement audit log query and filter backend
+  Owner: AGENT
+  Context: Compliance reviewers require firm-scoped audit event filtering.
+  Acceptance Criteria:
+    - Firm-scoped audit event API supports category, severity, actor/target filters, and date range.
+    - Review permissions enforced for investigators.
+    - Backend documented for dashboard consumption.
+  References:
+    - docs/04-explanation/audit-review-dashboard.md
+  Dependencies: None
+  Effort: M
+  Completion Date: 2026-01-08
+
+- ID: AUDIT-3
+  Priority: P2
+  Type: COMPLETE
+  Title: Create audit review UI components
+  Owner: AGENT
+  Context: Admins need UI access to audit events with proper filtering capabilities.
+  Acceptance Criteria:
+    - AuditEvent registered in Django admin with filters, search, and date hierarchy.
+    - UI ready for dashboard consumption with documented backend expectations.
+  References:
+    - docs/04-explanation/audit-review-dashboard.md
+  Dependencies: AUDIT-2
+  Effort: M
+  Completion Date: 2026-01-08
+
+- ID: AUDIT-4
+  Priority: P2
+  Type: COMPLETE
+  Title: Add audit export functionality (CSV/JSON)
+  Owner: AGENT
+  Context: Investigations require exportable audit data with scoped filters.
+  Acceptance Criteria:
+    - /api/v1/firm/audit-events/export/ provides JSON and CSV respecting current filters.
+    - Export capped to 5,000 records per request and returns metadata payloads.
+  References:
+    - API documentation (audit export)
+  Dependencies: AUDIT-2
+  Effort: M
+  Completion Date: 2026-01-08
+
+- ID: PERS-5
+  Priority: P2
+  Type: COMPLETE
+  Title: Add impression analytics and exports for personalization
+  Owner: AGENT
+  Context: Onsite engagement requires authenticated rollups for personalization experiments.
+  Acceptance Criteria:
+    - Deliveries, views, and clicks aggregated by message and variant with rate calculations.
+    - CSV export available for onsite engagement analytics.
+    - Dashboard highlights top-performing messages.
+  References:
+    - Personalization dashboard docs
+  Dependencies: None
+  Effort: M
+  Completion Date: 2026-01-08
+
+- ID: PERS-6
+  Priority: P2
+  Type: COMPLETE
+  Title: Add SDK delivery caching for site messages
+  Owner: AGENT
+  Context: Site message SDK requires caching with signature validation and offline fallback.
+  Acceptance Criteria:
+    - Signed manifest endpoint for active site messages with config-version cache busting.
+    - SDK caching with manifest signature validation and offline fallback implemented.
+  References:
+    - Site message SDK docs
+  Dependencies: None
+  Effort: M
+  Completion Date: 2026-01-08
+
+- ID: ORCH-1
+  Priority: P2
+  Type: COMPLETE
+  Title: Implement event-driven workflow runner skeleton
+  Owner: AGENT
+  Context: Orchestration executor needed idempotent lifecycle with retry/backoff policies.
+  Acceptance Criteria:
+    - Execution creation is idempotent with retries and DLQ routing.
+    - Correlation IDs, structured audit hooks, and retry/backoff policies implemented.
+    - Ready for async worker wiring with documented lifecycle.
+  References:
+    - Orchestration executor docs
+  Dependencies: None
+  Effort: M
+  Completion Date: 2026-01-08
+
+---
+
+## Appendix: Legacy Completed Archive (Reference Only)
+The following content is preserved verbatim from the previous TODO_COMPLETED.md to avoid content loss.
+
 # ConsultantPro - Completed Tasks Archive
 
 **Last Updated:** January 8, 2026
-
-> Governance note: TODOCOMPLETED.md is now the authoritative completed-task log. This file is preserved for reference and remains unchanged below.
 
 This file contains all completed tasks that have been migrated from TODO.md.
 

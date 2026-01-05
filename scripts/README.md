@@ -1,6 +1,12 @@
 # Scripts Directory
 
-This directory contains utility scripts for the ConsultantPro project.
+This directory contains utility scripts for the ConsultantPro project. Scripts are optional; run them when they help with a specific task rather than by default.
+
+## Activation Guidance
+
+- **Local hooks (opt-in):** Install pre-commit hooks with `pre-commit install` if you want local enforcement. Uninstall with `pre-commit uninstall` to return to a clean state.
+- **CI enablement:** GitHub Actions workflows are parked in `githubactions/workflows/`. Copy the needed YAMLs into `.github/workflows/` to enable CI, and move them back to disable.
+- **Generated artifacts:** If any script outputs `TODO.generated.md`, keep it gitignored and never overwrite TODO.md automatically.
 
 ## TIER 0 Enforcement Scripts
 
