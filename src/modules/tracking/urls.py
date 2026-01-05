@@ -2,6 +2,8 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from modules.tracking.views import (
+    SiteMessageImpressionView,
+    SiteMessageTargetingView,
     SiteMessageViewSet,
     TrackingAnalyticsExportView,
     TrackingEventViewSet,
@@ -21,6 +23,8 @@ urlpatterns = [
     path("collect/", TrackingIngestView.as_view(), name="tracking-collect"),
     path("summary/", TrackingSummaryView.as_view(), name="tracking-summary"),
     path("analytics/export/", TrackingAnalyticsExportView.as_view(), name="tracking-analytics-export"),
+    path("site-messages/display/", SiteMessageTargetingView.as_view(), name="site-message-display"),
+    path("site-messages/impressions/", SiteMessageImpressionView.as_view(), name="site-message-impressions"),
 ]
 
 urlpatterns += router.urls

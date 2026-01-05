@@ -20,6 +20,8 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
 from modules.core.telemetry import log_event, log_metric, track_duration
+from modules.integrations.models import SlackIntegration
+from modules.integrations.services import SlackService
 
 logger = logging.getLogger(__name__)
 
@@ -501,23 +503,44 @@ class SlackNotification:
     """
 
     @staticmethod
-    def send(_channel: str, _message: str, _attachments: list[dict[str, Any]] | None = None) -> bool:
+    def send(
+        channel: str,
+        message: str,
+        attachments: list[dict[str, Any]] | None = None,
+        firm=None,
+    ) -> bool:
         """
-        Send Slack notification (placeholder).
+        Send Slack notification using configured integration.
 
         Args:
             _channel: Slack channel name or ID
             _message: Message text
             _attachments: Slack attachments
-
-        Returns:
-            False (not yet implemented)
+            firm: Optional firm context to resolve tenant-specific installation
         """
-        logger.info("Slack notification dispatch attempted")
-        log_event("notification_slack_attempted", channel="slack")
-        # DEFERRED: Slack API integration - See TODO_ANALYSIS.md #10
-        # Requires: Slack app credentials and webhook setup
-        return False
+        integration = None
+        if firm:
+            integration = SlackIntegration.objects.filter(firm=firm, status="active").first()
+
+        if not integration:
+            logger.info("Slack notification attempted without active integration")
+            log_event("notification_slack_attempted", channel="slack", context="missing_integration")
+            return False
+
+        service = SlackService(integration)
+        try:
+            ok = service.send_message(text=_message, channel=_channel, attachments=_attachments or [])
+        except Exception as exc:
+            log_event(
+                "notification_slack_failed",
+                channel="slack",
+                error_class=exc.__class__.__name__,
+                error_message=str(exc),
+            )
+            logger.error(f"Failed to send Slack notification: {exc.__class__.__name__}: {exc}")
+            return False
+        log_event("notification_slack_sent" if ok else "notification_slack_failed", channel="slack")
+        return ok
 
 
 class SMSNotification:

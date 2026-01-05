@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Web Personalization** (2026-01-07)
+  - **PERS-3**: Added site message delivery endpoint with targeting, frequency caps, and impression logging.
+  - **PERS-4**: Introduced admin UI with preview + A/B variant configuration for site messages.
+
+- **Integrations Hub** (2026-01-07)
+  - **INT-1**: Salesforce connection model with OAuth token handling and sync helpers for leads/contacts/opportunities.
+  - **INT-2**: Slack integration model + service for message dispatch and slash command verification plumbing.
+  - **INT-3**: Google Analytics (GA4) measurement configuration with test event dispatch endpoint.
+
 - **Project Scheduling** (2026-01-05)
   - **T-001**: Critical path calculation for project timelines
     - CPM-style forward/backward pass to calculate early/late dates and slack

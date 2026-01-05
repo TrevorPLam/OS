@@ -9,12 +9,7 @@ from rest_framework import serializers
 
 from modules.clients.models import Contact
 from modules.firm.models import Firm
-from modules.tracking.models import (
-    SiteMessage,
-    TrackingEvent,
-    TrackingKey,
-    TrackingSession,
-)
+from modules.tracking.models import SiteMessage, SiteMessageImpression, TrackingEvent, TrackingKey, TrackingSession
 
 
 class TrackingEventSerializer(serializers.ModelSerializer):
@@ -168,3 +163,50 @@ class SiteMessageSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+class SiteMessageTargetRequestSerializer(serializers.Serializer):
+    firm_slug = serializers.SlugField(max_length=255)
+    visitor_id = serializers.UUIDField()
+    session_id = serializers.UUIDField(required=False)
+    contact_id = serializers.IntegerField(required=False)
+    url = serializers.CharField(max_length=2048)
+    consent_state = serializers.ChoiceField(
+        choices=[c[0] for c in TrackingSession.CONSENT_CHOICES], required=False, default="pending"
+    )
+    segments = serializers.ListField(child=serializers.CharField(max_length=100), required=False)
+    behaviors = serializers.DictField(default=dict)
+    message_types = serializers.ListField(
+        child=serializers.ChoiceField(choices=[c[0] for c in SiteMessage.MESSAGE_TYPES]),
+        required=False,
+    )
+    limit = serializers.IntegerField(default=3, min_value=1, max_value=10)
+    page_view_count = serializers.IntegerField(required=False, min_value=0, default=0)
+    session_count = serializers.IntegerField(required=False, min_value=1, default=1)
+    recent_events = serializers.ListField(child=serializers.CharField(max_length=255), required=False)
+
+    def validate_firm_slug(self, value: str) -> str:
+        try:
+            self._firm = Firm.objects.get(slug=value, status__in=["active", "trial"])
+            return value
+        except Firm.DoesNotExist as exc:  # noqa: B904
+            raise serializers.ValidationError("Invalid or inactive firm slug") from exc
+
+    def validate_contact_id(self, value: int) -> int:
+        firm = getattr(self, "_firm", None)
+        if not firm or value is None:
+            return value
+        if not Contact.objects.filter(firm=firm, id=value).exists():
+            raise serializers.ValidationError("Contact does not exist for this firm")
+        return value
+
+    @property
+    def firm(self) -> Firm:
+        return getattr(self, "_firm", None)
+
+
+class SiteMessageImpressionLogSerializer(serializers.Serializer):
+    delivery_id = serializers.UUIDField()
+    event = serializers.ChoiceField(choices=[c[0] for c in SiteMessageImpression.KIND_CHOICES if c[0] != "delivered"])
+    url = serializers.CharField(required=False, allow_blank=True, max_length=2048)
+    variant = serializers.CharField(required=False, allow_blank=True, max_length=100)

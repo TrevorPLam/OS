@@ -10,7 +10,6 @@ from typing import Any
 from uuid import uuid4
 
 from django.conf import settings
-from square.client import Client as SquareClient
 
 
 class SquareService:
@@ -22,6 +21,8 @@ class SquareService:
 
     def __init__(self):
         """Initialize Square client with API credentials."""
+        from square.client import Client as SquareClient
+
         self.client = SquareClient(
             access_token=settings.SQUARE_ACCESS_TOKEN,
             environment=settings.SQUARE_ENVIRONMENT,  # 'sandbox' or 'production'

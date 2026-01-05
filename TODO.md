@@ -1,6 +1,6 @@
 # ConsultantPro - Development Roadmap
 
-**Last Updated:** January 6, 2026
+**Last Updated:** January 7, 2026
 **Task Truth Source:** TODO.md
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
@@ -77,35 +77,20 @@
 **Status:** Extends site tracking with on-site engagement  
 **Dependencies:** TRACK-1 through TRACK-5
 
-- [ ] **PERS-3:** Add targeting and display logic (6-8 hours)
-  - Segment-based targeting
-  - Behavior-based targeting
-  - Frequency capping
+- [ ] **PERS-5:** Add impression analytics and exports (4-6 hours)
+  - Impression/click rollups by message and variant
+  - CSV export for onsite engagement
+  - Dashboard widgets for top-performing messages
   
-- [ ] **PERS-4:** Build site message UI (5-8 hours)
-  - Message preview
-  - A/B testing setup
-  - Performance tracking
+- [ ] **PERS-6:** Add SDK delivery caching (3-5 hours)
+  - Signed delivery manifest for active messages
+  - Cache-busting via client config version
+  - Fallback strategy when delivery API is unavailable
 
 #### Additional Native Integrations (MEDIUM - 16-24 hours per integration)
 **Status:** Expand integration ecosystem  
 **Dependencies:** None
 
-- [ ] **INT-1:** Salesforce CRM integration (16-24 hours)
-  - OAuth authentication
-  - Contact/Lead bidirectional sync
-  - Opportunity sync
-  
-- [ ] **INT-2:** Slack integration (full version) (12-16 hours)
-  - Webhook notifications
-  - Interactive slash commands
-  - Channel configuration
-  
-- [ ] **INT-3:** Google Analytics integration (12-16 hours)
-  - Event tracking sync
-  - Campaign UTM tracking
-  - Goal tracking integration
-  
 - [ ] **INT-4:** Zoom integration (12-16 hours)
   - OAuth authentication
   - Meeting creation from platform
@@ -126,6 +111,21 @@
   - E-signature workflow integration
   - Status webhooks (sent, viewed, signed)
   - Signed document retrieval and storage
+  
+- [ ] **INT-7:** Integration health monitoring (4-6 hours)
+  - Health cards for Slack/Salesforce/GA connectors
+  - Admin alerts on repeated sync failures
+  - Token expiry warnings
+  
+- [ ] **INT-8:** Credential vault + rotation (6-8 hours)
+  - Move integration secrets to encrypted vault
+  - Scheduled rotation reminders
+  - Audit trail for credential access
+  
+- [ ] **INT-9:** Slash command and webhook router (6-8 hours)
+  - Verify Slack signatures for commands/events
+  - Route commands to automation actions
+  - Replay-safe webhook ingestion
 
 ---
 

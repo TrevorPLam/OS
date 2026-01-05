@@ -97,6 +97,8 @@ src/modules/email_ingestion/ # Email ingestion with mapping/triage
                              # Evidence: settings.py:63, TODO.md:208 (DOC-15.1)
 src/modules/calendar/     # Calendar, appointments, booking links
                           # Evidence: settings.py:64, TODO.md:209 (DOC-34.1)
+src/modules/integrations/ # Native integrations hub (Salesforce, Slack, GA)
+                          # Evidence: settings.py:98
 src/modules/sms/          # SMS messaging (Twilio integration)
                           # Evidence: settings.py:71
 ```

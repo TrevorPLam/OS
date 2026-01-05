@@ -31,6 +31,7 @@ import CalendarOAuthCallback from './pages/CalendarOAuthCallback'
 import Automation from './pages/Automation'
 import WorkflowBuilder from './pages/WorkflowBuilder'
 import TrackingDashboard from './pages/TrackingDashboard'
+import SiteMessages from './pages/SiteMessages'
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
                 <Route path="/assets" element={<AssetManagement />} />
                 <Route path="/knowledge" element={<KnowledgeCenter />} />
                 <Route path="/communications" element={<Communications />} />
+                <Route path="/personalization/site-messages" element={<SiteMessages />} />
                 <Route path="/analytics/tracking" element={<TrackingDashboard />} />
                 
                 {/* Calendar Sync Route */}

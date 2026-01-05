@@ -85,6 +85,7 @@ INSTALLED_APPS = [
     "modules.accounting_integrations",  # Sprint 3: QuickBooks and Xero integrations
     "modules.esignature",  # Sprint 4: DocuSign e-signature integration
     "modules.ad_sync",  # Active Directory integration and user synchronization (AD-1 through AD-5)
+    "modules.integrations",  # Native integration hub (Salesforce, Slack, Google Analytics)
 ]
 
 MIDDLEWARE = [

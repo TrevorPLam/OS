@@ -58,6 +58,7 @@ api_v1_patterns = [
     path("accounting/", include("modules.accounting_integrations.urls")),  # Sprint 3: QuickBooks/Xero integrations
     path("esignature/", include("modules.esignature.urls")),  # Sprint 4: DocuSign e-signature integration
     path("ad-sync/", include("modules.ad_sync.urls")),  # Active Directory integration and synchronization
+    path("integrations/", include("modules.integrations.urls")),  # Native integrations (Salesforce, Slack, GA)
 ]
 
 urlpatterns = [
