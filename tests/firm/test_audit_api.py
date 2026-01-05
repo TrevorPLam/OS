@@ -97,6 +97,19 @@ def test_audit_events_filter_by_time_range(audit_api_client):
 def test_audit_events_export_csv_respects_limit(audit_api_client):
     client, firm, user = audit_api_client
     AuditEvent.objects.create(
+
+    # Create more events than the requested export limit
+    for i in range(15):
+        AuditEvent.objects.create(
+            firm=firm,
+            category=AuditEvent.CATEGORY_CONFIG,
+            action=f"extra_config_{i}",
+            severity=AuditEvent.SEVERITY_WARNING,
+            actor=user,
+        )
+
+    # Create a specific event we will assert is present in the limited results
+    AuditEvent.objects.create(
         firm=firm,
         category=AuditEvent.CATEGORY_CONFIG,
         action="config_changed",
@@ -112,9 +125,8 @@ def test_audit_events_export_csv_respects_limit(audit_api_client):
 
     content = response.content.decode("utf-8")
     rows = list(csv.DictReader(StringIO(content)))
-    assert len(rows) == 1
-    assert rows[0]["action"] == "config_changed"
-    assert rows[0]["request_id"] == "req-123"
+    assert len(rows) == 10
+    assert any(row["action"] == "config_changed" and row["request_id"] == "req-123" for row in rows)
 
 
 @pytest.mark.django_db
