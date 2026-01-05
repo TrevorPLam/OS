@@ -2,6 +2,94 @@
 
 **Last Updated:** January 8, 2026
 **Task Truth Source:** TODO.md
+Task truth source: TODO.md
+
+## Code Audit Tasks (2026-01-05)
+
+* ID: T-011
+* Priority: P1
+* Type: COMPLETE
+* Title: Implement portal branding infrastructure integrations (DNS, SSL, email templates)
+* Context: Portal branding references DNS/SSL/email template integrations but the integrations are not implemented, leaving placeholders in client branding flows.
+* Acceptance Criteria:
+  * DNS/SSL integration paths are implemented and wired into portal branding workflows.
+  * Email template integration is implemented for portal branding emails.
+  * Inline placeholders referencing this work are removed or updated.
+* References:
+  * src/modules/clients/portal_branding.py
+  * src/modules/clients/portal_views.py
+* Dependencies: None
+* Effort: M
+
+* ID: T-013
+* Priority: P2
+* Type: ENHANCE
+* Title: Decide and document the frontend component library
+* Context: Architecture documentation calls out a TBD component library, which blocks consistent UI implementation choices.
+* Acceptance Criteria:
+  * Component library decision documented with rationale.
+  * Architecture doc updated to reflect the chosen library.
+* References:
+  * docs/ARCHITECTURE.md
+* Dependencies: None
+* Effort: S
+
+* ID: T-014
+* Priority: P1
+* Type: COMPLETE
+* Title: Implement document lock, signed-url, and upload request endpoints
+* Context: API mapping lists partial document endpoints with TBD notes, indicating missing canonical endpoints.
+* Acceptance Criteria:
+  * Document lock, signed-url, and upload request endpoints exist with DRF views and routes.
+  * API endpoint mapping updated to remove TBD notes.
+  * Authorization mapping and permissions documented.
+* References:
+  * docs/API_ENDPOINT_AUTHORIZATION_MAPPING.md
+  * src/modules/documents/
+* Dependencies: None
+* Effort: M
+
+* ID: T-015
+* Priority: P2
+* Type: QUALITY
+* Title: Pin bcrypt to a specific version in production requirements
+* Context: bcrypt is specified with a range, which can cause non-reproducible builds.
+* Acceptance Criteria:
+  * requirements.txt uses an exact bcrypt version.
+  * Inline note documents the selected version rationale.
+* References:
+  * requirements.txt
+* Dependencies: None
+* Effort: S
+
+* ID: T-016
+* Priority: P2
+* Type: QUALITY
+* Title: Align frontend lint tooling with declared dependencies
+* Context: The frontend lint script references eslint without declaring it as a dev dependency.
+* Acceptance Criteria:
+  * npm run lint succeeds with declared devDependencies.
+  * package.json includes required lint dependencies or the lint script is removed if not used.
+* References:
+  * src/frontend/package.json
+* Dependencies: None
+* Effort: S
+
+* ID: T-017
+* Priority: P1
+* Type: HYGIENE
+* Title: Normalize legacy roadmap entries into the CODE_AUDIT task format
+* Context: The existing roadmap entries in TODO.md predate the CODE_AUDIT task template and need normalization for consistency.
+* Acceptance Criteria:
+  * Legacy roadmap entries are converted into T-### tasks following the required template.
+  * Duplicate or completed items are moved to TODO_COMPLETED.md with dates.
+  * Top 5 tasks are clearly prioritized and immediately actionable.
+* References:
+  * TODO.md
+  * TODO_COMPLETED.md
+  * CODE_AUDIT.md
+* Dependencies: None
+* Effort: L
 
 > **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
 
@@ -84,19 +172,6 @@
 **Priority:** P1 - Reduces production container size and attack surface
 
 **Status:** ✅ Completed (see TODO_COMPLETED.md)
-
-#### Dependency Hygiene Follow-ups (MEDIUM - 2-4 hours)
-- [ ] **DEP-PIN-1 (P2/QUALITY):** Pin bcrypt to an exact version for reproducible builds (1-2 hours)
-  - Acceptance Criteria:
-    - `requirements.txt` uses an exact bcrypt version (no range specifier).
-    - Document the chosen version inline with a short rationale.
-  - References: `requirements.txt`
-
-- [ ] **DEP-FE-1 (P2/QUALITY):** Align frontend lint tooling with declared dependencies (1-2 hours)
-  - Acceptance Criteria:
-    - `npm run lint` succeeds with declared devDependencies.
-    - `src/frontend/package.json` includes the required lint dependencies (or the lint script is removed if unused).
-  - References: `src/frontend/package.json`
 
 ---
 

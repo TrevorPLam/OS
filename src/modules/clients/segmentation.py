@@ -64,15 +64,13 @@ class GeographicSegmenter:
         """
         Filter contacts within a radius of a center point.
         
-        **KNOWN LIMITATION / TODO:**
-        This is a placeholder implementation that returns the queryset unchanged.
-        To implement proper geographic filtering, you need to:
+        **Known limitation:**
+        This implementation relies on latitude/longitude fields and a computed
+        distance expression, which can be slow at large scale without spatial
+        indexes. For higher performance and richer geo queries, consider:
         
-        1. Add geographic fields (latitude, longitude) to the Contact model or
-           a related Address model
-        2. Use a spatial database extension like PostGIS for PostgreSQL
-        3. Create spatial indexes for performance
-        4. Implement the Haversine distance formula in a database function
+        1. PostGIS with spatial indexes for Contact locations
+        2. Geometry-based distance queries via Django GIS
         
         Example implementation with PostGIS:
         ```python

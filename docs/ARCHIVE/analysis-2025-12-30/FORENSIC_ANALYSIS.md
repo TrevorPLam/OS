@@ -403,7 +403,9 @@
 
 ---
 
-## 12) OPEN QUESTIONS
+## 12) Archived Questions (Historical)
+
+These questions were recorded during the 2025-12-30 analysis and are preserved for historical context.
 
 1. **MVP launch date?** → Determines E2EE scope
 2. **Expected tenant count?** → Informs scaling strategy

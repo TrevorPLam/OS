@@ -80,7 +80,7 @@ ConsultantPro is a multi-tenant SaaS platform built as a Django modular monolith
 - Vite build tool
 - React Query for data fetching
 - React Flow for visual workflow builder
-- Component library: TBD (likely Tailwind CSS + Headless UI)
+- Component library: Tracked in TODO: T-013
 
 ### Database Layer
 

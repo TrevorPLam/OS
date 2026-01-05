@@ -172,9 +172,9 @@ IsAuthenticated → IsFirmOwnerOrAdmin → FirmScopedQuerySet
 | Canonical Action | Status | Notes |
 |-----------------|--------|-------|
 | Engagements: /engagement-lines | ⚠️ Partial | Engagement model exists; EngagementLine not explicit |
-| Documents: /documents/{id}/lock | ⚠️ Partial | Lock fields exist; dedicated endpoint TBD |
-| Documents: /documents/{id}/signed-url | ⚠️ Partial | URL generation exists; formal endpoint TBD |
-| Documents: /upload-requests | ⚠️ Partial | Upload via document creation; dedicated request flow TBD |
+| Documents: /documents/{id}/lock | ⚠️ Partial | Lock fields exist; dedicated endpoint tracked in TODO: T-014 |
+| Documents: /documents/{id}/signed-url | ⚠️ Partial | URL generation exists; formal endpoint tracked in TODO: T-014 |
+| Documents: /upload-requests | ⚠️ Partial | Upload via document creation; request flow tracked in TODO: T-014 |
 
 ### ❌ Not Yet Implemented
 

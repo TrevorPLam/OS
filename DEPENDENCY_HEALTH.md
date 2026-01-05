@@ -315,18 +315,18 @@ Inventory:
 
 Findings:
 
-* (P2) **DEP-PIN-1**: bcrypt is not pinned to an exact version in `requirements.txt`.
+* (P2) **T-015**: bcrypt is not pinned to an exact version in `requirements.txt`.
   * Impact: Builds are less deterministic and could drift across environments.
   * File: `requirements.txt`
 
-* (P2) **DEP-FE-1**: Frontend lint script references eslint but eslint is not declared in `devDependencies`.
+* (P2) **T-016**: Frontend lint script references eslint but eslint is not declared in `devDependencies`.
   * Impact: `npm run lint` can fail without a global eslint install.
   * File: `src/frontend/package.json`
 
 Tasks created:
 
-* DEP-PIN-1 (P2/QUALITY): Pin bcrypt to a specific version for reproducible builds.
-* DEP-FE-1 (P2/QUALITY): Align frontend lint tooling with declared dependencies.
+* T-015 (P2/QUALITY): Pin bcrypt to a specific version for reproducible builds.
+* T-016 (P2/QUALITY): Align frontend lint tooling with declared dependencies.
 
 Notes / assumptions:
 
