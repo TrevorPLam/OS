@@ -1,8 +1,47 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 4, 2026
+**Last Updated:** January 5, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 5, 2026)
+
+### 🟢 Platform Transformation
+
+- [x] **EVENT-1:** Design unified event bus architecture (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Documented broker selection (Kafka preferred; RabbitMQ acceptable interim) and topic taxonomy.  
+  - Defined publisher/consumer responsibilities with firm-aware idempotency, DLQ strategy, and observability expectations.  
+  - Captured schema/versioning rules and rollout phases in `docs/03-reference/event-bus-architecture.md`.
+
+### 🟢 User Management Enhancements
+
+- [x] **SCIM-1:** Research SCIM 2.0 specification (2-4 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Summarized required endpoints, patch semantics, and tenant-aware data model extensions.  
+  - Outlined security expectations (bearer scopes, rate limits, audit logging) and risks/mitigations.  
+  - Recorded findings in `docs/research/scim-2.0-research.md` to inform SCIM-2 through SCIM-5.
+
+### 🟢 Audit Review UI
+
+- [x] **AUDIT-1:** Design audit review dashboard wireframes (2-3 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Produced layout blueprint (summary tiles, filters, timeline, table, inspector drawer) with accessibility guidance.  
+  - Defined interactions for saved views, exports, deep links, and latency/error signaling.  
+  - Documented UX notes in `docs/04-explanation/audit-review-dashboard.md`.
+
+### 🟢 Integration Marketplace
+
+- [x] **MARKET-1:** Design integration marketplace architecture (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Established registry, API surface, and configuration UI expectations with firm-scoped installs.  
+  - Detailed security, auditability, and observability guardrails plus rollout plan.  
+  - Captured architecture in `docs/03-reference/integration-marketplace-architecture.md`.
+
+### 🟢 Advanced Integrations
+
+- [x] **ECOM-1:** Research e-commerce platforms (2-4 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Compared Shopify, WooCommerce, and BigCommerce auth models, webhooks, and rate limits; recommended Shopify first.  
+  - Defined cross-platform abstractions and phased rollout for connectors and automation triggers.  
+  - Documented research in `docs/research/ecommerce-platform-research.md`.
 
 ---
 
