@@ -740,12 +740,15 @@ class SiteMessageAnalyticsView(APIView):
         except (ValueError, TypeError):
             days = 30
         days = min(max(days, 1), 90)
-        message_id = request.query_params.get("message_id")
+        raw_message_id = request.query_params.get("message_id")
         since = timezone.now() - timedelta(days=days)
 
         impressions = SiteMessageImpression.objects.filter(firm=firm, occurred_at__gte=since)
-        if message_id:
-            impressions = impressions.filter(site_message_id=message_id)
+        if raw_message_id:
+            try:
+                message_id = int(raw_message_id)
+            except (TypeError, ValueError):
+                return Response({"detail": "Invalid message_id parameter"}, status=status.HTTP_400_BAD_REQUEST)
 
         rollups = (
             impressions.values("site_message_id", "site_message__name", "variant")
