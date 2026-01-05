@@ -329,12 +329,12 @@ npm run build      # Rebuild
 
 For operational procedures, see:
 
-- **Rollback Procedures:** `docs/RUNBOOKS/ROLLBACK.md` ✅ EXISTS (evidence: docs/runbooks/ROLLBACK.md)
-- **Incident Response:** `docs/RUNBOOKS/RUNBOOK_incident-response.md` - Tracked in TODO: T-012
-- **Deployment:** `docs/RUNBOOKS/RUNBOOK_release.md` - UNKNOWN (to be created)
-- **Backup/Restore:** `docs/RUNBOOKS/RUNBOOK_backup-restore.md` - Tracked in TODO: T-012
+- **Rollback Procedures:** `docs/runbooks/ROLLBACK.md` ✅ EXISTS
+- **Incident Response:** `docs/runbooks/INCIDENT_RESPONSE.md` ✅ EXISTS
+- **Deployment:** `docs/runbooks/DEPLOYMENT.md` ✅ EXISTS
+- **Backup/Restore:** `docs/runbooks/BACKUP_RESTORE.md` ✅ EXISTS
 
-**Runbook Index:** `docs/RUNBOOKS/README.md`
+**Runbook Index:** `docs/runbooks/README.md`
 
 ---
 

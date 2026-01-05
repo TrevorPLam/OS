@@ -314,9 +314,9 @@ make verify
 
 For operational issues, see:
 - **Troubleshooting Guide:** `docs/TROUBLESHOOTING.md` (evidence: created in this session)
-- **Runbooks:** `docs/RUNBOOKS/` (evidence: `docs/runbooks/README.md`)
-  - Rollback: `docs/RUNBOOKS/ROLLBACK.md` ✅ EXISTS
-  - Incident Response: **Tracked in TODO: T-012** (to be created)
+- **Runbooks:** `docs/runbooks/` (evidence: `docs/runbooks/README.md`)
+  - Rollback: `docs/runbooks/ROLLBACK.md` ✅ EXISTS
+  - Incident Response: `docs/runbooks/INCIDENT_RESPONSE.md` ✅ EXISTS
 
 ---
 
