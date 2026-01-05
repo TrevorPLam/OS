@@ -46,6 +46,26 @@
 
 ---
 
+### 🔴 Security Review Follow-ups (From Security Review 2026-01-08)
+
+- [ ] **SEC-6:** Require webhook signature verification for DocuSign + Twilio (P1 - 4-6 hours, Type: COMPLETE, Category: SEC)
+  - **Why:** Webhook handlers allow unsigned requests when secrets are missing.
+  - **Scope:** `src/modules/esignature/views.py` (DocuSign webhook), `src/modules/sms/webhooks.py` (Twilio webhooks), `src/config/env_validator.py` (required envs).
+  - **Acceptance Criteria:**
+    - DocuSign webhooks reject requests when `DOCUSIGN_WEBHOOK_SECRET` is not configured.
+    - Twilio webhooks reject requests when `TWILIO_AUTH_TOKEN` is not configured.
+    - Environment validation clearly reports missing secrets when webhooks are enabled.
+
+- [ ] **SEC-7:** Move auth tokens out of localStorage (P1 - 8-12 hours, Type: ENHANCE, Category: SEC)
+  - **Why:** localStorage tokens are vulnerable to XSS theft.
+  - **Scope:** `src/frontend/src/contexts/AuthContext.tsx`, `src/frontend/src/api/client.ts`, auth endpoints in `src/modules/auth/`.
+  - **Acceptance Criteria:**
+    - Access/refresh tokens are stored in HttpOnly, Secure, SameSite cookies.
+    - Frontend no longer reads/writes tokens from localStorage.
+    - Auth refresh + logout flows continue to function with cookie-based tokens.
+
+---
+
 ## Medium Priority
 
 ### 🟡 CODE AUDIT - Task Hygiene (MEDIUM - 92-140 hours)
