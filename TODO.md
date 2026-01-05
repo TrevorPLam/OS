@@ -156,21 +156,6 @@
 
 ---
 
-### 🟡 Contact Management & CRM Enhancements
-
-#### CRM Intelligence Enhancements (MEDIUM - 48-64 hours)
-**Status:** AI/ML features to enhance CRM  
-**Dependencies:** None  
-**✅ Research Complete:** ML framework selection - scikit-learn + XGBoost selected (see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
-- [ ] **CRM-INT-4:** Implement Consent Chain Tracking (12-16 hours)
-  - Immutable consent ledger (blockchain-style append-only)
-  - Track all consent grants/revocations per contact
-  - GDPR/CCPA compliance tracking
-  - Consent proof export
-  - Audit trail with timestamps and IP addresses
-
----
-
 ### 🟡 Dependency Management & Code Quality
 
 #### Dependency Cleanup (MEDIUM - 4-6 hours)
@@ -591,24 +576,10 @@
 **Status:** Required for EU customers  
 **Dependencies:** None
 
-- [ ] **GDPR-1:** Implement consent tracking (6-8 hours)
-  - Consent model (source, date, version)
-  - Consent audit trail
-  - Consent status UI
-  
 - [ ] **GDPR-2:** Add double opt-in (4-6 hours)
   - Confirmation email workflow
   - Opt-in status tracking
   
-- [ ] **GDPR-3:** Right to erasure (6-8 hours)
-  - Data deletion workflow
-  - Anonymization options
-  - Deletion audit trail
-  
-- [ ] **GDPR-4:** Data portability (4-6 hours)
-  - Export all contact data
-  - Standardized export format (JSON, CSV)
-
 #### CAN-SPAM Compliance (MEDIUM - 12-16 hours)
 **Status:** Required for US email marketing  
 **Dependencies:** None
@@ -624,10 +595,6 @@
 - [ ] **SPAM-3:** Sender identification (3-4 hours)
   - Clear "From" name and email
   - Reply-to configuration
-  
-- [ ] **SPAM-4:** Consent tracking (3-4 hours)
-  - Express vs implied consent
-  - Consent source tracking
 
 ---
 

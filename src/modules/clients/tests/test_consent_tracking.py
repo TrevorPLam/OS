@@ -81,6 +81,7 @@ class TestConsentRecordCreation:
             data_categories=[ConsentRecord.DATA_CATEGORY_CONTACT],
             consent_text="I agree to receive marketing communications",
             consent_version="v1.0",
+            consent_method=ConsentRecord.CONSENT_METHOD_EXPRESS,
             source="signup_form",
             source_url="https://example.com/signup",
             ip_address="192.168.1.1",
@@ -93,6 +94,7 @@ class TestConsentRecordCreation:
         assert record.contact == contact
         assert record.consent_type == ConsentRecord.CONSENT_TYPE_MARKETING
         assert record.action == ConsentRecord.ACTION_GRANTED
+        assert record.consent_method == ConsentRecord.CONSENT_METHOD_EXPRESS
         assert record.timestamp is not None
         assert record.record_hash is not None
         assert len(record.record_hash) == 64  # SHA-256 hash
@@ -355,6 +357,7 @@ class TestConsentProofExport:
             contact=contact,
             consent_type=ConsentRecord.CONSENT_TYPE_MARKETING,
             action=ConsentRecord.ACTION_GRANTED,
+            consent_method=ConsentRecord.CONSENT_METHOD_IMPLIED,
             source="signup",
             ip_address="192.168.1.1",
         )
@@ -382,6 +385,7 @@ class TestConsentProofExport:
         assert record1["consent_type"] == ConsentRecord.CONSENT_TYPE_MARKETING
         assert record1["action"] == ConsentRecord.ACTION_GRANTED
         assert record1["ip_address"] == "192.168.1.1"
+        assert record1["consent_method"] == ConsentRecord.CONSENT_METHOD_IMPLIED
         assert "record_hash" in record1
         assert "previous_record_hash" in record1
 
@@ -659,4 +663,3 @@ class TestContactConsentHelpers:
         
         assert record.id is not None
         assert record.action == ConsentRecord.ACTION_REVOKED
-

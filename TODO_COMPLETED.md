@@ -43,6 +43,32 @@ This file contains all completed tasks that have been migrated from TODO.md.
   - Defined cross-platform abstractions and phased rollout for connectors and automation triggers.  
   - Documented research in `docs/research/ecommerce-platform-research.md`.
 
+### 🟡 Contact Management & CRM Enhancements
+
+- [x] **CRM-INT-4:** Implement Consent Chain Tracking (12-16 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Delivered immutable consent ledger with hash chaining in `src/modules/clients/models.py`.  
+  - Added consent proof export and verification coverage in `src/modules/clients/tests/test_consent_tracking.py`.  
+  - Documented consent method export fields for compliance reporting.
+
+### 🟡 Compliance
+
+- [x] **GDPR-1:** Implement consent tracking (6-8 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Consent model captures source, legal basis, consent text/version, and express/implied method.  
+  - Audit trail includes IP address, user agent, actor, and source URL.  
+  - Tests validate GDPR consent workflows and export.
+
+- [x] **GDPR-3:** Right to erasure (6-8 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Erasure/anonymization workflow implemented in `src/modules/core/erasure.py`.  
+  - Execution status, approvals, and audit trail tracked in `ErasureRequest`.
+
+- [x] **GDPR-4:** Data portability (4-6 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Data export command supports contact data extraction in `src/modules/core/management/commands/export_user_data.py`.  
+  - Export outputs include standardized JSON structures for GDPR access requests.
+
+- [x] **SPAM-4:** Consent tracking (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Express vs implied consent recorded on consent grants.  
+  - Consent source tracking remains part of immutable ledger and exports.
+
 ---
 
 ## Recently Completed (January 4, 2026)

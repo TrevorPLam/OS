@@ -274,7 +274,7 @@ This document provides a comprehensive inventory of ConsultantPro's implemented 
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| GDPR consent tracking | ✅ | Consent management |
+| GDPR consent tracking | ✅ | Consent management (express/implied, source tracking) |
 | Data retention policies | ✅ | Automated data retention |
 | Data export (Right to Access) | ✅ | GDPR-compliant data export |
 | Data erasure/anonymization | ✅ | Right to be forgotten |

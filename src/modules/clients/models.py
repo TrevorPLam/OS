@@ -1147,6 +1147,7 @@ class Contact(models.Model):
         data_categories=None,
         consent_text="",
         consent_version="",
+        consent_method=None,
         source_url="",
         ip_address=None,
         user_agent="",
@@ -1165,6 +1166,7 @@ class Contact(models.Model):
             data_categories: List of data categories (default: empty list)
             consent_text: The exact consent text shown to user
             consent_version: Version of the consent text
+            consent_method: Express or implied consent
             source_url: URL where consent was captured
             ip_address: IP address from which consent was given
             user_agent: User agent string
@@ -1184,6 +1186,7 @@ class Contact(models.Model):
             data_categories=data_categories or [],
             consent_text=consent_text,
             consent_version=consent_version,
+            consent_method=consent_method,
             source=source,
             source_url=source_url,
             ip_address=ip_address,
@@ -2035,6 +2038,15 @@ class ConsentRecord(models.Model):
         (ACTION_REVOKED, "Consent Revoked"),
         (ACTION_UPDATED, "Consent Updated"),
     ]
+
+    # Consent methods (CAN-SPAM consent classification)
+    CONSENT_METHOD_EXPRESS = "express"
+    CONSENT_METHOD_IMPLIED = "implied"
+
+    CONSENT_METHOD_CHOICES = [
+        (CONSENT_METHOD_EXPRESS, "Express Consent"),
+        (CONSENT_METHOD_IMPLIED, "Implied Consent"),
+    ]
     
     # Legal basis for processing (GDPR Article 6)
     LEGAL_BASIS_CONSENT = "consent"
@@ -2111,6 +2123,13 @@ class ConsentRecord(models.Model):
         max_length=50,
         blank=True,
         help_text="Version of the consent text (e.g., 'v1.2', '2024-01-01')"
+    )
+    consent_method = models.CharField(
+        max_length=20,
+        choices=CONSENT_METHOD_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Whether consent was express or implied"
     )
     
     # Source and context
@@ -2399,6 +2418,10 @@ class ConsentRecord(models.Model):
                 "data_categories": record.data_categories,
                 "consent_text": record.consent_text,
                 "consent_version": record.consent_version,
+                "consent_method": record.consent_method,
+                "consent_method_display": record.get_consent_method_display()
+                if record.consent_method
+                else None,
                 "source": record.source,
                 "source_url": record.source_url,
                 "timestamp": record.timestamp.isoformat(),
@@ -2412,5 +2435,3 @@ class ConsentRecord(models.Model):
             })
         
         return export_data
-
-
