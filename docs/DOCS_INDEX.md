@@ -60,6 +60,7 @@ Find documentation by what you're trying to accomplish:
 - [BOUNDARY_RULES.md](BOUNDARY_RULES.md) - Boundary enforcement
 - [THREAT_MODEL.md](THREAT_MODEL.md) - Security analysis
 - [03-reference/site-tracking-architecture.md](03-reference/site-tracking-architecture.md) - Site & event tracking architecture
+- [03-reference/site-messages.md](03-reference/site-messages.md) - Site message system and builder contracts
 - [03-reference/portal-branding.md](03-reference/portal-branding.md) - Portal branding & custom domains
 - [03-reference/event-bus-architecture.md](03-reference/event-bus-architecture.md) - Event bus topology and contracts
 - [03-reference/integration-marketplace-architecture.md](03-reference/integration-marketplace-architecture.md) - Marketplace data model and flows

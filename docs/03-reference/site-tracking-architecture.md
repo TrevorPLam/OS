@@ -1,7 +1,7 @@
 # Site & Event Tracking Architecture
 **Document Type:** Reference  
-**Version:** 1.0.0  
-**Last Updated:** 2026-01-05  
+**Version:** 1.1.0  
+**Last Updated:** 2026-01-06  
 **Owner:** Platform Architecture  
 **Status:** Draft (Ready for implementation)  
 **Dependencies:** READMEAI.md; TODO.md; CODEBASECONSTITUTION.md; docs/03-reference/platform-capabilities.md
@@ -26,19 +26,22 @@ Defines the end-to-end architecture for web tracking across ConsultantPro proper
    - Collects page views and custom events.
    - Manages visitor + session identifiers (UUIDv4) with rolling session window (30 minutes of inactivity).
    - Consent gate (`required`, `denied`, `granted`) enforced before emission.
-   - Transports events over HTTPS to `/api/v1/tracking/collect/` with a firm-issued public key.
+   - Transports events over HTTPS to `/api/v1/tracking/collect/` with a firm-issued public + secret key pair.
 2. **Ingestion API**
    - Token-protected endpoint accepting batched or single events.
-   - Validates firm slug + public tracking token + schema.
+   - Validates firm slug + firm-managed tracking key + schema (public key id optional).
+   - Enforces per-firm, per-key, and per-IP rate limits with abuse logging for invalid keys or spikes.
    - Normalizes timestamps to UTC; captures user agent and IP (anonymized at /24 for IPv4, /48 for IPv6).
    - Emits structured log for observability and dispatches automation triggers.
 3. **Storage Model**
    - `TrackingSession` (firm, visitor_id, session_id, consent_state, first_seen_at, last_seen_at, user_agent_hash).
-   - `TrackingEvent` (firm, session, event_type, name, url, referrer, occurred_at, properties JSONB, contact optional).
+   - `TrackingEvent` (firm, session, event_type, name, url, referrer, occurred_at, properties JSONB, contact optional, tracking_key FK, fallback flag).
+   - `TrackingKey` (firm, public_id, secret hash, rotation metadata, last_used_at).
+   - `TrackingKeyAudit` + `TrackingAbuseEvent` record rotations, downloads, and ingestion abuse.
    - Indexes on `(firm, occurred_at)`, `(firm, event_type)`, `(firm, url)` for analytics queries.
 4. **Analytics Surfaces**
-   - Dashboard API provides rollups: daily page views, unique visitors, top pages, event leaderboard, referrers, and recent timeline.
-   - Frontend dashboard consumes the API to render charts and tables with timezone-aware formatting.
+   - Dashboard API provides rollups: daily page views, unique visitors, top pages, event leaderboard, referrers, UTM breakdowns, CSV export, and recent timeline.
+   - Time-series aggregation supports 7/30/90 day windows with URL + event-name filters.
 5. **Automation Hooks**
    - Ingestion emits `site_page_view` or `site_custom_event` into Automation TriggerDetector with idempotency key: `<firm>-<session>-<event_name>-<occurred_at>`.
    - Workflow triggers can filter on URL path, event name, and properties (e.g., UTM campaign).
@@ -47,7 +50,8 @@ Defines the end-to-end architecture for web tracking across ConsultantPro proper
 | Field | Type | Notes |
 | --- | --- | --- |
 | `firm_slug` | string | Required; identifies tenant |
-| `tracking_key` | string | Required; firm-scoped public key |
+| `tracking_key` | string | Required; firm-scoped secret |
+| `tracking_key_id` | UUID | Optional; firm-scoped public id for selecting a specific active key |
 | `session_id` | UUID | Optional; SDK auto-generates |
 | `visitor_id` | UUID | Optional; stable across sessions |
 | `event_type` | enum | `page_view`, `custom_event`, `identity` |
@@ -69,6 +73,7 @@ Defines the end-to-end architecture for web tracking across ConsultantPro proper
 - Network failures fallback to `navigator.sendBeacon` when available.
 - Ingestion applies request-level rate limits (per token) and enforces payload size (64KB).
 - All writes are idempotent on `(firm, session_id, event_name, occurred_at)` to prevent double counting.
+- Fallback/static tracking key usage is flagged to prompt firm-managed key issuance.
 
 ## Observability
 - Structured log for every ingestion attempt: `tracking.ingest` with status, firm, session, event_type, latency, and normalized IP block.
@@ -77,12 +82,15 @@ Defines the end-to-end architecture for web tracking across ConsultantPro proper
 
 ## Deployment & Configuration
 - Required env vars:
-  - `TRACKING_PUBLIC_KEY` — firm-distributed key for SDK requests.
+  - `TRACKING_PUBLIC_KEY` — optional bootstrap key; firm-issued keys are authoritative once created.
   - `TRACKING_INGEST_RATE_LIMIT_PER_MINUTE` — default 300.
   - `TRACKING_MAX_PROPERTIES_BYTES` — default 16384 bytes.
 - Feature flags:
   - `tracking.ingest.enabled` — gate ingestion endpoint.
   - `tracking.automation.enabled` — controls automation emission.
+- Admin endpoints:
+  - `/api/v1/tracking/keys/` — create/list firm keys, rotate, and download client config bundles.
+  - `/api/v1/tracking/analytics/export/` — CSV export with optional filters.
 
 ## Rollout Plan
 1. Ship SDK + ingestion endpoint behind feature flag for internal tenants.
