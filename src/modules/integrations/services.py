@@ -81,10 +81,12 @@ class SalesforceService:
         return self._upsert(object_type="Opportunity", external_id_field="Name", payload=payload)
 
     def _upsert(self, *, object_type: str, external_id_field: str, payload: dict[str, Any]) -> SalesforceSyncLog:
+        external_id = payload.get(external_id_field)
+        if not external_id: raise ValueError(f"External ID field '{external_id_field}' is missing from payload.")
         try:
             response = self._request(
                 method="patch",
-                path=f"sobjects/{object_type}/{external_id_field}/{payload.get(external_id_field, '')}",
+                path=f"sobjects/{object_type}/{external_id_field}/{external_id}",
                 json_body=payload,
             )
             ok = response.status_code in (200, 201, 204)
