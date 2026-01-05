@@ -22,6 +22,32 @@ This file contains all completed tasks that have been migrated from TODO.md.
   - Added `/api/v1/firm/audit-events/export/` with JSON and CSV responses inheriting current filters.
   - Capped exports to 5,000 records per request and included metadata payloads for downstream analysis.
 
+### 🟡 Web Personalization & Site Messages
+
+- [x] **PERS-5:** Add impression analytics and exports ✅ **COMPLETED** (January 8, 2026)
+  - Added authenticated rollups by message + variant for deliveries/views/clicks with rate calculations.
+  - Added CSV export for onsite engagement analytics and surfaced top-performing messages in the dashboard.
+
+- [x] **PERS-6:** Add SDK delivery caching ✅ **COMPLETED** (January 8, 2026)
+  - Added signed manifest endpoint for active site messages with config-version cache busting.
+  - Implemented SDK caching with manifest signature validation and offline fallback.
+
+### 🟡 Workflow Engine Foundations
+
+- [x] **ORCH-1:** Implement event-driven workflow runner skeleton using Celery/Redis ✅ **COMPLETED** (January 8, 2026)
+  - Implemented orchestration executor with idempotent execution creation, step retries, and DLQ routing.
+  - Added correlation IDs, retry/backoff policies, and structured audit hooks for execution lifecycle (ready for async worker wiring).
+
+- [x] **ORCH-2:** Create workflow definition schema and persistence with versioning ✅ **COMPLETED** (January 8, 2026)
+  - Added versioned orchestration definitions with published immutability guarantees and schema storage.
+  - Persisted executions with idempotency keys and step execution history for replay support.
+
+### 🟡 Additional Native Integrations
+
+- [x] **INT-7:** Integration health monitoring ✅ **COMPLETED** (January 8, 2026)
+  - Added health cards for Slack/Salesforce/Google Analytics connectors with error counts and token warnings.
+  - Added alerts for repeated sync failures and surfaced health status via API.
+
 ---
 
 ## Recently Completed (January 7, 2026)

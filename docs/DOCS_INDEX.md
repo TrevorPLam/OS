@@ -93,6 +93,7 @@ Find documentation by what you're trying to accomplish:
 - [02-how-to/](02-how-to/) - Production deployment guides
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues
 - [runbooks/](runbooks/) - Operational procedures
+- [03-reference/integration-health.md](03-reference/integration-health.md) - Integration health monitoring
 
 ### Development Guides
 - [01-tutorials/](01-tutorials/) - Learning-oriented guides

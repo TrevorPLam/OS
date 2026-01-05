@@ -12,6 +12,23 @@ from modules.firm.models import Firm
 from modules.tracking.models import SiteMessage, SiteMessageImpression, TrackingEvent, TrackingKey, TrackingSession
 
 
+def validate_tracking_key(
+    *, firm: Firm, secret: str, public_id=None
+) -> tuple[TrackingKey | None, bool]:
+    key_qs = TrackingKey.objects.filter(firm=firm, is_active=True)
+    if public_id:
+        key_qs = key_qs.filter(public_id=public_id)
+    for key in key_qs:
+        if key.matches(secret):
+            key.touch()
+            return key, False
+
+    fallback = getattr(settings, "TRACKING_PUBLIC_KEY", None)
+    if fallback and hmac.compare_digest(fallback, secret) and not key_qs.exists():
+        return None, True
+    raise serializers.ValidationError("Invalid or inactive tracking key")
+
+
 class TrackingEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrackingEvent
@@ -62,24 +79,10 @@ class TrackingEventIngestSerializer(serializers.Serializer):
             raise serializers.ValidationError("Event properties exceed 16KB limit.")
 
         firm = getattr(self, "_firm", None) or Firm.objects.get(slug=attrs["firm_slug"])
-        self._tracking_key, self._used_fallback_key = self._validate_tracking_key(
+        self._tracking_key, self._used_fallback_key = validate_tracking_key(
             firm=firm, secret=attrs["tracking_key"], public_id=attrs.get("tracking_key_id")
         )
         return attrs
-
-    def _validate_tracking_key(self, *, firm: Firm, secret: str, public_id=None) -> tuple[TrackingKey | None, bool]:
-        key_qs = TrackingKey.objects.filter(firm=firm, is_active=True)
-        if public_id:
-            key_qs = key_qs.filter(public_id=public_id)
-        for key in key_qs:
-            if key.matches(secret):
-                key.touch()
-                return key, False
-
-        fallback = getattr(settings, "TRACKING_PUBLIC_KEY", None)
-        if fallback and hmac.compare_digest(fallback, secret) and not key_qs.exists():
-            return None, True
-        raise serializers.ValidationError("Invalid or inactive tracking key")
 
     def save(self, **kwargs: Any) -> TrackingEvent:
         firm = getattr(self, "_firm", None) or Firm.objects.get(slug=self.validated_data["firm_slug"])
@@ -203,6 +206,34 @@ class SiteMessageTargetRequestSerializer(serializers.Serializer):
     @property
     def firm(self) -> Firm:
         return getattr(self, "_firm", None)
+
+
+class SiteMessageManifestRequestSerializer(serializers.Serializer):
+    firm_slug = serializers.SlugField(max_length=255)
+    tracking_key = serializers.CharField(max_length=255)
+    tracking_key_id = serializers.UUIDField(required=False)
+
+    def validate_firm_slug(self, value: str) -> str:
+        try:
+            self._firm = Firm.objects.get(slug=value, status__in=["active", "trial"])
+            return value
+        except Firm.DoesNotExist as exc:  # noqa: B904
+            raise serializers.ValidationError("Invalid or inactive firm slug") from exc
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        firm = getattr(self, "_firm", None) or Firm.objects.get(slug=attrs["firm_slug"])
+        self._tracking_key, self._used_fallback_key = validate_tracking_key(
+            firm=firm, secret=attrs["tracking_key"], public_id=attrs.get("tracking_key_id")
+        )
+        return attrs
+
+    @property
+    def firm(self) -> Firm:
+        return getattr(self, "_firm", None)
+
+    @property
+    def tracking_key(self) -> TrackingKey | None:
+        return getattr(self, "_tracking_key", None)
 
 
 class SiteMessageImpressionLogSerializer(serializers.Serializer):

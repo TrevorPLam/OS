@@ -11,8 +11,9 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.signing import Signer
 from django.db import models
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import TruncDay
 from django.http import HttpResponse
 from django.utils import timezone
@@ -35,6 +36,7 @@ from modules.tracking.models import (
 )
 from modules.tracking.serializers import (
     SiteMessageImpressionLogSerializer,
+    SiteMessageManifestRequestSerializer,
     SiteMessageSerializer,
     SiteMessageTargetRequestSerializer,
     TrackingEventIngestSerializer,
@@ -453,6 +455,59 @@ class TrackingAnalyticsExportView(APIView):
         return response
 
 
+class SiteMessageManifestView(APIView):
+    """Public endpoint to fetch a signed manifest of active site messages."""
+
+    authentication_classes: list = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = SiteMessageManifestRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        firm = serializer.firm
+        if not firm:
+            return Response({"detail": "Invalid firm"}, status=status.HTTP_400_BAD_REQUEST)
+
+        messages = self._active_messages(firm)
+        manifest = [
+            {
+                "id": message.id,
+                "name": message.name,
+                "message_type": message.message_type,
+                "updated_at": message.updated_at.isoformat(),
+                "active_from": message.active_from.isoformat() if message.active_from else None,
+                "active_until": message.active_until.isoformat() if message.active_until else None,
+            }
+            for message in messages
+        ]
+        signature = self._sign_manifest(manifest)
+        tracking_key = serializer.tracking_key
+        config_version = tracking_key.client_config_version if tracking_key else 1
+
+        return Response(
+            {
+                "manifest": manifest,
+                "signature": signature,
+                "config_version": config_version,
+                "generated_at": timezone.now().isoformat(),
+            }
+        )
+
+    @staticmethod
+    def _active_messages(firm):
+        now = timezone.now()
+        return SiteMessage.objects.filter(firm=firm, status="published").filter(
+            models.Q(active_from__lte=now) | models.Q(active_from__isnull=True),
+            models.Q(active_until__gte=now) | models.Q(active_until__isnull=True),
+        )
+
+    @staticmethod
+    def _sign_manifest(manifest: list[dict]) -> str:
+        signer = Signer(salt="tracking-site-message-manifest")
+        payload = json.dumps(manifest, sort_keys=True)
+        return signer.sign(payload)
+
+
 class SiteMessageTargetingView(APIView):
     """
     Public endpoint to evaluate eligible site messages for a visitor/session.
@@ -473,6 +528,7 @@ class SiteMessageTargetingView(APIView):
         session = self._get_or_create_session(serializer=serializer)
         if session and session.consent_state == "denied":
             return Response({"messages": []})
+        messages = self._select_messages(firm=firm, session=session, data=serializer.validated_data)
         return Response({"messages": messages})
 
     def _get_or_create_session(self, *, serializer: SiteMessageTargetRequestSerializer) -> TrackingSession | None:
@@ -667,3 +723,148 @@ class SiteMessageViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save()
+
+
+class SiteMessageAnalyticsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        firm = getattr(request, "firm", None)
+        if not firm or not FirmMembership.objects.filter(
+            user=request.user, firm=firm, is_active=True, can_view_reports=True
+        ).exists():
+            return Response({"detail": "Firm analytics access required"}, status=status.HTTP_403_FORBIDDEN)
+
+        days = int(request.query_params.get("days", "30"))
+        days = min(max(days, 1), 90)
+        message_id = request.query_params.get("message_id")
+        since = timezone.now() - timedelta(days=days)
+
+        impressions = SiteMessageImpression.objects.filter(firm=firm, occurred_at__gte=since)
+        if message_id:
+            impressions = impressions.filter(site_message_id=message_id)
+
+        rollups = (
+            impressions.values("site_message_id", "site_message__name", "variant")
+            .annotate(
+                delivered=Count("id", filter=Q(kind="delivered")),
+                views=Count("id", filter=Q(kind="view")),
+                clicks=Count("id", filter=Q(kind="click")),
+            )
+            .order_by("-clicks", "-views")
+        )
+
+        formatted_rollups = []
+        for row in rollups:
+            delivered = row["delivered"] or 0
+            views = row["views"] or 0
+            clicks = row["clicks"] or 0
+            formatted_rollups.append(
+                {
+                    "site_message_id": row["site_message_id"],
+                    "site_message_name": row["site_message__name"],
+                    "variant": row["variant"] or "",
+                    "delivered": delivered,
+                    "views": views,
+                    "clicks": clicks,
+                    "view_rate": round(views / delivered, 4) if delivered else 0,
+                    "click_rate": round(clicks / delivered, 4) if delivered else 0,
+                }
+            )
+
+        top_messages = (
+            impressions.values("site_message_id", "site_message__name")
+            .annotate(
+                delivered=Count("id", filter=Q(kind="delivered")),
+                views=Count("id", filter=Q(kind="view")),
+                clicks=Count("id", filter=Q(kind="click")),
+            )
+            .order_by("-clicks", "-views")[:5]
+        )
+
+        top_list = []
+        for row in top_messages:
+            delivered = row["delivered"] or 0
+            views = row["views"] or 0
+            clicks = row["clicks"] or 0
+            top_list.append(
+                {
+                    "site_message_id": row["site_message_id"],
+                    "site_message_name": row["site_message__name"],
+                    "delivered": delivered,
+                    "views": views,
+                    "clicks": clicks,
+                    "view_rate": round(views / delivered, 4) if delivered else 0,
+                    "click_rate": round(clicks / delivered, 4) if delivered else 0,
+                }
+            )
+
+        return Response(
+            {
+                "window_days": days,
+                "rollups": formatted_rollups,
+                "top_messages": top_list,
+                "export_path": "/api/v1/tracking/site-messages/analytics/export/",
+            }
+        )
+
+
+class SiteMessageAnalyticsExportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        firm = getattr(request, "firm", None)
+        if not firm or not FirmMembership.objects.filter(
+            user=request.user, firm=firm, is_active=True, can_view_reports=True
+        ).exists():
+            return Response({"detail": "Firm analytics access required"}, status=status.HTTP_403_FORBIDDEN)
+
+        days = int(request.query_params.get("days", "30"))
+        days = min(max(days, 1), 90)
+        message_id = request.query_params.get("message_id")
+        since = timezone.now() - timedelta(days=days)
+
+        impressions = SiteMessageImpression.objects.filter(firm=firm, occurred_at__gte=since)
+        if message_id:
+            impressions = impressions.filter(site_message_id=message_id)
+
+        rollups = impressions.values("site_message_id", "site_message__name", "variant").annotate(
+            delivered=Count("id", filter=Q(kind="delivered")),
+            views=Count("id", filter=Q(kind="view")),
+            clicks=Count("id", filter=Q(kind="click")),
+        )
+
+        buffer = io.StringIO()
+        writer = csv.writer(buffer)
+        writer.writerow(
+            [
+                "site_message_id",
+                "site_message_name",
+                "variant",
+                "delivered",
+                "views",
+                "clicks",
+                "view_rate",
+                "click_rate",
+            ]
+        )
+        for row in rollups:
+            delivered = row["delivered"] or 0
+            views = row["views"] or 0
+            clicks = row["clicks"] or 0
+            writer.writerow(
+                [
+                    row["site_message_id"],
+                    row["site_message__name"],
+                    row["variant"] or "",
+                    delivered,
+                    views,
+                    clicks,
+                    round(views / delivered, 4) if delivered else 0,
+                    round(clicks / delivered, 4) if delivered else 0,
+                ]
+            )
+
+        response = HttpResponse(buffer.getvalue(), content_type="text/csv")
+        response["Content-Disposition"] = "attachment; filename=site-message-analytics.csv"
+        return response

@@ -3,7 +3,10 @@ from rest_framework.routers import DefaultRouter
 
 from modules.tracking.views import (
     SiteMessageImpressionView,
+    SiteMessageManifestView,
     SiteMessageTargetingView,
+    SiteMessageAnalyticsExportView,
+    SiteMessageAnalyticsView,
     SiteMessageViewSet,
     TrackingAnalyticsExportView,
     TrackingEventViewSet,
@@ -24,7 +27,14 @@ urlpatterns = [
     path("summary/", TrackingSummaryView.as_view(), name="tracking-summary"),
     path("analytics/export/", TrackingAnalyticsExportView.as_view(), name="tracking-analytics-export"),
     path("site-messages/display/", SiteMessageTargetingView.as_view(), name="site-message-display"),
+    path("site-messages/manifest/", SiteMessageManifestView.as_view(), name="site-message-manifest"),
     path("site-messages/impressions/", SiteMessageImpressionView.as_view(), name="site-message-impressions"),
+    path("site-messages/analytics/", SiteMessageAnalyticsView.as_view(), name="site-message-analytics"),
+    path(
+        "site-messages/analytics/export/",
+        SiteMessageAnalyticsExportView.as_view(),
+        name="site-message-analytics-export",
+    ),
 ]
 
 urlpatterns += router.urls
