@@ -822,7 +822,10 @@ class SiteMessageAnalyticsExportView(APIView):
         ).exists():
             return Response({"detail": "Firm analytics access required"}, status=status.HTTP_403_FORBIDDEN)
 
-        days = int(request.query_params.get("days", "30"))
+        try:
+            days = int(request.query_params.get("days", "30"))
+        except (ValueError, TypeError):
+            days = 30
         days = min(max(days, 1), 90)
         message_id = request.query_params.get("message_id")
         since = timezone.now() - timedelta(days=days)
