@@ -129,11 +129,21 @@ class IntegrationHealthView(APIView):
         since = timezone.now() - timedelta(days=1)
         alerts = []
 
+        from django.db.models import Count
+
         salesforce_cards = []
+        salesforce_error_counts = {
+            row["connection_id"]: row["count"]
+            for row in SalesforceSyncLog.objects.filter(
+                firm=firm,
+                status="error",
+                occurred_at__gte=since,
+            )
+            .values("connection_id")
+            .annotate(count=Count("id"))
+        }
         for connection in SalesforceConnection.objects.filter(firm=firm):
-            error_count = SalesforceSyncLog.objects.filter(
-                firm=firm, connection=connection, status="error", occurred_at__gte=since
-            ).count()
+            error_count = salesforce_error_counts.get(connection.id, 0)
             token_expiring = bool(connection.expires_at and connection.expires_at <= timezone.now() + timedelta(days=3))
             status_label = "warning" if error_count >= 3 or token_expiring else connection.status
             salesforce_cards.append(
