@@ -194,6 +194,6 @@
   cursor: pointer;
 }
 
-.table-row.clickable {
+.site-messages .table-row.clickable {
   cursor: pointer;
 }
