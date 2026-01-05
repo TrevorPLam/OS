@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as Sentry from '@sentry/react'
 import App from './App.tsx'
-import { TrackingClient, createTrackingClient } from './tracking'
+import { TrackingClient, createTrackingClient } from './tracking/client'
 import './index.css'
 
 const queryClient = new QueryClient({
