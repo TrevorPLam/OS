@@ -4,7 +4,7 @@
 **Last Updated:** January 5, 2026
 **Owner:** Automation Platform
 **Canonical Status:** Supporting
-**Related Tasks:** Workflow Engine Architecture (Research), future ORCH-* implementation tasks
+**Related Tasks:** Workflow Engine Architecture (Research), ORCH-1, ORCH-2
 **Priority:** MEDIUM
 
 ## Objectives
