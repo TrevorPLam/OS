@@ -73,31 +73,20 @@
 **Status:** Critical for behavioral automation  
 **Dependencies:** AUTO-1 through AUTO-6
 
-- [ ] **TRACK-1:** Design tracking architecture (3-4 hours)
-  - JavaScript snippet design
-  - Event data model
-  - Privacy compliance (GDPR, CCPA)
+- [ ] **TRACK-6:** Add firm-managed tracking keys and rotation (4-6 hours)
+  - Per-firm public/secret key issuance with audit history
+  - Key rotation workflow and client configuration download
+  - Warning banner when default/global key is still in use
   
-- [ ] **TRACK-2:** Implement JavaScript tracking library (8-12 hours)
-  - Page visit tracking
-  - Anonymous visitor tracking
-  - Cookie consent management
-  - Cross-domain tracking
+- [ ] **TRACK-7:** Implement ingestion rate limiting and abuse monitoring (3-4 hours)
+  - Per-firm quotas plus burst limits
+  - Alerting for anomalous spikes and blocked token/IP ranges
+  - Dashboard surface for ingestion health signals
   
-- [ ] **TRACK-3:** Add custom event tracking (6-8 hours)
-  - Event API endpoints
-  - JavaScript event helpers
-  - Event properties support
-  
-- [ ] **TRACK-4:** Build tracking dashboard (6-8 hours)
-  - Visitor timeline
-  - Page visit analytics
-  - Event analytics
-  
-- [ ] **TRACK-5:** Integrate with automation triggers (5-6 hours)
-  - Site visit triggers
-  - Event-based triggers
-  - Page-specific triggers
+- [ ] **TRACK-8:** Expand tracking analytics (4-6 hours)
+  - Time-series charts (7/30/90 day) for visits and events
+  - Referrer/campaign breakdowns and CSV export
+  - Drill-down filters for URL path and event name
 
 #### Web Personalization & Site Messages (MEDIUM - 20-28 hours)
 **Status:** Extends site tracking with on-site engagement  

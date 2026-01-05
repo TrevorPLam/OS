@@ -232,6 +232,8 @@ class WorkflowTrigger(models.Model):
         # Site tracking triggers
         ("page_visited", "Page Visited"),
         ("site_activity", "Site Activity Detected"),
+        ("site_page_view", "Site Page View"),
+        ("site_custom_event", "Site Custom Event"),
 
         # CRM triggers
         ("contact_created", "Contact Created"),
@@ -355,6 +357,15 @@ class WorkflowTrigger(models.Model):
             threshold = self.configuration.get("threshold", 0)
             score = event_data.get("score", 0)
             return score >= threshold
+
+        elif self.trigger_type in {"site_page_view", "site_custom_event"}:
+            expected_event = self.configuration.get("event_name")
+            url_contains = self.configuration.get("url_contains")
+            if expected_event and event_data.get("event_name") != expected_event:
+                return False
+            if url_contains and url_contains not in (event_data.get("url") or ""):
+                return False
+            return True
 
         # Default: configuration match
         return True

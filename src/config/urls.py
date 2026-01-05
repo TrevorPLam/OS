@@ -53,6 +53,7 @@ api_v1_patterns = [
     path("automation/", include("modules.automation.urls")),  # Automation workflow system (triggers, actions, visual builder)
     path("snippets/", include("modules.snippets.urls")),  # Quick text insertion (HubSpot-style snippets)
     path("sms/", include("modules.sms.urls")),  # SMS messaging (Twilio integration, campaigns, conversations)
+    path("tracking/", include("modules.tracking.urls")),  # Site & event tracking ingestion and analytics
     path("webhooks/", include("api.webhooks.urls")),  # General webhook platform (Task 3.7)
     path("accounting/", include("modules.accounting_integrations.urls")),  # Sprint 3: QuickBooks/Xero integrations
     path("esignature/", include("modules.esignature.urls")),  # Sprint 4: DocuSign e-signature integration

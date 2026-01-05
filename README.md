@@ -73,6 +73,39 @@ export VITE_SENTRY_TRACES_SAMPLE_RATE="0.1"
 
 If `VITE_SENTRY_DSN` is omitted, Sentry is disabled in the frontend.
 
+### Site & Event Tracking Configuration
+
+Enable the new tracking pipeline with the following environment variables:
+
+```bash
+# Backend ingestion
+export TRACKING_PUBLIC_KEY="public-demo-key"               # Shared with the JS snippet
+export TRACKING_INGEST_ENABLED=True
+export TRACKING_INGEST_RATE_LIMIT_PER_MINUTE=300
+export TRACKING_MAX_PROPERTIES_BYTES=16384
+
+# Frontend snippet (Vite)
+export VITE_TRACKING_KEY="public-demo-key"
+export VITE_TRACKING_FIRM_SLUG="demo-firm"
+export VITE_TRACKING_ENDPOINT="http://localhost:8000/api/v1/tracking/collect/"
+```
+
+Usage (frontend):
+
+```ts
+import { createTrackingClient } from './tracking'
+
+const tracker = createTrackingClient({
+  endpoint: import.meta.env.VITE_TRACKING_ENDPOINT!,
+  firmSlug: import.meta.env.VITE_TRACKING_FIRM_SLUG!,
+  trackingKey: import.meta.env.VITE_TRACKING_KEY!,
+})
+
+tracker.setConsent('granted')
+tracker.trackPageView()
+tracker.trackEvent('cta_click', { variant: 'hero' })
+```
+
 ### Run the App
 
 ```bash

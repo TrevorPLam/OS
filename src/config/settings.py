@@ -80,6 +80,7 @@ INSTALLED_APPS = [
     "modules.jobs",  # DOC-20.1: Background job queue and DLQ
     "modules.snippets",  # Quick text insertion system (HubSpot-style snippets)
     "modules.sms",  # SMS messaging integration (Twilio, campaigns, two-way conversations)
+    "modules.tracking",  # Site & event tracking ingestion and analytics
     "modules.webhooks",  # General webhook platform for external integrations (Task 3.7)
     "modules.accounting_integrations",  # Sprint 3: QuickBooks and Xero integrations
     "modules.esignature",  # Sprint 4: DocuSign e-signature integration
@@ -194,6 +195,12 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Tracking configuration
+TRACKING_PUBLIC_KEY = os.environ.get("TRACKING_PUBLIC_KEY")
+TRACKING_INGEST_ENABLED = os.environ.get("TRACKING_INGEST_ENABLED", "True") == "True"
+TRACKING_INGEST_RATE_LIMIT_PER_MINUTE = int(os.environ.get("TRACKING_INGEST_RATE_LIMIT_PER_MINUTE", "300"))
+TRACKING_MAX_PROPERTIES_BYTES = int(os.environ.get("TRACKING_MAX_PROPERTIES_BYTES", "16384"))
 
 # Django REST Framework
 REST_FRAMEWORK = {

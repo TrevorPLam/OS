@@ -67,6 +67,11 @@ const Layout: React.FC = () => {
             <Link to="/knowledge">📚 Knowledge Center</Link>
             <Link to="/communications">💬 Communications</Link>
           </div>
+
+          <div className="nav-section">
+            <div className="nav-section-title">Analytics</div>
+            <Link to="/analytics/tracking">📈 Site & Event Tracking</Link>
+          </div>
         </nav>
 
         <main className="app-main">
