@@ -4,7 +4,7 @@
 **Last Updated:** January 5, 2026
 **Owner:** AI/Automation
 **Canonical Status:** Supporting
-**Related Tasks:** LLM Integration (Research), future LLM-1/LLM-2 implementation tasks
+**Related Tasks:** LLM Integration (Research), LLM-1, LLM-2
 **Priority:** MEDIUM
 
 ## Objectives
