@@ -55,7 +55,7 @@ class SalesforceConnection(models.Model):
 
 class SalesforceSyncLog(models.Model):
     connection = models.ForeignKey(
-        SalesforceConnection, on_delete=models.CASCADE, related_name="sync_logs", null=True, blank=True
+        SalesforceConnection, on_delete=models.SET_NULL, related_name="sync_logs", null=True, blank=True
     )
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="salesforce_sync_logs")
     object_type = models.CharField(max_length=50)
