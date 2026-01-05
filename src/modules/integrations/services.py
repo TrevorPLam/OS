@@ -134,13 +134,15 @@ class SalesforceService:
         return response
 
     def _update_tokens(self, payload: dict[str, Any]) -> None:
+        from datetime import timedelta
+
         self.connection.access_token = payload.get("access_token", "")
         self.connection.refresh_token = payload.get("refresh_token") or self.connection.refresh_token
         self.connection.instance_url = payload.get("instance_url", "")
         self.connection.scopes = payload.get("scope", "").split(" ") if payload.get("scope") else self.connection.scopes
         expires_in = payload.get("expires_in")
         if expires_in:
-            self.connection.expires_at = timezone.now() + timezone.timedelta(seconds=int(expires_in))
+            self.connection.expires_at = timezone.now() + timedelta(seconds=int(expires_in))
         self.connection.status = "active"
         self.connection.last_error = ""
         self.connection.save(update_fields=["access_token", "refresh_token", "instance_url", "scopes", "expires_at", "status", "last_error"])
