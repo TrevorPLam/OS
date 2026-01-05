@@ -4,7 +4,7 @@
 **Last Updated:** January 5, 2026
 **Owner:** Platform Partnerships
 **Canonical Status:** Supporting
-**Related Tasks:** Marketplace Architecture (Research), future MARKET-* tasks
+**Related Tasks:** Marketplace Architecture (Research), MARKET-6
 **Priority:** LOW
 
 ## Objectives
