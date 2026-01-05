@@ -42,7 +42,7 @@ export interface SiteMessageDeliveryRequest {
   url: string
   visitor_id: string
   session_id?: string
-  contact_id?: number
+  contact_id?: string
   segments?: string[]
   behaviors?: Record<string, unknown>
   message_types?: Array<'modal' | 'slide_in' | 'banner'>
