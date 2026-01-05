@@ -1,0 +1,5 @@
+# mise.toml — optional tool version pinning (template)
+[tools]
+python = "3.11"
+node = "20"
+go = "1.22"

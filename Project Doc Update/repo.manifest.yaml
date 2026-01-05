@@ -1,0 +1,25 @@
+# repo.manifest.yaml — How to run/verify this repository
+version: 3
+last_updated: "2026-01-05"
+
+governance:
+  authority_order:
+    - CODEBASECONSTITUTION.md
+    - READMEAI.md
+    - AGENTS.md
+    - TODO.md
+  task_truth_source: TODO.md
+  completed_tasks: TODOCOMPLETED.md
+  github_actions:
+    status: off_by_default
+    storage_path: githubactions/
+    enable_instructions: githubactions/README.md
+
+verification:
+  notes: >
+    Commands are repo-specific. If a command is missing, record UNKNOWN and create a task
+    to add it. Prefer cost-free local verification.
+  recommended:
+    - scripts/ai-audit.sh
+    - scripts/check.sh
+    - scripts/security-scan.sh
