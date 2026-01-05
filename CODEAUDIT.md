@@ -1,46 +1,48 @@
-# CODEAUDIT.md — Code Audit Runbook
+# CODEAUDIT.md — Code Audit (Task Factory)
 
-**Authority & Precedence:**
-1) CODEBASECONSTITUTION.md
-2) READMEAI.md
-3) TODO.md (Task Truth Source)
-4) This audit runbook (CODEAUDIT.md)
-5) Supporting docs (CODE_AUDIT.md, CODE_AUDIT_REPORT.md)
+Document Type: Audit Runbook
+Last Updated: 2026-01-05
+Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `TODO.md` → this document
+Owner: AGENT
 
-**Purpose:** Ensure code changes comply with constitutional rules, security expectations, and documented architecture boundaries without losing project-specific guidance.
+Purpose: Convert code and doc findings into small, executable tasks with clear acceptance criteria.
 
-## AGENT EXECUTION
-- **Inputs to Inspect:** CODEBASECONSTITUTION.md, READMEAI.md, TODO.md, CODE_AUDIT.md, CODE_AUDIT_REPORT.md, CI configurations, docs/BOUNDARY_RULES.md (or equivalent), recent PRs/commits linked in TODO tasks.
-- **Outputs to Produce:**
-  - Findings recorded as tasks in TODO.md with IDs and acceptance criteria.
-  - Notes appended to the `Summary` section below.
-  - References to any exceptions or deferrals.
-- **Stop Rules:**
-  - Do not remove project-specific constraints from CODE_AUDIT.md or other docs.
-  - Do not change build/test commands without explicit TODO coverage.
-  - If secrets or security regressions are suspected, halt and escalate via SECURITYAUDIT.md guidance.
+## AGENT execution (runbook)
+Inputs to inspect:
+- `Repository tree`
+- `TODO.md / TODOCOMPLETED.md`
+- `Open TODO/FIXME markers in code`
+- `docs/ and specs/ for mismatches`
 
-## Standard Checklist
-- Linting and formatting commands defined and enforced.
-- Type checking configured and passing (mypy/pyright as applicable).
-- Security scanning (dependencies + code) enabled or TODO-tracked.
-- Tests required for merge; coverage expectations documented.
-- Build artifacts reproducible (Docker and package builds).
-- Documentation (API/OpenAPI, architecture) updated alongside code changes.
-- Architectural boundaries respected (no bypasses across layers/modules).
+Execution steps:
+1) Scan for actionable TODO/FIXME/HACK notes and convert them into tasks in TODO.md (replace with task IDs when appropriate).
+2) Identify hotspots: large files, duplicated logic, inconsistent patterns that slow agents.
+3) Map critical flows (auth, payments, booking/creation, admin) to ensure each has explicit tasks/tests where needed.
+4) Deduplicate tasks and ensure each task references exact files/paths.
 
-## Preserved Project Audit Pipeline (from CODE_AUDIT.md)
-- Pre-Commit: `make lint` (ruff + black), type checking, and security scanning must pass; prefer auto-fix via `make format` where safe.
-- Pre-Merge: `make test`, Docker build verification, documentation validation (links and OpenAPI), and security gates (no hardcoded secrets, RLS, permissions, input validation).
-- Post-Merge: Periodic dependency health, documentation drift checks, and architectural compliance reviews.
-- Violation Handling: Severity-based responses with exceptions documented in PRs and tracked in TODO.md.
+Stop conditions:
+- If you discover a P0 security issue, stop and create a P0 task under SECURITYAUDIT.md (do not continue scanning).
 
-## Reporting
-- Record audit runs with date/time, scope, and findings.
-- Link resulting tasks and PRs for traceability.
-- Note any conflicts between governance layers and preserve both until resolved.
+Required outputs:
+- Update/create tasks in TODO.md.
+- Append a run summary to this document.
+
+## Task writing rules
+- Tasks must be created/updated in `TODO.md` using the required schema.
+- If a task is ambiguous, set **Status: BLOCKED** and add a question in the task Context.
+- Do not invent repo facts. If evidence is missing, write **UNKNOWN** and cite what you checked.
 
 ---
 
 ## Summary (append-only)
-- Pending entries.
+> Append a dated summary after each run. Do not delete old summaries.
+
+### 2026-01-05 — Summary
+- Agent: AGENT
+- Scope: UNKNOWN (not yet run)
+- Findings:
+  - (none)
+- Tasks created/updated:
+  - (none)
+- Questions for Trevor:
+  - (none)

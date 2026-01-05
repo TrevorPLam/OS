@@ -1,35 +1,48 @@
-# RELEASEAUDIT.md — Release Audit Runbook
+# RELEASEAUDIT.md — Release Audit (No-CI Deployment Readiness)
 
-**Authority & Precedence:**
-1) CODEBASECONSTITUTION.md
-2) READMEAI.md
-3) TODO.md (Task Truth Source)
-4) This runbook (RELEASEAUDIT.md)
-5) Supporting docs (RELEASE_CHECKLIST.md, CODE_AUDIT_REPORT.md)
+Document Type: Audit Runbook
+Last Updated: 2026-01-05
+Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `TODO.md` → this document
+Owner: AGENT
 
-**Purpose:** Standardize pre-release verification while retaining existing release checklists and evidence requirements.
+Purpose: Provide a deterministic release checklist and a release record that works even when CI/CD is disabled.
 
-## AGENT EXECUTION
-- **Inputs to Inspect:** RELEASE_CHECKLIST.md, CODE_AUDIT_REPORT.md, CHANGELOG.md, deployment manifests, TODO.md release tasks.
-- **Outputs to Produce:**
-  - Release readiness notes appended to the `Summary` below.
-  - Follow-up tasks added to TODO.md for gaps.
-- **Stop Rules:**
-  - Do not skip mandatory release gates from RELEASE_CHECKLIST.md.
-  - Do not change release processes without TODO-backed approval.
+## AGENT execution (runbook)
+Inputs to inspect:
+- `README / deployment notes`
+- `package.json scripts (if present)`
+- `Any deployment configs`
+- `Vercel settings docs (if present)`
 
-## Standard Checklist
-- All tests and linters passing for release commit.
-- Security review complete or waivers documented.
-- Migration plans validated with rollback steps.
-- Documentation (user guides, API specs) updated for the release scope.
-- Release notes prepared and reviewed.
+Execution steps:
+1) List the minimum commands to verify locally (build/test/lint) based on what exists in the repo (do not invent commands).
+2) Define a manual smoke test checklist for critical flows (mobile-first).
+3) Define a rollback plan (provider-level + git-level).
+4) Create tasks for any missing release essentials (env docs, error pages, monitoring hooks).
 
-## Preserved Project Guidance (from RELEASE_CHECKLIST.md)
-- Follow documented pre-release steps including verification of migrations, secrets, monitoring, and smoke tests.
-- Capture evidence of completed checks and archive in CODE_AUDIT_REPORT.md when relevant.
+Stop conditions:
+- If a release requires an external action (DNS, provider settings, secret rotation), create Owner: Trevor task and mark BLOCKED until done.
+
+Required outputs:
+- Update/create tasks in TODO.md.
+- Append a run summary to this document.
+
+## Task writing rules
+- Tasks must be created/updated in `TODO.md` using the required schema.
+- If a task is ambiguous, set **Status: BLOCKED** and add a question in the task Context.
+- Do not invent repo facts. If evidence is missing, write **UNKNOWN** and cite what you checked.
 
 ---
 
 ## Summary (append-only)
-- Pending entries.
+> Append a dated summary after each run. Do not delete old summaries.
+
+### 2026-01-05 — Summary
+- Agent: AGENT
+- Scope: UNKNOWN (not yet run)
+- Findings:
+  - (none)
+- Tasks created/updated:
+  - (none)
+- Questions for Trevor:
+  - (none)

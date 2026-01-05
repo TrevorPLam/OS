@@ -1,37 +1,52 @@
-# SECURITYAUDIT.md — Security Audit Runbook
+# SECURITYAUDIT.md — Security Audit (Budget-Constrained Hardening)
 
-**Authority & Precedence:**
-1) CODEBASECONSTITUTION.md
-2) READMEAI.md
-3) TODO.md (Task Truth Source)
-4) This runbook (SECURITYAUDIT.md)
-5) Supporting docs (SECURITY.md, SECURITY_REVIEW.md, SECURITY_HARDENING_COMPLETE.md)
+Document Type: Audit Runbook
+Last Updated: 2026-01-05
+Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `TODO.md` → this document
+Owner: AGENT
 
-**Purpose:** Provide consistent security verification and escalation steps while preserving prior security reviews and hardening notes.
+Purpose: Find issues that could cause data exposure, account compromise, fraud, or runaway spend—without relying on paid scanners.
 
-## AGENT EXECUTION
-- **Inputs to Inspect:** SECURITY.md, SECURITY_REVIEW.md, SECURITY_HARDENING_COMPLETE.md, TODO.md security tasks, environment configuration docs, dependency advisories.
-- **Outputs to Produce:**
-  - Security findings/tasks added to TODO.md with IDs and owners.
-  - Notes appended to the `Summary` section below.
-- **Stop Rules:**
-  - Do not expose secrets; redact sensitive values in findings.
-  - Do not downgrade existing security controls without explicit authorization.
-  - For critical issues, stop work and file P0 escalation with containment steps.
+## AGENT execution (runbook)
+Inputs to inspect:
+- `.env.example (if present)`
+- `.gitignore`
+- `Auth-related code`
+- `API routes / server handlers`
+- `Client input handling`
+- `Deployment config (Vercel/headers) if present`
 
-## Standard Checklist
-- Authentication and authorization enforced for all entry points.
-- Webhook signature verification and secret validation in place.
-- Input validation and output encoding present at boundaries.
-- Rate limiting and abuse protections enabled where applicable.
-- Audit logging for sensitive actions and firm-scoped data access.
-- Dependency vulnerability review and patching cadence established.
+Execution steps:
+1) Check for secrets in repo (config files, docs, examples).
+2) Verify server-side authorization for any privileged actions and any per-user data access (IDOR).
+3) Review input validation boundaries for common injection classes (XSS/SQL/SSRF/ReDoS) based on actual code patterns found.
+4) Confirm safe defaults for headers and error handling (no stack traces to users).
+5) Write tasks with business impact in Context and explicit verification steps in Acceptance Criteria.
 
-## Preserved Project Guidance (from SECURITY_REVIEW.md and SECURITY_HARDENING_COMPLETE.md)
-- Follow documented security review findings and ensure remediation tasks remain tracked.
-- Maintain hardening measures already completed; do not remove without replacement.
+Stop conditions:
+- If a secret is found in git history or current files, create a P0 task that instructs rotation/revocation and stop.
+- If an auth bypass/IDOR is credible, create a P0 task and stop.
+
+Required outputs:
+- Update/create tasks in TODO.md.
+- Append a run summary to this document.
+
+## Task writing rules
+- Tasks must be created/updated in `TODO.md` using the required schema.
+- If a task is ambiguous, set **Status: BLOCKED** and add a question in the task Context.
+- Do not invent repo facts. If evidence is missing, write **UNKNOWN** and cite what you checked.
 
 ---
 
 ## Summary (append-only)
-- Pending entries.
+> Append a dated summary after each run. Do not delete old summaries.
+
+### 2026-01-05 — Summary
+- Agent: AGENT
+- Scope: UNKNOWN (not yet run)
+- Findings:
+  - (none)
+- Tasks created/updated:
+  - (none)
+- Questions for Trevor:
+  - (none)
