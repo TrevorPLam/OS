@@ -35,7 +35,10 @@ class TrackingEventIngestSerializer(serializers.Serializer):
     url = serializers.CharField(required=False, allow_blank=True, max_length=2048)
     referrer = serializers.CharField(required=False, allow_blank=True, max_length=2048)
     properties = serializers.DictField(default=dict)
-    consent_state = serializers.CharField(required=False, allow_blank=True, max_length=20)
+    consent_state = serializers.ChoiceField(
+        choices=[c[0] for c in TrackingSession.CONSENT_CHOICES],
+        required=False,
+    )
     occurred_at = serializers.DateTimeField(required=False)
     visitor_id = serializers.UUIDField()
     session_id = serializers.UUIDField()
