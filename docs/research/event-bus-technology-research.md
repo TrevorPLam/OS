@@ -4,7 +4,7 @@
 **Last Updated:** January 5, 2026
 **Owner:** Platform Engineering
 **Canonical Status:** Supporting
-**Related Tasks:** Event Bus Technology (Research), INFRA-2
+**Related Tasks:** Event Bus Technology (Research), INFRA-0, INFRA-2
 **Priority:** LOW
 
 ## Objectives
