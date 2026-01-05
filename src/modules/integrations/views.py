@@ -28,7 +28,11 @@ class BaseFirmScopedViewSet(viewsets.ModelViewSet):
         return self.model.objects.filter(firm=firm)
 
     def perform_create(self, serializer):
-        serializer.save(firm=getattr(self.request, "firm", None), created_by=self.request.user)
+        firm = getattr(self.request, "firm", None)
+        if not firm or not self._can_manage_settings(firm):
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Firm context and manage-settings permission required.")
+        serializer.save(firm=firm, created_by=self.request.user)
 
     def perform_update(self, serializer):
         serializer.save()
