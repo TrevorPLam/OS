@@ -37,19 +37,19 @@
   background: #f9fafb;
 }
 
-.badge {
+.site-messages .badge {
   display: inline-block;
   padding: 0.25rem 0.5rem;
   border-radius: 999px;
   font-size: 0.8rem;
 }
 
-.badge-muted {
+.site-messages .badge-muted {
   background: #edf2f7;
   color: #4a5568;
 }
 
-.badge-success {
+.site-messages .badge-success {
   background: #c6f6d5;
   color: #22543d;
 }
