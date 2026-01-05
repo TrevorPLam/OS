@@ -119,7 +119,7 @@ class SlackIntegration(models.Model):
 
 class SlackMessageLog(models.Model):
     integration = models.ForeignKey(
-        SlackIntegration, on_delete=models.CASCADE, related_name="message_logs", null=True, blank=True
+        SlackIntegration, on_delete=models.SET_NULL, related_name="message_logs", null=True, blank=True
     )
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="slack_message_logs")
     channel = models.CharField(max_length=120)
