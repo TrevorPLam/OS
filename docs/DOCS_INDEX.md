@@ -7,6 +7,9 @@ Last Updated: 2026-01-05
 2) `../READMEAI.md`
 3) `../AGENTS.md`
 4) `../TODO.md`
+5) Runbooks (listed below)
+6) `../repo.manifest.yaml`
+7) `../PROJECT_STATUS.md`
 
 ## Runbooks (root)
 - `../CODEAUDIT.md`
@@ -22,3 +25,8 @@ Last Updated: 2026-01-05
 ## Standards & health
 - `GOVERNANCE_HEALTH.md`
 - `ENHANCEMENT_SUMMARY.md`
+
+## Getting oriented
+- `README.md` (this directory)
+- `../README.md` (project overview)
+- `../CHANGELOG.md`
