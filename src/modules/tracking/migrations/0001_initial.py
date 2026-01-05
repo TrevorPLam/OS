@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
                 ("url", models.TextField(blank=True)),
                 ("referrer", models.TextField(blank=True)),
                 ("properties", models.JSONField(blank=True, default=dict)),
-                ("consent_state", models.CharField(default="pending", max_length=20)),
+                ("consent_state", models.CharField(choices=[("pending", "Pending"), ("granted", "Granted"), ("denied", "Denied")], default="pending", max_length=20)),
                 ("ip_truncated", models.CharField(blank=True, help_text="Anonymized IP (CIDR truncated)", max_length=64)),
                 ("occurred_at", models.DateTimeField(default=timezone.now)),
                 ("received_at", models.DateTimeField(auto_now_add=True)),
