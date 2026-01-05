@@ -168,7 +168,13 @@ class SlackService:
             "Content-Type": "application/json; charset=utf-8",
         }
         response = requests.post(self.API_URL, headers=headers, json=payload, timeout=10)
-        ok = response.status_code == 200 and response.json().get("ok")
+        ok = False
+        if response.status_code == 200:
+            try:
+                data = response.json()
+            except ValueError:
+                data = {}
+            ok = bool(data.get("ok"))
 
         SlackMessageLog.objects.create(
             integration=self.integration,
