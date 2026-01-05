@@ -381,3 +381,31 @@ Top findings:
 4. Review and update security headers annually as browser standards evolve
 
 ---
+
+## Security Review Summary — 2026-01-08
+
+### Scope reviewed:
+- Webhook handlers and signature validation
+- Frontend auth token storage
+- Environment configuration templates
+
+### Top findings:
+
+#### P0 (Critical) - None Found ✅
+
+#### P1 (High) - 2 Findings
+* **(P1) Webhook signature checks can be bypassed when secrets are unset** — DocuSign and Twilio webhook handlers accept unsigned requests if secrets are missing, which makes endpoints vulnerable if misconfigured.
+* **(P1) Auth tokens stored in localStorage** — JWT tokens are persisted in localStorage, which exposes them to XSS-based theft.
+
+#### P2 (Hardening) - None
+
+### Tasks created:
+* **SEC-6** (P1): Require DocuSign + Twilio webhook signature verification even when secrets are missing.
+* **SEC-7** (P1): Move auth tokens from localStorage to HttpOnly cookies.
+
+### Notes / assumptions:
+- Webhook endpoints are publicly reachable in production.
+- Current CSP reduces XSS risk but does not eliminate it; token storage should still be hardened.
+- Stripe and Square webhooks already fail closed when signature secrets are missing.
+
+---
