@@ -60,7 +60,11 @@ class SalesforceSyncLog(models.Model):
     firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="salesforce_sync_logs")
     object_type = models.CharField(max_length=50)
     direction = models.CharField(max_length=20, help_text="push|pull")
-    status = models.CharField(max_length=20, help_text="success|error")
+    STATUS_CHOICES = [
+        ("success", "Success"),
+        ("error", "Error"),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, help_text="success|error")
     message = models.CharField(max_length=500, blank=True)
     payload_snippet = models.JSONField(default=dict, blank=True)
     occurred_at = models.DateTimeField(auto_now_add=True)
