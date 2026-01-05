@@ -359,3 +359,37 @@ class SiteMessage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.firm.slug}:{self.name}"
+
+
+class SiteMessageImpression(models.Model):
+    """Tracks site message deliveries, impressions, and clicks for frequency control."""
+
+    KIND_CHOICES = [
+        ("delivered", "Delivered"),
+        ("view", "Viewed"),
+        ("click", "Clicked"),
+    ]
+
+    firm = models.ForeignKey(Firm, on_delete=models.CASCADE, related_name="site_message_impressions")
+    site_message = models.ForeignKey(SiteMessage, on_delete=models.CASCADE, related_name="impressions")
+    session = models.ForeignKey(TrackingSession, on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
+    visitor_id = models.UUIDField()
+    delivery_id = models.UUIDField(default=uuid4, editable=False, help_text="Stable id per delivery to group events")
+    kind = models.CharField(max_length=20, choices=KIND_CHOICES)
+    variant = models.CharField(max_length=100, blank=True)
+    url = models.TextField(blank=True)
+    occurred_at = models.DateTimeField(auto_now_add=True)
+
+    objects = models.Manager()
+    firm_scoped = FirmScopedManager()
+
+    class Meta:
+        db_table = "tracking_site_message_impression"
+        ordering = ["-occurred_at"]
+        indexes = [
+            models.Index(fields=["firm", "visitor_id", "site_message"], name="site_message_impr_freq_idx"),
+            models.Index(fields=["firm", "delivery_id"], name="site_message_impr_delivery_idx"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.firm.slug}:{self.site_message_id}:{self.kind}"

@@ -36,6 +36,13 @@ Define the end-to-end architecture for a secure integration marketplace that let
 - `IntegrationInstallation`: firm, provider, status (installed, errored, disconnected), credentials reference, installed_by, installed_at, configuration payload, scopes granted, webhooks configured.  
 - `IntegrationEvent`: audit log entry for lifecycle events and configuration changes.
 
+## Implemented Connectors (MVP)
+
+- **Salesforce CRM** — OAuth tokens stored per firm in `integrations_salesforce_connection`; CRUD + sync actions exposed at `/api/v1/integrations/salesforce/` with sample sync endpoint for leads/contacts/opportunities.  
+- **Slack** — Bot token + signing secret stored per firm in `integrations_slack`; message sending available via `/api/v1/integrations/slack/<id>/send_test/` and reused by `SlackNotification`.  
+- **Google Analytics (GA4)** — Measurement API credentials stored in `integrations_google_analytics`; test events sent via `/api/v1/integrations/google-analytics/<id>/send-test/`.  
+- All connectors use firm-scoped models, health metadata (`last_*` timestamps, `last_error`), and logs for sync/message dispatch.
+
 ## Security & Governance
 
 - **Tenant Isolation:** Installation records always include `firm_id`; credentials are stored per firm using the platform secret store.  

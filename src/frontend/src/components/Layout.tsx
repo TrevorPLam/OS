@@ -69,6 +69,11 @@ const Layout: React.FC = () => {
           </div>
 
           <div className="nav-section">
+            <div className="nav-section-title">Personalization</div>
+            <Link to="/personalization/site-messages">🧭 Site Messages</Link>
+          </div>
+
+          <div className="nav-section">
             <div className="nav-section-title">Analytics</div>
             <Link to="/analytics/tracking">📈 Site & Event Tracking</Link>
           </div>

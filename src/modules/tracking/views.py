@@ -4,11 +4,14 @@ import csv
 import io
 import json
 import logging
+import hashlib
 from datetime import timedelta
 from typing import Iterable
+from uuid import uuid4
 
 from django.conf import settings
 from django.core.cache import cache
+from django.db import models
 from django.db.models import Count
 from django.db.models.functions import TruncDay
 from django.http import HttpResponse
@@ -23,6 +26,7 @@ from modules.automation.triggers import TriggerDetector
 from modules.firm.models import FirmMembership
 from modules.tracking.models import (
     SiteMessage,
+    SiteMessageImpression,
     TrackingAbuseEvent,
     TrackingEvent,
     TrackingKey,
@@ -30,7 +34,9 @@ from modules.tracking.models import (
     TrackingSession,
 )
 from modules.tracking.serializers import (
+    SiteMessageImpressionLogSerializer,
     SiteMessageSerializer,
+    SiteMessageTargetRequestSerializer,
     TrackingEventIngestSerializer,
     TrackingEventSerializer,
     TrackingKeyRequestSerializer,
@@ -445,6 +451,179 @@ class TrackingAnalyticsExportView(APIView):
         response = HttpResponse(buffer.getvalue(), content_type="text/csv")
         response["Content-Disposition"] = "attachment; filename=tracking-events.csv"
         return response
+
+
+class SiteMessageTargetingView(APIView):
+    """
+    Public endpoint to evaluate eligible site messages for a visitor/session.
+
+    Applies targeting rules, consent checks, and frequency caps before returning messages.
+    """
+
+    authentication_classes: list = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = SiteMessageTargetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        firm = serializer.firm
+        if not firm:
+            return Response({"detail": "Invalid firm"}, status=status.HTTP_400_BAD_REQUEST)
+
+        session = self._get_or_create_session(serializer=serializer)
+        messages = self._select_messages(firm=firm, session=session, data=serializer.validated_data)
+        return Response({"messages": messages})
+
+    def _get_or_create_session(self, *, serializer: SiteMessageTargetRequestSerializer) -> TrackingSession | None:
+        if not serializer.firm:
+            return None
+        session_id = serializer.validated_data.get("session_id") or uuid4()
+        consent_state = serializer.validated_data.get("consent_state", "pending")
+        session, _created = TrackingSession.objects.get_or_create(
+            firm=serializer.firm,
+            session_id=session_id,
+            defaults={
+                "visitor_id": serializer.validated_data["visitor_id"],
+                "consent_state": consent_state,
+            },
+        )
+        if session.consent_state != consent_state:
+            session.consent_state = consent_state
+            session.save(update_fields=["consent_state"])
+        return session
+
+    def _select_messages(self, *, firm, session, data: dict) -> list[dict]:
+        now = timezone.now()
+        qs = SiteMessage.objects.filter(firm=firm, status="published").filter(
+            models.Q(active_from__lte=now) | models.Q(active_from__isnull=True),
+            models.Q(active_until__gte=now) | models.Q(active_until__isnull=True),
+        )
+        if data.get("message_types"):
+            qs = qs.filter(message_type__in=data["message_types"])
+
+        selected: list[dict] = []
+        for message in qs:
+            if not self._matches_targeting(message=message, data=data):
+                continue
+            if self._frequency_exceeded(message=message, firm=firm, visitor_id=data["visitor_id"]):
+                continue
+
+            variant = self._select_variant(message=message, visitor_id=str(data["visitor_id"]))
+            delivery_id = uuid4()
+            impression = SiteMessageImpression.objects.create(
+                firm=firm,
+                site_message=message,
+                session=session,
+                visitor_id=data["visitor_id"],
+                delivery_id=delivery_id,
+                kind="delivered",
+                variant=variant or "",
+                url=data.get("url", ""),
+            )
+            payload = SiteMessageSerializer(message).data
+            payload["delivery_id"] = str(delivery_id)
+            payload["variant"] = variant
+            payload["frequency_cap"] = message.frequency_cap
+            if variant and isinstance(message.content, dict):
+                variant_content = message.content.get("variants", {}).get(variant)
+                if variant_content:
+                    payload["content"] = variant_content
+            # include delivery timestamp for transparency
+            payload["delivered_at"] = impression.occurred_at
+            selected.append(payload)
+            if len(selected) >= data.get("limit", 3):
+                break
+        return selected
+
+    def _matches_targeting(self, *, message: SiteMessage, data: dict) -> bool:
+        rules = message.targeting_rules or {}
+        segments_required = set(rules.get("segments") or [])
+        visitor_segments = set(data.get("segments") or [])
+        if segments_required and not segments_required.intersection(visitor_segments):
+            return False
+
+        audience = rules.get("audience") or {}
+        allow_anonymous = audience.get("allow_anonymous", True)
+        allow_known = audience.get("allow_known", True)
+        is_known = data.get("contact_id") is not None
+        if is_known and not allow_known:
+            return False
+        if not is_known and not allow_anonymous:
+            return False
+
+        behaviors = rules.get("behaviors") or {}
+        url_contains = behaviors.get("url_contains") or behaviors.get("page_url_contains") or []
+        url = (data.get("url") or "").lower()
+        if url_contains:
+            if not any(fragment.lower() in url for fragment in url_contains):
+                return False
+
+        event_contains = behaviors.get("event_name_contains") or []
+        if event_contains:
+            recent_events = [evt.lower() for evt in data.get("recent_events") or []]
+            if not any(term.lower() in evt for term in event_contains for evt in recent_events):
+                return False
+
+        min_sessions = behaviors.get("min_sessions")
+        if min_sessions and data.get("session_count", 1) < min_sessions:
+            return False
+
+        min_page_views = behaviors.get("min_page_views")
+        if min_page_views and data.get("page_view_count", 0) < min_page_views:
+            return False
+
+        return True
+
+    def _frequency_exceeded(self, *, message: SiteMessage, firm, visitor_id) -> bool:
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        recent_impressions = SiteMessageImpression.objects.filter(
+            firm=firm,
+            site_message=message,
+            visitor_id=visitor_id,
+            occurred_at__gte=today_start,
+            kind__in=["delivered", "view"],
+        ).count()
+        return recent_impressions >= message.frequency_cap
+
+    def _select_variant(self, *, message: SiteMessage, visitor_id: str) -> str | None:
+        variants = (message.targeting_rules or {}).get("experiments") or []
+        if not variants:
+            return None
+        idx_seed = hashlib.sha256(f"{visitor_id}:{message.id}".encode("utf-8")).hexdigest()
+        idx = int(idx_seed, 16) % len(variants)
+        return variants[idx]
+
+
+class SiteMessageImpressionView(APIView):
+    """Record view or click interactions for previously delivered site messages."""
+
+    authentication_classes: list = []
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = SiteMessageImpressionLogSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        delivery = serializer.validated_data["delivery_id"]
+        event = serializer.validated_data["event"]
+        base_impression = (
+            SiteMessageImpression.objects.filter(delivery_id=delivery, kind="delivered")
+            .select_related("site_message", "session", "firm")
+            .first()
+        )
+        if not base_impression:
+            return Response({"detail": "Unknown delivery id"}, status=status.HTTP_404_NOT_FOUND)
+
+        SiteMessageImpression.objects.create(
+            firm=base_impression.firm,
+            site_message=base_impression.site_message,
+            session=base_impression.session,
+            visitor_id=base_impression.visitor_id,
+            delivery_id=delivery,
+            kind=event,
+            variant=serializer.validated_data.get("variant") or base_impression.variant,
+            url=serializer.validated_data.get("url", ""),
+        )
+        return Response({"recorded": True}, status=status.HTTP_201_CREATED)
 
 
 class SiteMessageViewSet(viewsets.ModelViewSet):

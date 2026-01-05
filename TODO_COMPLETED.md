@@ -1,8 +1,36 @@
 # ConsultantPro - Completed Tasks Archive
 
-**Last Updated:** January 6, 2026
+**Last Updated:** January 7, 2026
 
 This file contains all completed tasks that have been migrated from TODO.md.
+
+---
+
+## Recently Completed (January 7, 2026)
+
+### 🟡 Web Personalization & Site Messages
+
+- [x] **PERS-3:** Add targeting and display logic ✅ **COMPLETED** (January 7, 2026)  
+  - Added delivery + impression endpoints with segment/behavior targeting, frequency caps, and variant selection.  
+  - Recorded impressions in new `SiteMessageImpression` model to enforce per-visitor limits and analytics.
+
+- [x] **PERS-4:** Build site message UI ✅ **COMPLETED** (January 7, 2026)  
+  - Delivered admin UI for creating/editing messages with preview, variant setup, and targeting inputs.  
+  - Added SDK-ready evaluation endpoint and dashboard link under Personalization.
+
+### 🟡 Integration & Automation
+
+- [x] **INT-1:** Salesforce CRM integration ✅ **COMPLETED** (January 7, 2026)  
+  - Introduced firm-scoped Salesforce connections with OAuth token handling and push sync helpers for leads/contacts/opportunities.  
+  - Surfaced REST endpoints for refresh/sync plus logging for sync attempts.
+
+- [x] **INT-2:** Slack integration (full version) ✅ **COMPLETED** (January 7, 2026)  
+  - Added Slack integration model with bot token + signing secret, message dispatch service, and test endpoint.  
+  - Wired `SlackNotification` to reuse configured integrations and emit audit telemetry.
+
+- [x] **INT-3:** Google Analytics integration ✅ **COMPLETED** (January 7, 2026)  
+  - Added GA4 measurement config per firm with health metadata and test event dispatch endpoint.  
+  - Exposed REST API for managing configs and sending validation events.
 
 ---
 

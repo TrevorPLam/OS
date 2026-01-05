@@ -15,7 +15,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from modules.clients.models import Proposal
+from modules.crm.models import Proposal
 from modules.esignature.docusign_service import DocuSignService
 from modules.esignature.models import DocuSignConnection, Envelope, WebhookEvent
 from modules.core.rate_limiting import enforce_webhook_rate_limit

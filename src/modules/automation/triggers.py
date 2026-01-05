@@ -18,7 +18,8 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-from modules.crm.models import Contact, Deal, Lead
+from modules.clients.models import Contact
+from modules.crm.models import Deal, Lead
 from modules.firm.models import Firm
 
 from .models import WorkflowExecution, WorkflowTrigger

@@ -43,10 +43,16 @@ Rules stored as JSON with keys:
 ## Delivery Considerations
 - Messages are scoped per firm; cross-firm access is blocked at the query layer.
 - Frontend renderer should enforce `frequency_cap` and `active_*` window locally in addition to server filters.
-- Draft messages are not eligible for client delivery; published messages should be synced via SDK configuration or dedicated endpoint (future PERS-3).
+- Draft messages are not eligible for client delivery; published messages should be synced via SDK configuration or dedicated endpoint.
+- Delivery endpoint: `POST /api/v1/tracking/site-messages/display/` (public, keyless). Request includes `firm_slug`, `visitor_id`, `session_id`, `url`, optional `segments` and `contact_id`.
+  - Applies targeting: segments intersection, audience flags (anonymous vs known), behavioral rules (`url_contains`, `event_name_contains`, minimum sessions/page views).
+  - Enforces frequency caps per visitor/day and honors `active_from` / `active_until` windows.
+  - Returns publishable messages with `delivery_id` and resolved variant content for A/B buckets (stable per visitor).
+- Impression endpoint: `POST /api/v1/tracking/site-messages/impressions/` to log `view|click` tied to `delivery_id`.
 
 ## Observability & Auditing
 - Track builder actions via standard request logging (user + firm).
+- Impressions and clicks recorded in `SiteMessageImpression` with firm + visitor scoping for frequency enforcement.
 - Future work: emit audit events on publish/archive, and add impression/click metrics tied to `TrackingEvent`.
 
 ## Follow-ups
