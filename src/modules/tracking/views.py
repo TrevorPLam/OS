@@ -471,7 +471,8 @@ class SiteMessageTargetingView(APIView):
             return Response({"detail": "Invalid firm"}, status=status.HTTP_400_BAD_REQUEST)
 
         session = self._get_or_create_session(serializer=serializer)
-        messages = self._select_messages(firm=firm, session=session, data=serializer.validated_data)
+        if session and session.consent_state == "denied":
+            return Response({"messages": []})
         return Response({"messages": messages})
 
     def _get_or_create_session(self, *, serializer: SiteMessageTargetRequestSerializer) -> TrackingSession | None:
