@@ -212,6 +212,10 @@ class PortalBranding(models.Model):
         blank=True,
         help_text="Reply-to email address",
     )
+    email_physical_address = models.TextField(
+        blank=True,
+        help_text="Physical mailing address for compliance footers",
+    )
     email_header_logo_url = models.URLField(
         blank=True,
         help_text="Logo URL for email header",

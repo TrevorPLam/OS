@@ -9,6 +9,7 @@ from modules.marketing.models import (
     Tag,
     Segment,
     EmailTemplate,
+    EmailDomainAuthentication,
     CampaignExecution,
     EntityTag,
 )
@@ -194,3 +195,42 @@ class EntityTagSerializer(serializers.ModelSerializer):
             "auto_rule_id",
         ]
         read_only_fields = ["id", "applied_at", "tag_name", "applied_by_name"]
+
+
+class EmailDomainAuthenticationSerializer(serializers.ModelSerializer):
+    """Serializer for email domain authentication records."""
+
+    created_by_name = serializers.CharField(source="created_by.get_full_name", read_only=True)
+
+    class Meta:
+        model = EmailDomainAuthentication
+        fields = [
+            "id",
+            "firm",
+            "domain",
+            "status",
+            "spf_record",
+            "dkim_record",
+            "dmarc_record",
+            "spf_verified",
+            "dkim_verified",
+            "dmarc_verified",
+            "last_checked_at",
+            "last_error",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_name",
+        ]
+        read_only_fields = [
+            "id",
+            "status",
+            "spf_verified",
+            "dkim_verified",
+            "dmarc_verified",
+            "last_checked_at",
+            "last_error",
+            "created_at",
+            "updated_at",
+            "created_by_name",
+        ]

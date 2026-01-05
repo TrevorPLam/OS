@@ -161,23 +161,24 @@ This document clarifies hidden assumptions and design decisions that may not be 
 
 ### Email Validation
 
-**Assumption:** Email addresses are validated but not verified.
+**Assumption:** Email addresses are validated and marketing emails require double opt-in.
 
 **Implementation:**
 - Django `EmailField` validation
-- No email verification required
-- **Rationale:** Reduces friction in signup/lead capture
+- Double opt-in workflow with confirmation tokens
+- **Rationale:** Compliance for marketing email workflows while keeping core account setup low-friction
 
 ## Compliance Assumptions
 
 ### GDPR Consent
 
-**Assumption:** Consent is tracked but opt-in is not required by default.
+**Assumption:** Consent is tracked and double opt-in is enforced for marketing emails.
 
 **Implementation:**
 - `marketing_opt_in` field defaults to `False`
 - Consent timestamp and source tracked
-- **Rationale:** GDPR requires explicit consent tracking
+- Double opt-in confirmation required for marketing consent
+- **Rationale:** GDPR requires explicit consent verification for marketing communications
 
 ### Data Retention
 

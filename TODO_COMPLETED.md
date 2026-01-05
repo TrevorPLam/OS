@@ -57,6 +57,11 @@ This file contains all completed tasks that have been migrated from TODO.md.
   - Audit trail includes IP address, user agent, actor, and source URL.  
   - Tests validate GDPR consent workflows and export.
 
+- [x] **GDPR-2:** Add double opt-in (4-6 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Added opt-in request tokens with public confirmation endpoint and consent grants.  
+  - Confirmation emails include compliance footer and unsubscribe link.  
+  - Contact status updated to unconfirmed until confirmation.
+
 - [x] **GDPR-3:** Right to erasure (6-8 hours) ✅ **COMPLETED** (January 5, 2026)  
   - Erasure/anonymization workflow implemented in `src/modules/core/erasure.py`.  
   - Execution status, approvals, and audit trail tracked in `ErasureRequest`.
@@ -68,6 +73,24 @@ This file contains all completed tasks that have been migrated from TODO.md.
 - [x] **SPAM-4:** Consent tracking (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  
   - Express vs implied consent recorded on consent grants.  
   - Consent source tracking remains part of immutable ledger and exports.
+
+- [x] **SPAM-1:** Automatic unsubscribe links (4-6 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Public unsubscribe tokens update contact status and revoke consent.  
+  - Compliance footer generation includes unsubscribe URL.
+
+- [x] **SPAM-2:** Physical address in footer (2-3 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Portal branding now stores a physical mailing address for email footers.  
+  - Compliance footer renders physical address when provided.
+
+- [x] **SPAM-3:** Sender identification (3-4 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Sender name/email formatting added to email notification delivery.  
+  - Reply-to and branding-derived sender details supported.
+
+### 🟡 Email Deliverability & Infrastructure
+
+- [x] **DELIV-1:** Domain authentication setup (6-8 hours) ✅ **COMPLETED** (January 5, 2026)  
+  - Added firm-scoped SPF/DKIM/DMARC verification records.  
+  - API endpoints expose domain authentication status and manual verification updates.
 
 ---
 

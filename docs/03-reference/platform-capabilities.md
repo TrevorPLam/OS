@@ -275,11 +275,13 @@ This document provides a comprehensive inventory of ConsultantPro's implemented 
 | Feature | Status | Notes |
 |---------|--------|-------|
 | GDPR consent tracking | ✅ | Consent management (express/implied, source tracking) |
+| Double opt-in workflows | ✅ | Confirmation tokens for marketing opt-in |
 | Data retention policies | ✅ | Automated data retention |
 | Data export (Right to Access) | ✅ | GDPR-compliant data export |
 | Data erasure/anonymization | ✅ | Right to be forgotten |
 | Audit logging | ✅ | Immutable audit trail |
 | No-content logging | ✅ | Metadata-only audit logs |
+| CAN-SPAM compliance | ✅ | Unsubscribe links, sender identification, physical address footer |
 | Records management | 🔜 | Low priority - immutability system |
 
 ---
