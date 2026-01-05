@@ -197,7 +197,15 @@ class SlackService:
 
     @staticmethod
     def verify_signature(*, signing_secret: str, timestamp: str, body: bytes, signature: str) -> bool:
-        base_string = f"v0:{timestamp}:{body.decode('utf-8')}"
+        from time import time
+
+        try:
+            ts = float(timestamp)
+        except (TypeError, ValueError):
+            return False
+        # Reject requests that are too old or too far in the future to prevent replay attacks.
+        if abs(time() - ts) > 60 * 5:
+            return False
         computed = hmac.new(signing_secret.encode("utf-8"), base_string.encode("utf-8"), hashlib.sha256).hexdigest()
         return hmac.compare_digest(f"v0={computed}", signature)
 
