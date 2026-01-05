@@ -209,8 +209,11 @@ class AuditEventViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=["get"], url_path="export")
     def export(self, request):
         queryset = self.get_queryset()
-        fmt = (request.query_params.get("format") or "json").lower()
-        limit = min(int(request.query_params.get("limit", 5000)), 5000)
+        try:
+            requested_limit = int(request.query_params.get("limit", 5000))
+        except (TypeError, ValueError):
+            requested_limit = 5000
+        limit = max(1, min(requested_limit, 5000))
         queryset = queryset[:limit]
 
         if fmt == "csv":
