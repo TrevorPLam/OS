@@ -206,7 +206,7 @@ TRACKING_MAX_PROPERTIES_BYTES = int(os.environ.get("TRACKING_MAX_PROPERTIES_BYTE
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "modules.auth.authentication.CookieJWTAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -237,6 +237,15 @@ API_PAGINATION_MAX_PAGE_SIZE = 200
 API_SEARCH_MAX_LENGTH = 100
 API_QUERY_TIMEOUT_MS = 3000
 
+# Auth cookie settings for SPA token storage
+AUTH_COOKIE_SAMESITE = os.environ.get("AUTH_COOKIE_SAMESITE", "Lax")
+AUTH_COOKIE_DOMAIN = os.environ.get("AUTH_COOKIE_DOMAIN") or None
+AUTH_COOKIE_PATH = os.environ.get("AUTH_COOKIE_PATH", "/api/")
+ACCESS_TOKEN_COOKIE_NAME = os.environ.get("ACCESS_TOKEN_COOKIE_NAME", "cp_access_token")
+REFRESH_TOKEN_COOKIE_NAME = os.environ.get("REFRESH_TOKEN_COOKIE_NAME", "cp_refresh_token")
+SESSION_COOKIE_SAMESITE = os.environ.get("SESSION_COOKIE_SAMESITE", AUTH_COOKIE_SAMESITE)
+CSRF_COOKIE_SAMESITE = os.environ.get("CSRF_COOKIE_SAMESITE", AUTH_COOKIE_SAMESITE)
+
 # Simple JWT Configuration
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=1),
@@ -255,7 +264,11 @@ SIMPLE_JWT = {
 }
 
 # CORS Settings (for React frontend)
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+_default_cors_origins = os.environ.get(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173",
+).split(",")
+CORS_ALLOWED_ORIGINS = [origin for origin in _default_cors_origins if origin]
 
 # In Codespaces/dev, allow all *.app.github.dev origins
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -263,6 +276,12 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+_csrf_trusted_origins = os.environ.get("CSRF_TRUSTED_ORIGINS")
+if _csrf_trusted_origins:
+    CSRF_TRUSTED_ORIGINS = [origin for origin in _csrf_trusted_origins.split(",") if origin]
+else:
+    CSRF_TRUSTED_ORIGINS = [origin for origin in CORS_ALLOWED_ORIGINS if origin]
 
 # S3 Configuration (for Documents module)
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID", "")

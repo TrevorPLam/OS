@@ -3,9 +3,15 @@ Authentication URL routes.
 """
 
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
 
-from .views import ChangePasswordView, RegisterView, login_view, logout_view, user_profile_view
+from .views import (
+    ChangePasswordView,
+    CookieTokenRefreshView,
+    RegisterView,
+    login_view,
+    logout_view,
+    user_profile_view,
+)
 from .oauth_views import oauth_callback, oauth_provider_config
 from .saml_views import (
     SAMLLoginView,
@@ -34,7 +40,7 @@ urlpatterns = [
     path("profile/", user_profile_view, name="auth_profile"),
     path("change-password/", ChangePasswordView.as_view(), name="auth_change_password"),
     # JWT token refresh
-    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     
     # Sprint 1.2-1.5: OAuth Authentication
     path("oauth/callback/", oauth_callback, name="oauth_callback"),

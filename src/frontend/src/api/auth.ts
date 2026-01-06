@@ -25,8 +25,6 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   user: User
-  access: string
-  refresh: string
   message: string
 }
 
@@ -41,8 +39,8 @@ export const authApi = {
     return response.data
   },
 
-  logout: async (refreshToken: string): Promise<void> => {
-    await apiClient.post('/auth/logout/', { refresh: refreshToken })
+  logout: async (): Promise<void> => {
+    await apiClient.post('/auth/logout/')
   },
 
   getProfile: async (): Promise<User> => {

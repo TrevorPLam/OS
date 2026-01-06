@@ -176,3 +176,74 @@ References:
 - src/modules/email_ingestion/retry.py
 Dependencies: T-064
 Effort: M
+
+### SEC-7: Move auth tokens out of localStorage (cookie-based auth)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- localStorage tokens are vulnerable to XSS theft.
+- Verified token usage in src/frontend/src/contexts/AuthContext.tsx and src/frontend/src/api/client.ts.
+Acceptance Criteria:
+- [x] Access/refresh tokens are stored in HttpOnly, Secure, SameSite cookies.
+- [x] Frontend no longer reads/writes tokens from localStorage.
+- [x] Auth refresh + logout flows work end-to-end.
+References:
+- src/frontend/src/contexts/AuthContext.tsx
+- src/frontend/src/api/client.ts
+- src/modules/auth/
+Dependencies: T-070, T-071, T-072
+Effort: L
+
+### T-070: SEC-7.1 Backend cookie issuance + refresh rotation
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- SEC-7 requires server-owned cookie flags and rotation.
+Acceptance Criteria:
+- [x] Login sets access/refresh cookies with Secure + HttpOnly + SameSite.
+- [x] Refresh rotates refresh token and updates cookies.
+- [x] Logout clears cookies and invalidates refresh token if applicable.
+- [x] CORS/CSRF settings correct for cookie auth.
+References:
+- src/modules/auth/
+- src/config/
+Dependencies: None
+Effort: M
+
+### T-071: SEC-7.2 Frontend: remove token localStorage reads/writes
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- Verified localStorage usage in AuthContext + API client.
+Acceptance Criteria:
+- [x] AuthContext no longer stores tokens in localStorage.
+- [x] API client no longer injects Authorization header from localStorage.
+- [x] Refresh flow works via cookie refresh.
+References:
+- src/frontend/src/contexts/AuthContext.tsx
+- src/frontend/src/api/client.ts
+Dependencies: T-070
+Effort: M
+
+### T-072: SEC-7.3 Tests: cookie auth regression coverage
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- Cookie auth is security-sensitive; changes need hard tests.
+Acceptance Criteria:
+- [x] Backend tests assert cookie flags + rotation + logout clearing.
+- [x] Frontend tests assert auth state handling without token storage.
+- [x] E2E suite updated to handle cookie auth.
+References:
+- tests/
+- src/frontend/
+Dependencies: T-070, T-071
+Effort: M
