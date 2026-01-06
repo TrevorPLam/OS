@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError, AxiosRequestConfig } from 'axios'
 
 const broadcastImpersonationStatus = (headers: Record<string, any>) => {
   const rawHeader = headers['x-break-glass-impersonation']
@@ -18,26 +18,15 @@ const broadcastImpersonationStatus = (headers: Record<string, any>) => {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
+type RetriableRequestConfig = AxiosRequestConfig & { _retry?: boolean }
+
 const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 })
-
-// Request interceptor to add auth token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
 
 // Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
@@ -45,36 +34,27 @@ apiClient.interceptors.response.use(
     broadcastImpersonationStatus(response.headers || {})
     return response
   },
-  async (error) => {
-    const originalRequest = error.config
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableRequestConfig
 
     if (error.response?.headers) {
       broadcastImpersonationStatus(error.response.headers)
     }
 
-    // If error is 401 and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const status = error.response?.status
+    const requestUrl = originalRequest?.url || ''
+    const isAuthRoute = ['/auth/login/', '/auth/register/', '/auth/logout/'].some((path) =>
+      requestUrl.includes(path)
+    )
+    const isRefreshRoute = requestUrl.includes('/auth/token/refresh/')
+
+    if (status === 401 && originalRequest && !originalRequest._retry && !isAuthRoute && !isRefreshRoute) {
       originalRequest._retry = true
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token')
-        if (refreshToken) {
-          const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
-            refresh: refreshToken,
-          })
-
-          const { access } = response.data
-          localStorage.setItem('access_token', access)
-
-          // Retry original request with new token
-          originalRequest.headers.Authorization = `Bearer ${access}`
-          return apiClient(originalRequest)
-        }
+        await apiClient.post('/auth/token/refresh/')
+        return apiClient(originalRequest)
       } catch (refreshError) {
-        // Refresh failed, logout user
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user')
         window.location.href = '/login'
         return Promise.reject(refreshError)
       }

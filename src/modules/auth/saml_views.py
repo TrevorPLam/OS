@@ -30,6 +30,7 @@ except ImportError:
     SAML_AVAILABLE = False
 
 from modules.auth.models import SAMLConfiguration
+from modules.auth.cookies import set_auth_cookies
 
 User = get_user_model()
 
@@ -191,20 +192,19 @@ class SAMLACSView(View):
                 # Generate JWT tokens for API access
                 refresh = RefreshToken.for_user(user)
                 
-                # Return tokens (or redirect to frontend with tokens)
-                return HttpResponse(f"""
+                response = HttpResponse(
+                    """
                     <html>
                     <body>
                         <h1>SAML Authentication Successful</h1>
-                        <p>Access Token: {refresh.access_token}</p>
-                        <p>Refresh Token: {refresh}</p>
-                        <script>
-                            // In production, redirect to frontend with tokens
-                            // window.location.href = '/dashboard?access_token=' + '{refresh.access_token}';
-                        </script>
+                        <p>You may close this window and return to the application.</p>
                     </body>
                     </html>
-                """)
+                    """,
+                    status=status.HTTP_200_OK,
+                )
+                set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
+                return response
         except Exception as e:
             return HttpResponse(f"User account creation failed: {str(e)}", status=500)
 

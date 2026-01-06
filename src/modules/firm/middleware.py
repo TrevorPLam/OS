@@ -19,9 +19,8 @@ import logging
 
 from django.http import HttpRequest, JsonResponse
 from django.utils.deprecation import MiddlewareMixin
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import InvalidToken
 
+from modules.auth.authentication import CookieJWTAuthentication
 from modules.firm.models import BreakGlassSession, Firm, FirmMembership
 from modules.firm.utils import get_active_break_glass_session
 
@@ -182,28 +181,19 @@ class FirmContextMiddleware(MiddlewareMixin):
 
         Token must include 'firm_id' in payload.
         """
-        auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+        jwt_auth = CookieJWTAuthentication()
+        validated_token = jwt_auth.get_validated_token_from_request(request)
+        if validated_token is None:
+            return None
 
-        if not auth_header.startswith("Bearer "):
+        firm_id = validated_token.get("firm_id")
+        if not firm_id:
+            logger.debug("JWT token missing firm_id claim")
             return None
 
         try:
-            # Use DRF's JWT authentication to validate and decode token
-            jwt_auth = JWTAuthentication()
-            validated_token = jwt_auth.get_validated_token(auth_header.split(" ")[1])
-
-            # Extract firm_id from token payload
-            firm_id = validated_token.get("firm_id")
-            if not firm_id:
-                logger.debug("JWT token missing firm_id claim")
-                return None
-
             firm = Firm.objects.get(id=firm_id, status__in=["trial", "active"])
             return firm
-
-        except InvalidToken:
-            logger.debug("Invalid JWT token")
-            return None
         except Firm.DoesNotExist:
             logger.warning(f"Firm {firm_id} from token not found or inactive")
             return None

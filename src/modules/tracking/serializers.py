@@ -225,6 +225,7 @@ class SiteMessageManifestRequestSerializer(serializers.Serializer):
         firm = getattr(self, "_firm", None) or Firm.objects.get(slug=attrs["firm_slug"])
         self._tracking_key, self._used_fallback_key = validate_tracking_key(
             firm=firm, secret=attrs["tracking_secret"], public_id=attrs.get("tracking_key_id")
+        )
         return attrs
 
     @property

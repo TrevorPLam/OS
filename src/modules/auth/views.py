@@ -5,15 +5,21 @@ SECURITY: All public authentication endpoints are rate-limited to prevent
 brute force attacks. See django-ratelimit documentation for configuration.
 """
 
+from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django_ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenViewBase
 
 from .serializers import ChangePasswordSerializer, LoginSerializer, RegisterSerializer, UserSerializer
+from modules.auth.cookies import clear_auth_cookies, set_auth_cookies
 
 User = get_user_model()
 
@@ -45,18 +51,16 @@ class RegisterView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
-        # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
-
-        return Response(
+        response = Response(
             {
                 "user": UserSerializer(user).data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
                 "message": "User created successfully",
             },
             status=status.HTTP_201_CREATED,
         )
+        set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
+        return response
 
 
 @api_view(["POST"])
@@ -88,15 +92,43 @@ def login_view(request):
     # Generate JWT tokens
     refresh = RefreshToken.for_user(user)
 
-    return Response(
+    response = Response(
         {
             "user": UserSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
             "message": "Login successful",
         },
         status=status.HTTP_200_OK,
     )
+    set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
+    return response
+
+
+@method_decorator(ratelimit(key="ip", rate="20/m", method="POST", block=True), name="post")
+class CookieTokenRefreshView(TokenViewBase):
+    serializer_class = TokenRefreshSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.data.get("refresh") or request.COOKIES.get(settings.REFRESH_TOKEN_COOKIE_NAME)
+        if not refresh_token:
+            return Response({"error": "Refresh token missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = self.get_serializer(data={"refresh": refresh_token})
+        try:
+            serializer.is_valid(raise_exception=True)
+        except (InvalidToken, TokenError):
+            return Response({"error": "Refresh token invalid"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        access = str(serializer.validated_data["access"])
+        rotated_refresh = serializer.validated_data.get("refresh")
+        refresh_value = str(rotated_refresh) if rotated_refresh else refresh_token
+        response = Response({"message": "Token refreshed"}, status=status.HTTP_200_OK)
+        set_auth_cookies(
+            response,
+            access_token=access,
+            refresh_token=refresh_value,
+        )
+        return response
 
 
 @api_view(["POST"])
@@ -110,14 +142,18 @@ def logout_view(request):
         "refresh": "refresh_token_here"
     }
     """
-    try:
-        refresh_token = request.data.get("refresh")
-        if refresh_token:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    refresh_token = request.data.get("refresh") or request.COOKIES.get(settings.REFRESH_TOKEN_COOKIE_NAME)
+
+    response = Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+    if refresh_token:
+        try:
+            RefreshToken(refresh_token).blacklist()
+        except Exception:
+            # If the token is already invalid/expired, proceed with cookie clearing
+            response.data = {"message": "Logout successful (token already invalidated)"}
+
+    clear_auth_cookies(response)
+    return response
 
 
 @api_view(["GET"])

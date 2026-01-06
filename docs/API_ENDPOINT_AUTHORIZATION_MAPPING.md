@@ -55,7 +55,7 @@ IsAuthenticated → IsFirmOwnerOrAdmin → FirmScopedQuerySet
 | `/logout/` | POST | logout_view | IsAuthenticated | - |
 | `/profile/` | GET | user_profile_view | IsAuthenticated | Admin: /users |
 | `/change-password/` | POST | ChangePasswordView | IsAuthenticated | Admin: /users |
-| `/token/refresh/` | POST | TokenRefreshView | - | - |
+| `/token/refresh/` | POST | CookieTokenRefreshView | - | Cookie-based token refresh |
 
 ### Firm Management (`/api/firm/`)
 

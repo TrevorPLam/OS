@@ -17,6 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from allauth.socialaccount.models import SocialAccount, SocialApp
 
 from modules.firm.models import FirmMembership
+from modules.auth.cookies import set_auth_cookies
 
 User = get_user_model()
 
@@ -87,18 +88,21 @@ def oauth_callback(request):
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
         
-        return Response({
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "username": user.username,
+        response = Response(
+            {
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "username": user.username,
+                },
+                "message": "OAuth login successful",
             },
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "message": "OAuth login successful"
-        }, status=status.HTTP_200_OK)
+            status=status.HTTP_200_OK,
+        )
+        set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
+        return response
         
     except Exception as e:
         return Response(
