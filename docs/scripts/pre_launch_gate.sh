@@ -21,7 +21,7 @@ import re
 allowed = {"READY", "BLOCKED", "IN-PROGRESS", "IN-REVIEW"}
 with open("TODO.md", "r", encoding="utf-8") as handle:
     for line in handle:
-        if line.startswith("Status:"):
+        if line.strip().startswith("Status:"):
             status = line.split(":", 1)[1].strip()
             if status not in allowed:
                 raise SystemExit(1)
