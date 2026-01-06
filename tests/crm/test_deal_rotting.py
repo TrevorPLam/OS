@@ -33,7 +33,7 @@ def stage(db, pipeline):
 
 
 @pytest.mark.django_db
-def test_check_and_mark_stale_deals_marks_inactive(firm, pipeline, stage, user):
+def test_check_and_mark_stale_deals_marks_stale(firm, pipeline, stage, user):
     stale_activity = timezone.now().date() - timedelta(days=45)
     Deal.objects.create(
         firm=firm,
