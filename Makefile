@@ -8,7 +8,7 @@ else
 Q :=
 endif
 
-.PHONY: setup lint test dev openapi docs-validate docs-check verify
+.PHONY: setup lint test dev openapi docs-validate docs-check verify dashboard
 
 setup:
 	$(Q)set +e
@@ -159,3 +159,8 @@ verify:
 	$(Q)if [ $$backend_lint_status -ne 0 ] || [ $$frontend_lint_status -ne 0 ] || [ $$docs_status -ne 0 ] || \
 		[ $$backend_test_status -ne 0 ] || [ $$frontend_test_status -ne 0 ] || [ $$openapi_status -ne 0 ] || [ $$openapi_diff_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
+
+dashboard:
+	$(Q)echo "=== GENERATING DIAMOND STANDARD DASHBOARD ==="
+	$(Q)python3 scripts/diamond_standard_dashboard.py
+	$(Q)if [ $$? -eq 0 ]; then echo "DASHBOARD GENERATION: PASS"; else echo "DASHBOARD GENERATION: FAIL"; exit 1; fi

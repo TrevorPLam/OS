@@ -47,3 +47,33 @@ Required outputs:
   - (none)
 - Questions for Trevor:
   - (none)
+
+### 2026-01-06 — Comprehensive Dependency Audit
+- Agent: AGENT
+- Scope: Complete inventory (requirements.txt, requirements-dev.txt, package.json)
+- Method: Analyzed 47 Python deps, 23 dev deps, 14 frontend deps; classified by criticality
+- Findings:
+  - ✅ No secrets found; all credentials properly loaded from environment.
+  - ✅ No auth/payment vulnerabilities detected.
+  - ✅ Minimal frontend dependencies (well-chosen).
+  - ⚠️ 3 unused dev dependencies: factory-boy, faker, import-linter.
+  - ⚠️ boto3 1.34.11 outdated (should upgrade).
+  - ⚠️ psycopg2-binary should replace with psycopg2 for production.
+  - ⚠️ 5 native binary dependencies requiring careful maintenance.
+  - ⚠️ python3-saml last updated 2+ years ago (maintenance concern).
+  - ⚠️ Pillow: heavy dependency for single watermarking usage.
+- High-Risk Dependencies: psycopg2-binary, boto3, cryptography, python3-saml, django-allauth
+- Tasks created/updated:
+  - T-031: Remove unused dev dependencies (P2, AGENT)
+  - T-032: Consolidate pytest-cov/coverage (P2, AGENT)
+  - T-033: Replace psycopg2-binary → psycopg2 (P1, AGENT)
+  - T-034: Upgrade boto3 (P1, AGENT)
+  - T-035: Evaluate python3-saml maintenance (P2, Trevor)
+  - T-036: Evaluate DocuSign SDK adoption (P2, AGENT)
+  - T-037: Evaluate Pillow single usage (P3, Trevor)
+  - T-038: Create dependency documentation (P2, AGENT)
+- Recommendation: Execute P1 tasks (T-033, T-034) within 7 days. Overall dependency health is GOOD.
+- Questions for Trevor:
+  - Is SAML authentication actively used in production? (affects T-035)
+  - Is image watermarking feature essential? (affects T-037)
+  - Any known issues with current DocuSign integration? (affects T-036)

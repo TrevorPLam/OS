@@ -59,3 +59,23 @@ Required outputs:
   - T-022, T-023, T-024 (missing reference docs tracked)
 - Questions for Trevor:
   - (none)
+
+### 2026-01-06 — Documentation Audit
+- Agent: AGENT
+- Scope: Full docs audit (240+ markdown files, governance hierarchy, task leakage, archival health)
+- Findings:
+  - ✅ No contradictions between docs and Constitution/READMEAI/TODO.
+  - ✅ Authority hierarchy correctly respected throughout.
+  - ✅ Task leakage clean - all TODO items properly tracked in TODO.md.
+  - ✅ Archive structure healthy with clear policies.
+  - ⚠️ DOCS_INDEX.md limited coverage - omits implementation docs, policies, integration guides.
+  - ⚠️ 35 numbered docs files (docs/1-35) without .md extension, not indexed.
+  - ⚠️ User guides directory references missing files.
+- Tasks created/updated:
+  - T-039: Review numbered docs files (P3, Trevor, BLOCKED)
+  - T-040: Expand DOCS_INDEX.md (P3, AGENT, READY)
+  - T-041: Create missing user guides (P3, Trevor, BLOCKED)
+- Questions for Trevor:
+  - Are numbered docs files (docs/1-35) still needed?
+  - Do you want end-user guides for firm admins and client portal users?
+  - Should PROJECT_STATUS.md be populated?
