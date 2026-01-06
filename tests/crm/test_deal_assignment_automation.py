@@ -53,7 +53,7 @@ def test_auto_assign_deal_round_robin(firm, pipeline, stage, users):
         pipeline=pipeline,
         stage=stage,
         name="First Deal",
-        value="100.00",
+        value=Decimal("100.00"),
         probability=20,
         expected_close_date=date.today(),
         created_by=user_a,
