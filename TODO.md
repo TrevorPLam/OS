@@ -819,7 +819,7 @@ Effort: M
 Priority: P3
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Context:
 - API v1 accumulating technical debt.
 - Future breaking changes need deprecation strategy.
