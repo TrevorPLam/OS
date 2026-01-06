@@ -44,15 +44,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ## 5) Run migrations
 
 ```bash
-cd src
-python manage.py migrate
-```
-
-## 6) Start the server
-
-```bash
-python manage.py runserver 0.0.0.0:8000
-```
+python src/manage.py migrate
 
 ## 7) Confirm it is running
 
