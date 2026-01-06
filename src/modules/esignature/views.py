@@ -268,15 +268,19 @@ def docusign_webhook(request):
         # Get raw payload
         payload_bytes = request.body
         
-        # Verify webhook signature
+        # Verify webhook signature (SEC-6)
         webhook_secret = getattr(settings, "DOCUSIGN_WEBHOOK_SECRET", None)
-        if webhook_secret:
-            is_valid = DocuSignService.verify_webhook_signature(
-                payload_bytes, signature, webhook_secret
-            )
-            if not is_valid:
-                logger.warning("Invalid DocuSign webhook signature")
-                return HttpResponse(status=401)
+        if not webhook_secret:
+            # SEC-6: Reject webhooks when secret is not configured
+            logger.error("DOCUSIGN_WEBHOOK_SECRET not configured, rejecting webhook request")
+            return HttpResponse("Forbidden - Webhook secret not configured", status=403)
+        
+        is_valid = DocuSignService.verify_webhook_signature(
+            payload_bytes, signature, webhook_secret
+        )
+        if not is_valid:
+            logger.warning("Invalid DocuSign webhook signature")
+            return HttpResponse("Forbidden - Invalid signature", status=403)
         
         # Parse payload
         payload_str = payload_bytes.decode("utf-8")

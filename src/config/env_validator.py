@@ -66,6 +66,7 @@ class EnvironmentValidator:
             self.check_insecure_defaults()
             self.check_allowed_hosts()
             self.check_secret_key_strength()
+            self.check_webhook_secrets()
 
         self.report_results()
 
@@ -132,6 +133,30 @@ class EnvironmentValidator:
         if secret_key.lower() in ["secret", "password", "key"]:
             self.errors.append(
                 "❌ SECURITY RISK: DJANGO_SECRET_KEY is a common word. " "Use a cryptographically random string."
+            )
+
+    def check_webhook_secrets(self) -> None:
+        """Validate webhook secrets are configured if webhooks are enabled (SEC-6)."""
+        # Check DocuSign webhook secret
+        docusign_client_id = os.environ.get("DOCUSIGN_CLIENT_ID")
+        docusign_webhook_secret = os.environ.get("DOCUSIGN_WEBHOOK_SECRET")
+        
+        if docusign_client_id and not docusign_webhook_secret:
+            self.errors.append(
+                "❌ SECURITY RISK (SEC-6): DOCUSIGN_CLIENT_ID is set but DOCUSIGN_WEBHOOK_SECRET is missing. "
+                "Webhook signature verification will reject all DocuSign webhooks. "
+                "Set DOCUSIGN_WEBHOOK_SECRET or disable DocuSign integration."
+            )
+        
+        # Check Twilio auth token
+        twilio_account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
+        twilio_auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
+        
+        if twilio_account_sid and not twilio_auth_token:
+            self.errors.append(
+                "❌ SECURITY RISK (SEC-6): TWILIO_ACCOUNT_SID is set but TWILIO_AUTH_TOKEN is missing. "
+                "Webhook signature verification will reject all Twilio webhooks. "
+                "Set TWILIO_AUTH_TOKEN or disable Twilio integration."
             )
 
     def report_results(self) -> None:

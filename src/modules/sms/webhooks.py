@@ -42,7 +42,7 @@ OPT_OUT_KEYWORDS = [
 
 def _verify_twilio_signature(request):
     """
-    Verify Twilio webhook signature (CONST-3 compliance).
+    Verify Twilio webhook signature (SEC-6 compliance).
     
     Validates that the request is genuinely from Twilio by checking
     the X-Twilio-Signature header against the expected signature.
@@ -55,8 +55,9 @@ def _verify_twilio_signature(request):
     """
     auth_token = os.getenv('TWILIO_AUTH_TOKEN')
     if not auth_token:
-        logger.warning("TWILIO_AUTH_TOKEN not configured, skipping signature verification")
-        return True  # Allow in development mode
+        # SEC-6: Reject webhooks when auth token is not configured
+        logger.error("TWILIO_AUTH_TOKEN not configured, rejecting webhook request")
+        return False  # Reject if no auth token configured
     
     try:
         from twilio.request_validator import RequestValidator
