@@ -76,5 +76,7 @@ def test_get_stale_deal_report_returns_expected_fields(firm, pipeline, stage, us
 
     assert report["total_stale_deals"] == 1
     assert report["total_value_at_risk"] == 2500.0
-    assert report["age_distribution"]["30-60 days"] >= 1
-    assert any(owner["deal_count"] == 1 for owner in report["by_owner"])
+    assert report["age_distribution"]["30-60 days"] == 1
+    assert len(report["by_owner"]) == 1
+    assert report["by_owner"][0]["deal_count"] == 1
+    assert report["by_owner"][0]["owner_id"] == user.id
