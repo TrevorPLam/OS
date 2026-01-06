@@ -210,13 +210,19 @@ class FirmScopedMixin:
 
         Override this method if you need additional filtering.
         """
-        if not hasattr(self, "model"):
+        base_queryset = getattr(self, "queryset", None)
+        model = getattr(self, "model", None)
+
+        if base_queryset is not None and model is None:
+            model = base_queryset.model
+
+        if model is None:
             raise NotImplementedError(
-                f"{self.__class__.__name__} must define 'model' attribute " "when using FirmScopedMixin"
+                f"{self.__class__.__name__} must define 'model' or 'queryset' when using FirmScopedMixin"
             )
 
         firm = get_request_firm(self.request)
-        return firm_scoped_queryset(self.model, firm)
+        return firm_scoped_queryset(model, firm, base_queryset=base_queryset)
 
 
 def _get_current_firm_setting() -> str | None:

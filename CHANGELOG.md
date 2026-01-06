@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Inventoried all firm-scoped tables and enabled PostgreSQL RLS policies via `app.current_firm_id` session guards (T-119, T-121).
   - Added middleware/background job session scoping plus raw-SQL enforcement tests for RLS (T-120, T-122).
 
+- **CRM Quality** (2026-01-06)
+  - **T-026**: Added dedicated CRM deal tests covering model calculations, view scoping and stage moves, assignment automation, stage automation actions, and stale-deal detection reports.
+
+- **RLS Operations** (2026-01-06)
+  - **T-123/T-060**: Documented RLS assumptions, limitations, debugging steps, and validation checks for tenant-scoped tables (SECURITY.md, SECURITY_RLS.md).
+
 - **Web Personalization** (2026-01-07)
   - **PERS-3**: Added site message delivery endpoint with targeting, frequency caps, and impression logging.
   - **PERS-4**: Introduced admin UI with preview + A/B variant configuration for site messages.
