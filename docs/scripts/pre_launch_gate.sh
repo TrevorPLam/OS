@@ -2,8 +2,10 @@
 # docs/scripts/pre_launch_gate.sh — Pre-launch checklist gate
 set -euo pipefail
 
-CHECKLIST_PATH="docs/PRE_LAUNCH_CHECKLIST.md"
-TODO_PATH="TODO.md"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+CHECKLIST_PATH="${SCRIPT_DIR}/../PRE_LAUNCH_CHECKLIST.md"
+TODO_PATH="${SCRIPT_DIR}/../../TODO.md"
 
 failures=()
 
@@ -16,12 +18,14 @@ if [[ ! -f "${TODO_PATH}" ]]; then
 fi
 
 if [[ -f "${TODO_PATH}" ]]; then
-  python3 - <<'PY' || failures+=("TODO.md contains invalid Status values")
+  TODO_PATH="${TODO_PATH}" python3 - <<'PY' || failures+=("TODO.md contains invalid Status values")
+import os
 import re
 allowed = {"READY", "BLOCKED", "IN-PROGRESS", "IN-REVIEW"}
-with open("TODO.md", "r", encoding="utf-8") as handle:
+todo_path = os.environ["TODO_PATH"]
+with open(todo_path, "r", encoding="utf-8") as handle:
     for line in handle:
-        if line.strip().startswith("Status:"):
+        if line.startswith("Status:"):
             status = line.split(":", 1)[1].strip()
             if status not in allowed:
                 raise SystemExit(1)
@@ -29,12 +33,14 @@ PY
 fi
 
 if [[ -f "${CHECKLIST_PATH}" ]]; then
-  python3 - <<'PY' || failures+=("Pre-launch checklist has unchecked items")
+  CHECKLIST_PATH="${CHECKLIST_PATH}" python3 - <<'PY' || failures+=("Pre-launch checklist has unchecked items")
+import os
 import re
 
 unchecked = 0
 in_code_block = False
-with open("docs/PRE_LAUNCH_CHECKLIST.md", "r", encoding="utf-8") as handle:
+checklist_path = os.environ["CHECKLIST_PATH"]
+with open(checklist_path, "r", encoding="utf-8") as handle:
     for line in handle:
         if line.strip().startswith("```"):
             in_code_block = not in_code_block
