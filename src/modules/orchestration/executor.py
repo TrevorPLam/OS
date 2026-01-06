@@ -253,6 +253,13 @@ class OrchestrationExecutor:
             Step result dict
 
         DOC-11.1: Step handlers must be idempotent and accept idempotency_key.
+
+        Meta-commentary:
+        - **Current Status:** Dispatches built-in step types and custom handlers by name.
+        - **Follow-up (T-066):** Add handler registry and compensation hooks for custom steps.
+        - **Assumption:** Step definitions provide valid handler names for custom types.
+        - **Missing:** Handler existence validation and structured error classification.
+        - **Limitation:** Custom handler resolution is string-based and untyped.
         """
         step_type = step_def.get("type", "custom")
         handler_name = step_def.get("handler")

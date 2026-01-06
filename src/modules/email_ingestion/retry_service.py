@@ -32,6 +32,13 @@ class ErrorClassifier:
 
         Returns:
             error_class: transient | retryable | non_retryable | rate_limited
+
+        Meta-commentary:
+        - **Current Status:** Heuristic classification based on exception types and messages.
+        - **Follow-up (T-066):** Add provider-specific mappings and structured error codes.
+        - **Assumption:** Error messages include reliable rate-limit keywords.
+        - **Missing:** Metrics to validate classification accuracy over time.
+        - **Limitation:** String matching is brittle across providers and SDK versions.
         """
         error_type = type(error).__name__
         error_msg = str(error).lower()

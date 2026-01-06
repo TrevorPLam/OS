@@ -34,6 +34,13 @@ class WorkflowExecutor:
     Main workflow execution engine.
 
     Handles node-by-node execution with branching, waits, and goals.
+
+    Meta-commentary:
+    - **Current Status:** Core execution flow implemented with node traversal and wait handling.
+    - **Follow-up (T-066):** Add trigger indexing and compensation logic for failed nodes.
+    - **Assumption:** Workflow graph is valid and nodes/edges are consistent at runtime.
+    - **Missing:** Centralized retry policy enforcement and execution locking.
+    - **Limitation:** Error handling is coarse-grained; no per-node retry metadata.
     """
 
     def __init__(self, execution: WorkflowExecution):

@@ -70,6 +70,13 @@ class TemplateInstantiator:
             ValueError: If template not published or validation fails
 
         DOC-12.1: Instantiation MUST be deterministic.
+
+        Meta-commentary:
+        - **Current Status:** Instantiates task/milestone nodes, then links dependencies.
+        - **Follow-up (T-066):** Implement conditional nodes and richer DAG traversal rules.
+        - **Assumption:** validate_dag() guarantees an acyclic, fully connected template.
+        - **Missing:** Conditional node execution and partial instantiation recovery.
+        - **Limitation:** Non-task nodes are ignored during instantiation.
         """
         if self.template.status != "published":
             raise ValueError("Only published templates can be instantiated")

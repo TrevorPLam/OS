@@ -13,6 +13,8 @@ This checklist ensures the platform meets **Diamond Standard (95/100)** quality 
 
 **Deployment is BLOCKED until all items are checked.**
 
+**Gate script:** `docs/scripts/pre_launch_gate.sh` (fails if any checklist items are unchecked or TODO statuses are invalid).
+
 ---
 
 ## Phase 1: Production Blockers (P0)

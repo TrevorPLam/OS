@@ -11,11 +11,11 @@ CRITICAL REQUIREMENTS (from NOTES_TO_CLAUDE.md):
 - Purge operations must be fully logged
 
 Meta-commentary:
-- Current Status: Audit model complete; automatic emission wired for config changes only.
-- Follow-up (T-045): Add Sentry breadcrumbs for critical audit events.
-- Assumption: Content is never logged (metadata only) per privacy-first design.
-- Missing: Retention policy enforcement (manual cleanup required; no TTL automation).
-- Limitation: Audit records are immutable (no updates, only creates) per Tier 3 governance.
+- **Current Status:** Audit model complete; automatic emission wired for config changes only.
+- **Follow-up (T-045):** Add Sentry breadcrumbs for critical audit events.
+- **Assumption:** Content is never logged (metadata only) per privacy-first design.
+- **Missing:** Retention policy enforcement (manual cleanup required; no TTL automation).
+- **Limitation:** Audit records are immutable (no updates, only creates) per Tier 3 governance.
 """
 
 from django.conf import settings
