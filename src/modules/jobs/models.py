@@ -213,6 +213,12 @@ class JobQueue(models.Model):
 
         Returns:
             True if successfully claimed, False if already claimed
+
+        Meta-commentary:
+        - **Current Status:** Claiming relies on database row locks only; there is no secondary heartbeat to detect abandoned claims or worker crashes.
+        - **Follow-up (T-067):** Add lock TTL/heartbeat column and a reaper that requeues jobs when `claimed_at` is stale to avoid indefinite stuck jobs.
+        - **Assumption:** Workers supply unique `worker_id` values; duplicate IDs across processes could mask concurrent processing collisions.
+        - **Limitation:** Priority ordering and per-category concurrency limits are handled upstream; this method will claim any pending job matching the PK regardless of queue saturation.
         """
         # Use SELECT FOR UPDATE SKIP LOCKED for concurrency control
         job = (

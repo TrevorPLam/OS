@@ -20,7 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 class DocuSignService:
-    """Service for interacting with DocuSign eSignature API."""
+    """
+    Service for interacting with DocuSign eSignature API.
+
+    Meta-commentary:
+    - **Current Status:** Webhook signature verification is optional when `DOCUSIGN_WEBHOOK_SECRET` is unset, leaving Connect callbacks unauthenticated in some deployments.
+    - **Follow-up (T-067):** Add retry/backoff with idempotency keys for envelope create/send calls so transient network errors don't produce duplicate envelopes.
+    - **Assumption:** Connection tokens are refreshed externally when `DocuSignConnection` is shared; `ensure_valid_token` only updates the bound connection instance and does not refresh per-request when no connection is provided.
+    - **Limitation:** Envelope status reconciliation is one-way; there is no periodic audit to detect missing webhook events or reconcile completed envelopes back to source records.
+    """
     
     # DocuSign OAuth and API endpoints
     OAUTH_BASE_URL = "https://account.docusign.com"
