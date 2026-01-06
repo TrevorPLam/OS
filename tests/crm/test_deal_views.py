@@ -58,7 +58,7 @@ def test_deal_list_is_firm_scoped(factory, firm, pipeline, stages, user):
         pipeline=pipeline,
         stage=stages[0],
         name="Firm Deal",
-        value="100.00",
+        value=Decimal("100.00"),
         probability=20,
         expected_close_date=date.today(),
         owner=user,
