@@ -56,25 +56,6 @@ Effort: M
 
 ### Phase 1 — Security and tenant isolation (P1/P3)
 
-### T-073: Tenant isolation enforcement audit (firm-scoped query correctness)
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Context:
-- Tenant isolation depends on always applying firm scoping at queryset boundaries.
-Acceptance Criteria:
-- [ ] Identify endpoints/services that use Model.objects.* where firm scoping is required.
-- [ ] Replace with firm-scoped managers/querysets where appropriate.
-- [ ] Add cross-firm negative tests (data leakage prevention).
-- [ ] Document the rule in CONTRIBUTING.md.
-References:
-- src/modules/firm/utils.py
-- src/api/
-- src/modules/
-Dependencies: None
-Effort: L
-
 ### T-060: PostgreSQL Row-Level Security (RLS) defense-in-depth
 Priority: P3
 Type: SECURITY
@@ -89,65 +70,6 @@ References:
 - docs/SECURITY.md
 Dependencies: T-119, T-120, T-121, T-122, T-123
 Effort: L
-
-### T-119: RLS 1/5 — Inventory tenant-scoped tables
-Priority: P3
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Context:
-- Need an explicit inventory before writing policies.
-Acceptance Criteria:
-- [ ] List all tables requiring firm scoping.
-- [ ] Verify firm_id columns and constraints.
-References:
-- src/modules/
-Dependencies: None
-Effort: M
-
-### T-120: RLS 2/5 — Set app.current_firm_id for DB session
-Priority: P3
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Context:
-- Policies require an unspoofable session variable.
-Acceptance Criteria:
-- [ ] Middleware sets current_setting('app.current_firm_id') safely per request.
-- [ ] Background jobs set firm context where applicable.
-References:
-- src/modules/core/middleware.py
-Dependencies: T-119
-Effort: M
-
-### T-121: RLS 3/5 — Add migrations to enable RLS + policies
-Priority: P3
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Context:
-- RLS must be enabled and policies installed via migrations.
-Acceptance Criteria:
-- [ ] Migration enables RLS on inventory tables.
-- [ ] Policies enforce firm_id = current_setting('app.current_firm_id').
-References:
-- src/
-Dependencies: T-119, T-120
-Effort: L
-
-### T-122: RLS 4/5 — Tests validating RLS with direct SQL
-Priority: P3
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Context:
-- Need proof RLS works even if app code is wrong.
-Acceptance Criteria:
-- [ ] Tests attempt cross-firm selects via raw SQL and verify rejection.
-References:
-- tests/
-Dependencies: T-121
-Effort: M
 
 ### T-123: RLS 5/5 — Document RLS model + ops implications
 Priority: P3

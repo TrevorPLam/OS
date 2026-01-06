@@ -18,11 +18,16 @@ import json
 import logging
 
 from django.http import HttpRequest, JsonResponse
+from django.db import connection
 from django.utils.deprecation import MiddlewareMixin
 
 from modules.auth.authentication import CookieJWTAuthentication
 from modules.firm.models import BreakGlassSession, Firm, FirmMembership
-from modules.firm.utils import get_active_break_glass_session
+from modules.firm.utils import (
+    clear_current_firm_db_session,
+    get_active_break_glass_session,
+    set_current_firm_db_session,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -319,3 +324,34 @@ class BreakGlassImpersonationMiddleware:
                 "request_id": request.META.get("HTTP_X_REQUEST_ID", ""),
             },
         )
+
+
+class FirmRLSSessionMiddleware:
+    """
+    Apply firm context to PostgreSQL session variables for RLS policies.
+
+    Must execute after FirmContextMiddleware so request.firm is available.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest):
+        if connection.vendor != "postgresql":
+            return self.get_response(request)
+
+        # Defensive reset in case the connection is reused
+        clear_current_firm_db_session()
+
+        firm = getattr(request, "firm", None)
+        firm_id = getattr(firm, "id", None)
+
+        if firm_id is None:
+            return self.get_response(request)
+
+        set_current_firm_db_session(firm_id)
+
+        try:
+            return self.get_response(request)
+        finally:
+            clear_current_firm_db_session()

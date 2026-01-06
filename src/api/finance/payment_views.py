@@ -10,7 +10,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from modules.clients.models import ClientPortalUser
 from modules.clients.permissions import IsPortalUserOrFirmUser
+from modules.firm.utils import FirmScopingError, get_request_firm
 from modules.finance.models import Invoice
 from modules.finance.services import StripeService
 
@@ -27,6 +29,48 @@ class PaymentViewSet(viewsets.ViewSet):
 
     permission_classes = [IsAuthenticated, IsPortalUserOrFirmUser]
 
+    def _get_portal_client(self, request):
+        portal_user = (
+            ClientPortalUser.objects.select_related("client")
+            .filter(user=request.user)
+            .first()
+        )
+        if not portal_user:
+            return None, None
+
+        if not portal_user.can_view_billing:
+            return None, Response(
+                {"error": "Billing access is disabled for this portal user."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return portal_user.client, None
+
+    def _resolve_invoice(self, request):
+        """Return a firm-scoped invoice or an error response."""
+        try:
+            firm = get_request_firm(request)
+        except FirmScopingError as exc:
+            return None, Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+
+        invoice_id = request.data.get("invoice_id")
+        if not invoice_id:
+            return None, Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            invoice = Invoice.firm_scoped.for_firm(firm).select_related("client").get(id=invoice_id)
+        except Invoice.DoesNotExist:
+            return None, Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        portal_client, portal_error = self._get_portal_client(request)
+        if portal_error:
+            return None, portal_error
+
+        if portal_client and portal_client.id != invoice.client_id:
+            return None, Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return invoice, None
+
     @action(detail=False, methods=["post"])
     def create_payment_intent(self, request):
         """
@@ -39,17 +83,11 @@ class PaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
             customer_email = request.data.get("customer_email")
 
-            if not invoice_id:
-                return Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Create or get Stripe customer
             customer_name = invoice.client.company_name if hasattr(invoice, "client") else "Customer"
@@ -98,15 +136,12 @@ class PaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
             payment_intent_id = request.data.get("payment_intent_id")
             amount_paid = request.data.get("amount_paid")
 
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Verify payment with Stripe
             payment_intent = StripeService.retrieve_payment_intent(payment_intent_id)
@@ -148,13 +183,9 @@ class PaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
-
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Create or get Stripe customer
             customer_name = invoice.client.company_name

@@ -247,3 +247,81 @@ References:
 - src/frontend/
 Dependencies: T-070, T-071
 Effort: M
+
+### T-073: Tenant isolation enforcement audit (firm-scoped query correctness)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- Tenant isolation depends on always applying firm scoping at queryset boundaries.
+Acceptance Criteria:
+- [x] Identify endpoints/services that use Model.objects.* where firm scoping is required.
+- [x] Replace with firm-scoped managers/querysets where appropriate.
+- [x] Add cross-firm negative tests (data leakage prevention).
+- [x] Document the rule in CONTRIBUTING.md.
+References:
+- src/modules/firm/utils.py
+- src/api/
+- src/modules/
+Dependencies: None
+Effort: L
+
+### T-119: RLS 1/5 — Inventory tenant-scoped tables
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- Need an explicit inventory before writing policies.
+Acceptance Criteria:
+- [x] List all tables requiring firm scoping.
+- [x] Verify firm_id columns and constraints.
+References:
+- src/modules/
+Dependencies: None
+Effort: M
+
+### T-120: RLS 2/5 — Set app.current_firm_id for DB session
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- Policies require an unspoofable session variable.
+Acceptance Criteria:
+- [x] Middleware sets current_setting('app.current_firm_id') safely per request.
+- [x] Background jobs set firm context where applicable.
+References:
+- src/modules/core/middleware.py
+Dependencies: T-119
+Effort: M
+
+### T-121: RLS 3/5 — Add migrations to enable RLS + policies
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- RLS must be enabled and policies installed via migrations.
+Acceptance Criteria:
+- [x] Migration enables RLS on inventory tables.
+- [x] Policies enforce firm_id = current_setting('app.current_firm_id').
+References:
+- src/
+Dependencies: T-119, T-120
+Effort: L
+
+### T-122: RLS 4/5 — Tests validating RLS with direct SQL
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- Need proof RLS works even if app code is wrong.
+Acceptance Criteria:
+- [x] Tests attempt cross-firm selects via raw SQL and verify rejection.
+References:
+- tests/
+Dependencies: T-121
+Effort: M

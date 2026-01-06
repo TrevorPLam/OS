@@ -105,6 +105,8 @@ MIDDLEWARE = [
     "modules.core.middleware.TelemetryRequestMiddleware",
     # TIER 0: Firm context resolution (must come after AuthenticationMiddleware)
     "modules.firm.middleware.FirmContextMiddleware",
+    # TIER 0: Apply firm context to PostgreSQL session for RLS
+    "modules.firm.middleware.FirmRLSSessionMiddleware",
     # Sentry context middleware (must come after FirmContextMiddleware to capture firm context)
     "config.sentry_middleware.SentryContextMiddleware",
     # TIER 0: Portal containment (must come after FirmContextMiddleware)

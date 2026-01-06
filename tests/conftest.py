@@ -19,12 +19,14 @@ django.setup()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def django_test_environment():
+def django_test_environment(django_db_setup, django_db_blocker):
     test_runner = DiscoverRunner()
     test_runner.setup_test_environment()
-    old_config = test_runner.setup_databases()
+    with django_db_blocker.unblock():
+        old_config = test_runner.setup_databases()
 
     yield
 
-    test_runner.teardown_databases(old_config)
+    with django_db_blocker.unblock():
+        test_runner.teardown_databases(old_config)
     test_runner.teardown_test_environment()

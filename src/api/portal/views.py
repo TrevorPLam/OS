@@ -604,9 +604,10 @@ class PortalAppointmentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.Re
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Get appointment type
+        firm = get_request_firm(request)
+
         try:
-            apt_type = AppointmentType.objects.get(id=appointment_type_id)
+            apt_type = AppointmentType.firm_scoped.for_firm(firm).get(id=appointment_type_id)
         except AppointmentType.DoesNotExist:
             return Response(
                 {"error": "Appointment type not found"},
@@ -650,8 +651,10 @@ class PortalAppointmentViewSet(QueryTimeoutMixin, PortalAccessMixin, viewsets.Re
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        firm = get_request_firm(request)
+
         try:
-            apt_type = AppointmentType.objects.get(id=appointment_type_id)
+            apt_type = AppointmentType.firm_scoped.for_firm(firm).get(id=appointment_type_id)
         except AppointmentType.DoesNotExist:
             return Response(
                 {"error": "Appointment type not found"},

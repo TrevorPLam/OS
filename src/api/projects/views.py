@@ -189,18 +189,20 @@ class ProjectViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
             results = []
             
             if user_id:
-                # Single user
-                from django.contrib.auth import get_user_model
-                User = get_user_model()
-                try:
-                    user = User.objects.get(id=user_id)
-                    metrics = Project.calculate_user_utilization(firm, user, start_date, end_date)
-                    results.append(metrics)
-                except User.DoesNotExist:
-                    return Response({"error": f"User {user_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+                # Single user within the current firm
+                membership = (
+                    FirmMembership.objects.select_related("user")
+                    .filter(firm=firm, user_id=user_id, is_active=True)
+                    .first()
+                )
+                if not membership:
+                    return Response({"error": f"User {user_id} not found in this firm"}, status=status.HTTP_404_NOT_FOUND)
+
+                metrics = Project.calculate_user_utilization(firm, membership.user, start_date, end_date)
+                results.append(metrics)
             else:
                 # All team members
-                memberships = FirmMembership.objects.filter(firm=firm, is_active=True)
+                memberships = FirmMembership.objects.select_related("user").filter(firm=firm, is_active=True)
                 for membership in memberships:
                     metrics = Project.calculate_user_utilization(firm, membership.user, start_date, end_date)
                     results.append(metrics)

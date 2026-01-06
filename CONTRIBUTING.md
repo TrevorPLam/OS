@@ -5,7 +5,7 @@ Thanks for your interest in improving ConsultantPro. This guide outlines expecta
 ## Ground Rules
 
 - **Follow tier governance:** No tier skipping. See ARCHITECTURE.md for tier definitions and rules.
-- **Preserve tenant isolation:** Security and privacy are the highest priority.
+- **Preserve tenant isolation:** Security and privacy are the highest priority. Use `FirmScopedManager`/`FirmScopedMixin` instead of raw `Model.objects.*` for firm data, and wrap background/CLI DB work in `firm_db_session(firm)` so `app.current_firm_id` is set for RLS (see `docs/SECURITY_RLS.md`).
 - **Keep docs accurate:** Update documentation in the same change set as code changes.
 
 ## Development Workflow

@@ -17,3 +17,6 @@ If this repo is deployed/used in production, define a private reporting channel 
 ## Quick checks
 - Run: `make ci`
 - Review: `docs/SECURITY_BASELINE.md`
+
+## Tenant isolation
+- PostgreSQL row-level security is enabled for firm-scoped tables. See `docs/SECURITY_RLS.md` for the table inventory and session-handling rules (`app.current_firm_id` via middleware/background jobs).

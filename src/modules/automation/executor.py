@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
 
+from modules.firm.utils import firm_db_session
 from modules.jobs.models import JobQueue
 
 from .actions import get_action_executor
@@ -65,12 +66,13 @@ class WorkflowExecutor:
         """
         JobQueue.objects.create(
             firm=execution.firm,
-            job_category="orchestration",
+            category="orchestration",
             job_type="workflow_execution",
             idempotency_key=f"workflow_exec_{execution.id}",
             priority=2,  # Medium priority
             payload={
                 "execution_id": execution.id,
+                "firm_id": execution.firm_id,
             },
         )
 
@@ -529,12 +531,14 @@ def process_workflow_execution_job(job_payload: Dict[str, Any]) -> None:
         job_payload: Job payload with execution_id
     """
     execution_id = job_payload.get("execution_id")
-    if not execution_id:
+    firm_id = job_payload.get("firm_id")
+    if not execution_id or not firm_id:
         return
 
-    try:
-        execution = WorkflowExecution.objects.get(id=execution_id)
-        executor = WorkflowExecutor(execution)
-        executor.execute()
-    except WorkflowExecution.DoesNotExist:
-        pass
+    with firm_db_session(firm_id):
+        try:
+            execution = WorkflowExecution.objects.get(id=execution_id)
+            executor = WorkflowExecutor(execution)
+            executor.execute()
+        except WorkflowExecution.DoesNotExist:
+            pass
