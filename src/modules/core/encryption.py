@@ -91,7 +91,16 @@ def _firm_key_id(firm_id: int) -> str:
 
 @dataclass
 class FieldEncryptionService:
-    """Encrypt/decrypt content fields with firm-scoped keys."""
+    """
+    Encrypt/decrypt content fields with firm-scoped keys.
+
+    Meta-commentary:
+    - **Current Status:** Firm-scoped encryption helpers implemented with per-firm key lookup.
+    - **Follow-up (T-065):** Add per-firm key rotation and audit logging for key usage.
+    - **Assumption:** Firm.kms_key_id is configured or DEFAULT_FIRM_KMS_KEY_ID is valid.
+    - **Missing:** Rotation workflows and key retirement validation.
+    - **Limitation:** Key selection is request-time only; no cache invalidation strategy yet.
+    """
 
     backend: EncryptionBackend
 

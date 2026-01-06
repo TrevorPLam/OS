@@ -337,6 +337,13 @@ class DocumentAccessControl(models.Model):
     Access control settings for documents.
     
     Controls how documents can be accessed (view-only, watermarking, etc.).
+
+    Meta-commentary:
+    - **Current Status:** Model captures view-only, watermark, IP, and device access flags.
+    - **Follow-up (T-065):** Wire enforcement for watermarking and IP restrictions in download/view endpoints.
+    - **Assumption:** Document delivery layer consults this model before serving content.
+    - **Missing:** Enforcement logic for watermarking and trusted-device checks.
+    - **Limitation:** Flags are stored but not enforced automatically in views/services.
     """
     
     # TIER 0: Firm tenancy

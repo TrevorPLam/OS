@@ -131,6 +131,13 @@ class CanAccessCRM(BasePermission):
 
     For read operations: staff allowed
     For write operations: manager+ required
+
+    Meta-commentary:
+    - **Current Status:** Role-based read/write checks implemented per DOC-27.1.
+    - **Follow-up (T-065):** Ensure all CRM ViewSets use this permission consistently.
+    - **Assumption:** HTTP method is a reliable proxy for read vs write access.
+    - **Missing:** Endpoint-by-endpoint verification that permissions are wired.
+    - **Limitation:** Does not enforce per-object scoping beyond firm membership.
     """
 
     def has_permission(self, request, view):
@@ -176,6 +183,13 @@ class CanAccessBilling(BasePermission):
 
     Billing role has full access.
     Others can read-only if explicitly allowed.
+
+    Meta-commentary:
+    - **Current Status:** Role checks implemented for billing read/write operations.
+    - **Follow-up (T-065):** Apply to all billing ViewSets and invoice endpoints.
+    - **Assumption:** GET/HEAD/OPTIONS are safe for read-only access.
+    - **Missing:** Audit logging for denied billing access attempts.
+    - **Limitation:** Does not enforce line-item visibility beyond role checks.
     """
 
     def has_permission(self, request, view):
@@ -255,6 +269,32 @@ class CanAccessAdmin(BasePermission):
 
     def has_permission(self, request, view):
         return get_user_role(request.user, request) == "firm_admin"
+
+
+class CanManageSettings(BasePermission):
+    """
+    Settings: firm members with explicit settings permission.
+
+    Meta-commentary:
+    - **Current Status:** Firm membership flag (can_manage_settings) gate implemented.
+    - **Follow-up (T-065):** Wire to all settings/config ViewSets for DOC-27.1 compliance.
+    - **Assumption:** Firm context is attached to the request before permission checks.
+    - **Missing:** Centralized enforcement for all settings endpoints.
+    - **Limitation:** Relies on membership flag consistency across role assignments.
+    """
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        firm = getattr(request, "firm", None)
+        if firm is None:
+            return False
+        return FirmMembership.objects.filter(
+            firm=firm,
+            user=request.user,
+            is_active=True,
+            can_manage_settings=True,
+        ).exists()
 
 
 class IsReadOnlyRole(BasePermission):

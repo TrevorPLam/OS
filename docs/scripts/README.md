@@ -10,6 +10,20 @@ This directory contains utility scripts for the ConsultantPro project. Scripts a
 
 ## TIER 0 Enforcement Scripts
 
+### `pre_launch_gate.sh`
+
+**Purpose**: Enforce the pre-launch checklist gate before production deployment.
+
+**What it checks**:
+- `docs/PRE_LAUNCH_CHECKLIST.md` exists and has no unchecked items
+- `TODO.md` Status values are valid (READY, BLOCKED, IN-PROGRESS, IN-REVIEW)
+
+**Usage**:
+
+```bash
+docs/scripts/pre_launch_gate.sh
+```
+
 ### `lint_firm_scoping.py`
 
 **Purpose**: Enforce TIER 0 firm scoping requirements by detecting unsafe database queries.

@@ -10,11 +10,11 @@ CRITICAL REQUIREMENT:
 - Break-glass access is rare, explicit, and audited
 
 Meta-commentary:
-- Current Status: Permission classes defined; enforces privacy-first design.
-- Follow-up (T-065): Apply DenyContentAccessByDefault to ALL content ViewSets.
-- Assumption: Platform staff should use metadata-only views for diagnostics and support.
-- Missing: Audit logging for denied access attempts.
-- Limitation: Content access requires active break-glass session (Tier 0.6).
+- **Current Status:** Permission classes defined; enforces privacy-first design.
+- **Follow-up (T-065):** Apply DenyContentAccessByDefault to ALL content ViewSets.
+- **Assumption:** Platform staff should use metadata-only views for diagnostics and support.
+- **Missing:** Audit logging for denied access attempts.
+- **Limitation:** Content access requires active break-glass session (Tier 0.6).
 """
 
 import logging
@@ -70,11 +70,11 @@ class DenyContentAccessByDefault(permissions.BasePermission):
     - Firm/client names and basic attributes
 
     Meta-commentary:
-    - Current Status: Permission class defined; checks break-glass via has_active_break_glass_session.
-    - Follow-up (T-065): Apply to ALL content-bearing ViewSets (Document, Message, Comment).
-    - Assumption: Break-glass sessions are checked via middleware or permission methods.
-    - Missing: Audit logging to record break-glass content access.
-    - Limitation: Not yet applied to all content ViewSets; requires manual wiring.
+    - **Current Status:** Permission class defined; checks break-glass via has_active_break_glass_session.
+    - **Follow-up (T-065):** Apply to ALL content-bearing ViewSets (Document, Message, Comment).
+    - **Assumption:** Break-glass sessions are checked via middleware or permission methods.
+    - **Missing:** Audit logging to record break-glass content access.
+    - **Limitation:** Not yet applied to all content ViewSets; requires manual wiring.
     """
 
     # Content models that are explicitly denied
@@ -230,10 +230,11 @@ class MetadataOnlyAccess(permissions.BasePermission):
             # Platform operators will only see METADATA_ALLOWED_FIELDS
 
     Meta-commentary:
-    - Current Status: Permission class defined; restricts to metadata fields.
-    - Follow-up (T-065): Implement serializer mixins to auto-filter content fields.
-    - Assumption: This should be combined with custom serializers that filter fields.
-    - Missing: Serializer mixins for automatic content field filtering.
+    - **Current Status:** Permission class defined; restricts to metadata fields.
+    - **Follow-up (T-065):** Implement serializer mixins to auto-filter content fields.
+    - **Assumption:** This should be combined with custom serializers that filter fields.
+    - **Missing:** Serializer mixins for automatic content field filtering.
+    - **Limitation:** Requires serializer cooperation; does not remove fields by itself.
     """
 
     METADATA_ALLOWED_FIELDS = [
@@ -273,11 +274,11 @@ class RequireBreakGlassForContent(permissions.BasePermission):
     - Invoice line item detail views
 
     Meta-commentary:
-    - Current Status: Permission class complete; returns 403 without break-glass.
-    - Follow-up (T-065): Apply to content-only endpoints (downloads, message views).
-    - Assumption: These endpoints return 403 for platform operators without break-glass.
-    - Missing: Application to all content-only endpoints.
-    - Limitation: Error message clearly indicates break-glass is required.
+    - **Current Status:** Permission class complete; returns 403 without break-glass.
+    - **Follow-up (T-065):** Apply to content-only endpoints (downloads, message views).
+    - **Assumption:** These endpoints return 403 for platform operators without break-glass.
+    - **Missing:** Application to all content-only endpoints.
+    - **Limitation:** Error message clearly indicates break-glass is required.
     """
 
     def has_permission(self, request, view):
