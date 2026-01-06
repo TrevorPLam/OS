@@ -470,23 +470,6 @@ export const crmApi = {
     await apiClient.delete(`/crm/pipelines/${id}/`)
   },
 
-  // Pipeline Stages
-  getPipelineStages: async (pipelineId: number): Promise<PipelineStage[]> => {
-    const response = await apiClient.get(`/crm/pipeline-stages/?pipeline=${pipelineId}`)
-    return response.data.results || response.data
-  },
-
-  // Deals
-  getDeals: async (filters?: { pipeline?: number; stage?: number; owner?: number; is_active?: boolean }): Promise<Deal[]> => {
-    const params = new URLSearchParams()
-    if (filters) {
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          params.append(key, String(value))
-        }
-      })
-    }
-    const response = await apiClient.get(`/crm/deals/?${params.toString()}`)
   setDefaultPipeline: async (id: number): Promise<{ message: string; pipeline: Pipeline }> => {
     const response = await apiClient.post(`/crm/pipelines/${id}/set_default/`)
     return response.data
@@ -519,15 +502,19 @@ export const crmApi = {
   },
 
   // Deals
-  getDeals: async (filters?: { pipeline?: number; stage?: number; owner?: number }): Promise<Deal[]> => {
-    let url = '/crm/deals/'
+  getDeals: async (filters?: { pipeline?: number; stage?: number; owner?: number; is_active?: boolean }): Promise<Deal[]> => {
+    const params = new URLSearchParams()
+
     if (filters) {
-      const params = new URLSearchParams()
-      if (filters.pipeline) params.append('pipeline', filters.pipeline.toString())
-      if (filters.stage) params.append('stage', filters.stage.toString())
-      if (filters.owner) params.append('owner', filters.owner.toString())
-      if (params.toString()) url += `?${params.toString()}`
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value))
+        }
+      })
     }
+
+    const queryString = params.toString()
+    const url = queryString ? `/crm/deals/?${queryString}` : '/crm/deals/'
     const response = await apiClient.get(url)
     return response.data.results || response.data
   },
@@ -564,10 +551,8 @@ export const crmApi = {
   moveDealToStage: async (id: number, stageId: number, notes?: string): Promise<Deal> => {
     const response = await apiClient.post(`/crm/deals/${id}/move_stage/`, {
       stage_id: stageId,
-      notes: notes || ''
+      notes: notes || '',
     })
-  moveDealToStage: async (id: number, stageId: number): Promise<Deal> => {
-    const response = await apiClient.post(`/crm/deals/${id}/move_to_stage/`, { stage: stageId })
     return response.data
   },
 
@@ -604,10 +589,6 @@ export const crmApi = {
     }>
   }> => {
     const response = await apiClient.get('/crm/deals/forecast/')
-    return response.data
-  },
-  markDealLost: async (id: number, reason?: string): Promise<Deal> => {
-    const response = await apiClient.post(`/crm/deals/${id}/mark_lost/`, { lost_reason: reason })
     return response.data
   },
 
