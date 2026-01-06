@@ -42,7 +42,7 @@ def test_stage_automation_assigns_user(firm, pipeline, stage, users):
         pipeline=pipeline,
         stage=stage,
         name="Assignment Automation Deal",
-        value="400.00",
+        value=Decimal("400.00"),
         probability=30,
         expected_close_date=date.today(),
         owner=owner,
