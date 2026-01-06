@@ -17,6 +17,13 @@ Module visibility rules:
 - Reporting: Manager+ (Admin sees all)
 - Knowledge: all staff (some sections restricted)
 - Admin: Admin only
+
+Meta-commentary:
+- Current Status: Permission classes defined; DOC-27.1 role definitions implemented.
+- Follow-up (T-065): Apply permission classes to ALL relevant ViewSets for complete enforcement.
+- Assumption: Permission classes are applied at ViewSet level; not enforced globally yet.
+- Missing: Audit logging for denied role-based access attempts.
+- Limitation: Enforcement requires manual wiring to each ViewSet (not automatic).
 """
 
 from rest_framework.permissions import BasePermission

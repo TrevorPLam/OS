@@ -271,8 +271,10 @@ def get_active_break_glass_session(firm):
     Return the active break-glass session for a firm, if any.
 
     Meta-commentary:
-    - This does not enforce access; it only provides a lookup for guards.
-    - Follow-up: wire this into permission checks and platform endpoints.
+    - Current Status: Lookup helper implemented; returns active session or None.
+    - Follow-up (T-065): Wire into permission checks and platform endpoints.
+    - Assumption: This does not enforce access; only provides lookup for guards.
+    - Missing: Integration with permission checks and platform endpoints.
     """
     if firm is None:
         raise FirmScopingError("Cannot resolve break-glass session without firm context.")
@@ -284,7 +286,10 @@ def has_active_break_glass_session(firm) -> bool:
     Return True when a firm has an active break-glass session.
 
     Meta-commentary:
-    - Intended for enforcement gates once break-glass permissions are wired.
+    - Current Status: Boolean check implemented; returns True if active session exists.
+    - Follow-up (T-065): Use in enforcement gates once break-glass permissions are wired.
+    - Assumption: Intended for enforcement gates in middleware/permissions.
+    - Missing: Enforcement gates calling this method.
     """
     return get_active_break_glass_session(firm) is not None
 
@@ -294,7 +299,10 @@ def expire_overdue_break_glass_sessions(firm) -> int:
     Expire overdue break-glass sessions for a firm.
 
     Meta-commentary:
-    - Intended for scheduled jobs once tenant-safe background processing exists.
+    - Current Status: Expiration logic implemented; calls QuerySet.expire_overdue().
+    - Follow-up (T-066): Wire to scheduled job once tenant-safe background processing exists.
+    - Assumption: Intended for scheduled jobs with firm-scoped task execution.
+    - Missing: Scheduled job integration; currently manual invocation only.
     """
     if firm is None:
         raise FirmScopingError("Cannot expire break-glass sessions without firm context.")

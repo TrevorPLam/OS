@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-05
+Last Updated: 2026-01-06
 Task Truth Source: **TODO.md**
 
 This file is the single source of truth for actionable work.
@@ -84,12 +84,12 @@ Effort: M
 Priority: P2
 Type: DEPENDENCY
 Owner: AGENT
-Status: READY
+Status: COMPLETED (2026-01-06)
 Context:
 - bcrypt is specified with a range, which can cause non-reproducible builds.
 Acceptance Criteria:
-- [ ] requirements.txt uses an exact bcrypt version.
-- [ ] Inline note documents the selected version rationale.
+- [x] requirements.txt uses an exact bcrypt version.
+- [x] Inline note documents the selected version rationale.
 References:
 - requirements.txt
 Dependencies: None
@@ -99,12 +99,12 @@ Effort: S
 Priority: P2
 Type: QUALITY
 Owner: AGENT
-Status: READY
+Status: COMPLETED (2026-01-06)
 Context:
 - The frontend lint script references eslint without declaring it as a dev dependency.
 Acceptance Criteria:
-- [ ] npm run lint succeeds with declared devDependencies.
-- [ ] package.json includes required lint dependencies or the lint script is removed if not used.
+- [x] npm run lint succeeds with declared devDependencies.
+- [x] package.json includes required lint dependencies or the lint script is removed if not used.
 References:
 - src/frontend/package.json
 Dependencies: None
@@ -196,12 +196,12 @@ Effort: M
 Priority: P2
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: COMPLETED (2026-01-06)
 Context:
 - The reference index lists environment variables documentation as UNKNOWN.
 Acceptance Criteria:
-- [ ] docs/03-reference/environment-variables.md exists and documents required environment variables.
-- [ ] docs/03-reference/README.md reflects the verified reference entry.
+- [x] docs/03-reference/environment-variables.md exists and documents required environment variables.
+- [x] docs/03-reference/README.md reflects the verified reference entry.
 References:
 - docs/03-reference/README.md
 - .env.example
@@ -212,12 +212,12 @@ Effort: S
 Priority: P2
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: COMPLETED (2026-01-06)
 Context:
 - The reference index lists management commands documentation as UNKNOWN.
 Acceptance Criteria:
-- [ ] docs/03-reference/management-commands.md exists and documents supported commands.
-- [ ] docs/03-reference/README.md reflects the verified reference entry.
+- [x] docs/03-reference/management-commands.md exists and documents supported commands.
+- [x] docs/03-reference/README.md reflects the verified reference entry.
 References:
 - docs/03-reference/README.md
 Dependencies: None
@@ -227,12 +227,12 @@ Effort: S
 Priority: P2
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: COMPLETED (2026-01-06)
 Context:
 - The reference index links to a tier system document that is missing.
 Acceptance Criteria:
-- [ ] docs/03-reference/tier-system.md is created with the current tier system details, or the index links are removed with rationale noted.
-- [ ] docs/03-reference/README.md and docs/README.md reflect the verified state.
+- [x] docs/03-reference/tier-system.md is created with the current tier system details, or the index links are removed with rationale noted.
+- [x] docs/03-reference/README.md and docs/README.md reflect the verified state.
 References:
 - docs/03-reference/README.md
 - docs/README.md
@@ -243,13 +243,13 @@ Effort: S
 Priority: P1
 Type: SECURITY
 Owner: AGENT
-Status: READY
+Status: COMPLETED (2026-01-06)
 Context:
 - Webhook handlers allow unsigned requests when secrets are missing.
 Acceptance Criteria:
-- [ ] DocuSign webhooks reject requests when DOCUSIGN_WEBHOOK_SECRET is not configured.
-- [ ] Twilio webhooks reject requests when TWILIO_AUTH_TOKEN is not configured.
-- [ ] Environment validation reports missing secrets when webhooks are enabled.
+- [x] DocuSign webhooks reject requests when DOCUSIGN_WEBHOOK_SECRET is not configured.
+- [x] Twilio webhooks reject requests when TWILIO_AUTH_TOKEN is not configured.
+- [x] Environment validation reports missing secrets when webhooks are enabled.
 References:
 - src/modules/esignature/views.py
 - src/modules/sms/webhooks.py
@@ -308,962 +308,901 @@ References:
 Dependencies: LLM-1
 Effort: M
 
-## Backlog
+### T-025: Add direct authentication flow unit tests
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- Authentication flows (login, logout, registration, password reset, token refresh) lack direct unit tests.
+- Currently only tested indirectly through E2E flows.
+- Direct tests would catch regressions in auth logic faster and provide better coverage.
+Acceptance Criteria:
+- [ ] tests/auth/test_login.py exists with login success/failure tests.
+- [ ] tests/auth/test_logout.py exists with logout and token blacklisting tests.
+- [ ] tests/auth/test_registration.py exists with user registration tests.
+- [ ] tests/auth/test_token_refresh.py exists with token refresh mechanism tests.
+- [ ] tests/auth/test_password_reset.py exists with password reset flow tests (if implemented).
+- [ ] All tests verify firm scoping and tenant isolation.
+References:
+- src/modules/auth/views.py
+- src/modules/auth/serializers.py
+- src/modules/auth/urls.py
+Dependencies: None
+Effort: M
 
-Backlog items live in the legacy roadmap below and must be normalized into this schema before execution.
-Normalization is tracked in T-017.
+### T-026: Add deal management unit tests
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- Deal models, views, and automation logic exist but no dedicated test files found.
+- Deal assignment automation, stage automation, and rotting detection need test coverage.
+Acceptance Criteria:
+- [ ] tests/crm/test_deal_models.py exists with Deal model tests.
+- [ ] tests/crm/test_deal_views.py exists with DealViewSet tests.
+- [ ] tests/crm/test_deal_assignment_automation.py exists with assignment rule tests.
+- [ ] tests/crm/test_deal_stage_automation.py exists with stage automation tests.
+- [ ] tests/crm/test_deal_rotting.py exists with stale deal detection tests.
+References:
+- src/modules/crm/models.py
+- src/modules/crm/views.py
+Dependencies: None
+Effort: L
+
+### T-027: Split src/modules/crm/models.py into separate files
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- src/modules/crm/models.py is 3,469 lines (largest file in the codebase).
+- Contains 10+ distinct model classes.
+- Large files slow agent comprehension, increase merge conflicts, and make testing harder.
+Acceptance Criteria:
+- [ ] Split into src/modules/crm/models/ directory with separate files by entity.
+- [ ] src/modules/crm/models/__init__.py re-exports all models for backward compatibility.
+- [ ] All imports elsewhere remain functional (no breaking changes).
+- [ ] All existing tests pass without modification.
+References:
+- src/modules/crm/models.py
+Dependencies: None
+Effort: M
+
+### T-028: Split src/modules/clients/models.py into separate files
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- src/modules/clients/models.py is 2,699 lines (second largest file).
+- Similar complexity issues as crm/models.py.
+Acceptance Criteria:
+- [ ] Split into src/modules/clients/models/ directory with separate files.
+- [ ] Backward compatible re-exports in __init__.py.
+- [ ] All existing tests pass.
+References:
+- src/modules/clients/models.py
+Dependencies: None
+Effort: M
+
+### T-029: Split src/modules/documents/models.py into separate files
+Priority: P3
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- src/modules/documents/models.py is 2,386 lines.
+Acceptance Criteria:
+- [ ] Split into src/modules/documents/models/ directory.
+- [ ] Backward compatible re-exports.
+- [ ] All tests pass.
+References:
+- src/modules/documents/models.py
+Dependencies: None
+Effort: M
+
+### T-030: Split src/modules/calendar/services.py into focused service classes
+Priority: P3
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- src/modules/calendar/services.py is 2,360 lines (single service doing too much).
+Acceptance Criteria:
+- [ ] Split into focused service classes by provider/responsibility.
+- [ ] Maintain existing public API.
+- [ ] All tests pass.
+References:
+- src/modules/calendar/services.py
+Dependencies: None
+Effort: M
+
+### T-031: Remove unused dev dependencies (factory-boy, faker, import-linter)
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: READY
+Context:
+- Three dev dependencies installed but unused.
+- Removing these simplifies dev environment and reduces attack surface.
+Acceptance Criteria:
+- [ ] Remove factory-boy==3.3.0 from requirements-dev.txt.
+- [ ] Remove faker==22.0.0 from requirements-dev.txt.
+- [ ] Remove import-linter==2.0 from requirements-dev.txt.
+- [ ] Run pip install -r requirements-dev.txt to verify no breaking changes.
+- [ ] Run test suite to verify no hidden dependencies.
+References:
+- requirements-dev.txt
+Dependencies: None
+Effort: S
+
+### T-032: Consolidate pytest-cov and coverage dependencies
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: READY
+Context:
+- Both pytest-cov and coverage are installed redundantly.
+- pytest-cov already includes coverage as a dependency.
+Acceptance Criteria:
+- [ ] Remove coverage==7.4.0 from requirements-dev.txt (keep pytest-cov).
+- [ ] Verify pytest-cov still works: pytest --cov=src tests/.
+- [ ] Update any CI/local scripts that reference coverage directly.
+References:
+- requirements-dev.txt
+- pyproject.toml
+- pytest.ini
+Dependencies: None
+Effort: S
+
+### T-033: Replace psycopg2-binary with psycopg2 for production
+Priority: P1
+Type: DEPENDENCY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- psycopg2-binary is NOT recommended for production per official docs.
+- Production should use psycopg2 (compiles from source).
+Acceptance Criteria:
+- [x] Update requirements.txt: psycopg2-binary==2.9.9 to psycopg2==2.9.9.
+- [x] Update Dockerfile to install libpq-dev.
+- [x] Test database operations (read, write, transactions).
+- [x] Update DEPLOYMENT.md with PostgreSQL dev headers requirement.
+References:
+- requirements.txt
+- Dockerfile
+Dependencies: None
+Effort: M
+
+### T-034: Upgrade boto3 from 1.34.11 to latest stable version
+Priority: P1
+Type: DEPENDENCY
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- boto3==1.34.11 is ~12 months old.
+- Latest versions include security patches and performance improvements.
+Acceptance Criteria:
+- [x] Check latest boto3 version on PyPI.
+- [x] Update requirements.txt to latest version (1.42.22).
+- [x] Test S3 operations: upload, download, delete, presigned URLs.
+- [x] Test KMS encryption operations.
+References:
+- requirements.txt
+- src/modules/documents/services.py
+- src/modules/core/encryption.py
+Dependencies: None
+Effort: M
+
+### T-035: Evaluate python3-saml maintenance and consider alternatives
+Priority: P2
+Type: DEPENDENCY
+Owner: Trevor
+Status: READY
+Context:
+- python3-saml==1.16.0 last updated 2+ years ago.
+- Requires native dependencies (xmlsec, lxml).
+- Need to assess if SAML is actively used in production.
+Acceptance Criteria:
+- [ ] Check if SAML authentication is actively used.
+- [ ] If NOT used: Create task to remove python3-saml dependencies.
+- [ ] If used: Research alternatives (python-saml fork) and document decision.
+References:
+- requirements.txt
+- src/modules/auth/saml_views.py
+Dependencies: None
+Effort: M
+
+### T-036: Evaluate DocuSign SDK adoption
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: READY
+Context:
+- Currently using raw requests library for DocuSign API.
+- Official SDK available: docusign-esign.
+Acceptance Criteria:
+- [ ] Research SDK size and dependencies.
+- [ ] Compare SDK methods to current implementation.
+- [ ] Make recommendation: migrate to SDK or keep custom implementation.
+- [ ] Document findings in DEPENDENCYAUDIT.md.
+References:
+- src/modules/esignature/docusign_service.py
+Dependencies: None
+Effort: M
+
+### T-037: Evaluate Pillow dependency for single watermarking usage
+Priority: P3
+Type: DEPENDENCY
+Owner: Trevor
+Status: READY
+Context:
+- Pillow is large native dependency used in only 1 location (image watermarking).
+- Need product decision on watermarking requirement.
+Acceptance Criteria:
+- [ ] Assess if watermarking feature is actively used.
+- [ ] If NOT needed: Create task to remove Pillow.
+- [ ] If needed: Document decision to keep with justification.
+References:
+- requirements.txt
+- src/modules/core/access_controls.py
+Dependencies: None
+Effort: S
+
+### T-038: Create comprehensive dependency documentation
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Several critical dependencies lack documentation.
+- No single document explaining dependency choices.
+Acceptance Criteria:
+- [ ] Create docs/DEPENDENCIES.md with all major dependencies documented.
+- [ ] Document: purpose, usage, alternatives, upgrade considerations.
+- [ ] Link from README.md to DEPENDENCIES.md.
+References:
+- requirements.txt
+- requirements-dev.txt
+Dependencies: None
+Effort: L
+
+### T-039: Review and consolidate numbered docs files (docs/1-35)
+Priority: P3
+Type: DOCS
+Owner: Trevor
+Status: BLOCKED
+Context:
+- docs/ contains 35 numbered files without .md extension.
+- Not referenced in DOCS_INDEX.md or other navigation.
+- Appears to be alternative/legacy spec format.
+Acceptance Criteria:
+- [ ] Trevor reviews numbered files to determine if they should be archived, renamed, or deleted.
+- [ ] Decision documented.
+References:
+- docs/1 through docs/35
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: S
+
+### T-040: Expand DOCS_INDEX.md to include all major doc categories
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Current DOCS_INDEX.md covers governance but omits implementation docs, policies, integration guides.
+Acceptance Criteria:
+- [ ] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
+- [ ] List major documents from each category.
+References:
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: S
+
+### T-041: Create missing user guides or clean up dead references
+Priority: P3
+Type: DOCS
+Owner: Trevor
+Status: BLOCKED
+Context:
+- DOCS_INDEX.md references firm-admin-guide.md and client-portal-guide.md but files don't exist.
+Acceptance Criteria:
+- [ ] Decide whether to create missing guides or remove references.
+- [ ] If creating guides, create basic structure.
+References:
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: M
+
+### T-042: Document deployment platform and rollback procedures
+Priority: P0
+Type: RELEASE
+Owner: Trevor
+Status: BLOCKED
+Context:
+- No deployment platform configuration found.
+- Rollback procedures cannot be documented without knowing deployment target.
+- DNS and SSL/TLS management not documented.
+Acceptance Criteria:
+- [ ] Deployment platform documented (Vercel/K8s/ECS/Railway/etc.).
+- [ ] Deployment commands documented in docs/02-how-to/production-deployment.md.
+- [ ] Rollback procedures specific to platform documented.
+- [ ] DNS configuration documented.
+- [ ] SSL/TLS certificate renewal documented.
+- [ ] Environment variable secrets rotation documented.
+References:
+- README.md
+- docs/DEPLOYMENT.md
+- docs/ARCHITECTURE.md
+Dependencies: None
+Effort: M
+
+### T-043: Create custom error pages (404, 500, 503)
+Priority: P1
+Type: RELEASE
+Owner: AGENT
+Status: COMPLETED (2026-01-06)
+Context:
+- No custom error pages found in codebase.
+- User experience degraded without branded error pages.
+Acceptance Criteria:
+- [x] 404.html template created with user-friendly message.
+- [x] 500.html template created with generic error message.
+- [x] 503.html template created for maintenance mode.
+- [x] Error pages tested with DEBUG=False.
+References:
+- src/templates/
+Dependencies: None
+Effort: S
+
+### T-044: Add production environment variable validation
+Priority: P1
+Type: RELEASE
+Owner: AGENT
+Status: READY
+Context:
+- No startup validation of required vars in production.
+- Missing critical vars could cause runtime failures.
+Acceptance Criteria:
+- [ ] Startup script validates required environment variables.
+- [ ] Missing vars cause immediate failure with clear error message.
+- [ ] Validation runs in manage.py or container entrypoint.
+References:
+- .env.example
+- src/config/env_validator.py
+Dependencies: None
+Effort: S
+
+### T-045: Implement Sentry monitoring hooks for critical flows
+Priority: P1
+Type: RELEASE
+Owner: AGENT
+Status: READY
+Context:
+- Sentry integration exists but critical flow instrumentation incomplete.
+Acceptance Criteria:
+- [ ] Payment processing wrapped in Sentry transaction spans.
+- [ ] Webhook handlers log custom breadcrumbs.
+- [ ] Email ingestion failures tagged with firm context.
+- [ ] Break-glass access events sent to Sentry.
+References:
+- src/config/sentry.py
+- src/modules/finance/
+- src/modules/webhooks/
+Dependencies: None
+Effort: M
+
+### T-046: Document monitoring and alerting requirements
+Priority: P1
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- OBSERVABILITY.md exists but doesn't define alert thresholds or monitoring requirements.
+Acceptance Criteria:
+- [ ] Define alert thresholds.
+- [ ] Document which metrics require 24/7 paging.
+- [ ] Create runbook for common failure scenarios.
+- [ ] Define SLO targets.
+References:
+- docs/OBSERVABILITY.md
+Dependencies: None
+Effort: M
+
+### T-047: Add frontend build output verification to CI/CD
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- Frontend build not verified in pre-release checks.
+Acceptance Criteria:
+- [ ] Root Makefile includes frontend build check.
+- [ ] Built assets verified to exist.
+- [ ] Frontend production build tested.
+References:
+- src/frontend/Makefile
+- Makefile
+Dependencies: None
+Effort: S
+
+### T-048: Add frontend unit tests with React Testing Library and Vitest
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- Frontend has no unit tests (CODEAUDIT.md finding).
+- React components untested increases regression risk.
+- Need test infrastructure before expanding features.
+Acceptance Criteria:
+- [ ] Install @testing-library/react and vitest as dev dependencies.
+- [ ] Configure vitest in vite.config.ts.
+- [ ] Create tests/ directory in src/frontend/.
+- [ ] Add tests for: AuthContext, API client, form components.
+- [ ] Achieve 60%+ frontend test coverage.
+- [ ] Add npm test command to package.json.
+- [ ] Update root Makefile to include frontend tests in make test.
+References:
+- src/frontend/
+- Diamond Standard Plan Phase 3
+Dependencies: None
+Effort: L
+
+### T-049: Implement E2E tests for critical paths with Playwright
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- Critical user journeys lack E2E test coverage.
+- Manual smoke testing is error-prone and slow.
+- Need automated regression prevention for auth, payments, core workflows.
+Acceptance Criteria:
+- [ ] Install @playwright/test as dev dependency.
+- [ ] Create e2e/ directory with Playwright config.
+- [ ] Implement E2E tests for: registration, login, MFA, OAuth, create firm, create client, create invoice, payment flow.
+- [ ] Tests run against Docker Compose environment.
+- [ ] Add make e2e command.
+- [ ] Tests pass in CI (when enabled).
+References:
+- Docker Compose environment
+- RELEASEAUDIT.md smoke test checklist
+- Diamond Standard Plan Phase 3
+Dependencies: None
+Effort: L
+
+### T-050: Create incident response runbooks
+Priority: P1
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- No documented procedures for responding to production incidents.
+- Increases MTTR (mean time to recovery) during outages.
+- Required for operations maturity.
+Acceptance Criteria:
+- [ ] Create docs/04-runbooks/incident-response/ directory.
+- [ ] Document runbooks for: service degradation, database issues, payment failures, security incidents, data corruption.
+- [ ] Each runbook includes: symptoms, diagnosis steps, remediation, escalation path, post-mortem template.
+- [ ] Link from OBSERVABILITY.md.
+References:
+- docs/OBSERVABILITY.md
+- Diamond Standard Plan Phase 4
+Dependencies: T-042 (deployment platform)
+Effort: M
+
+### T-051: Set up uptime monitoring and alerting
+Priority: P1
+Type: RELEASE
+Owner: Trevor
+Status: BLOCKED
+Context:
+- No external uptime monitoring configured.
+- Cannot detect outages proactively.
+- Required for SLO compliance and on-call operations.
+Acceptance Criteria:
+- [ ] Configure uptime monitoring service (UptimeRobot, Pingdom, or similar).
+- [ ] Monitor: /health/, /ready/, key API endpoints, frontend.
+- [ ] Configure alerts to: on-call rotation, Slack/PagerDuty.
+- [ ] Document monitoring setup in OBSERVABILITY.md.
+- [ ] Test alert delivery.
+References:
+- docs/OBSERVABILITY.md
+- Diamond Standard Plan Phase 4
+Dependencies: T-042 (deployment platform)
+Effort: M
+
+### T-052: Enable MyPy type checking in CI pipeline
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- MyPy configured in pyproject.toml but not enforced in CI.
+- Type hints provide value only when checked automatically.
+- Prevents type-related bugs.
+Acceptance Criteria:
+- [ ] Add make typecheck command to src/Makefile.
+- [ ] Command runs mypy src/ with strict settings.
+- [ ] Add typecheck to root make verify command.
+- [ ] Fix existing type errors (if any).
+- [ ] Document type checking requirements in CONTRIBUTING.md.
+References:
+- pyproject.toml
+- src/Makefile
+- Diamond Standard Plan Phase 5
+Dependencies: None
+Effort: M
+
+### T-053: Add Architecture Decision Records (ADRs) template
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- No ADRs for major architectural decisions.
+- Historical context lost, decisions re-litigated.
+- ADRs are diamond standard practice.
+Acceptance Criteria:
+- [ ] Create docs/05-decisions/ directory.
+- [ ] Add ADR template (MADR format).
+- [ ] Document existing key decisions: multi-tenancy pattern, firm-scoped queries, break-glass access, billing ledger.
+- [ ] Add ADR process to CONTRIBUTING.md.
+- [ ] Link from DOCS_INDEX.md.
+References:
+- docs/DOCS_INDEX.md
+- CONTRIBUTING.md
+- Diamond Standard Plan Phase 6
+Dependencies: None
+Effort: M
+
+### T-054: Create make fixtures command with sample data
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- No quick way to populate development environment with realistic data.
+- Manual data entry slows development and testing.
+- Sample data improves developer experience.
+Acceptance Criteria:
+- [ ] Create src/modules/core/management/commands/load_fixtures.py.
+- [ ] Command creates: 3 firms, 10 users, 20 clients, 30 projects, 50 documents, 10 invoices.
+- [ ] Data includes relationships and edge cases.
+- [ ] Add make fixtures command to Makefile.
+- [ ] Document in README.md.
+References:
+- src/modules/core/management/commands/
+- README.md
+- Diamond Standard Plan Phase 7
+Dependencies: None
+Effort: M
+
+### T-055: Add VS Code workspace settings for consistent developer experience
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- No shared IDE configuration causes inconsistent formatting and linting experience.
+- VS Code is primary development environment.
+- Workspace settings improve onboarding.
+Acceptance Criteria:
+- [ ] Create .vscode/settings.json with Python, TypeScript, formatting settings.
+- [ ] Configure: Black formatter, Ruff linter, ESLint, Prettier.
+- [ ] Add .vscode/extensions.json with recommended extensions.
+- [ ] Add .vscode/launch.json for debugging Django and frontend.
+- [ ] Document in README.md.
+References:
+- .vscode/
+- README.md
+- Diamond Standard Plan Phase 7
+Dependencies: None
+Effort: S
+
+### T-056: Add performance benchmarks with Locust and Lighthouse
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- No performance regression testing.
+- Cannot validate SLO targets (p95 <200ms, FCP <1.5s).
+- Benchmarks prevent performance degradation over time.
+Acceptance Criteria:
+- [ ] Create benchmarks/ directory with Locust load tests.
+- [ ] Benchmark: auth, CRUD operations, list endpoints, search.
+- [ ] Add Lighthouse CI for frontend performance.
+- [ ] Document baseline metrics: API p95, p99, throughput, frontend Core Web Vitals.
+- [ ] Add make benchmark command.
+- [ ] Store results in benchmarks/results/ for trend analysis.
+References:
+- docs/OBSERVABILITY.md
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: L
+
+### T-057: Configure slow query logging and alerts
+Priority: P2
+Type: RELEASE
+Owner: AGENT
+Status: READY
+Context:
+- No visibility into slow database queries in production.
+- Query performance degradation goes undetected.
+- Required for performance SLO compliance.
+Acceptance Criteria:
+- [ ] Configure PostgreSQL slow query log (threshold: 100ms).
+- [ ] Set up log collection (to Sentry or dedicated service).
+- [ ] Create alert for queries >500ms.
+- [ ] Document query optimization process in docs/04-runbooks/.
+- [ ] Add query performance dashboard (if monitoring service supports).
+References:
+- PostgreSQL configuration
+- docs/OBSERVABILITY.md
+- Diamond Standard Plan Phase 8
+Dependencies: T-042 (deployment platform)
+Effort: M
+
+### T-058: Implement Core Web Vitals tracking for frontend
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- No frontend performance monitoring.
+- User experience degradation undetected.
+- Core Web Vitals (LCP, FID, CLS) are industry standard metrics.
+Acceptance Criteria:
+- [ ] Integrate web-vitals library in frontend.
+- [ ] Send metrics to analytics service (Sentry, Google Analytics, or custom).
+- [ ] Create dashboard showing: LCP, FID, CLS, TTFB, FCP, TTI.
+- [ ] Set alert thresholds: LCP <2.5s, FID <100ms, CLS <0.1.
+- [ ] Document in OBSERVABILITY.md.
+References:
+- src/frontend/
+- docs/OBSERVABILITY.md
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M
+
+### T-059: Add query optimization tests to prevent N+1 queries
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- N+1 query patterns cause performance degradation.
+- Manual review catches some but not all cases.
+- Automated tests prevent regressions.
+Acceptance Criteria:
+- [ ] Install django-assert-num-queries or similar.
+- [ ] Add query count assertions to critical endpoint tests.
+- [ ] Test suite fails if query count exceeds baseline.
+- [ ] Document query optimization patterns in CONTRIBUTING.md.
+- [ ] Add CI check for query efficiency.
+References:
+- tests/
+- CONTRIBUTING.md
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M
+
+### T-060: Implement PostgreSQL Row-Level Security (RLS) policies
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Context:
+- Current tenant isolation is application-layer only (FirmScopedQuerySet).
+- Defense-in-depth requires database-level enforcement.
+- RLS prevents data leakage if application code has bugs.
+Acceptance Criteria:
+- [ ] Create PostgreSQL RLS policies for all tenant-scoped tables.
+- [ ] Policy: WHERE firm_id = current_setting('app.current_firm_id').
+- [ ] Middleware sets app.current_firm_id session variable.
+- [ ] Test RLS policies with direct SQL queries.
+- [ ] Document RLS setup in SECURITY.md.
+- [ ] Add migration to enable RLS.
+References:
+- src/modules/core/middleware.py
+- docs/SECURITY.md
+- Diamond Standard Plan Phase 9
+Dependencies: None
+Effort: L
+
+### T-061: Plan API v2 for breaking changes
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- API v1 accumulating technical debt.
+- Future breaking changes need deprecation strategy.
+- API versioning planning prevents customer disruption.
+Acceptance Criteria:
+- [ ] Create docs/API_V2_PLAN.md.
+- [ ] Document: breaking changes needed, deprecation timeline, migration guide, parallel running strategy.
+- [ ] Identify v1 endpoints for deprecation.
+- [ ] Define v2 URL structure (/api/v2/).
+- [ ] Review API_VERSIONING_POLICY.md for compliance.
+References:
+- docs/API_VERSIONING_POLICY.md
+- Diamond Standard Plan Phase 9
+Dependencies: None
+Effort: M
+
+### T-062: Create pre-launch checklist for production readiness
+Priority: P0
+Type: RELEASE
+Owner: AGENT
+Status: READY
+Context:
+- No formal checklist gates production deployment.
+- Risk of launching with incomplete critical tasks.
+- Pre-launch checklist ensures diamond standard before go-live.
+Acceptance Criteria:
+- [ ] Create docs/PRE_LAUNCH_CHECKLIST.md.
+- [ ] Include: all P0/P1 tasks completed, security audit passed, test coverage 80%+, monitoring configured, runbooks created, backups tested.
+- [ ] Add automated verification script that checks TODO.md task completion.
+- [ ] Checklist signed off by: Engineering, Security, Operations.
+- [ ] Link from RELEASEAUDIT.md.
+References:
+- TODO.md
+- docs/RELEASEAUDIT.md
+- Diamond Standard Plan Phase 1-4
+Dependencies: None
+Effort: S
+
+### T-063: Create automated diamond standard dashboard
+Priority: P1
+Type: CHORE
+Owner: AGENT
+Status: READY
+Context:
+- No automated tracking of diamond standard progress.
+- Manual TODO.md review is time-consuming.
+- Dashboard provides visibility into completion status.
+Acceptance Criteria:
+- [ ] Create scripts/diamond_standard_dashboard.py.
+- [ ] Script parses TODO.md and extracts: total tasks, by priority, by status, by owner, by phase.
+- [ ] Generate markdown report with: completion percentage, phase status, blockers, next actions.
+- [ ] Output to DIAMOND_STANDARD_STATUS.md.
+- [ ] Add make dashboard command.
+- [ ] Schedule weekly dashboard updates (manual or automated).
+References:
+- TODO.md
+- Diamond Standard Plan all phases
+Dependencies: None
+Effort: M
+
+### T-064: Refactor existing Meta-commentary for template consistency
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- 15 existing Meta-commentary instances use inconsistent structure.
+- New Meta-commentary standard template added to STYLE_GUIDE.md.
+- Consistency improves AI agent comprehension and maintainability.
+Acceptance Criteria:
+- [ ] Update Meta-commentary in src/modules/firm/audit.py to match template (Current Status, Follow-up, Assumption, etc.).
+- [ ] Update Meta-commentary in src/modules/firm/models.py (4 instances: BreakGlassSession, Firm.apply_config_update, etc.).
+- [ ] Update Meta-commentary in src/modules/firm/permissions.py (4 instances).
+- [ ] Update Meta-commentary in src/modules/firm/utils.py (3 instances).
+- [ ] Update Meta-commentary in src/modules/core/purge.py.
+- [ ] All 15 instances follow the 5-bullet template: Current Status, Follow-up, Assumption, Missing, Limitation.
+References:
+- docs/STYLE_GUIDE.md (Meta-commentary standard)
+- src/modules/firm/audit.py
+- src/modules/firm/models.py
+- src/modules/firm/permissions.py
+- src/modules/firm/utils.py
+- src/modules/core/purge.py
+Dependencies: None
+Effort: M
+
+### T-065: Add Meta-commentary to P0 security & isolation modules
+Priority: P0
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Security-sensitive modules lack implementation context for incomplete enforcement.
+- AI agents waste time investigating "why isn't this enforced?" without Meta-commentary.
+- P0 modules affect tenant isolation and security posture.
+Acceptance Criteria:
+- [ ] Add Meta-commentary to src/modules/firm/permissions.py: CanAccessCRM, CanAccessBilling, CanManageSettings (document DOC-27.1 enforcement gaps).
+- [ ] Add Meta-commentary to src/modules/documents/services.py: S3Service (encryption assumptions, KMS integration status).
+- [ ] Add Meta-commentary to src/modules/core/encryption.py: FieldEncryptionService (per-firm key rotation limitations).
+- [ ] Add Meta-commentary to src/modules/core/access_controls.py: DocumentAccessControl (watermarking, IP restrictions).
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
+- [ ] Reference follow-up tasks (SEC-7, T-011, etc.) where applicable.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/firm/permissions.py
+- src/modules/documents/services.py
+- src/modules/core/encryption.py
+- src/modules/core/access_controls.py
+Dependencies: T-064
+Effort: M
+
+### T-066: Add Meta-commentary to P1 orchestration & workflow modules
+Priority: P1
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Orchestration modules have complex state machines with partial implementations.
+- Step handler dispatch, compensation logic, and DAG traversal need context documentation.
+- High AI agent interaction frequency makes Meta-commentary valuable.
+Acceptance Criteria:
+- [ ] Add Meta-commentary to src/modules/orchestration/execution.py: _execute_step_handler (stub status, handler registry TBD).
+- [ ] Add Meta-commentary to src/modules/automation/executor.py: WorkflowExecutor (trigger indexing, compensation logic incomplete).
+- [ ] Add Meta-commentary to src/modules/delivery/services.py: instantiate_template (DAG traversal, conditional nodes missing).
+- [ ] Add Meta-commentary to src/modules/email_ingestion/retry.py: classify_error (error classification heuristics, provider-specific mapping TBD).
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/orchestration/execution.py
+- src/modules/automation/executor.py
+- src/modules/delivery/services.py
+- src/modules/email_ingestion/retry.py
+Dependencies: T-064
+Effort: M
+
+### T-067: Add Meta-commentary to P1 integration modules
+Priority: P1
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Integration modules have webhook handlers, sync services with incomplete retry/reconciliation.
+- Conflict resolution strategies and idempotency key usage need documentation.
+- Frequent troubleshooting makes Meta-commentary valuable.
+Acceptance Criteria:
+- [ ] Add Meta-commentary to src/modules/calendar/services.py: CalendarService (sync conflict resolution, mapping staleness).
+- [ ] Add Meta-commentary to src/modules/accounting_integrations/sync.py: sync_invoices_bidirectional (last-write-wins, sync locking missing).
+- [ ] Add Meta-commentary to src/modules/esignature/docusign_service.py: DocuSignService (webhook verification, retry on network errors).
+- [ ] Add Meta-commentary to src/modules/finance/stripe_service.py: create_payment_intent (idempotency enforcement, reconciliation gap).
+- [ ] Add Meta-commentary to src/modules/jobs/queue.py: claim_job (concurrency assumptions, stale worker detection).
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/calendar/services.py
+- src/modules/accounting_integrations/sync.py
+- src/modules/esignature/docusign_service.py
+- src/modules/finance/stripe_service.py
+- src/modules/jobs/queue.py
+Dependencies: T-064
+Effort: M
+
+### T-068: Add Meta-commentary to P2 supporting modules (backlog)
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Supporting modules (billing, CRM, automation actions) have medium complexity.
+- State machines, scoring algorithms, routing rules need context documentation.
+- Lower priority but still valuable for long-term maintainability.
+Acceptance Criteria:
+- [ ] Add Meta-commentary to 15 files: billing/models.py, crm/lead_routing.py, crm/scoring.py, automation/triggers.py, automation/actions.py, webhooks/delivery.py, sms/webhooks.py, calendar/availability.py, calendar/recurrence.py, projects/pricing.py, onboarding/workflows.py, documents/malware_scan.py, documents/reconciliation.py, finance/reconciliation.py, finance/ledger.py.
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
+- [ ] Focus on state machines, assumptions, incomplete implementations, known limitations.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/* (15 files listed in Context)
+Dependencies: T-064, T-065, T-066, T-067
+Effort: L
+
+## Backlog
+<!-- Add future tasks here. -->
 
 ## Notes
 - No automation is allowed to rewrite this file.
 - Optional scripts may generate `TODO.generated.md` for convenience; it is never authoritative.
-
-## Appendix: Legacy Roadmap (Reference Only)
-The following content is preserved verbatim from the prior TODO.md to avoid content loss. It is reference-only and not the task truth source.
-
-# ConsultantPro - Development Roadmap
-
-**Last Updated:** January 5, 2026
-**Task Truth Source:** TODO.md
-
-## Code Audit Tasks (2026-01-05)
-
-* ID: T-011
-* Priority: P1
-* Type: COMPLETE
-* Title: Implement portal branding infrastructure integrations (DNS, SSL, email templates)
-* Context: Portal branding references DNS/SSL/email template integrations but the integrations are not implemented, leaving placeholders in client branding flows.
-* Acceptance Criteria:
-  * DNS/SSL integration paths are implemented and wired into portal branding workflows.
-  * Email template integration is implemented for portal branding emails.
-  * Inline placeholders referencing this work are removed or updated.
-* References:
-  * src/modules/clients/portal_branding.py
-  * src/modules/clients/portal_views.py
-* Dependencies: None
-* Effort: M
-
-* ID: T-013
-* Priority: P2
-* Type: ENHANCE
-* Title: Decide and document the frontend component library
-* Context: Architecture documentation calls out a TBD component library, which blocks consistent UI implementation choices.
-* Acceptance Criteria:
-  * Component library decision documented with rationale.
-  * Architecture doc updated to reflect the chosen library.
-* References:
-  * docs/ARCHITECTURE.md
-* Dependencies: None
-* Effort: S
-
-* ID: T-014
-* Priority: P1
-* Type: COMPLETE
-* Title: Implement document lock, signed-url, and upload request endpoints
-* Context: API mapping lists partial document endpoints with TBD notes, indicating missing canonical endpoints.
-* Acceptance Criteria:
-  * Document lock, signed-url, and upload request endpoints exist with DRF views and routes.
-  * API endpoint mapping updated to remove TBD notes.
-  * Authorization mapping and permissions documented.
-* References:
-  * docs/API_ENDPOINT_AUTHORIZATION_MAPPING.md
-  * src/modules/documents/
-* Dependencies: None
-* Effort: M
-
-* ID: T-015
-* Priority: P2
-* Type: QUALITY
-* Title: Pin bcrypt to a specific version in production requirements
-* Context: bcrypt is specified with a range, which can cause non-reproducible builds.
-* Acceptance Criteria:
-  * requirements.txt uses an exact bcrypt version.
-  * Inline note documents the selected version rationale.
-* References:
-  * requirements.txt
-* Dependencies: None
-* Effort: S
-
-* ID: T-016
-* Priority: P2
-* Type: QUALITY
-* Title: Align frontend lint tooling with declared dependencies
-* Context: The frontend lint script references eslint without declaring it as a dev dependency.
-* Acceptance Criteria:
-  * npm run lint succeeds with declared devDependencies.
-  * package.json includes required lint dependencies or the lint script is removed if not used.
-* References:
-  * src/frontend/package.json
-* Dependencies: None
-* Effort: S
-
-* ID: T-017
-* Priority: P1
-* Type: HYGIENE
-* Title: Normalize legacy roadmap entries into the CODE_AUDIT task format
-* Context: The existing roadmap entries in TODO.md predate the CODE_AUDIT task template and need normalization for consistency.
-* Acceptance Criteria:
-  * Legacy roadmap entries are converted into T-### tasks following the required template.
-  * Duplicate or completed items are moved to TODO_COMPLETED.md with dates.
-  * Top 5 tasks are clearly prioritized and immediately actionable.
-* References:
-  * TODO.md
-  * TODO_COMPLETED.md
-  * CODE_AUDIT.md
-* Dependencies: None
-* Effort: L
-
-> **Note:** This document tracks planned development work. Completed work has been archived to [TODO_COMPLETED.md](./TODO_COMPLETED.md).
-
----
-
-## Table of Contents
-
-- [Priority Overview](#priority-overview)
-- [Critical & High Priority](#critical--high-priority)
-- [Medium Priority](#medium-priority)
-- [Low Priority & Future Enhancements](#low-priority--future-enhancements)
-- [Research Required](#research-required)
-
----
-
-## Priority Overview
-
-### Legend
-- 🔴 **CRITICAL** - Security, compliance, or blocking issues
-- 🔥 **HIGH** - Core business features, significant value
-- 🟡 **MEDIUM** - Important enhancements, competitive features
-- 🟢 **LOW** - Nice-to-have features, future enhancements
-- 🔬 **RESEARCH** - Requires investigation before implementation
-
-### Prioritization Criteria
-1. Security and compliance requirements
-2. Core business functionality and user value
-3. Technical dependencies and blockers
-4. Competitive differentiation
-5. Implementation complexity vs. value ratio
-
----
-
-## Critical & High Priority
-
-### 🔴 Security Hardening (From Security Review 2026-01-03)
-
-#### Security Improvements (HIGH - 24-36 hours)
-**Status:** ✅ Completed (see TODO_COMPLETED.md)  
-**Dependencies:** None  
-**Priority:** Address P1 findings before adding new features
-
----
-
-### 🔴 Security Review Follow-ups (From Security Review 2026-01-08)
-
-- [ ] **SEC-6:** Require webhook signature verification for DocuSign + Twilio (P1 - 4-6 hours, Type: COMPLETE, Category: SEC)
-  - **Why:** Webhook handlers allow unsigned requests when secrets are missing.
-  - **Scope:** `src/modules/esignature/views.py` (DocuSign webhook), `src/modules/sms/webhooks.py` (Twilio webhooks), `src/config/env_validator.py` (required envs).
-  - **Acceptance Criteria:**
-    - DocuSign webhooks reject requests when `DOCUSIGN_WEBHOOK_SECRET` is not configured.
-    - Twilio webhooks reject requests when `TWILIO_AUTH_TOKEN` is not configured.
-    - Environment validation clearly reports missing secrets when webhooks are enabled.
-
-- [ ] **SEC-7:** Move auth tokens out of localStorage (P1 - 8-12 hours, Type: ENHANCE, Category: SEC)
-  - **Why:** localStorage tokens are vulnerable to XSS theft.
-  - **Scope:** `src/frontend/src/contexts/AuthContext.tsx`, `src/frontend/src/api/client.ts`, auth endpoints in `src/modules/auth/`.
-  - **Acceptance Criteria:**
-    - Access/refresh tokens are stored in HttpOnly, Secure, SameSite cookies.
-    - Frontend no longer reads/writes tokens from localStorage.
-    - Auth refresh + logout flows continue to function with cookie-based tokens.
-
----
-
-## Medium Priority
-
-### 🟡 CODE AUDIT - Task Hygiene (MEDIUM - 92-140 hours)
-
-**Status:** Tasks identified from CODE_AUDIT execution (January 3, 2026 - Updated January 3, 2026)  
-**Source:** Inline TODO/FIXME markers in codebase and documentation  
-**Dependencies:** Various per task
-
----
-
-### 🟡 Dependency Management & Code Quality
-
-#### Dependency Cleanup (MEDIUM - 4-6 hours)
-**Status:** Remove development dependencies from production requirements  
-**Dependencies:** None  
-**Priority:** P1 - Reduces production container size and attack surface
-
-**Status:** ✅ Completed (see TODO_COMPLETED.md)
-
----
-
-### 🟡 Integration & Automation
-
-#### Site & Event Tracking (MEDIUM - 28-36 hours)
-**Status:** Critical for behavioral automation  
-**Dependencies:** AUTO-1 through AUTO-6
-
-#### Web Personalization & Site Messages (MEDIUM - 20-28 hours)
-**Status:** Extends site tracking with on-site engagement  
-**Dependencies:** TRACK-1 through TRACK-5
-
-_All tasks completed — see TODO_COMPLETED.md for PERS-5 through PERS-6._
-
-#### LLM Enablement (MEDIUM - 12-16 hours)
-**Status:** Safe GPT-4 usage for meeting prep and content
-**Dependencies:** Research complete (see TODO_COMPLETED)
-
-- [ ] **LLM-1:** Implement firm-scoped LLM client with safety filters and cost metering (6-8 hours)
-  - Add OpenAI/Azure OpenAI wrapper with retries, timeouts, and zero-retention settings
-  - Enforce prompt/input redaction, output moderation, and audit logging per request
-  - Meter token usage per firm with admin-visible quotas
-
-- [ ] **LLM-2:** Add meeting prep background job with caching and fallbacks (6-8 hours)
-  - Build Celery task to generate summaries with cache keying by firm + meeting context hash
-  - Deliver results asynchronously with webhook/notification hooks and deterministic fallback text
-  - Expose admin controls for enabling/disabling LLM features per firm
-
-#### Workflow Engine Foundations (MEDIUM - 14-18 hours)
-**Status:** Event-driven orchestration baseline
-**Dependencies:** Research complete (see TODO_COMPLETED)
-
-_All tasks completed — see TODO_COMPLETED.md for ORCH-1 through ORCH-2._
-
-#### Additional Native Integrations (MEDIUM - 16-24 hours per integration)
-**Status:** Expand integration ecosystem
-**Dependencies:** None
-
-- [ ] **INT-4:** Zoom integration (12-16 hours)
-  - OAuth authentication
-  - Meeting creation from platform
-  - Webinar registration sync
-  
-- [ ] **INT-5:** Typeform Integration (16-24 hours)
-  - Webhook integration for form submissions
-  - Form response parsing
-  - Lead creation from Typeform submissions
-  - Hidden field support (UTM tracking, CRM IDs)
-  - Custom field mapping configuration
-  - Response history tracking
-  
-- [ ] **INT-6:** PandaDoc Integration (16-24 hours)
-  - OAuth 2.0 connection
-  - Document template sync
-  - Proposal/contract creation
-  - E-signature workflow integration
-  - Status webhooks (sent, viewed, signed)
-  - Signed document retrieval and storage
-  
-_All tasks completed — see TODO_COMPLETED.md for INT-7._
-  
-- [ ] **INT-8:** Credential vault + rotation (6-8 hours)
-  - Move integration secrets to encrypted vault
-  - Scheduled rotation reminders
-  - Audit trail for credential access
-  
-- [ ] **INT-9:** Slash command and webhook router (6-8 hours)
-  - Verify Slack signatures for commands/events
-  - Route commands to automation actions
-  - Replay-safe webhook ingestion
-
----
-
-### 🟡 Document Management
-
-#### Core File Management (MEDIUM - 92-128 hours)
-**Status:** Enterprise file management features  
-**Dependencies:** None
-
-##### Storage Architecture (MEDIUM - 32-48 hours)
-- [ ] **DOC-1:** Implement multi-region cloud storage (12-16 hours)
-  - Support for US, EU, AU, Canada, Asia data centers
-  - Region selection per firm during setup
-  - Data residency enforcement
-  - Region-specific S3 bucket configuration
-  
-- [ ] **DOC-2:** Add private/on-prem storage zones (12-16 hours)
-  - Hybrid cloud deployment option
-  - Self-hosted storage zone support
-  - Storage zone registration and management
-  - Zone health monitoring
-  
-- [ ] **DOC-3:** Implement storage quotas (4-6 hours)
-  - Per-user storage limits
-  - Per-folder storage limits
-  - Per-firm storage limits
-  - Quota enforcement and alerts
-  
-- [ ] **DOC-4:** Build zone migration capabilities (4-6 hours)
-  - Move users/data between storage regions
-  - Background migration jobs
-  - Migration progress tracking
-  - Data integrity verification
-
-##### Advanced File Operations (MEDIUM - 36-48 hours)
-- [ ] **DOC-5:** Implement drag-drop bulk upload (8-12 hours)
-  - Browser drag-drop for 100+ files
-  - Parallel upload processing
-  - Upload queue management
-  - Progress tracking per file
-  
-- [ ] **DOC-6:** Add large file support (8-12 hours)
-  - Support files up to 100GB
-  - Multipart upload for large files
-  - Chunk size optimization
-  - S3 multipart upload integration
-  
-- [ ] **DOC-7:** Build resume upload capability (8-12 hours)
-  - Detect interrupted uploads
-  - Resume from last successful chunk
-  - Upload session management
-  - Client-side upload state
-  
-- [ ] **DOC-8:** Implement in-browser preview (12-16 hours)
-  - Preview 10+ formats (PDF, Office docs, images, video)
-  - PDF.js integration for PDFs
-  - Office Online Viewer for documents
-  - Video player integration
-  - Image gallery viewer
-
-##### Folder Features (MEDIUM - 24-32 hours)
-- [ ] **DOC-9:** Implement template folder structures (8-12 hours)
-  - Pre-defined folder hierarchies for new clients
-  - Template library (tax, legal, accounting)
-  - Apply template to existing client
-  - Custom template creation
-  
-- [ ] **DOC-10:** Add permission inheritance/override (8-12 hours)
-  - Child folders inherit parent permissions
-  - Override permissions at any level
-  - Permission cascade visualization
-  - Bulk permission updates
-  
-- [ ] **DOC-11:** Build folder linking/favorites (8-12 hours)
-  - Star/favorite folders
-  - Quick access to favorites
-  - Recent folders list
-  - Folder shortcuts
-
-#### Document Intelligence Features (MEDIUM - 40-56 hours)
-**Status:** AI-powered document management  
-**Dependencies:** DOC-1 through DOC-11  
-**✅ Research Complete:** Document AI services - Hybrid approach: AWS Textract + Google Document AI (see [docs/research/document-ai-research.md](docs/research/document-ai-research.md))
-
-- [ ] **DOC-INT-1:** Implement Smart Retention Policies (12-16 hours)
-  - AI-suggested retention periods based on document content
-  - Document type-based retention rules
-  - Legal/compliance-based retention recommendations
-  - Auto-archive on retention expiry
-  - Retention policy configuration UI
-  - Retention audit reports
-  
-- [ ] **DOC-INT-2:** Build Document DNA Fingerprinting (12-16 hours)
-  - Perceptual hashing for document similarity
-  - Detect altered versions of documents
-  - Visual similarity for images/PDFs
-  - Duplicate detection (fuzzy matching)
-  - Version relationship tracking
-  - Forensic document analysis
-  
-- [ ] **DOC-INT-3:** Add Client Document Request Intelligence (8-12 hours)
-  - Auto-generate document request lists per project type
-  - Template library (Tax: W2, 1099, receipts; Legal: contracts, ID)
-  - Smart request timing (trigger at project phase)
-  - Request completion prediction
-  - Follow-up reminder automation
-  
-- [ ] **DOC-INT-4:** Implement Version Comparison Diff (8-12 hours)
-  - Visual diff for Word documents (track changes view)
-  - PDF diff (highlight changed text/images)
-  - Excel diff (cell-by-cell comparison)
-  - Side-by-side comparison view
-  - Change summary report
-  - Diff export (PDF/HTML)
-
----
-
-### 🟡 Project Management
-
-#### Project Management Intelligence (MEDIUM - 56-72 hours)
-**Status:** AI-powered project management  
-**Dependencies:** None  
-**🔬 Research:** ML model for task estimation
-
-- [ ] **PM-INT-1:** Build AI Task Estimator (16-20 hours)
-  - Historical task data analysis
-  - ML model for effort estimation
-  - File complexity analysis (document size, type)
-  - Similar task pattern matching
-  - Confidence interval for estimates
-  - Continuous model retraining
-  - Integration with task creation workflow
-  
-- [ ] **PM-INT-2:** Implement Critical Path Auto-Calculation (12-16 hours)
-  - Task dependency graph construction
-  - Critical path algorithm (longest path)
-  - Real-time updates when dependencies change
-  - Visual critical path highlighting
-  - What-if scenario analysis
-  - Critical path report generation
-  
-- [ ] **PM-INT-3:** Add Workload Rebalancing Engine (16-20 hours)
-  - Real-time team capacity tracking
-  - Overload detection (>40hr/week)
-  - Auto-suggest task reassignments
-  - Approval workflow for reassignments
-  - Skill-based matching for reassignments
-  - Team capacity dashboard
-  
-- [ ] **PM-INT-4:** Implement Template Marketplace (12-16 hours)
-  - Community-driven workflow templates
-  - Template categories (Tax Season, Audit, M&A)
-  - Template rating and reviews
-  - Template customization on install
-  - Private firm-specific templates
-  - Template usage analytics
-
----
-
-### 🟡 Scheduling Intelligence
-
-#### Advanced Scheduling Intelligence (MEDIUM - 48-64 hours)
-**Status:** AI-enhanced scheduling  
-**Dependencies:** CAL-1 through CAL-6  
-**🔬 Research:** LLM integration for meeting prep (GPT-4 API)
-
-- [ ] **SCHED-INT-1:** Build AI Suggested Meeting Times (16-20 hours)
-  - Analyze historical meeting acceptance patterns
-  - Learn individual productivity patterns (morning/afternoon person)
-  - Suggest 3 optimal times per invitee
-  - Consider timezone fairness
-  - Energy level optimization
-  
-- [ ] **SCHED-INT-2:** Implement Meeting Prep AI (16-20 hours)
-  - Auto-generate meeting briefing documents
-  - Summarize previous meeting notes
-  - Extract relevant recent emails
-  - List related files and documents
-  - Action items from previous meetings
-  - GPT-4 integration for summaries
-  - Send prep doc 1 hour before meeting
-  
-- [ ] **SCHED-INT-3:** Add Time Zone Fatigue Prevention (8-12 hours)
-  - Detect meetings crossing >3 time zones
-  - Warn if meeting at odd hours for participants
-  - Suggest alternative times
-  - Display local time for all participants
-  - Visual timezone map
-  - "Best time for all" recommendation
-  
-- [ ] **SCHED-INT-4:** Implement Buffer Time Optimization (8-12 hours)
-  - AI-adjusted buffer times per meeting type
-  - Learn from historical meeting durations
-  - Auto-adjust calendar when overruns detected
-  - Buffer enforcement policies
-  - Buffer usage analytics
-
----
-
-### 🟡 Reporting & Analytics
-
-#### Advanced Reporting & Analytics (MEDIUM - 28-36 hours)
-**Status:** Enhanced reporting features  
-**Dependencies:** None
-
-- [ ] **REPORT-1:** Build custom dashboard builder (12-16 hours)
-  - Widget system architecture
-  - Dashboard layout editor
-  - Widget library (charts, metrics, tables)
-  - Dashboard sharing
-  
-- [ ] **REPORT-2:** Add geographic/device reports (6-8 hours)
-  - Campaign performance by location
-  - Device and email client breakdown
-  - Geographic heatmaps
-  
-- [ ] **REPORT-3:** Implement multi-touch attribution (10-12 hours)
-  - Attribution model configuration
-  - First-touch, last-touch, linear models
-  - Attribution reports and visualization
-  - Custom attribution windows
-
-#### Analytics & Administration (MEDIUM - 48-64 hours)
-**Status:** Comprehensive reporting and admin tools  
-**Dependencies:** None
-
-- [ ] **ADMIN-1:** Build storage reports (12-16 hours)
-  - Usage by user/folder/file type
-  - Growth trends & forecasts
-  - Largest folders/files
-  - Orphaned files report
-  
-- [ ] **ADMIN-2:** Implement activity reports (16-20 hours)
-  - User login/file access logs
-  - Upload/download statistics
-  - File activity (most accessed)
-  - Sharing activity reports
-  
-- [ ] **ADMIN-3:** Add compliance reports (12-16 hours)
-  - Access audits & permissions review
-  - DLP violation logs
-  - Retention compliance reports
-  - Audit trail export (CSV, PDF)
-  
-- [ ] **ADMIN-4:** Build admin dashboard (8-12 hours)
-  - Executive summary
-  - Total users (active, inactive, pending)
-  - Total storage (used vs available)
-  - Recent activity (24 hours)
-  - Security alerts summary
-
----
-
-### 🟡 Email & Communication
-
-#### Email Campaign Builder Enhancements (MEDIUM - 24-32 hours)
-**Status:** Enhanced email template system  
-**Dependencies:** None
-
-- [ ] **EMAIL-1:** Build drag-and-drop email editor (12-16 hours)
-  - Content block library (text, image, button, video, etc.)
-  - Block configuration panels
-  - Mobile preview
-  - Responsive design
-  
-- [ ] **EMAIL-2:** Add dynamic content (4-6 hours)
-  - Conditional content blocks
-  - Segment-based content variations
-  - Personalization tokens
-  
-- [ ] **EMAIL-3:** Implement link tracking (4-6 hours)
-  - Automatic UTM parameter addition
-  - Click heatmaps
-  - Individual link performance
-  
-- [ ] **EMAIL-4:** Add campaign types (4-6 hours)
-  - RSS-triggered campaigns
-  - Date-based campaigns (birthdays, anniversaries)
-  - Recurring campaigns
-
-#### Email Deliverability & Infrastructure (MEDIUM - 24-32 hours)
-**Status:** Critical for email deliverability  
-**Dependencies:** None
-
-- [ ] **DELIV-2:** Bounce handling (6-8 hours)
-  - Bounce webhook processing
-  - Automatic suppression lists
-  - Bounce type categorization
-  - Hard vs soft bounce handling
-  
-- [ ] **DELIV-3:** Dedicated IP management (4-6 hours)
-  - Dedicated IP configuration
-  - IP warmup automation
-  - IP pool management
-  
-- [ ] **DELIV-4:** Reputation monitoring (8-10 hours)
-  - Blacklist monitoring
-  - Sender reputation tracking
-  - Deliverability alerts
-  - Email quality score
-
----
-
-### 🟡 Compliance
-
-#### GDPR Compliance Features (MEDIUM - 20-28 hours)
-**Status:** Required for EU customers  
-**Dependencies:** None
-
-#### CAN-SPAM Compliance (MEDIUM - 12-16 hours)
-**Status:** Required for US email marketing  
-**Dependencies:** None
-
----
-
-## Low Priority & Future Enhancements
-
-### 🟢 Platform Transformation
-
-#### Event-Driven Architecture (LOW - 16-24 hours)
-**Status:** Platform scalability enhancement  
-**Dependencies:** None  
-**🔬 Research:** Event bus technology selection (Kafka, RabbitMQ, AWS EventBridge)
-
-- [ ] **EVENT-2:** Implement event publisher service (4-6 hours)
-- [ ] **EVENT-3:** Create event subscriber/handler framework (4-6 hours)
-- [ ] **EVENT-4:** Add event routing and filtering logic (3-4 hours)
-- [ ] **EVENT-5:** Create event monitoring and debugging tools (2-4 hours)
-
-#### SCIM Provisioning (LOW - 16-24 hours)
-**Status:** Enterprise user provisioning  
-**Dependencies:** None  
-**🔬 Research:** SCIM 2.0 specification
-
-- [ ] **SCIM-2:** Implement SCIM user provisioning endpoints (6-8 hours)
-- [ ] **SCIM-3:** Implement SCIM group provisioning endpoints (4-6 hours)
-- [ ] **SCIM-4:** Add SCIM authentication and authorization (2-4 hours)
-- [ ] **SCIM-5:** Create SCIM configuration UI (2-4 hours)
-- [ ] **SCIM-6:** Build SCIM edge-case and conformance test suite (3-4 hours)
-  - Cover PATCH add/replace/remove combinations and ETag concurrency checks
-  - Validate case-insensitive usernames, composite filters, and pagination bounds
-  - Assert extension namespace enforcement and audit logging coverage
-
-#### Audit Review UI (LOW - 12-16 hours)
-**Status:** Enhanced audit log interface
-**Dependencies:** None
-
-- All tasks completed — see TODO_COMPLETED.md for AUDIT-2 through AUDIT-4.
-
-#### Integration Marketplace (LOW - 20-28 hours)
-**Status:** Third-party integration platform  
-**Dependencies:** None  
-**🔬 Research:** Marketplace architecture and security model
-
-- [ ] **MARKET-2:** Create integration registry model (4-6 hours)
-- [ ] **MARKET-3:** Implement integration installation workflow (6-8 hours)
-- [ ] **MARKET-4:** Add integration configuration UI (4-6 hours)
-- [ ] **MARKET-5:** Create integration marketplace catalog UI (3-4 hours)
-- [ ] **MARKET-6:** Implement manifest validation and sandbox runner (6-8 hours)
-  - Validate signed manifests and requested scopes before install
-  - Enforce sandbox execution with allowlisted egress and resource limits
-  - Add integration health telemetry and auto-disable on repeated failures
-
-#### Records Management System (LOW - 16-24 hours)
-**Status:** Immutable record keeping
-**Dependencies:** None
-
-- [ ] **REC-1:** Design immutable records architecture (3-4 hours)
-- [ ] **REC-2:** Implement record versioning with immutability (6-8 hours)
-- [ ] **REC-3:** Add record retention policies (4-6 hours)
-- [ ] **REC-4:** Create records audit trail (3-6 hours)
-
-#### Custom Dashboard Builder (LOW - 20-28 hours)
-**Status:** User-customizable dashboards  
-**Dependencies:** REPORT-1
-
-- [ ] **DASH-1:** Design widget system architecture (3-4 hours)
-- [ ] **DASH-2:** Implement core widget framework (6-8 hours)
-- [ ] **DASH-3:** Create 5-7 initial widget types (6-8 hours)
-- [ ] **DASH-4:** Build drag-and-drop dashboard builder UI (5-8 hours)
-
----
-
-### 🟢 Advanced Integrations
-
-#### ERP Connectors (LOW - 24-32 hours per connector)
-**Status:** Enterprise resource planning integration  
-**Dependencies:** None  
-**🔬 Research:** Target ERP systems (SAP, Oracle, NetSuite)
-
-- [ ] **ERP-1:** Research target ERP systems (2-4 hours)
-- [ ] **ERP-2:** Design ERP connector framework (4-6 hours)
-- [ ] **ERP-3:** Implement first ERP connector (e.g., NetSuite) (12-16 hours)
-- [ ] **ERP-4:** Create ERP sync monitoring and error handling (4-6 hours)
-- [ ] **ERP-5:** Build ERP configuration UI (2-4 hours)
-
-#### E-commerce Platform Integrations (LOW - 32-48 hours per platform)
-**Status:** E-commerce integration  
-**Dependencies:** None  
-**🔬 Research:** E-commerce platforms (Shopify, WooCommerce, BigCommerce)
-
-- [ ] **ECOM-2:** Design e-commerce integration models (4-6 hours)
-- [ ] **ECOM-3:** Implement Shopify integration (12-16 hours)
-- [ ] **ECOM-4:** Add abandoned cart tracking (6-8 hours)
-- [ ] **ECOM-5:** Implement customer lifetime value (4-6 hours)
-- [ ] **ECOM-6:** Create e-commerce automation recipes (4-6 hours)
-
-#### Microsoft Ecosystem (LOW - 40-56 hours)
-**Status:** Deep Microsoft integration  
-**Dependencies:** None
-
-- [ ] **MS-1:** Implement Office Online editing (12-16 hours)
-- [ ] **MS-2:** Build Outlook plugin (12-16 hours)
-- [ ] **MS-3:** Add OneDrive/SharePoint sync (8-12 hours)
-- [ ] **MS-4:** Implement Teams integration (8-12 hours)
-
-#### Tax & Collaboration (LOW - 32-44 hours)
-**Status:** Vertical-specific integrations  
-**Dependencies:** None
-
-- [ ] **TAX-1:** Add tax software integrations (16-20 hours)
-  - ProSystem fx, Lacerte, Drake, CCH Axcess
-- [ ] **TAX-2:** Implement Slack notifications (8-12 hours)
-- [ ] **TAX-3:** Build Zapier integration (8-12 hours)
-
----
-
-### 🟢 AI & Machine Learning
-
-#### AI-Powered Lead Scoring (LOW - 16-24 hours)
-**Status:** ML-based lead qualification  
-**Dependencies:** None  
-**✅ Research Complete:** ML frameworks - scikit-learn + XGBoost selected (see [docs/research/ml-framework-research.md](docs/research/ml-framework-research.md))
-
-- [ ] **AI-LEAD-2:** Collect and prepare training data (4-6 hours)
-- [ ] **AI-LEAD-3:** Train lead scoring model (4-6 hours)
-- [ ] **AI-LEAD-4:** Implement model inference service (4-6 hours)
-- [ ] **AI-LEAD-5:** Add model performance monitoring (2-2 hours)
-
-#### AI & Machine Learning Features (LOW - 32-48 hours)
-**Status:** Advanced AI features  
-**Dependencies:** None  
-**🔬 Research:** AI service providers and capabilities
-
-- [ ] **AI-1:** Predictive send-time optimization (8-12 hours)
-- [ ] **AI-2:** Predictive content recommendations (8-12 hours)
-- [ ] **AI-3:** Win probability prediction (8-12 hours)
-- [ ] **AI-4:** Churn prediction (8-12 hours)
-
-#### Advanced AI Features (LOW - 64-88 hours)
-**Status:** Cutting-edge AI for scheduling  
-**Dependencies:** CAL-1 through CAL-6  
-**🔬 Research:** Meeting recording integrations (Gong, Chorus.ai)
-
-- [ ] **AI-SCHED-1:** Implement meeting intelligence (24-32 hours)
-  - Meeting recording integration
-  - Auto-transcription service
-  - AI meeting summaries
-  - Action item extraction
-  - Sentiment analysis
-  
-- [ ] **AI-SCHED-2:** Add predictive features (20-28 hours)
-  - Optimal time suggestions (AI learns best times)
-  - No-show prediction (flag high-risk)
-  - Meeting success score
-  - Smart rescheduling suggestions
-  
-- [ ] **AI-SCHED-3:** Build ML models (20-28 hours)
-  - Train on historical booking data
-  - Continuous model improvement
-  - A/B testing for suggestions
-  - Model monitoring and alerts
-
-#### Autonomous AI Agent (LOW - 80-120 hours)
-**Status:** Advanced AI agent  
-**Dependencies:** None  
-**🔬 Research:** AI agent frameworks and safety guardrails
-
-- [ ] **AGENT-1:** Build Autonomous AI Agent (80-120 hours)
-  - AI agent framework (task planning, execution, reflection)
-  - Natural language intent parsing
-  - Multi-step task execution
-  - Context management
-  - Action library
-  - Safety guardrails
-  - Agent memory and learning
-
----
-
-### 🟢 Mobile & Cross-Platform
-
-#### Mobile Applications (LOW - 80-120 hours)
-**Status:** Native mobile apps  
-**Dependencies:** None  
-**🔬 Research:** Mobile development framework (React Native vs Native)
-
-- [ ] **MOBILE-1:** Design mobile app architecture (8-12 hours)
-- [ ] **MOBILE-2:** Implement iOS app (32-48 hours)
-  - Contact management
-  - Deal management
-  - Task management
-  - Push notifications
-  
-- [ ] **MOBILE-3:** Implement Android app (32-48 hours)
-  - Contact management
-  - Deal management
-  - Task management
-  - Push notifications
-  
-- [ ] **MOBILE-4:** Add offline mode (8-12 hours)
-  - Local data caching
-  - Sync queue
-
-#### Platform Ecosystem (LOW - 72-96 hours)
-**Status:** Browser extensions and ecosystem  
-**Dependencies:** None
-
-- [ ] **PLAT-1:** Build browser extensions (28-36 hours)
-- [ ] **PLAT-2:** Create Outlook add-in (16-20 hours)
-- [ ] **PLAT-3:** Build app marketplace (28-40 hours)
-
----
-
-### 🟢 User Experience & Polish
-
-#### PSA Operations Suite (LOW - 28-40 hours)
-**Status:** Professional services automation  
-**Dependencies:** None
-
-- [ ] **PSA-1:** Design PSA planning architecture (4-6 hours)
-- [ ] **PSA-2:** Implement resource planning module (8-12 hours)
-- [ ] **PSA-3:** Create capacity analytics dashboard (8-12 hours)
-- [ ] **PSA-4:** Add revenue forecasting (4-6 hours)
-- [ ] **PSA-5:** Build project profitability analytics (4-6 hours)
-
-#### User Management Enhancements (LOW - 20-28 hours)
-**Status:** Enhanced permission system  
-**Dependencies:** None
-
-- [ ] **USER-1:** Custom roles (8-12 hours)
-  - Role builder UI
-  - Granular permission configuration
-  
-- [ ] **USER-2:** Field-level permissions (6-8 hours)
-  - Sensitive field hiding
-  - Read-only field configuration
-  
-- [ ] **USER-3:** Multi-language support (6-8 hours)
-  - Internationalization (i18n) setup
-  - Language files for key locales
-
-#### Platform Features (LOW - 24-32 hours)
-**Status:** Platform maturity features  
-**Dependencies:** None
-
-- [ ] **PLAT-FEAT-1:** API versioning system (6-8 hours)
-- [ ] **PLAT-FEAT-2:** Interactive API documentation (8-12 hours)
-- [ ] **PLAT-FEAT-3:** Official SDKs (10-12 hours)
-
-#### User Experience Intelligence (LOW - 32-44 hours)
-**Status:** AI-powered UX enhancements  
-**Dependencies:** None  
-**🔬 Research:** GPT-4 integration for ambient awareness
-
-- [ ] **UX-INT-1:** Implement Ambient Awareness Feed (12-16 hours)
-- [ ] **UX-INT-2:** Build Hyper-Personalized UI (12-16 hours)
-- [ ] **UX-INT-3:** Add Context-Aware Help (8-12 hours)
-
----
-
-### 🟢 Infrastructure & Advanced Features
-
-#### Infrastructure & Architecture Foundations (LOW - 120-160 hours)
-**Status:** Advanced infrastructure for scalability
-**Dependencies:** None
-**🔬 Research:** Neo4j, Kafka, Elasticsearch setup and architecture
-
-- [ ] **INFRA-0:** Define Kafka baseline and topic conventions (6-8 hours)
-  - Produce IaC template for single/three-node Kafka with schema registry
-  - Document topic naming, retention, and compaction defaults per domain
-  - Publish producer/consumer client patterns with idempotency guidance
-
-- [ ] **INFRA-1:** Implement Neo4j Activity Graph Database (40-56 hours)
-  - Graph database setup
-  - Unified activity graph model
-  - Relationship mapping
-  - Graph query API
-  - Graph visualization endpoints
-  - Migration scripts
-  
-- [ ] **INFRA-2:** Implement Event Sourcing Bus with Kafka (40-56 hours)
-  - Kafka installation and cluster setup
-  - Event schema definition
-  - Event publisher service
-  - Event consumer framework
-  - Event replay capability
-  - Integration with Django signals
-  
-- [ ] **INFRA-3:** Add Elasticsearch Unified Search Index (40-48 hours)
-  - Elasticsearch cluster setup
-  - Index schema for all entities
-  - Real-time indexing
-  - Full-text search API
-  - Search relevance tuning
-  - Autocomplete/typeahead endpoints
-
-#### Advanced Scheduling Features (LOW - 20-28 hours)
-**Status:** Nice-to-have scheduling enhancements  
-**Dependencies:** CAL-1 through CAL-6
-
-- [ ] **ADV-SCHED-1:** Implement Carbon Footprint Calculator (20-28 hours)
-  - Meeting location tracking
-  - Travel distance calculation
-  - CO2 emission calculation
-  - Carbon offset recommendations
-  - Sustainability reporting dashboard
-  - Green meeting badges
-
-#### Advanced Document Management (LOW - 20-28 hours)
-**Status:** Blockchain and advanced security  
-**Dependencies:** DOC-1 through DOC-11  
-**🔬 Research:** Blockchain network selection
-
-- [ ] **ADV-DOC-1:** Implement Blockchain Notarization (20-28 hours)
-  - Blockchain network selection
-  - Document hash generation
-  - Blockchain transaction creation
-  - Verification API
-  - Certificate of authenticity
-  - Blockchain explorer integration
-
-#### API & Integration Enhancements (LOW - 40-56 hours)
-**Status:** Advanced integration features  
-**Dependencies:** None
-
-- [ ] **API-ENH-1:** Build Contextual Sync Rules (12-16 hours)
-- [ ] **API-ENH-2:** Implement Data Residency Router (12-16 hours)
-- [ ] **API-ENH-3:** Add Data Lineage Tracker (8-12 hours)
-- [ ] **API-ENH-4:** Build Integration Testing Sandbox (8-12 hours)
-
----
-
-## Research Required
-
-### 🔬 Items Requiring Further Investigation
-
-The following tasks require additional research before implementation planning:
-
-#### Medium Priority Research
-_No open medium-priority research items (moved to TODO_COMPLETED and translated into LLM/ORCH tasks)._ 
-
-#### Low Priority Research
-- **ERP Systems:** SAP, Oracle, NetSuite API capabilities and limitations
-- **E-commerce Platforms:** Shopify, WooCommerce, BigCommerce integration patterns
-- **Meeting Recording:** Gong, Chorus.ai integration capabilities
-- **AI Agent Frameworks:** OpenAI Functions vs LangChain vs custom implementation
-- **Mobile Framework:** React Native vs Native development trade-offs
-- **Neo4j & Kafka:** Graph database and event streaming architecture patterns
-- **Blockchain Networks:** Ethereum vs Hyperledger vs private chains for document notarization
-- **GPT-4 Integration:** API costs, rate limits, and prompt engineering strategy
-
----
-
-## Notes
-
-### Reference Documentation
-- [System Invariants](spec/SYSTEM_INVARIANTS.md)
-- [Platform Capabilities Inventory](docs/03-reference/platform-capabilities.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [Security Policy](SECURITY.md)
-- [Security Compliance](docs/SECURITY_COMPLIANCE.md)
-- [Threat Model](docs/THREAT_MODEL.md)
-
-### Task Estimation Guidelines
-- Tasks should be broken down to < 8 hours ideal, < 16 hours maximum
-- Research tasks are estimated at 2-4 hours each
-- Integration tasks include OAuth setup, API integration, testing, and documentation
-- UI tasks include component development, state management, and responsive design
-- Infrastructure tasks include setup, configuration, testing, and documentation
-
-### Change Control
-- New features should be added only after discussion and prioritization
-- Features should align with the platform vision (CRM + Marketing Automation + Practice Management)
-- Technical debt and code quality improvements should be balanced with feature development
-- See [Scope Creep Review](docs/SCOPE_CREEP_REVIEW.md) for change control process
-
-### Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Definition of Done
-- PR checklist
-- Code review guidelines
-- Testing requirements
-
----
-
-**Total Estimated Work:**
-- Critical: ~0 hours (all complete)
-- High Priority: ~700-950 hours
-- Medium Priority: ~800-1,100 hours
-- Low Priority: ~1,500-2,000 hours
-- Research: ~40-60 hours
-
-**Total: ~3,040-4,110 hours** (~76-103 weeks at 40 hours/week, ~38-52 weeks with 2 developers)

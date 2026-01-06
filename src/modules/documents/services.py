@@ -16,6 +16,13 @@ class S3Service:
     Service for interacting with AWS S3.
 
     Provides methods for file upload, download, and deletion.
+
+    Meta-commentary:
+    - Current Status: S3 operations implemented; basic file management functional.
+    - Follow-up (T-065): Implement per-firm KMS key management for S3 object encryption.
+    - Assumption: S3 server-side encryption (SSE-S3) is enabled via bucket policy.
+    - Missing: Malware scan integration before upload (see documents.malware_scan stub).
+    - Limitation: Presigned URLs expire in 1 hour (hardcoded); should be configurable per document classification.
     """
 
     def __init__(self):
@@ -38,6 +45,13 @@ class S3Service:
 
         Returns:
             dict: {'s3_key': str, 's3_bucket': str, 'file_url': str}
+
+        Meta-commentary:
+        - Current Status: Uploads with default S3 encryption (SSE-S3).
+        - Follow-up (T-065): Add firm-scoped KMS key encryption via ExtraArgs['SSEKMSKeyId'].
+        - Assumption: Bucket-level encryption policy handles default encryption.
+        - Missing: Firm.kms_key_id integration for per-firm encryption keys.
+        - Missing: Malware scan before upload (should reject infected files).
         """
         if filename is None:
             ext = file_obj.name.split(".")[-1] if "." in file_obj.name else "bin"

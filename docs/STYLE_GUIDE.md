@@ -266,6 +266,127 @@ Every documentation file must have:
 
 ---
 
+## Code Documentation: Meta-commentary Standard
+
+### What is Meta-commentary?
+
+**Meta-commentary** is a structured docstring section that provides implementation context beyond what the code does. It appears after the main docstring description and explains:
+
+- **Current implementation status** (complete vs partial)
+- **Design rationale** and architectural decisions
+- **Follow-up work** needed (with task IDs)
+- **Assumptions** about external systems or state
+- **Missing features** that are intentionally deferred
+- **Known limitations** or edge cases
+
+**Evidence:** Existing pattern in `src/modules/firm/audit.py:13`, `src/modules/firm/permissions.py:12`, `src/modules/core/purge.py:13`
+
+### When to Use Meta-commentary
+
+Use Meta-commentary when:
+
+✅ **Incomplete by design** - Feature is partially implemented, awaiting follow-up work  
+✅ **Security-sensitive** - Auth, permissions, encryption with enforcement gaps  
+✅ **Multi-tenant isolation** - Firm-scoping assumptions or RLS enforcement status  
+✅ **Complex state machines** - Workflow orchestration with partial states  
+✅ **Integration stubs** - OAuth/webhook handlers with retry logic incomplete  
+✅ **Governance models** - Tier 0-4 implementations with enforcement hooks not wired  
+
+Do NOT use Meta-commentary for:
+
+❌ Simple utility functions with complete implementations  
+❌ Standard CRUD operations with no special considerations  
+❌ Code that is self-explanatory from tests and naming  
+
+### Meta-commentary Template
+
+```python
+"""
+[Regular docstring: what the function/class does, parameters, returns]
+
+Meta-commentary:
+- Current Status: [What's implemented vs what was designed]
+- Follow-up (TASK-ID): [What needs to be wired/completed, with task reference]
+- Assumption: [What the code assumes about external systems/state]
+- Missing: [What's intentionally deferred or not implemented]
+- Limitation: [Known constraints or edge cases]
+"""
+```
+
+**Rules:**
+1. Start with `Meta-commentary:` on its own line
+2. Use bullet points with **bold labels** (`Current Status:`, `Follow-up:`, etc.)
+3. Reference task IDs (T-###, SEC-#, DOC-#) when applicable
+4. Be concise - 3-5 bullets maximum
+5. Update when follow-up work completes
+
+### Examples
+
+#### Example 1: Incomplete Enforcement
+
+```python
+class DenyContentAccessByDefault(permissions.BasePermission):
+    """
+    Default-deny for customer content access by platform operators.
+    
+    Meta-commentary:
+    - Current Status: Permission class defined but not applied to all content ViewSets.
+    - Follow-up (SEC-7): Wire this to Document, Message, Comment ViewSets.
+    - Assumption: Break-glass sessions are checked via middleware (not yet implemented).
+    - Missing: Audit logging for denied access attempts.
+    """
+```
+
+#### Example 2: Integration Stub
+
+```python
+def sync_invoices_bidirectional(self, connection):
+    """
+    Sync invoices between internal DB and QuickBooks.
+    
+    Meta-commentary:
+    - Current Status: Sync implemented but conflict resolution is last-write-wins.
+    - Follow-up (T-036): Add manual conflict resolution UI for invoice discrepancies.
+    - Assumption: Invoice numbers are unique per firm (QuickBooks enforces server-side).
+    - Missing: Sync locking to prevent concurrent syncs from same connection.
+    - Limitation: Only syncs invoices with status='sent'; drafts are ignored.
+    """
+```
+
+#### Example 3: Design Rationale
+
+```python
+class AuditEvent(models.Model):
+    """
+    Immutable audit event record for compliance and security tracking.
+    
+    Meta-commentary:
+    - Design Rationale: Records are immutable (no updates, only creates) per Tier 3 governance.
+    - Current Status: Model complete; automatic event emission wired for config changes only.
+    - Follow-up (T-045): Add Sentry breadcrumbs for critical audit events.
+    - Assumption: Content is never logged (metadata only) per privacy-first design.
+    """
+```
+
+### Maintenance Guidelines
+
+**When to Add:**
+- During code review when reviewer asks "why is this incomplete?"
+- When implementing partial features that need follow-up
+- When documenting security assumptions or governance gaps
+
+**When to Update:**
+- When follow-up tasks complete (change "Follow-up" to "Previously incomplete, now wired as of [date]")
+- When assumptions change (document old assumption and new one)
+- When limitations are resolved
+
+**When to Remove:**
+- When Meta-commentary becomes redundant with obvious implementation
+- When the context is fully captured in ADRs or architecture docs
+- Never remove historical context (archive to comments if needed)
+
+---
+
 ## Anti-Patterns (DO NOT DO)
 
 ### ❌ Hallucinating Commands
@@ -345,5 +466,5 @@ Archive a doc when:
 
 ---
 
-**Last Updated:** 2025-12-30
+**Last Updated:** 2026-01-06
 **Authority:** Constitution Section 3.2, 14, 15

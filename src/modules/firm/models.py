@@ -422,12 +422,11 @@ class BreakGlassSession(models.Model):
     Break-glass activation record for platform operators.
 
     Meta-commentary:
-    - This model captures the minimum audit trail required to make break-glass visible,
-      time-bound, and reviewable.
-    - Enforcement hooks (middleware/permissions) are intentionally not wired yet; that is
-      a follow-up task under Tier 0.6 and Tier 2.1 to ensure access is actually gated.
-    - Potential enhancement: add immutable, append-only audit events linked to each
-      session for action-level logging once the audit subsystem exists.
+    - Current Status: Model complete; captures audit trail for visibility and review.
+    - Follow-up (T-065, SEC-7): Wire enforcement hooks in middleware/permissions (Tier 0.6, Tier 2.1).
+    - Assumption: Break-glass sessions are time-bound and must be explicitly activated.
+    - Missing: Immutable, append-only audit events linked to each session for action-level logging.
+    - Limitation: Enforcement hooks intentionally not wired yet; access not actually gated.
     """
 
     STATUS_ACTIVE = "active"
@@ -479,8 +478,10 @@ class BreakGlassSession(models.Model):
         Query helpers for break-glass session lifecycle tracking.
 
         Meta-commentary:
-        - These helpers support visibility and cleanup without introducing
-          direct authorization enforcement (still pending).
+        - Current Status: Query helpers complete for visibility and cleanup.
+        - Follow-up (T-065): Integrate with authorization enforcement in permissions.
+        - Assumption: Background job will call expire_overdue() when async jobs are firm-scoped.
+        - Missing: Direct authorization enforcement (still pending in middleware/permissions).
         """
 
         def active(self):
@@ -496,8 +497,10 @@ class BreakGlassSession(models.Model):
             Mark overdue sessions as expired.
 
             Meta-commentary:
-            - Intended to be called from a tenant-aware background job once
-              async jobs are firm-scoped (Tier 2.3).
+            - Current Status: Method implemented but not called automatically.
+            - Follow-up (T-066): Wire to tenant-aware background job (Tier 2.3).
+            - Assumption: Async jobs will be firm-scoped and call this periodically.
+            - Missing: Scheduled job integration; currently manual invocation only.
             """
             expired_count = 0
             for session in self.overdue():
@@ -511,8 +514,11 @@ class BreakGlassSession(models.Model):
             Return sessions scoped to a single firm.
 
             Meta-commentary:
-            - Guarding against missing firm context here reinforces tenant isolation,
-              but enforcement hooks still need to call this helper consistently.
+            - Current Status: Firm-scoping guard implemented in QuerySet.
+            - Follow-up (T-065): Ensure all enforcement hooks call this helper consistently.
+            - Assumption: Firm context is always provided by middleware or view.
+            - Missing: Enforcement hooks consistently calling this helper.
+            - Limitation: Raises ValueError if firm is None (guards against tenant leakage).
             """
             if firm is None:
                 raise ValueError("Firm context is required to scope break-glass sessions.")
@@ -617,8 +623,10 @@ class BreakGlassSession(models.Model):
         Return True if break-glass is currently active and unexpired.
 
         Meta-commentary:
-        - This is a convenience check for guards/permissions.
-        - Enforcement logic still needs to call this method in middleware or permissions.
+        - Current Status: Property implemented as convenience check.
+        - Follow-up (T-065): Wire enforcement logic to call this in middleware/permissions.
+        - Assumption: Status transitions are handled correctly in save() method.
+        - Missing: Enforcement logic calling this method in middleware/permissions.
         """
         return self.status == self.STATUS_ACTIVE and not self.is_expired
 
@@ -725,10 +733,11 @@ class PlatformUserProfile(models.Model):
     - Break-Glass Operator: can activate break-glass for content access (rare, audited)
 
     Meta-commentary:
-    - This model extends Django User with platform-specific role information.
-    - Platform operators should NEVER have default access to customer content.
-    - Break-glass capability is explicitly granted, not default for all platform staff.
-    - All platform actions should be auditable (future: link to audit system).
+    - Current Status: Model complete with role separation; extends Django User.
+    - Follow-up (T-065): Link platform actions to audit system for auditability.
+    - Assumption: Platform operators should NEVER have default access to customer content.
+    - Missing: Audit system integration for platform actions.
+    - Limitation: Break-glass capability is explicitly granted, not default for all platform staff.
     """
 
     ROLE_PLATFORM_OPERATOR = "platform_operator"

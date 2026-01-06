@@ -11,10 +11,11 @@ CRITICAL REQUIREMENTS (from NOTES_TO_CLAUDE.md):
 - Purge operations must be fully logged in audit system
 
 Meta-commentary:
-- Purge removes customer content but preserves liability metadata
-- Tombstones enable "this content existed but was deleted" proof
-- Signature evidence survives content purge
-- All purge operations are immutably audited
+- Current Status: Purge semantics implemented; removes content but preserves metadata.
+- Follow-up (T-045): Ensure all purge operations emit AuditEvents immutably.
+- Assumption: Master Admin authorization is enforced before calling purge methods.
+- Missing: Automatic AuditEvent emission for all purge operations.
+- Limitation: Tombstones enable "this content existed but was deleted" proof; signature evidence survives.
 """
 
 from django.conf import settings
