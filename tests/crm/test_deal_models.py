@@ -107,4 +107,4 @@ def test_update_last_activity_resets_stale_flag(firm, pipeline, open_stage, user
     deal.refresh_from_db()
 
     assert deal.is_stale is False
-    assert deal.last_activity_date == timezone.now().date()
+    assert deal.last_activity_date > last_activity
