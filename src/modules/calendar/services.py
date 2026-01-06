@@ -34,6 +34,12 @@ class AvailabilityService:
     Service for computing available slots.
 
     Implements docs/34 section 4: availability computation with buffers and constraints.
+
+    Meta-commentary:
+    - **Current Status:** External conflict checks for Google/Microsoft are placeholders; only iCal and internal overlap checks enforce conflicts today.
+    - **Follow-up (T-067):** Add provider event→appointment mapping with sync cursors so stale external mappings and cancelled events stop surfacing as available slots.
+    - **Assumption:** OAuth connections supply up-to-date availability; missing backfill means stale tokens or paused sync can yield optimistic availability windows.
+    - **Limitation:** Conflict detection is single-staff focused and does not reconcile simultaneous edits across multiple connected calendars.
     """
 
     def compute_available_slots(
