@@ -27,17 +27,19 @@ pip install -r requirements.txt
 
 ## 4) Configure environment variables
 
+Create a `.env` file in the project root and add the following variables. The application will load these automatically. **Note:** Replace `dev-secret-key` with a unique key generated using the command in the comment above.
+
 ```bash
-export DJANGO_SECRET_KEY="dev-secret-key"
-export DJANGO_DEBUG=True
-export DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
-export POSTGRES_DB=consultantpro
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=postgres
-export POSTGRES_HOST=localhost
-export POSTGRES_PORT=5432
-export CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
-```
+# .env
+DJANGO_SECRET_KEY="dev-secret-key" # Replace with a real secret key
+DJANGO_DEBUG=True
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+POSTGRES_DB=consultantpro
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 ## 5) Run migrations
 
