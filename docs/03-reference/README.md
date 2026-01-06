@@ -11,12 +11,12 @@ Reference documentation is information-oriented and designed for quick lookup of
 - [Requirements Specifications](requirements/README.md) - Canonical requirements (DOC-1 through DOC-35)
 
 ### Configuration
-- Environment Variables - UNKNOWN (tracked in TODO: T-022)
-- Management Commands - UNKNOWN (tracked in TODO: T-023)
+- [Environment Variables](environment-variables.md) - Environment variable reference
+- [Management Commands](management-commands.md) - Django management commands reference
 
 ### Platform
 - [Platform Capabilities](platform-capabilities.md) - Comprehensive inventory of implemented and planned features
-- Tier System - UNKNOWN (tracked in TODO: T-024)
+- [Tier System](tier-system.md) - Subscription tiers and feature availability
 - [Site & Event Tracking Architecture](site-tracking-architecture.md) - Tracking SDK, ingestion, and automation contracts
 
 ## What Makes Good Reference?
