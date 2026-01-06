@@ -28,308 +28,246 @@ If another document disagrees, the task record in this file wins (unless the Con
 ### Ownership rule
 - **Owner: AGENT** means the task can be executed by a coding agent in-repo.
 - **Owner: Trevor** means it requires external actions (provider dashboards, DNS, billing, approvals).
-
 ## Active tasks
 
-### T-011: Implement portal branding infrastructure integrations (DNS, SSL, email templates)
-Priority: P1
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Context:
-- Portal branding references DNS/SSL/email template integrations but the integrations are not implemented.
-Acceptance Criteria:
-- [ ] DNS/SSL integration paths are implemented and wired into portal branding workflows.
-- [ ] Email template integration is implemented for portal branding emails.
-- [ ] Inline placeholders referencing this work are removed or updated.
-References:
-- src/modules/clients/portal_branding.py
-- src/modules/clients/portal_views.py
-Dependencies: None
-Effort: M
+### Phase 0 — Production readiness blockers (P0)
 
-### T-013: Decide and document the frontend component library
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: READY
+### T-042: Document deployment platform and rollback procedures
+Priority: P0
+Type: RELEASE
+Owner: Trevor
+Status: BLOCKED
 Context:
-- Architecture documentation calls out a TBD component library, blocking consistent UI implementation choices.
+- Production readiness work is blocked without knowing the deployment target.
+- Rollback procedures, DNS, and SSL/TLS ownership cannot be finalized without the platform choice.
 Acceptance Criteria:
-- [ ] Component library decision documented with rationale.
-- [ ] Architecture doc updated to reflect the chosen library.
+- [ ] Deployment platform documented (Vercel/K8s/ECS/Railway/etc.).
+- [ ] Deployment commands documented in docs/02-how-to/production-deployment.md.
+- [ ] Rollback procedures specific to platform documented.
+- [ ] DNS configuration documented.
+- [ ] SSL/TLS certificate renewal documented.
+- [ ] Secrets rotation documented.
 References:
+- README.md
+- docs/DEPLOYMENT.md
 - docs/ARCHITECTURE.md
 Dependencies: None
-Effort: S
+Effort: M
 
-### T-014: Implement document lock, signed-url, and upload request endpoints
-Priority: P1
-Type: FEATURE
+### T-062: Pre-launch checklist + enforceable gate
+Priority: P0
+Type: RELEASE
 Owner: AGENT
 Status: READY
 Context:
-- API mapping lists partial document endpoints with TBD notes, indicating missing canonical endpoints.
+- Production readiness needs an enforceable “go/no-go” gate.
+- Prevents launching with incomplete P0/P1 security/ops items.
 Acceptance Criteria:
-- [ ] Document lock, signed-url, and upload request endpoints exist with DRF views and routes.
-- [ ] API endpoint mapping updated to remove TBD notes.
-- [ ] Authorization mapping and permissions documented.
+- [ ] docs/PRE_LAUNCH_CHECKLIST.md exists with sign-off fields.
+- [ ] Gate script fails verification when checklist conditions are unmet.
+- [ ] Gate script validates TODO.md schema (no invalid Status values).
 References:
-- docs/API_ENDPOINT_AUTHORIZATION_MAPPING.md
-- src/modules/documents/
+- TODO.md
+- docs/RELEASEAUDIT.md
 Dependencies: None
 Effort: M
 
-### T-015: Pin bcrypt to a specific version in production requirements
-Priority: P2
-Type: DEPENDENCY
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- bcrypt is specified with a range, which can cause non-reproducible builds.
-Acceptance Criteria:
-- [x] requirements.txt uses an exact bcrypt version.
-- [x] Inline note documents the selected version rationale.
-References:
-- requirements.txt
-Dependencies: None
-Effort: S
-
-### T-016: Align frontend lint tooling with declared dependencies
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- The frontend lint script references eslint without declaring it as a dev dependency.
-Acceptance Criteria:
-- [x] npm run lint succeeds with declared devDependencies.
-- [x] package.json includes required lint dependencies or the lint script is removed if not used.
-References:
-- src/frontend/package.json
-Dependencies: None
-Effort: S
-
-### T-017: Normalize legacy roadmap entries into the governance task format
-Priority: P1
+### T-069: Restore TODO governance (archive completions + fix schema drift)
+Priority: P0
 Type: CHORE
 Owner: AGENT
 Status: READY
 Context:
-- The roadmap pre-dates the governance-aligned task template and requires normalization for consistency.
+- Completed tasks were previously left in TODO.md using an invalid Status value.
+- TODOCOMPLETED.md is currently empty, breaking auditability.
 Acceptance Criteria:
-- [ ] Legacy roadmap entries are converted into T-### tasks following the required template.
-- [ ] Completed or duplicate items are migrated to TODOCOMPLETED.md with completion dates.
-- [ ] Top-priority tasks are clearly ranked for immediate execution.
+- [ ] TODO.md contains only allowed Status values.
+- [ ] Completed tasks are moved to TODOCOMPLETED.md (original records preserved).
 References:
 - TODO.md
 - TODOCOMPLETED.md
-- CODEAUDIT.md
-Dependencies: None
-Effort: L
-
-### T-018: Build pipeline visualization UI (DEAL-3)
-Priority: P2
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Context:
-- Pipeline deal management lacks the Kanban-style visualization and interactions called out in the implementation doc.
-Acceptance Criteria:
-- [ ] Kanban board view renders deals grouped by stage.
-- [ ] Drag-and-drop stage transitions persist updates.
-- [ ] Pipeline filtering and search are available in the UI.
-- [ ] Deal cards display key metrics for quick scanning.
-References:
-- docs/PIPELINE_DEAL_MANAGEMENT.md
-Dependencies: None
-Effort: M
-
-### T-019: Expand deal forecasting and analytics (DEAL-4)
-Priority: P2
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Context:
-- Forecasting and analytics capabilities are partially implemented and need the remaining reporting features.
-Acceptance Criteria:
-- [ ] Win/loss tracking is captured and reportable.
-- [ ] Pipeline performance reports are available for review.
-- [ ] Revenue projection calculations are surfaced alongside existing weighted forecasting.
-References:
-- docs/PIPELINE_DEAL_MANAGEMENT.md
-Dependencies: None
-Effort: M
-
-### T-020: Implement deal assignment automation (DEAL-5)
-Priority: P2
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Context:
-- Automated routing and stage-driven assignment rules are not yet implemented for deals.
-Acceptance Criteria:
-- [ ] Round-robin deal assignment is available.
-- [ ] Territory-based routing rules can be configured.
-- [ ] Deal stage automation triggers assignment actions.
-References:
-- docs/PIPELINE_DEAL_MANAGEMENT.md
-Dependencies: None
-Effort: M
-
-### T-021: Add deal splitting and rotting alert automation (DEAL-6)
-Priority: P2
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Context:
-- Deal splitting and stale deal detection exist, but automated notifications and alerts are missing.
-Acceptance Criteria:
-- [ ] Automated reminders trigger for stale deals.
-- [ ] Alerting logic covers deal splitting/rotting workflows beyond the existing model flags.
-References:
-- docs/PIPELINE_DEAL_MANAGEMENT.md
-Dependencies: None
-Effort: M
-
-### T-022: Document environment variable reference
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- The reference index lists environment variables documentation as UNKNOWN.
-Acceptance Criteria:
-- [x] docs/03-reference/environment-variables.md exists and documents required environment variables.
-- [x] docs/03-reference/README.md reflects the verified reference entry.
-References:
-- docs/03-reference/README.md
-- .env.example
 Dependencies: None
 Effort: S
 
-### T-023: Document management commands reference
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- The reference index lists management commands documentation as UNKNOWN.
-Acceptance Criteria:
-- [x] docs/03-reference/management-commands.md exists and documents supported commands.
-- [x] docs/03-reference/README.md reflects the verified reference entry.
-References:
-- docs/03-reference/README.md
-Dependencies: None
-Effort: S
+### Phase 1 — Security and tenant isolation (P1/P3)
 
-### T-024: Publish tier system reference or retire stale links
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- The reference index links to a tier system document that is missing.
-Acceptance Criteria:
-- [x] docs/03-reference/tier-system.md is created with the current tier system details, or the index links are removed with rationale noted.
-- [x] docs/03-reference/README.md and docs/README.md reflect the verified state.
-References:
-- docs/03-reference/README.md
-- docs/README.md
-Dependencies: None
-Effort: S
-
-### SEC-6: Require webhook signature verification for DocuSign and Twilio
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- Webhook handlers allow unsigned requests when secrets are missing.
-Acceptance Criteria:
-- [x] DocuSign webhooks reject requests when DOCUSIGN_WEBHOOK_SECRET is not configured.
-- [x] Twilio webhooks reject requests when TWILIO_AUTH_TOKEN is not configured.
-- [x] Environment validation reports missing secrets when webhooks are enabled.
-References:
-- src/modules/esignature/views.py
-- src/modules/sms/webhooks.py
-- src/config/env_validator.py
-Dependencies: None
-Effort: M
-
-### SEC-7: Move auth tokens out of localStorage
+### SEC-7: Move auth tokens out of localStorage (cookie-based auth)
 Priority: P1
 Type: SECURITY
 Owner: AGENT
 Status: READY
 Context:
 - localStorage tokens are vulnerable to XSS theft.
+- Verified token usage in src/frontend/src/contexts/AuthContext.tsx and src/frontend/src/api/client.ts.
 Acceptance Criteria:
 - [ ] Access/refresh tokens are stored in HttpOnly, Secure, SameSite cookies.
 - [ ] Frontend no longer reads/writes tokens from localStorage.
-- [ ] Auth refresh and logout flows function with cookie-based tokens.
+- [ ] Auth refresh + logout flows work end-to-end.
 References:
 - src/frontend/src/contexts/AuthContext.tsx
 - src/frontend/src/api/client.ts
 - src/modules/auth/
-Dependencies: None
-Effort: M
+Dependencies: T-070, T-071, T-072
+Effort: L
 
-### LLM-1: Implement firm-scoped LLM client with safety controls
-Priority: P2
-Type: FEATURE
+### T-070: SEC-7.1 Backend cookie issuance + refresh rotation
+Priority: P1
+Type: SECURITY
 Owner: AGENT
 Status: READY
 Context:
-- Safe GPT usage requires filters, metering, and auditability before rollout.
+- SEC-7 requires server-owned cookie flags and rotation.
 Acceptance Criteria:
-- [ ] OpenAI/Azure client wrapper includes retries, timeouts, and zero-retention settings.
-- [ ] Prompt/input redaction, output moderation, and audit logging enforced per request.
-- [ ] Token usage metered per firm with admin-visible quotas.
+- [ ] Login sets access/refresh cookies with Secure + HttpOnly + SameSite.
+- [ ] Refresh rotates refresh token and updates cookies.
+- [ ] Logout clears cookies and invalidates refresh token if applicable.
+- [ ] CORS/CSRF settings correct for cookie auth.
 References:
-- src/modules (LLM integration points TBD)
+- src/modules/auth/
+- src/config/
 Dependencies: None
 Effort: M
 
-### LLM-2: Add meeting prep background job with caching and fallbacks
-Priority: P2
-Type: FEATURE
+### T-071: SEC-7.2 Frontend: remove token localStorage reads/writes
+Priority: P1
+Type: SECURITY
 Owner: AGENT
 Status: READY
 Context:
-- Meeting prep automation depends on reliable asynchronous generation with cache safety.
+- Verified localStorage usage in AuthContext + API client.
 Acceptance Criteria:
-- [ ] Celery task generates summaries with cache keying by firm and meeting context hash.
-- [ ] Results delivered asynchronously with webhook/notification hooks and deterministic fallback text.
-- [ ] Admin controls exist for enabling/disabling LLM features per firm.
+- [ ] AuthContext no longer stores tokens in localStorage.
+- [ ] API client no longer injects Authorization header from localStorage.
+- [ ] Refresh flow works via cookie refresh.
 References:
-- Celery worker configuration
-- Meeting prep feature docs
-Dependencies: LLM-1
+- src/frontend/src/contexts/AuthContext.tsx
+- src/frontend/src/api/client.ts
+Dependencies: T-070
 Effort: M
 
-### T-025: Add direct authentication flow unit tests
+### T-072: SEC-7.3 Tests: cookie auth regression coverage
 Priority: P1
 Type: QUALITY
 Owner: AGENT
 Status: READY
 Context:
-- Authentication flows (login, logout, registration, password reset, token refresh) lack direct unit tests.
-- Currently only tested indirectly through E2E flows.
-- Direct tests would catch regressions in auth logic faster and provide better coverage.
+- Cookie auth is security-sensitive; changes need hard tests.
 Acceptance Criteria:
-- [ ] tests/auth/test_login.py exists with login success/failure tests.
-- [ ] tests/auth/test_logout.py exists with logout and token blacklisting tests.
-- [ ] tests/auth/test_registration.py exists with user registration tests.
-- [ ] tests/auth/test_token_refresh.py exists with token refresh mechanism tests.
-- [ ] tests/auth/test_password_reset.py exists with password reset flow tests (if implemented).
-- [ ] All tests verify firm scoping and tenant isolation.
+- [ ] Backend tests assert cookie flags + rotation + logout clearing.
+- [ ] Frontend tests assert auth state handling without token storage.
+- [ ] E2E suite updated to handle cookie auth.
 References:
-- src/modules/auth/views.py
-- src/modules/auth/serializers.py
-- src/modules/auth/urls.py
+- tests/
+- src/frontend/
+Dependencies: T-070, T-071
+Effort: M
+
+### T-073: Tenant isolation enforcement audit (firm-scoped query correctness)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Context:
+- Tenant isolation depends on always applying firm scoping at queryset boundaries.
+Acceptance Criteria:
+- [ ] Identify endpoints/services that use Model.objects.* where firm scoping is required.
+- [ ] Replace with firm-scoped managers/querysets where appropriate.
+- [ ] Add cross-firm negative tests (data leakage prevention).
+- [ ] Document the rule in CONTRIBUTING.md.
+References:
+- src/modules/firm/utils.py
+- src/api/
+- src/modules/
+Dependencies: None
+Effort: L
+
+### T-060: PostgreSQL Row-Level Security (RLS) defense-in-depth
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Context:
+- Application-layer scoping is necessary but not sufficient for “diamond” isolation.
+Acceptance Criteria:
+- [ ] RLS is enabled for tenant-scoped tables and validated.
+References:
+- src/modules/core/middleware.py
+- docs/SECURITY.md
+Dependencies: T-119, T-120, T-121, T-122, T-123
+Effort: L
+
+### T-119: RLS 1/5 — Inventory tenant-scoped tables
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Context:
+- Need an explicit inventory before writing policies.
+Acceptance Criteria:
+- [ ] List all tables requiring firm scoping.
+- [ ] Verify firm_id columns and constraints.
+References:
+- src/modules/
 Dependencies: None
 Effort: M
+
+### T-120: RLS 2/5 — Set app.current_firm_id for DB session
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Context:
+- Policies require an unspoofable session variable.
+Acceptance Criteria:
+- [ ] Middleware sets current_setting('app.current_firm_id') safely per request.
+- [ ] Background jobs set firm context where applicable.
+References:
+- src/modules/core/middleware.py
+Dependencies: T-119
+Effort: M
+
+### T-121: RLS 3/5 — Add migrations to enable RLS + policies
+Priority: P3
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Context:
+- RLS must be enabled and policies installed via migrations.
+Acceptance Criteria:
+- [ ] Migration enables RLS on inventory tables.
+- [ ] Policies enforce firm_id = current_setting('app.current_firm_id').
+References:
+- src/
+Dependencies: T-119, T-120
+Effort: L
+
+### T-122: RLS 4/5 — Tests validating RLS with direct SQL
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Context:
+- Need proof RLS works even if app code is wrong.
+Acceptance Criteria:
+- [ ] Tests attempt cross-firm selects via raw SQL and verify rejection.
+References:
+- tests/
+Dependencies: T-121
+Effort: M
+
+### T-123: RLS 5/5 — Document RLS model + ops implications
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: READY
+Context:
+- Security posture must be explainable.
+Acceptance Criteria:
+- [ ] SECURITY.md explains RLS assumptions, limitations, and debugging steps.
+References:
+- SECURITY.md
+Dependencies: T-121
+Effort: S
 
 ### T-026: Add deal management unit tests
 Priority: P2
@@ -457,45 +395,6 @@ References:
 Dependencies: None
 Effort: S
 
-### T-033: Replace psycopg2-binary with psycopg2 for production
-Priority: P1
-Type: DEPENDENCY
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- psycopg2-binary is NOT recommended for production per official docs.
-- Production should use psycopg2 (compiles from source).
-Acceptance Criteria:
-- [x] Update requirements.txt: psycopg2-binary==2.9.9 to psycopg2==2.9.9.
-- [x] Update Dockerfile to install libpq-dev.
-- [x] Test database operations (read, write, transactions).
-- [x] Update DEPLOYMENT.md with PostgreSQL dev headers requirement.
-References:
-- requirements.txt
-- Dockerfile
-Dependencies: None
-Effort: M
-
-### T-034: Upgrade boto3 from 1.34.11 to latest stable version
-Priority: P1
-Type: DEPENDENCY
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- boto3==1.34.11 is ~12 months old.
-- Latest versions include security patches and performance improvements.
-Acceptance Criteria:
-- [x] Check latest boto3 version on PyPI.
-- [x] Update requirements.txt to latest version (1.42.22).
-- [x] Test S3 operations: upload, download, delete, presigned URLs.
-- [x] Test KMS encryption operations.
-References:
-- requirements.txt
-- src/modules/documents/services.py
-- src/modules/core/encryption.py
-Dependencies: None
-Effort: M
-
 ### T-035: Evaluate python3-saml maintenance and consider alternatives
 Priority: P2
 Type: DEPENDENCY
@@ -616,47 +515,6 @@ References:
 - docs/DOCS_INDEX.md
 Dependencies: None
 Effort: M
-
-### T-042: Document deployment platform and rollback procedures
-Priority: P0
-Type: RELEASE
-Owner: Trevor
-Status: BLOCKED
-Context:
-- No deployment platform configuration found.
-- Rollback procedures cannot be documented without knowing deployment target.
-- DNS and SSL/TLS management not documented.
-Acceptance Criteria:
-- [ ] Deployment platform documented (Vercel/K8s/ECS/Railway/etc.).
-- [ ] Deployment commands documented in docs/02-how-to/production-deployment.md.
-- [ ] Rollback procedures specific to platform documented.
-- [ ] DNS configuration documented.
-- [ ] SSL/TLS certificate renewal documented.
-- [ ] Environment variable secrets rotation documented.
-References:
-- README.md
-- docs/DEPLOYMENT.md
-- docs/ARCHITECTURE.md
-Dependencies: None
-Effort: M
-
-### T-043: Create custom error pages (404, 500, 503)
-Priority: P1
-Type: RELEASE
-Owner: AGENT
-Status: COMPLETED (2026-01-06)
-Context:
-- No custom error pages found in codebase.
-- User experience degraded without branded error pages.
-Acceptance Criteria:
-- [x] 404.html template created with user-friendly message.
-- [x] 500.html template created with generic error message.
-- [x] 503.html template created for maintenance mode.
-- [x] Error pages tested with DEBUG=False.
-References:
-- src/templates/
-Dependencies: None
-Effort: S
 
 ### T-044: Add production environment variable validation
 Priority: P1
@@ -992,29 +850,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-060: Implement PostgreSQL Row-Level Security (RLS) policies
-Priority: P3
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Context:
-- Current tenant isolation is application-layer only (FirmScopedQuerySet).
-- Defense-in-depth requires database-level enforcement.
-- RLS prevents data leakage if application code has bugs.
-Acceptance Criteria:
-- [ ] Create PostgreSQL RLS policies for all tenant-scoped tables.
-- [ ] Policy: WHERE firm_id = current_setting('app.current_firm_id').
-- [ ] Middleware sets app.current_firm_id session variable.
-- [ ] Test RLS policies with direct SQL queries.
-- [ ] Document RLS setup in SECURITY.md.
-- [ ] Add migration to enable RLS.
-References:
-- src/modules/core/middleware.py
-- docs/SECURITY.md
-- Diamond Standard Plan Phase 9
-Dependencies: None
-Effort: L
-
 ### T-061: Plan API v2 for breaking changes
 Priority: P3
 Type: DOCS
@@ -1033,50 +868,6 @@ Acceptance Criteria:
 References:
 - docs/API_VERSIONING_POLICY.md
 - Diamond Standard Plan Phase 9
-Dependencies: None
-Effort: M
-
-### T-062: Create pre-launch checklist for production readiness
-Priority: P0
-Type: RELEASE
-Owner: AGENT
-Status: READY
-Context:
-- No formal checklist gates production deployment.
-- Risk of launching with incomplete critical tasks.
-- Pre-launch checklist ensures diamond standard before go-live.
-Acceptance Criteria:
-- [ ] Create docs/PRE_LAUNCH_CHECKLIST.md.
-- [ ] Include: all P0/P1 tasks completed, security audit passed, test coverage 80%+, monitoring configured, runbooks created, backups tested.
-- [ ] Add automated verification script that checks TODO.md task completion.
-- [ ] Checklist signed off by: Engineering, Security, Operations.
-- [ ] Link from RELEASEAUDIT.md.
-References:
-- TODO.md
-- docs/RELEASEAUDIT.md
-- Diamond Standard Plan Phase 1-4
-Dependencies: None
-Effort: S
-
-### T-063: Create automated diamond standard dashboard
-Priority: P1
-Type: CHORE
-Owner: AGENT
-Status: READY
-Context:
-- No automated tracking of diamond standard progress.
-- Manual TODO.md review is time-consuming.
-- Dashboard provides visibility into completion status.
-Acceptance Criteria:
-- [ ] Create scripts/diamond_standard_dashboard.py.
-- [ ] Script parses TODO.md and extracts: total tasks, by priority, by status, by owner, by phase.
-- [ ] Generate markdown report with: completion percentage, phase status, blockers, next actions.
-- [ ] Output to DIAMOND_STANDARD_STATUS.md.
-- [ ] Add make dashboard command.
-- [ ] Schedule weekly dashboard updates (manual or automated).
-References:
-- TODO.md
-- Diamond Standard Plan all phases
 Dependencies: None
 Effort: M
 

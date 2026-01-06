@@ -11,7 +11,6 @@
 ## Quick Links
 
 - [TODO.md](TODO.md) - Single source of truth for all tasks
-- [DIAMOND_STANDARD_STATUS.md](DIAMOND_STANDARD_STATUS.md) - Auto-generated progress dashboard
 - [PRE_LAUNCH_CHECKLIST.md](docs/PRE_LAUNCH_CHECKLIST.md) - Production readiness gate
 
 ---
@@ -69,33 +68,6 @@ This plan systematically elevates the ConsultantPro OS codebase from its current
 
 ---
 
-## Automated Dashboard
-
-### ✅ YES - Dashboard Implemented
-
-**Location:** [DIAMOND_STANDARD_STATUS.md](DIAMOND_STANDARD_STATUS.md)
-
-**Generation:**
-```bash
-make dashboard
-# or
-python scripts/diamond_standard_dashboard.py
-```
-
-**Features:**
-- Auto-parses TODO.md for current task status
-- Calculates Diamond Standard score (78 → 95)
-- Tracks completion by phase, priority, owner, status
-- Identifies blockers and next actions
-- Estimates timeline to completion
-
-**Update Frequency:** 
-- Automated: Run `make dashboard` after TODO.md updates
-- Recommended: Weekly team review
-- Dashboard is auto-generated, do not edit manually
-
----
-
 ## Phase 0: Unblock Production (Week 1)
 
 **Goal:** Resolve deployment platform blocker before any release work can proceed.
@@ -103,13 +75,11 @@ python scripts/diamond_standard_dashboard.py
 **Tasks:**
 - **T-042** (P0, Trevor, BLOCKED): Document deployment platform, DNS, SSL/TLS, secrets management
 - **T-062** (P0, AGENT, READY): Create pre-launch checklist (DONE - see docs/PRE_LAUNCH_CHECKLIST.md)
-- **T-063** (P1, AGENT, READY): Create automated dashboard (DONE - see scripts/diamond_standard_dashboard.py)
 
 **Completion Criteria:**
 - Deployment platform documented with runbooks
 - Rollback procedures tested
 - Pre-launch checklist exists
-- Dashboard operational
 
 **Blockers:** T-042 requires Trevor to provide:
 1. Deployment target (Vercel/K8s/ECS/Railway/Fly.io/Render?)
@@ -424,27 +394,25 @@ python scripts/diamond_standard_dashboard.py
 **P2 Tasks:** 29 (important for excellence)  
 **P3 Tasks:** 8 (ongoing improvement)
 
-**Dashboard:** Run `make dashboard` to see live progress.
+Track progress via TODO.md status updates and weekly review.
 
 ---
 
 ## Weekly Cadence
 
 ### Monday: Planning
-- Review DIAMOND_STANDARD_STATUS.md
+- Review TODO.md status and blockers
 - Identify next 5 tasks for the week
 - Assign AGENT vs Trevor workstreams
 - Update blockers
 
 ### Wednesday: Mid-week Check
-- `make dashboard` to refresh status
 - Review in-progress tasks
 - Unblock any issues
 
 ### Friday: Review
 - `make verify` to ensure quality
 - Mark completed tasks in TODO.md
-- `make dashboard` to update metrics
 - Report progress to stakeholders
 
 ### Monthly: Retrospective
@@ -462,7 +430,8 @@ python scripts/diamond_standard_dashboard.py
 1. **Engineering Team** - Daily standups, pull request reviews
 2. **Security Team** - Sign-off on Phase 1 completion
 3. **Operations Team** - Sign-off on Phase 4 completion
-4. **Executive Sponsor (Trevor)** - Weekly dashboard review, blocker resolution
+4. **Executive Sponsor (Trevor)** - Weekly review, blocker resolution
+4. **Executive Sponsor (Trevor)** - Weekly review, blocker resolution
 
 ### Reporting Format
 
@@ -487,7 +456,7 @@ Next Week Plan:
 - [Task 2]
 ...
 
-Dashboard: See DIAMOND_STANDARD_STATUS.md
+Progress: See TODO.md
 ```
 
 ---
@@ -518,8 +487,7 @@ This plan provides a systematic path to Diamond Standard achievement through pha
 1. **Trevor:** Resolve T-042 (deployment platform documentation) - BLOCKING
 2. **AGENT:** Execute Phase 1 (Security Hardening) - 5 tasks, 1-2 weeks
 3. **Team:** Weekly dashboard review every Monday
+3. **Team:** Weekly TODO review every Monday
 4. **Team:** Monthly audit execution to track progress
 
-**Dashboard:** Run `make dashboard` anytime to see current status.
-
-**Questions?** See [TODO.md](TODO.md) for all tasks or [DIAMOND_STANDARD_STATUS.md](DIAMOND_STANDARD_STATUS.md) for live metrics.
+**Questions?** See [TODO.md](TODO.md) for all tasks.
