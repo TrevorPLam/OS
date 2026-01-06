@@ -56,55 +56,6 @@ Effort: M
 
 ### Phase 1 — Security and tenant isolation (P1/P3)
 
-### T-060: PostgreSQL Row-Level Security (RLS) defense-in-depth
-Priority: P3
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Context:
-- Application-layer scoping is necessary but not sufficient for “diamond” isolation.
-Acceptance Criteria:
-- [ ] RLS is enabled for tenant-scoped tables and validated.
-References:
-- src/modules/core/middleware.py
-- docs/SECURITY.md
-Dependencies: T-119, T-120, T-121, T-122, T-123
-Effort: L
-
-### T-123: RLS 5/5 — Document RLS model + ops implications
-Priority: P3
-Type: DOCS
-Owner: AGENT
-Status: READY
-Context:
-- Security posture must be explainable.
-Acceptance Criteria:
-- [ ] SECURITY.md explains RLS assumptions, limitations, and debugging steps.
-References:
-- SECURITY.md
-Dependencies: T-121
-Effort: S
-
-### T-026: Add deal management unit tests
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Context:
-- Deal models, views, and automation logic exist but no dedicated test files found.
-- Deal assignment automation, stage automation, and rotting detection need test coverage.
-Acceptance Criteria:
-- [ ] tests/crm/test_deal_models.py exists with Deal model tests.
-- [ ] tests/crm/test_deal_views.py exists with DealViewSet tests.
-- [ ] tests/crm/test_deal_assignment_automation.py exists with assignment rule tests.
-- [ ] tests/crm/test_deal_stage_automation.py exists with stage automation tests.
-- [ ] tests/crm/test_deal_rotting.py exists with stale deal detection tests.
-References:
-- src/modules/crm/models.py
-- src/modules/crm/views.py
-Dependencies: None
-Effort: L
-
 ### T-027: Split src/modules/crm/models.py into separate files
 Priority: P2
 Type: CHORE

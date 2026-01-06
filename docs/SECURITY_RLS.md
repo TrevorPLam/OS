@@ -8,6 +8,7 @@ Last Updated: 2026-01-06
 - **Background jobs:** Use `firm_db_session(firm)` from `modules.firm.utils` to wrap job handlers so RLS policies see the correct tenant when reading or writing data.
 - **Database policy:** Migration `firm/0014_enable_rls_policies.py` enables RLS and installs `firm_id = current_setting('app.current_firm_id', true)::bigint` policies on every managed model that has a `firm` foreign key. Policies are forced so even table owners honor firm isolation.
 - **Defaults:** If `app.current_firm_id` is missing, policies evaluate to NULL and reject access—sessions must be scoped explicitly.
+- **Validation:** In psql, run `\d+ <table>` to verify `Row security: enabled, forced` and `\dRp+` to confirm `<table>_firm_rls` exists for newly added tables.
 
 ## Tenant-scoped tables (managed models)
 
@@ -48,6 +49,7 @@ Last Updated: 2026-01-06
 - Wrap background work that touches tenant data in `with firm_db_session(firm): ...`.
 - Request handlers automatically get session scoping via middleware; avoid bypassing the middleware stack when serving HTTP.
 - If you see `app.current_firm_id is not set` or permission errors in PostgreSQL, ensure the session context is set before issuing queries.
+- For newly added tenant-scoped models, ensure the `firm` FK exists so the RLS migration sweep can attach policies automatically.
 
 ## Validation
 
