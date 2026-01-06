@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Tenant Isolation & RLS** (2026-01-06)
+  - Hardened payment and portal booking endpoints to require firm-scoped querysets and portal client validation (T-073).
+  - Inventoried all firm-scoped tables and enabled PostgreSQL RLS policies via `app.current_firm_id` session guards (T-119, T-121).
+  - Added middleware/background job session scoping plus raw-SQL enforcement tests for RLS (T-120, T-122).
+
 - **Web Personalization** (2026-01-07)
   - **PERS-3**: Added site message delivery endpoint with targeting, frequency caps, and impression logging.
   - **PERS-4**: Introduced admin UI with preview + A/B variant configuration for site messages.

@@ -40,6 +40,7 @@ class Migration(migrations.Migration):
                         to="firm.firm",
                     ),
                 ),
+            ],
             options={
                 "db_table": "integrations_google_analytics",
                 "ordering": ["-created_at"],

@@ -5,12 +5,16 @@ TIER 2.5: Payments can be accessed by both firm users and portal users.
 Portal users can only pay invoices for their own client.
 """
 
+from decimal import Decimal
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from modules.clients.models import ClientPortalUser
 from modules.clients.permissions import IsPortalUserOrFirmUser
+from modules.firm.utils import FirmScopingError, get_request_firm
 from modules.finance.models import Invoice
 from modules.finance.square_service import SquareService
 
@@ -31,6 +35,47 @@ class SquarePaymentViewSet(viewsets.ViewSet):
         super().__init__(*args, **kwargs)
         self.square_service = SquareService()
 
+    def _get_portal_client(self, request):
+        portal_user = (
+            ClientPortalUser.objects.select_related("client")
+            .filter(user=request.user)
+            .first()
+        )
+        if not portal_user:
+            return None, None
+
+        if not portal_user.can_view_billing:
+            return None, Response(
+                {"error": "Billing access is disabled for this portal user."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        return portal_user.client, None
+
+    def _resolve_invoice(self, request):
+        try:
+            firm = get_request_firm(request)
+        except FirmScopingError as exc:
+            return None, Response({"error": str(exc)}, status=status.HTTP_403_FORBIDDEN)
+
+        invoice_id = request.data.get("invoice_id")
+        if not invoice_id:
+            return None, Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            invoice = Invoice.firm_scoped.for_firm(firm).select_related("client").get(id=invoice_id)
+        except Invoice.DoesNotExist:
+            return None, Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        portal_client, portal_error = self._get_portal_client(request)
+        if portal_error:
+            return None, portal_error
+
+        if portal_client and portal_client.id != invoice.client_id:
+            return None, Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return invoice, None
+
     @action(detail=False, methods=["post"], url_path="create-payment")
     def create_payment(self, request):
         """
@@ -44,21 +89,15 @@ class SquarePaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
             source_id = request.data.get("source_id")
             customer_email = request.data.get("customer_email")
-
-            if not invoice_id:
-                return Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             if not source_id:
                 return Response({"error": "source_id (card nonce) is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Create or get Square customer
             customer_name = invoice.client.company_name if hasattr(invoice, "client") else "Customer"
@@ -125,17 +164,11 @@ class SquarePaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
             redirect_url = request.data.get("redirect_url")
 
-            if not invoice_id:
-                return Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Create payment link
             payment_link = self.square_service.create_payment_link(
@@ -173,25 +206,20 @@ class SquarePaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
             payment_id = request.data.get("payment_id")
             amount = request.data.get("amount")
             reason = request.data.get("reason", "Refund requested")
 
-            if not invoice_id or not payment_id:
+            if not payment_id:
                 return Response(
                     {"error": "invoice_id and payment_id are required"}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Process refund
-            from decimal import Decimal
-
             refund_amount = Decimal(amount) if amount else None
             refund = self.square_service.refund_payment(payment_id=payment_id, amount=refund_amount, reason=reason)
 
@@ -231,16 +259,9 @@ class SquarePaymentViewSet(viewsets.ViewSet):
         }
         """
         try:
-            invoice_id = request.data.get("invoice_id")
-
-            if not invoice_id:
-                return Response({"error": "invoice_id is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Get invoice
-            try:
-                invoice = Invoice.objects.get(id=invoice_id)
-            except Invoice.DoesNotExist:
-                return Response({"error": "Invoice not found"}, status=status.HTTP_404_NOT_FOUND)
+            invoice, error_response = self._resolve_invoice(request)
+            if error_response:
+                return error_response
 
             # Create or get Square customer
             customer_name = invoice.client.company_name

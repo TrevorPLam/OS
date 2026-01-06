@@ -7,7 +7,9 @@ TIER 0 REQUIREMENT: All customer data queries MUST be scoped to a firm.
 Using Model.objects.all() on firm-scoped models is FORBIDDEN.
 """
 
-from django.db import models
+from contextlib import contextmanager
+
+from django.db import connection, models
 from django.http import HttpRequest
 
 from modules.firm.models import BreakGlassSession
@@ -215,6 +217,84 @@ class FirmScopedMixin:
 
         firm = get_request_firm(self.request)
         return firm_scoped_queryset(self.model, firm)
+
+
+def _get_current_firm_setting() -> str | None:
+    """
+    Return the current app.current_firm_id GUC value.
+
+    Returns None when unset or when not on PostgreSQL.
+    """
+    if connection.vendor != "postgresql":
+        return None
+
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT current_setting('app.current_firm_id', true)")
+        current = cursor.fetchone()[0]
+
+    return current or None
+
+
+def _normalize_firm_id(firm) -> int | str | None:
+    """Extract a firm identifier from a firm instance or raw identifier."""
+    if firm is None:
+        return None
+    return getattr(firm, "id", firm)
+
+
+def set_current_firm_db_session(firm) -> None:
+    """
+    Set app.current_firm_id for the active database session.
+
+    Intended for PostgreSQL connections; no-ops on other engines.
+    """
+    firm_id = _normalize_firm_id(firm)
+    if firm_id is None or connection.vendor != "postgresql":
+        return
+
+    with connection.cursor() as cursor:
+        cursor.execute("SET SESSION app.current_firm_id = %s", [firm_id])
+
+
+def clear_current_firm_db_session() -> None:
+    """
+    Reset app.current_firm_id for the active database session.
+
+    Avoids leaking firm context across requests or background jobs.
+    """
+    if connection.vendor != "postgresql":
+        return
+
+    current = _get_current_firm_setting()
+    if current is None:
+        return
+
+    with connection.cursor() as cursor:
+        cursor.execute("RESET app.current_firm_id")
+
+
+@contextmanager
+def firm_db_session(firm):
+    """
+    Context manager to apply firm context to the current DB session.
+
+    Sets app.current_firm_id for PostgreSQL connections and restores the prior
+    value on exit to prevent context bleed across jobs or requests.
+    """
+    if connection.vendor != "postgresql":
+        yield
+        return
+
+    previous = _get_current_firm_setting()
+    set_current_firm_db_session(firm)
+
+    try:
+        yield
+    finally:
+        if previous:
+            set_current_firm_db_session(previous)
+        else:
+            clear_current_firm_db_session()
 
 
 def validate_firm_access(obj, firm):
