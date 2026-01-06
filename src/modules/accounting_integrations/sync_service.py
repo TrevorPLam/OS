@@ -194,9 +194,9 @@ class AccountingSyncService:
 
         Meta-commentary:
         - **Current Status:** Push-only path stops after initial creation; inbound updates from QuickBooks/Xero overwrite local data implicitly via later pulls without field-level conflict resolution.
-        - **Follow-up (T-067):** Add bidirectional invoice merge with per-field precedence rules and optimistic locking to avoid last-write-wins overwriting finance corrections.
-        - **Assumption:** InvoiceSyncMapping entries remain fresh; retrying a failed push reuses stale external IDs without verifying remote deletion or voiding.
-        - **Limitation:** Token freshness and mapping writes are not wrapped in the same transaction, so partial failures can leave local invoices marked synced while the provider rejects the payload.
+        - **Follow-up (T-067):** Add bidirectional invoice merge with per-field precedence rules plus sync-level locking to avoid concurrent push/pull cycles trampling each other.
+        - **Assumption:** InvoiceSyncMapping entries remain fresh; retrying a failed push reuses stale external IDs without verifying remote deletion, voiding, or renumbering.
+        - **Limitation:** Token freshness and mapping writes are not wrapped in the same transaction, and there is no deduplication lock around the sync, so partial failures can leave invoices flagged as synced while a competing worker pushes divergent versions.
         """
         if not self._ensure_fresh_token():
             return {'success': False, 'error': 'Token refresh failed'}

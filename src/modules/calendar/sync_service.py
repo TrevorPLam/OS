@@ -26,6 +26,16 @@ class CalendarSyncService:
 
     Handles syncing appointments between internal system and
     external calendar providers (Google Calendar, Microsoft Outlook).
+
+    Meta-commentary:
+    - **Current Status:** Sync flow is last-write-wins across providers and the local DB; inbound updates can overwrite local
+      changes without per-field conflict resolution or revision checks.
+    - **Follow-up (T-067):** Add sync-scoped locks plus provider ETag/version comparisons so concurrent push/pull cycles do
+      not interleave and to detect when remote updates should be merged instead of clobbered.
+    - **Assumption:** OAuthConnection.last_sync_cursor represents a reliable watermark; there is no audit to detect stale
+      cursors or deleted mappings, so removed external events may linger internally.
+    - **Limitation:** Sync operations do not reconcile orphaned Appointment↔external event mappings; missing webhook events or
+      provider-side deletes are not detected without manual review.
     """
 
     def __init__(self):
