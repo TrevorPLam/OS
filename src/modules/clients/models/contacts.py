@@ -154,6 +154,13 @@ class ContactManager(models.Manager):
             models.Index(fields=["postal_code"], name="clients_contact_postal_idx"),
         ]
         unique_together = [["client", "email"]]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["client"],
+                condition=models.Q(is_primary_contact=True),
+                name="unique_primary_contact_per_client",
+            )
+        ]
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.client.company_name})"
@@ -616,4 +623,3 @@ class ContactBulkUpdate(models.Model):
     
     def __str__(self):
         return f"Bulk Update {self.id}: {self.operation_type} - {self.status}"
-
