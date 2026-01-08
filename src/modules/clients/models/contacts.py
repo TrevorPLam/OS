@@ -219,7 +219,134 @@ class ContactManager(models.Manager):
         """Confirm contact's email address (move from unconfirmed to active)."""
         if self.status == self.STATUS_UNCONFIRMED:
             self.change_status(self.STATUS_ACTIVE, reason="Email confirmed", changed_by=changed_by)
-    
+
+    # CRM-INT-4: Consent tracking helper methods
+    def has_consent(self, consent_type):
+        """
+        Check if contact has current consent for a specific type.
+
+        Args:
+            consent_type: Consent type to check (use ConsentRecord.CONSENT_TYPE_* constants)
+
+        Returns:
+            bool: True if contact has active consent, False otherwise
+        """
+        from .consents import ConsentRecord
+
+        status = ConsentRecord.get_current_consent(self, consent_type)
+        return status["has_consent"]
+
+    def grant_consent(
+        self,
+        consent_type,
+        source,
+        legal_basis="consent",
+        data_categories=None,
+        consent_text="",
+        consent_version="",
+        consent_method=None,
+        source_url="",
+        ip_address=None,
+        user_agent="",
+        actor=None,
+        metadata=None,
+    ):
+        """
+        Grant consent for this contact.
+
+        Creates a new consent record with action=GRANTED.
+        """
+        from .consents import ConsentRecord
+
+        return ConsentRecord.objects.create(
+            contact=self,
+            consent_type=consent_type,
+            action=ConsentRecord.ACTION_GRANTED,
+            legal_basis=legal_basis,
+            data_categories=data_categories or [],
+            consent_text=consent_text,
+            consent_version=consent_version,
+            consent_method=consent_method,
+            source=source,
+            source_url=source_url,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            actor=actor,
+            metadata=metadata or {},
+        )
+
+    def revoke_consent(
+        self,
+        consent_type,
+        source,
+        reason="",
+        ip_address=None,
+        user_agent="",
+        actor=None,
+        metadata=None,
+    ):
+        """
+        Revoke consent for this contact.
+
+        Creates a new consent record with action=REVOKED.
+        """
+        from .consents import ConsentRecord
+
+        return ConsentRecord.objects.create(
+            contact=self,
+            consent_type=consent_type,
+            action=ConsentRecord.ACTION_REVOKED,
+            source=source,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            actor=actor,
+            metadata=metadata or {},
+            notes=reason,
+        )
+
+    def get_consent_status(self):
+        """
+        Get current consent status for all consent types.
+
+        Returns:
+            dict: Dictionary mapping consent types to their current status.
+        """
+        from .consents import ConsentRecord
+
+        status = {}
+        for consent_type, _ in ConsentRecord.CONSENT_TYPE_CHOICES:
+            status[consent_type] = ConsentRecord.get_current_consent(self, consent_type)
+        return status
+
+    def clean(self):
+        """
+        Validate Contact data integrity.
+
+        Validates:
+        - Portal user consistency: portal_user.client == self.client
+        - Only one primary contact per client
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        # Portal user consistency
+        if self.portal_user_id and self.client_id:
+            if hasattr(self, "portal_user") and self.portal_user.client_id != self.client_id:
+                errors["portal_user"] = "Contact's portal user must belong to the same client."
+
+        # Ensure only one primary contact per client
+        if self.is_primary_contact and self.client_id:
+            existing_primary = (
+                self.__class__.objects.filter(client=self.client, is_primary_contact=True).exclude(pk=self.pk).first()
+            )
+            if existing_primary:
+                errors["is_primary_contact"] = (
+                    f"Client already has a primary contact: {existing_primary.full_name}"
+                )
+
+        if errors:
+            raise ValidationError(errors)
 
 class ContactImport(models.Model):
     """
@@ -489,5 +616,4 @@ class ContactBulkUpdate(models.Model):
     
     def __str__(self):
         return f"Bulk Update {self.id}: {self.operation_type} - {self.status}"
-
 

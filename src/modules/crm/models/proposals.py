@@ -8,6 +8,7 @@ from django.db import models
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
+from .prospects import Prospect
 
 class Proposal(models.Model):
     """
@@ -157,5 +158,4 @@ class Proposal(models.Model):
                     raise ValidationError("Cannot modify total value for proposals linked to signed contracts.")
 
         super().save(*args, **kwargs)
-
 

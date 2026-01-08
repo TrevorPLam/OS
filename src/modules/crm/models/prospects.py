@@ -8,6 +8,7 @@ from django.db import models
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
+from .leads import Lead
 
 class Prospect(models.Model):
     """
@@ -132,5 +133,4 @@ class Prospect(models.Model):
 
     def __str__(self) -> str:
         return f"{self.company_name} - {self.get_stage_display()}"
-
 

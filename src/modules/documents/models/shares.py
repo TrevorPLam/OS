@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from modules.core.encryption import field_encryption_service
 from modules.firm.utils import FirmScopedManager
-from modules.projects.models import Project
+from .documents import Document
 
 
 class ExternalShare(models.Model):
@@ -540,5 +540,4 @@ class ShareAccess(models.Model):
             referer=referer[:1000] if referer else "",  # Truncate
             metadata=metadata or {},
         )
-
 

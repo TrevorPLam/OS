@@ -8,6 +8,8 @@ from django.db import models
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
+from .leads import Lead
+from .prospects import Prospect
 
 class IntakeForm(models.Model):
     """
@@ -484,5 +486,4 @@ class IntakeFormSubmission(models.Model):
 # ============================================================================
 # CPQ (Configure-Price-Quote) System - Task 3.5
 # ============================================================================
-
 
