@@ -13,6 +13,7 @@ If another document disagrees, the task record in this file wins (unless the Con
 - **Type**: `SECURITY | RELEASE | DEPENDENCY | DOCS | QUALITY | BUG | FEATURE | CHORE`
 - **Owner**: `AGENT | Trevor`
 - **Status**: `READY | BLOCKED | IN-PROGRESS | IN-REVIEW`
+- **Blocker**: `None` or explicit dependency/decision
 - **Context**: why the task exists (1–5 bullets)
 - **Acceptance Criteria**: verifiable checklist
 - **References**: file paths and/or links inside this repo
@@ -37,6 +38,7 @@ Priority: P0
 Type: RELEASE
 Owner: Trevor
 Status: BLOCKED
+Blocker: Deployment platform decision (Owner: Trevor).
 Context:
 - Production readiness work is blocked without knowing the deployment target.
 - Rollback procedures, DNS, and SSL/TLS ownership cannot be finalized without the platform choice.
@@ -56,239 +58,14 @@ Effort: M
 
 ### Phase 1 — Security and tenant isolation (P1/P3)
 
-### T-027: Split src/modules/crm/models.py into separate files
-Priority: P2
-Type: CHORE
-Owner: AGENT
-Status: IN-REVIEW
-Context:
-- src/modules/crm/models.py is 3,469 lines (largest file in the codebase).
-- Contains 10+ distinct model classes.
-- Large files slow agent comprehension, increase merge conflicts, and make testing harder.
-- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
-Acceptance Criteria:
-- [x] Split into src/modules/crm/models/ directory with separate files by entity.
-- [x] src/modules/crm/models/__init__.py re-exports all models for backward compatibility.
-- [x] All imports elsewhere remain functional (no breaking changes).
-- [ ] All existing tests pass without modification.
-References:
-- src/modules/crm/models.py
-Dependencies: None
-Effort: M
-
-### T-028: Split src/modules/clients/models.py into separate files
-Priority: P2
-Type: CHORE
-Owner: AGENT
-Status: IN-REVIEW
-Context:
-- src/modules/clients/models.py is 2,699 lines (second largest file).
-- Similar complexity issues as crm/models.py.
-- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
-Acceptance Criteria:
-- [x] Split into src/modules/clients/models/ directory with separate files.
-- [x] Backward compatible re-exports in __init__.py.
-- [ ] All existing tests pass.
-References:
-- src/modules/clients/models.py
-Dependencies: None
-Effort: M
-
-### T-029: Split src/modules/documents/models.py into separate files
-Priority: P3
-Type: CHORE
-Owner: AGENT
-Status: IN-REVIEW
-Context:
-- src/modules/documents/models.py is 2,386 lines.
-- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
-Acceptance Criteria:
-- [x] Split into src/modules/documents/models/ directory.
-- [x] Backward compatible re-exports.
-- [ ] All tests pass.
-References:
-- src/modules/documents/models.py
-Dependencies: None
-Effort: M
-
-### T-030: Split src/modules/calendar/services.py into focused service classes
-Priority: P3
-Type: CHORE
-Owner: AGENT
-Status: IN-REVIEW
-Context:
-- src/modules/calendar/services.py is 2,360 lines (single service doing too much).
-Acceptance Criteria:
-- [ ] Split into focused service classes by provider/responsibility.
-- [ ] Maintain existing public API.
-- [ ] All tests pass.
-References:
-- src/modules/calendar/services.py
-Dependencies: None
-Effort: M
-
-### T-031: Remove unused dev dependencies (factory-boy, faker, import-linter)
-Priority: P2
-Type: DEPENDENCY
-Owner: AGENT
-Status: READY
-Context:
-- Three dev dependencies installed but unused.
-- Removing these simplifies dev environment and reduces attack surface.
-Acceptance Criteria:
-- [ ] Remove factory-boy==3.3.0 from requirements-dev.txt.
-- [ ] Remove faker==22.0.0 from requirements-dev.txt.
-- [ ] Remove import-linter==2.0 from requirements-dev.txt.
-- [ ] Run pip install -r requirements-dev.txt to verify no breaking changes.
-- [ ] Run test suite to verify no hidden dependencies.
-References:
-- requirements-dev.txt
-Dependencies: None
-Effort: S
-
-### T-032: Consolidate pytest-cov and coverage dependencies
-Priority: P2
-Type: DEPENDENCY
-Owner: AGENT
-Status: READY
-Context:
-- Both pytest-cov and coverage are installed redundantly.
-- pytest-cov already includes coverage as a dependency.
-Acceptance Criteria:
-- [ ] Remove coverage==7.4.0 from requirements-dev.txt (keep pytest-cov).
-- [ ] Verify pytest-cov still works: pytest --cov=src tests/.
-- [ ] Update any CI/local scripts that reference coverage directly.
-References:
-- requirements-dev.txt
-- pyproject.toml
-- pytest.ini
-Dependencies: None
-Effort: S
-
-### T-035: Evaluate python3-saml maintenance and consider alternatives
-Priority: P2
-Type: DEPENDENCY
-Owner: Trevor
-Status: READY
-Context:
-- python3-saml==1.16.0 last updated 2+ years ago.
-- Requires native dependencies (xmlsec, lxml).
-- Need to assess if SAML is actively used in production.
-Acceptance Criteria:
-- [ ] Check if SAML authentication is actively used.
-- [ ] If NOT used: Create task to remove python3-saml dependencies.
-- [ ] If used: Research alternatives (python-saml fork) and document decision.
-References:
-- requirements.txt
-- src/modules/auth/saml_views.py
-Dependencies: None
-Effort: M
-
-### T-036: Evaluate DocuSign SDK adoption
-Priority: P2
-Type: DEPENDENCY
-Owner: AGENT
-Status: READY
-Context:
-- Currently using raw requests library for DocuSign API.
-- Official SDK available: docusign-esign.
-Acceptance Criteria:
-- [ ] Research SDK size and dependencies.
-- [ ] Compare SDK methods to current implementation.
-- [ ] Make recommendation: migrate to SDK or keep custom implementation.
-- [ ] Document findings in DEPENDENCYAUDIT.md.
-References:
-- src/modules/esignature/docusign_service.py
-Dependencies: None
-Effort: M
-
-### T-037: Evaluate Pillow dependency for single watermarking usage
-Priority: P3
-Type: DEPENDENCY
-Owner: Trevor
-Status: READY
-Context:
-- Pillow is large native dependency used in only 1 location (image watermarking).
-- Need product decision on watermarking requirement.
-Acceptance Criteria:
-- [ ] Assess if watermarking feature is actively used.
-- [ ] If NOT needed: Create task to remove Pillow.
-- [ ] If needed: Document decision to keep with justification.
-References:
-- requirements.txt
-- src/modules/core/access_controls.py
-Dependencies: None
-Effort: S
-
-### T-038: Create comprehensive dependency documentation
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: READY
-Context:
-- Several critical dependencies lack documentation.
-- No single document explaining dependency choices.
-Acceptance Criteria:
-- [ ] Create docs/DEPENDENCIES.md with all major dependencies documented.
-- [ ] Document: purpose, usage, alternatives, upgrade considerations.
-- [ ] Link from README.md to DEPENDENCIES.md.
-References:
-- requirements.txt
-- requirements-dev.txt
-Dependencies: None
-Effort: L
-Priority: P3
-Type: DOCS
-Owner: Trevor
-Status: BLOCKED
-Context:
-- docs/ contains 35 numbered files without .md extension.
-- Not referenced in DOCS_INDEX.md or other navigation.
-- Appears to be alternative/legacy spec format.
-Acceptance Criteria:
-- [ ] Trevor reviews numbered files to determine if they should be archived, renamed, or deleted.
-- [ ] Decision documented.
-References:
-- docs/1 through docs/35
-- docs/DOCS_INDEX.md
-Dependencies: None
-Effort: S
-
-### T-040: Expand DOCS_INDEX.md to include all major doc categories
-Priority: P3
-Type: DOCS
-Owner: AGENT
-Status: READY
-Context:
-- Current DOCS_INDEX.md covers governance but omits implementation docs, policies, integration guides.
-Acceptance Criteria:
-- [ ] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
-- [ ] List major documents from each category.
-References:
-- docs/DOCS_INDEX.md
-Dependencies: None
-Effort: S
-
-### T-041: Create missing user guides or clean up dead references
-Priority: P3
-Type: DOCS
-Owner: Trevor
-Status: BLOCKED
-Context:
-- DOCS_INDEX.md references firm-admin-guide.md and client-portal-guide.md but files don't exist.
-Acceptance Criteria:
-- [ ] Decide whether to create missing guides or remove references.
-- [ ] If creating guides, create basic structure.
-References:
-- docs/DOCS_INDEX.md
-Dependencies: None
-Effort: M
+#### P1 — High impact (do within 7 days)
 
 ### T-044: Add production environment variable validation
 Priority: P1
 Type: RELEASE
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - No startup validation of required vars in production.
 - Missing critical vars could cause runtime failures.
@@ -307,6 +84,7 @@ Priority: P1
 Type: RELEASE
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - Sentry integration exists but critical flow instrumentation incomplete.
 Acceptance Criteria:
@@ -326,6 +104,7 @@ Priority: P1
 Type: DOCS
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - OBSERVABILITY.md exists but doesn't define alert thresholds or monitoring requirements.
 Acceptance Criteria:
@@ -338,28 +117,39 @@ References:
 Dependencies: None
 Effort: M
 
-### T-047: Add frontend build output verification to CI/CD
-Priority: P2
-Type: QUALITY
+### T-067: Add Meta-commentary to P1 integration modules
+Priority: P1
+Type: DOCS
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
-- Frontend build not verified in pre-release checks.
+- Integration modules have webhook handlers, sync services with incomplete retry/reconciliation.
+- Conflict resolution strategies and idempotency key usage need documentation.
+- Frequent troubleshooting makes Meta-commentary valuable.
 Acceptance Criteria:
-- [ ] Root Makefile includes frontend build check.
-- [ ] Built assets verified to exist.
-- [ ] Frontend production build tested.
+- [ ] Add Meta-commentary to src/modules/calendar/services.py: CalendarService (sync conflict resolution, mapping staleness).
+- [ ] Add Meta-commentary to src/modules/accounting_integrations/sync.py: sync_invoices_bidirectional (last-write-wins, sync locking missing).
+- [ ] Add Meta-commentary to src/modules/esignature/docusign_service.py: DocuSignService (webhook verification, retry on network errors).
+- [ ] Add Meta-commentary to src/modules/finance/stripe_service.py: create_payment_intent (idempotency enforcement, reconciliation gap).
+- [ ] Add Meta-commentary to src/modules/jobs/queue.py: claim_job (concurrency assumptions, stale worker detection).
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
 References:
-- src/frontend/Makefile
-- Makefile
-Dependencies: None
-Effort: S
+- docs/STYLE_GUIDE.md
+- src/modules/calendar/services.py
+- src/modules/accounting_integrations/sync.py
+- src/modules/esignature/docusign_service.py
+- src/modules/finance/stripe_service.py
+- src/modules/jobs/queue.py
+Dependencies: T-064
+Effort: M
 
-### T-048: Add frontend unit tests with React Testing Library and Vitest
+### T-074: Set up frontend unit test tooling
 Priority: P1
 Type: QUALITY
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - Frontend has no unit tests (CODEAUDIT.md finding).
 - React components untested increases regression risk.
@@ -368,44 +158,112 @@ Acceptance Criteria:
 - [ ] Install @testing-library/react and vitest as dev dependencies.
 - [ ] Configure vitest in vite.config.ts.
 - [ ] Create tests/ directory in src/frontend/.
-- [ ] Add tests for: AuthContext, API client, form components.
-- [ ] Achieve 60%+ frontend test coverage.
 - [ ] Add npm test command to package.json.
-- [ ] Update root Makefile to include frontend tests in make test.
 References:
 - src/frontend/
 - Diamond Standard Plan Phase 3
 Dependencies: None
-Effort: L
+Effort: M
 
-### T-049: Implement E2E tests for critical paths with Playwright
+### T-075: Add frontend unit tests for auth context and API client
 Priority: P1
 Type: QUALITY
 Owner: AGENT
 Status: READY
+Blocker: None.
+Context:
+- Core auth and API client flows are untested.
+- These modules are high-risk for regressions.
+Acceptance Criteria:
+- [ ] Add unit tests for AuthContext.
+- [ ] Add unit tests for API client.
+- [ ] Tests run via npm test.
+References:
+- src/frontend/src/contexts/AuthContext.tsx
+- src/frontend/src/api/client.ts
+Dependencies: T-074
+Effort: M
+
+### T-076: Add frontend form component tests and coverage target
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Form components drive core workflows and need coverage.
+- Coverage target enforces baseline quality for frontend tests.
+Acceptance Criteria:
+- [ ] Add unit tests for form components.
+- [ ] Achieve 60%+ frontend test coverage.
+- [ ] Update root Makefile to include frontend tests in make test.
+References:
+- src/frontend/
+- Makefile
+Dependencies: T-074, T-075
+Effort: M
+
+### T-077: Set up Playwright E2E testing harness
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
 Context:
 - Critical user journeys lack E2E test coverage.
 - Manual smoke testing is error-prone and slow.
-- Need automated regression prevention for auth, payments, core workflows.
 Acceptance Criteria:
 - [ ] Install @playwright/test as dev dependency.
 - [ ] Create e2e/ directory with Playwright config.
-- [ ] Implement E2E tests for: registration, login, MFA, OAuth, create firm, create client, create invoice, payment flow.
-- [ ] Tests run against Docker Compose environment.
 - [ ] Add make e2e command.
-- [ ] Tests pass in CI (when enabled).
 References:
 - Docker Compose environment
 - RELEASEAUDIT.md smoke test checklist
 - Diamond Standard Plan Phase 3
 Dependencies: None
-Effort: L
+Effort: M
+
+### T-078: Add Playwright E2E coverage for authentication flows
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Auth workflows are business-critical and must be covered end-to-end.
+Acceptance Criteria:
+- [ ] Implement E2E tests for: registration, login, MFA, OAuth.
+- [ ] Tests run against Docker Compose environment.
+References:
+- Docker Compose environment
+- src/frontend/
+Dependencies: T-077
+Effort: M
+
+### T-079: Add Playwright E2E coverage for core business workflows
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Core workflows (firm/client/invoice/payment) need regression coverage.
+Acceptance Criteria:
+- [ ] Implement E2E tests for: create firm, create client, create invoice, payment flow.
+- [ ] Tests run against Docker Compose environment.
+- [ ] Tests pass in CI (when enabled).
+References:
+- Docker Compose environment
+- src/frontend/
+Dependencies: T-077
+Effort: M
 
 ### T-050: Create incident response runbooks
 Priority: P1
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: BLOCKED
+Blocker: T-042 (deployment platform).
 Context:
 - No documented procedures for responding to production incidents.
 - Increases MTTR (mean time to recovery) during outages.
@@ -426,6 +284,7 @@ Priority: P1
 Type: RELEASE
 Owner: Trevor
 Status: BLOCKED
+Blocker: T-042 (deployment platform).
 Context:
 - No external uptime monitoring configured.
 - Cannot detect outages proactively.
@@ -442,11 +301,167 @@ References:
 Dependencies: T-042 (deployment platform)
 Effort: M
 
+#### P2 — Important (do within 30 days)
+
+### T-027: Split src/modules/crm/models.py into separate files
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None.
+Context:
+- src/modules/crm/models.py is 3,469 lines (largest file in the codebase).
+- Contains 10+ distinct model classes.
+- Large files slow agent comprehension, increase merge conflicts, and make testing harder.
+- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
+Acceptance Criteria:
+- [x] Split into src/modules/crm/models/ directory with separate files by entity.
+- [x] src/modules/crm/models/__init__.py re-exports all models for backward compatibility.
+- [x] All imports elsewhere remain functional (no breaking changes).
+- [ ] All existing tests pass without modification.
+References:
+- src/modules/crm/models.py
+Dependencies: None
+Effort: M
+
+### T-028: Split src/modules/clients/models.py into separate files
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None.
+Context:
+- src/modules/clients/models.py is 2,699 lines (second largest file).
+- Similar complexity issues as crm/models.py.
+- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
+Acceptance Criteria:
+- [x] Split into src/modules/clients/models/ directory with separate files.
+- [x] Backward compatible re-exports in __init__.py.
+- [ ] All existing tests pass.
+References:
+- src/modules/clients/models.py
+Dependencies: None
+Effort: M
+
+### T-031: Remove unused dev dependencies (factory-boy, faker, import-linter)
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Three dev dependencies installed but unused.
+- Removing these simplifies dev environment and reduces attack surface.
+Acceptance Criteria:
+- [ ] Remove factory-boy==3.3.0 from requirements-dev.txt.
+- [ ] Remove faker==22.0.0 from requirements-dev.txt.
+- [ ] Remove import-linter==2.0 from requirements-dev.txt.
+- [ ] Run pip install -r requirements-dev.txt to verify no breaking changes.
+- [ ] Run test suite to verify no hidden dependencies.
+References:
+- requirements-dev.txt
+Dependencies: None
+Effort: S
+
+### T-032: Consolidate pytest-cov and coverage dependencies
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Both pytest-cov and coverage are installed redundantly.
+- pytest-cov already includes coverage as a dependency.
+Acceptance Criteria:
+- [ ] Remove coverage==7.4.0 from requirements-dev.txt (keep pytest-cov).
+- [ ] Verify pytest-cov still works: pytest --cov=src tests/.
+- [ ] Update any CI/local scripts that reference coverage directly.
+References:
+- requirements-dev.txt
+- pyproject.toml
+- pytest.ini
+Dependencies: None
+Effort: S
+
+### T-035: Evaluate python3-saml maintenance and consider alternatives
+Priority: P2
+Type: DEPENDENCY
+Owner: Trevor
+Status: READY
+Blocker: None.
+Context:
+- python3-saml==1.16.0 last updated 2+ years ago.
+- Requires native dependencies (xmlsec, lxml).
+- Need to assess if SAML is actively used in production.
+Acceptance Criteria:
+- [ ] Check if SAML authentication is actively used.
+- [ ] If NOT used: Create task to remove python3-saml dependencies.
+- [ ] If used: Research alternatives (python-saml fork) and document decision.
+References:
+- requirements.txt
+- src/modules/auth/saml_views.py
+Dependencies: None
+Effort: M
+
+### T-036: Evaluate DocuSign SDK adoption
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Currently using raw requests library for DocuSign API.
+- Official SDK available: docusign-esign.
+Acceptance Criteria:
+- [ ] Research SDK size and dependencies.
+- [ ] Compare SDK methods to current implementation.
+- [ ] Make recommendation: migrate to SDK or keep custom implementation.
+- [ ] Document findings in DEPENDENCYAUDIT.md.
+References:
+- src/modules/esignature/docusign_service.py
+Dependencies: None
+Effort: M
+
+### T-040: Expand DOCS_INDEX.md to include all major doc categories
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Current DOCS_INDEX.md covers governance but omits implementation docs, policies, integration guides.
+Acceptance Criteria:
+- [ ] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
+- [ ] List major documents from each category.
+References:
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: S
+
+### T-047: Add frontend build output verification to CI/CD
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Frontend build not verified in pre-release checks.
+Acceptance Criteria:
+- [ ] Root Makefile includes frontend build check.
+- [ ] Built assets verified to exist.
+- [ ] Frontend production build tested.
+References:
+- src/frontend/Makefile
+- Makefile
+Dependencies: None
+Effort: S
+
 ### T-052: Enable MyPy type checking in CI pipeline
 Priority: P2
 Type: QUALITY
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - MyPy configured in pyproject.toml but not enforced in CI.
 - Type hints provide value only when checked automatically.
@@ -464,33 +479,65 @@ References:
 Dependencies: None
 Effort: M
 
-### T-053: Add Architecture Decision Records (ADRs) template
+### T-080: Add ADR template and decision log scaffolding
 Priority: P2
 Type: DOCS
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - No ADRs for major architectural decisions.
 - Historical context lost, decisions re-litigated.
-- ADRs are diamond standard practice.
 Acceptance Criteria:
 - [ ] Create docs/05-decisions/ directory.
 - [ ] Add ADR template (MADR format).
-- [ ] Document existing key decisions: multi-tenancy pattern, firm-scoped queries, break-glass access, billing ledger.
-- [ ] Add ADR process to CONTRIBUTING.md.
-- [ ] Link from DOCS_INDEX.md.
 References:
 - docs/DOCS_INDEX.md
 - CONTRIBUTING.md
 - Diamond Standard Plan Phase 6
 Dependencies: None
+Effort: S
+
+### T-081: Document existing key architectural decisions in ADRs
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Major decisions need recorded context for future work.
+Acceptance Criteria:
+- [ ] Document decisions: multi-tenancy pattern, firm-scoped queries, break-glass access, billing ledger.
+- [ ] ADRs follow the template in docs/05-decisions/.
+References:
+- docs/05-decisions/
+- Diamond Standard Plan Phase 6
+Dependencies: T-080
 Effort: M
+
+### T-082: Document ADR process in CONTRIBUTING and DOCS_INDEX
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Contributors need to know when and how to add ADRs.
+Acceptance Criteria:
+- [ ] Add ADR process to CONTRIBUTING.md.
+- [ ] Link ADR directory from DOCS_INDEX.md.
+References:
+- CONTRIBUTING.md
+- docs/DOCS_INDEX.md
+Dependencies: T-080
+Effort: S
 
 ### T-054: Create make fixtures command with sample data
 Priority: P2
 Type: CHORE
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - No quick way to populate development environment with realistic data.
 - Manual data entry slows development and testing.
@@ -513,6 +560,7 @@ Priority: P2
 Type: CHORE
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - No shared IDE configuration causes inconsistent formatting and linting experience.
 - VS Code is primary development environment.
@@ -530,33 +578,67 @@ References:
 Dependencies: None
 Effort: S
 
-### T-056: Add performance benchmarks with Locust and Lighthouse
+### T-083: Add Locust load test benchmarks
 Priority: P2
 Type: QUALITY
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - No performance regression testing.
 - Cannot validate SLO targets (p95 <200ms, FCP <1.5s).
-- Benchmarks prevent performance degradation over time.
 Acceptance Criteria:
 - [ ] Create benchmarks/ directory with Locust load tests.
 - [ ] Benchmark: auth, CRUD operations, list endpoints, search.
-- [ ] Add Lighthouse CI for frontend performance.
-- [ ] Document baseline metrics: API p95, p99, throughput, frontend Core Web Vitals.
-- [ ] Add make benchmark command.
-- [ ] Store results in benchmarks/results/ for trend analysis.
+- [ ] Add make benchmark command for Locust tests.
 References:
 - docs/OBSERVABILITY.md
 - Diamond Standard Plan Phase 8
 Dependencies: None
-Effort: L
+Effort: M
+
+### T-084: Add Lighthouse CI for frontend performance
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Frontend performance lacks automated verification.
+Acceptance Criteria:
+- [ ] Add Lighthouse CI configuration for frontend performance.
+- [ ] Document how to run Lighthouse CI locally.
+References:
+- src/frontend/
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M
+
+### T-085: Document performance baselines and store benchmark results
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Baseline metrics are needed for trend analysis and SLO tracking.
+Acceptance Criteria:
+- [ ] Document baseline metrics: API p95, p99, throughput, frontend Core Web Vitals.
+- [ ] Store results in benchmarks/results/ for trend analysis.
+- [ ] Update docs/OBSERVABILITY.md with baseline metrics and interpretation.
+References:
+- docs/OBSERVABILITY.md
+- benchmarks/results/
+- Diamond Standard Plan Phase 8
+Dependencies: T-083, T-084
+Effort: M
 
 ### T-057: Configure slow query logging and alerts
 Priority: P2
 Type: RELEASE
 Owner: AGENT
-Status: READY
+Status: BLOCKED
+Blocker: T-042 (deployment platform).
 Context:
 - No visibility into slow database queries in production.
 - Query performance degradation goes undetected.
@@ -579,6 +661,7 @@ Priority: P2
 Type: QUALITY
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - No frontend performance monitoring.
 - User experience degradation undetected.
@@ -592,7 +675,6 @@ Acceptance Criteria:
 References:
 - src/frontend/
 - docs/OBSERVABILITY.md
-- Diamond Standard Plan Phase 8
 Dependencies: None
 Effort: M
 
@@ -601,6 +683,7 @@ Priority: P2
 Type: QUALITY
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - N+1 query patterns cause performance degradation.
 - Manual review catches some but not all cases.
@@ -618,50 +701,162 @@ References:
 Dependencies: None
 Effort: M
 
-### T-067: Add Meta-commentary to P1 integration modules
-Priority: P1
-Type: DOCS
-Owner: AGENT
-Status: READY
-Context:
-- Integration modules have webhook handlers, sync services with incomplete retry/reconciliation.
-- Conflict resolution strategies and idempotency key usage need documentation.
-- Frequent troubleshooting makes Meta-commentary valuable.
-Acceptance Criteria:
-- [ ] Add Meta-commentary to src/modules/calendar/services.py: CalendarService (sync conflict resolution, mapping staleness).
-- [ ] Add Meta-commentary to src/modules/accounting_integrations/sync.py: sync_invoices_bidirectional (last-write-wins, sync locking missing).
-- [ ] Add Meta-commentary to src/modules/esignature/docusign_service.py: DocuSignService (webhook verification, retry on network errors).
-- [ ] Add Meta-commentary to src/modules/finance/stripe_service.py: create_payment_intent (idempotency enforcement, reconciliation gap).
-- [ ] Add Meta-commentary to src/modules/jobs/queue.py: claim_job (concurrency assumptions, stale worker detection).
-- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
-References:
-- docs/STYLE_GUIDE.md
-- src/modules/calendar/services.py
-- src/modules/accounting_integrations/sync.py
-- src/modules/esignature/docusign_service.py
-- src/modules/finance/stripe_service.py
-- src/modules/jobs/queue.py
-Dependencies: T-064
-Effort: M
-
-### T-068: Add Meta-commentary to P2 supporting modules (backlog)
+### T-086: Add Meta-commentary for billing, CRM, and automation modules
 Priority: P2
 Type: DOCS
 Owner: AGENT
 Status: READY
+Blocker: None.
 Context:
 - Supporting modules (billing, CRM, automation actions) have medium complexity.
 - State machines, scoring algorithms, routing rules need context documentation.
-- Lower priority but still valuable for long-term maintainability.
 Acceptance Criteria:
-- [ ] Add Meta-commentary to 15 files: billing/models.py, crm/lead_routing.py, crm/scoring.py, automation/triggers.py, automation/actions.py, webhooks/delivery.py, sms/webhooks.py, calendar/availability.py, calendar/recurrence.py, projects/pricing.py, onboarding/workflows.py, documents/malware_scan.py, documents/reconciliation.py, finance/reconciliation.py, finance/ledger.py.
+- [ ] Add Meta-commentary to billing/models.py.
+- [ ] Add Meta-commentary to crm/lead_routing.py.
+- [ ] Add Meta-commentary to crm/scoring.py.
+- [ ] Add Meta-commentary to automation/triggers.py.
+- [ ] Add Meta-commentary to automation/actions.py.
 - [ ] All Meta-commentary follows STYLE_GUIDE.md template.
-- [ ] Focus on state machines, assumptions, incomplete implementations, known limitations.
 References:
 - docs/STYLE_GUIDE.md
-- src/modules/* (15 files listed in Context)
+- src/modules/ (files listed in Acceptance Criteria)
 Dependencies: T-064, T-065, T-066, T-067
-Effort: L
+Effort: M
+
+### T-087: Add Meta-commentary for webhooks, calendar, and projects modules
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Supporting modules (webhooks, calendar, projects) have medium complexity.
+- State machines and routing rules need context documentation.
+Acceptance Criteria:
+- [ ] Add Meta-commentary to webhooks/delivery.py.
+- [ ] Add Meta-commentary to sms/webhooks.py.
+- [ ] Add Meta-commentary to calendar/availability.py.
+- [ ] Add Meta-commentary to calendar/recurrence.py.
+- [ ] Add Meta-commentary to projects/pricing.py.
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/ (files listed in Acceptance Criteria)
+Dependencies: T-064, T-065, T-066, T-067
+Effort: M
+
+### T-088: Add Meta-commentary for onboarding, documents, and finance modules
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Supporting modules (onboarding, documents, finance) have medium complexity.
+- Reconciliation logic needs context documentation.
+Acceptance Criteria:
+- [ ] Add Meta-commentary to onboarding/workflows.py.
+- [ ] Add Meta-commentary to documents/malware_scan.py.
+- [ ] Add Meta-commentary to documents/reconciliation.py.
+- [ ] Add Meta-commentary to finance/reconciliation.py.
+- [ ] Add Meta-commentary to finance/ledger.py.
+- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/ (files listed in Acceptance Criteria)
+Dependencies: T-064, T-065, T-066, T-067
+Effort: M
+
+#### P3 — Backlog / tech debt
+
+### T-029: Split src/modules/documents/models.py into separate files
+Priority: P3
+Type: CHORE
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None.
+Context:
+- src/modules/documents/models.py is 2,386 lines.
+- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
+Acceptance Criteria:
+- [x] Split into src/modules/documents/models/ directory.
+- [x] Backward compatible re-exports.
+- [ ] All tests pass.
+References:
+- src/modules/documents/models.py
+Dependencies: None
+Effort: M
+
+### T-030: Split src/modules/calendar/services.py into focused service classes
+Priority: P3
+Type: CHORE
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None.
+Context:
+- src/modules/calendar/services.py is 2,360 lines (single service doing too much).
+Acceptance Criteria:
+- [ ] Split into focused service classes by provider/responsibility.
+- [ ] Maintain existing public API.
+- [ ] All tests pass.
+References:
+- src/modules/calendar/services.py
+Dependencies: None
+Effort: M
+
+### T-037: Evaluate Pillow dependency for single watermarking usage
+Priority: P3
+Type: DEPENDENCY
+Owner: Trevor
+Status: READY
+Blocker: None.
+Context:
+- Pillow is large native dependency used in only 1 location (image watermarking).
+- Need product decision on watermarking requirement.
+Acceptance Criteria:
+- [ ] Assess if watermarking feature is actively used.
+- [ ] If NOT needed: Create task to remove Pillow.
+- [ ] If needed: Document decision to keep with justification.
+References:
+- requirements.txt
+- src/modules/core/access_controls.py
+Dependencies: None
+Effort: S
+
+### T-039: Resolve numbered docs inventory decision
+Priority: P3
+Type: DOCS
+Owner: Trevor
+Status: BLOCKED
+Blocker: Trevor review of numbered docs.
+Context:
+- docs/ contains 35 numbered files without .md extension.
+- Not referenced in DOCS_INDEX.md or other navigation.
+- Appears to be alternative/legacy spec format.
+Acceptance Criteria:
+- [ ] Trevor reviews numbered files to determine if they should be archived, renamed, or deleted.
+- [ ] Decision documented.
+References:
+- docs/1 through docs/35
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: S
+
+### T-041: Create missing user guides or clean up dead references
+Priority: P3
+Type: DOCS
+Owner: Trevor
+Status: BLOCKED
+Blocker: Trevor decision on missing guides.
+Context:
+- DOCS_INDEX.md references firm-admin-guide.md and client-portal-guide.md but files don't exist.
+Acceptance Criteria:
+- [ ] Decide whether to create missing guides or remove references.
+- [ ] If creating guides, create basic structure.
+References:
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: M
 
 ## Backlog
 <!-- Add future tasks here. -->
