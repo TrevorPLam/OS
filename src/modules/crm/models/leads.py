@@ -8,6 +8,7 @@ from django.db import models
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
+from .campaigns import Campaign
 
 class Lead(models.Model):
     """
@@ -60,7 +61,7 @@ class Lead(models.Model):
 
     # Campaign Tracking
     campaign = models.ForeignKey(
-        "Campaign",
+        Campaign,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -153,5 +154,4 @@ class Lead(models.Model):
         """Update and save the lead_score field."""
         self.lead_score = self.calculate_lead_score()
         self.save(update_fields=["lead_score"])
-
 

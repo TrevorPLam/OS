@@ -8,6 +8,9 @@ from django.db import models
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
+from .accounts import Account, AccountContact
+from .campaigns import Campaign
+from .pipelines import Pipeline, PipelineStage
 
 class Deal(models.Model):
     """
@@ -351,8 +354,6 @@ class DealTask(models.Model):
         self.deal.update_last_activity()
 
 
-# Import assignment automation models (DEAL-5)
-from .assignment_automation import AssignmentRule, StageAutomation
 class DealAssignmentRule(models.Model):
     """
     Deal Assignment Automation Rule (DEAL-5).
@@ -900,5 +901,4 @@ class DealAlert(models.Model):
         """Dismiss the alert."""
         self.is_dismissed = True
         self.save(update_fields=["is_dismissed", "updated_at"])
-
 

@@ -8,6 +8,10 @@ from django.db import models
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
 
+from .campaigns import Campaign
+from .leads import Lead
+from .proposals import Proposal
+from .prospects import Prospect
 
 class Activity(models.Model):
     """
@@ -55,7 +59,7 @@ class Activity(models.Model):
 
     # Relationships - Can be linked to Lead, Prospect, or Client
     lead = models.ForeignKey(
-        "Lead",
+        Lead,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -63,7 +67,7 @@ class Activity(models.Model):
         help_text="Lead this activity is associated with",
     )
     prospect = models.ForeignKey(
-        "Prospect",
+        Prospect,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
@@ -81,7 +85,7 @@ class Activity(models.Model):
 
     # Optional links to related objects
     campaign = models.ForeignKey(
-        "Campaign",
+        Campaign,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -89,7 +93,7 @@ class Activity(models.Model):
         help_text="Campaign this activity is part of",
     )
     proposal = models.ForeignKey(
-        "Proposal",
+        Proposal,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -151,5 +155,4 @@ class Activity(models.Model):
 
         if not any([self.lead_id, self.prospect_id, self.client_id]):
             raise ValidationError("Activity must be associated with at least one entity (Lead, Prospect, or Client)")
-
 

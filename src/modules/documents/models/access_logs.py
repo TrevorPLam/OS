@@ -9,7 +9,8 @@ from django.utils import timezone
 
 from modules.core.encryption import field_encryption_service
 from modules.firm.utils import FirmScopedManager
-from modules.projects.models import Project
+from .documents import Document
+from .versions import Version
 
 
 class DocumentAccessLog(models.Model):
@@ -181,5 +182,4 @@ class DocumentAccessLog(models.Model):
             user_agent=user_agent[:500] if user_agent else "",  # Truncate
             metadata=metadata or {},
         )
-
 
