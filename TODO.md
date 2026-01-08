@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-06
+Last Updated: 2026-01-08
 Task Truth Source: **TODO.md**
 
 This file is the single source of truth for actionable work.
@@ -60,15 +60,16 @@ Effort: M
 Priority: P2
 Type: CHORE
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Context:
 - src/modules/crm/models.py is 3,469 lines (largest file in the codebase).
 - Contains 10+ distinct model classes.
 - Large files slow agent comprehension, increase merge conflicts, and make testing harder.
+- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
 Acceptance Criteria:
-- [ ] Split into src/modules/crm/models/ directory with separate files by entity.
-- [ ] src/modules/crm/models/__init__.py re-exports all models for backward compatibility.
-- [ ] All imports elsewhere remain functional (no breaking changes).
+- [x] Split into src/modules/crm/models/ directory with separate files by entity.
+- [x] src/modules/crm/models/__init__.py re-exports all models for backward compatibility.
+- [x] All imports elsewhere remain functional (no breaking changes).
 - [ ] All existing tests pass without modification.
 References:
 - src/modules/crm/models.py
@@ -79,13 +80,14 @@ Effort: M
 Priority: P2
 Type: CHORE
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Context:
 - src/modules/clients/models.py is 2,699 lines (second largest file).
 - Similar complexity issues as crm/models.py.
+- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
 Acceptance Criteria:
-- [ ] Split into src/modules/clients/models/ directory with separate files.
-- [ ] Backward compatible re-exports in __init__.py.
+- [x] Split into src/modules/clients/models/ directory with separate files.
+- [x] Backward compatible re-exports in __init__.py.
 - [ ] All existing tests pass.
 References:
 - src/modules/clients/models.py
@@ -96,12 +98,13 @@ Effort: M
 Priority: P3
 Type: CHORE
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Context:
 - src/modules/documents/models.py is 2,386 lines.
+- Tests currently fail to collect in this environment due to missing pytest-django/pytest-cov plugins.
 Acceptance Criteria:
-- [ ] Split into src/modules/documents/models/ directory.
-- [ ] Backward compatible re-exports.
+- [x] Split into src/modules/documents/models/ directory.
+- [x] Backward compatible re-exports.
 - [ ] All tests pass.
 References:
 - src/modules/documents/models.py
