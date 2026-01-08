@@ -27,12 +27,12 @@ class ClientHealthScore(models.Model):
     """
     
     # Client relationship
-    client = models.OneToOneField(
-        Client,
-        on_delete=models.CASCADE,
-        related_name="health_score",
-        help_text="Client this health score belongs to"
-    )
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .clients import Client
+
+
+class ClientHealthScore(models.Model):
     
     # Overall Health Score (0-100)
     score = models.IntegerField(
