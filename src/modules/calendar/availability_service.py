@@ -221,40 +221,30 @@ class AvailabilityService:
         # Find overlapping slots for required hosts
         collective_slots = []
 
-        # Create a list of slots for each required host
-        required_host_slots = [
-            host_slots.get(host.id, []) for host in required_hosts
+        # Create a list of slot sets for each required host
+        required_host_slot_sets = [
+            host_slots.get(host.id, set()) for host in required_hosts
         ]
 
         # If any required host has no slots, no collective availability
-        if any(not slots for slots in required_host_slots):
+        if any(not slots for slots in required_host_slot_sets):
             return []
 
         # Find intersection of all required host slots
-        # For each slot in the first host's availability, check if all other required hosts have it
-        for slot in required_host_slots[0]:
-            slot_start, slot_end = slot
+        overlapping_slots = required_host_slot_sets[0].copy()
+        for other_slots in required_host_slot_sets[1:]:
+            overlapping_slots.intersection_update(other_slots)
 
-            # Check if all required hosts have this slot
-            all_available = True
-            for host_slots_list in required_host_slots[1:]:
-                if not any(
-                    s[0] == slot_start and s[1] == slot_end
-                    for s in host_slots_list
-                ):
-                    all_available = False
-                    break
+        if not overlapping_slots:
+            return []
 
-            if not all_available:
-                continue
-
-            # All required hosts are available for this slot
-            # Now check optional hosts
+        # For each overlapping slot, determine which optional hosts are also available
+        for slot_start, slot_end in sorted(list(overlapping_slots)):
             available_hosts = list(required_hosts)
 
             for optional_host in optional_hosts:
-                optional_slots = host_slots.get(optional_host.id, [])
-                if any(s[0] == slot_start and s[1] == slot_end for s in optional_slots):
+                optional_slots_set = host_slots.get(optional_host.id, set())
+                if (slot_start, slot_end) in optional_slots_set:
                     available_hosts.append(optional_host)
 
             collective_slots.append((slot_start, slot_end, available_hosts))
