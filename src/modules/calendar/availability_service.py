@@ -211,10 +211,10 @@ class AvailabilityService:
                     end_date=end_date,
                     staff_user=host,
                 )
-                host_slots[host_id] = slots
+                host_slots[host_id] = set(slots)
             except Exception as e:
                 logger.warning(f"Error computing slots for host {host_id}: {e}")
-                host_slots[host_id] = []
+                host_slots[host_id] = set()
 
         # Find overlapping slots for required hosts
         collective_slots = []
