@@ -45,8 +45,12 @@ class ClientEngagement(models.Model):
         help_text="Firm this engagement belongs to (auto-populated from client)",
     )
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="engagements")
-    contract = models.ForeignKey("crm.Contract", on_delete=models.CASCADE, related_name="client_engagements")
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .clients import Client
+
+
+class ClientEngagement(models.Model):
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="current")
 
