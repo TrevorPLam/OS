@@ -396,3 +396,21 @@ References:
 - Diamond Standard Plan Phase 9
 Dependencies: None
 Effort: M
+
+### T-038: Create comprehensive dependency documentation
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-08)
+Context:
+- Several critical dependencies lack documentation.
+- No single document explaining dependency choices.
+Acceptance Criteria:
+- [x] Create docs/DEPENDENCIES.md with all major dependencies documented.
+- [x] Document: purpose, usage, alternatives, upgrade considerations.
+- [x] Link from README.md to DEPENDENCIES.md.
+References:
+- requirements.txt
+- requirements-dev.txt
+Dependencies: None
+Effort: L
