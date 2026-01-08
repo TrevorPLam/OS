@@ -115,7 +115,7 @@ Effort: M
 Priority: P3
 Type: CHORE
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Context:
 - src/modules/calendar/services.py is 2,360 lines (single service doing too much).
 Acceptance Criteria:

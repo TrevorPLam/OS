@@ -233,7 +233,7 @@ class MultipleCalendarSupportTest(TestCase):
 
         self.assertFalse(conn.treat_tentative_as_busy)
 
-    @patch('modules.calendar.services.ICalService.check_availability')
+    @patch('modules.calendar.availability_service.ICalService.check_availability')
     def test_external_calendar_conflict_checking(self, mock_check_availability):
         """Test that external calendars are checked for conflicts."""
         # Create an iCal connection
@@ -268,7 +268,7 @@ class MultipleCalendarSupportTest(TestCase):
         self.assertTrue(has_conflict)
         mock_check_availability.assert_called_once()
 
-    @patch('modules.calendar.services.ICalService.check_availability')
+    @patch('modules.calendar.availability_service.ICalService.check_availability')
     def test_disabled_connections_not_checked(self, mock_check_availability):
         """Test that disabled connections are not checked for conflicts."""
         # Create a disabled connection
@@ -297,7 +297,7 @@ class MultipleCalendarSupportTest(TestCase):
         self.assertFalse(has_conflict)
         mock_check_availability.assert_not_called()
 
-    @patch('modules.calendar.services.ICalService.check_availability')
+    @patch('modules.calendar.availability_service.ICalService.check_availability')
     def test_multiple_calendars_checked(self, mock_check_availability):
         """Test that all active calendars are checked for conflicts."""
         # Create multiple connections
