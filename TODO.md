@@ -620,27 +620,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-061: Plan API v2 for breaking changes
-Priority: P3
-Type: DOCS
-Owner: AGENT
-Status: IN-REVIEW
-Context:
-- API v1 accumulating technical debt.
-- Future breaking changes need deprecation strategy.
-- API versioning planning prevents customer disruption.
-Acceptance Criteria:
-- [ ] Create docs/API_V2_PLAN.md.
-- [ ] Document: breaking changes needed, deprecation timeline, migration guide, parallel running strategy.
-- [ ] Identify v1 endpoints for deprecation.
-- [ ] Define v2 URL structure (/api/v2/).
-- [ ] Review API_VERSIONING_POLICY.md for compliance.
-References:
-- docs/API_VERSIONING_POLICY.md
-- Diamond Standard Plan Phase 9
-Dependencies: None
-Effort: M
-
 ### T-067: Add Meta-commentary to P1 integration modules
 Priority: P1
 Type: DOCS

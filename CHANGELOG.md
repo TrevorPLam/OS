@@ -24,6 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **PERS-3**: Added site message delivery endpoint with targeting, frequency caps, and impression logging.
   - **PERS-4**: Introduced admin UI with preview + A/B variant configuration for site messages.
 
+- **API Versioning** (2026-01-08)
+  - **T-061**: Documented the API v2 plan, deprecation timeline, migration guide, and v1 endpoint inventory.
+
 - **Integrations Hub** (2026-01-07)
   - **INT-1**: Salesforce connection model with OAuth token handling and sync helpers for leads/contacts/opportunities.
   - **INT-2**: Slack integration model + service for message dispatch and slash command verification plumbing.
