@@ -14,6 +14,14 @@ Calendar management, appointment scheduling, and booking links (Calendly-style f
 | `models.py` | AppointmentType, AvailabilityProfile, Appointment, BookingLink (~1775 LOC) |
 | `views.py` | Calendar CRUD, booking management |
 | `serializers.py` | Calendar serializers |
+| `availability_service.py` | Availability computation and conflict checks |
+| `booking_service.py` | Booking flows with race condition protection |
+| `routing_service.py` | Routing policies for staff assignment |
+| `round_robin_service.py` | Round robin strategy selection |
+| `group_event_service.py` | Group event registration and waitlist management |
+| `meeting_poll_service.py` | Poll-based scheduling workflows |
+| `invitation_service.py` | ICS invitation generation |
+| `services.py` | Service aggregator (re-exports core service classes) |
 | `google_service.py` | Google Calendar OAuth + sync |
 | `microsoft_service.py` | Microsoft/Outlook OAuth + sync |
 | `sync_service.py` | Calendar synchronization logic |
