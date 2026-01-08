@@ -26,8 +26,12 @@ class ClientPortalUser(models.Model):
         ("viewer", "View Only"),
     ]
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="portal_users")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="client_portal_access")
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .clients import Client
+
+
+class ClientPortalUser(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="member")
 
     # Permissions
