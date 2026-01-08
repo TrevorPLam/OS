@@ -74,61 +74,13 @@ class Contact(models.Model):
     ]
 
     # Client relationship
-    client = models.ForeignKey(
-        Client,
-        on_delete=models.CASCADE,
-        related_name="contacts",
-        help_text="Client this contact belongs to",
-    )
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .clients import Client
+from .portal_users import ClientPortalUser
 
-    # Personal Information
-    first_name = models.CharField(max_length=100, help_text="Contact's first name")
-    last_name = models.CharField(max_length=100, help_text="Contact's last name")
-    email = models.EmailField(help_text="Contact's email address")
-    phone = models.CharField(max_length=50, blank=True, help_text="Contact's phone number")
-    mobile_phone = models.CharField(max_length=50, blank=True, help_text="Contact's mobile phone number")
 
-    # Professional Information
-    job_title = models.CharField(max_length=200, blank=True, help_text="Job title at the client organization")
-    department = models.CharField(max_length=100, blank=True, help_text="Department within the organization")
-
-    # Location Information (T-010)
-    country = models.CharField(max_length=100, blank=True, help_text="Country for this contact")
-    state = models.CharField(max_length=100, blank=True, help_text="State or province for this contact")
-    city = models.CharField(max_length=100, blank=True, help_text="City for this contact")
-    postal_code = models.CharField(max_length=20, blank=True, help_text="Postal or ZIP code for this contact")
-    latitude = models.DecimalField(
-        max_digits=9,
-        decimal_places=6,
-        null=True,
-        blank=True,
-        help_text="Latitude for geographic filtering",
-    )
-    longitude = models.DecimalField(
-        max_digits=9,
-        decimal_places=6,
-        null=True,
-        blank=True,
-        help_text="Longitude for geographic filtering",
-    )
-
-    # Contact Preferences
-    is_primary_contact = models.BooleanField(
-        default=False, help_text="Whether this is the primary contact for the client"
-    )
-    can_approve_invoices = models.BooleanField(default=False, help_text="Can approve invoices on behalf of client")
-    receives_billing_emails = models.BooleanField(default=False, help_text="Receives billing-related emails")
-    receives_project_updates = models.BooleanField(default=True, help_text="Receives project update notifications")
-
-    # Portal Access
-    portal_user = models.ForeignKey(
-        ClientPortalUser,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="contact_profile",
-        help_text="Associated portal user account (if any)",
-    )
+class ContactManager(models.Manager):
 
     # Communication Preferences
     preferred_contact_method = models.CharField(
