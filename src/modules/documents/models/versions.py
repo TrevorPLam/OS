@@ -42,7 +42,13 @@ class Version(models.Model):
     )
 
     # Relationships
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name="versions")
+from modules.core.encryption import field_encryption_service
+from modules.firm.utils import FirmScopedManager
+from modules.projects.models import Project
+from .documents import Document
+
+
+class Version(models.Model):
 
     # Version Details
     version_number = models.IntegerField()
