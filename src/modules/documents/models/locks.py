@@ -35,12 +35,13 @@ class DocumentLock(models.Model):
     )
 
     # Document being locked (one active lock per document)
-    document = models.OneToOneField(
-        Document,
-        on_delete=models.CASCADE,
-        related_name="lock",
-        help_text="The document this lock applies to",
-    )
+from modules.core.encryption import field_encryption_service
+from modules.firm.utils import FirmScopedManager
+from modules.projects.models import Project
+from .documents import Document
+
+
+class DocumentLock(models.Model):
 
     # Lock holder
     locked_by = models.ForeignKey(
