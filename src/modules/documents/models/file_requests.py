@@ -67,20 +67,14 @@ class FileRequest(models.Model):
     )
 
     # Associated external share (for the upload link)
-    external_share = models.OneToOneField(
-        ExternalShare,
-        on_delete=models.CASCADE,
-        related_name="file_request",
-        help_text="The upload-only share link for this request",
-    )
+from modules.core.encryption import field_encryption_service
+from modules.firm.utils import FirmScopedManager
+from modules.projects.models import Project
+from .folders import Folder
+from .shares import ExternalShare
 
-    # Destination folder for uploaded files
-    destination_folder = models.ForeignKey(
-        Folder,
-        on_delete=models.CASCADE,
-        related_name="file_requests",
-        help_text="Folder where uploaded files will be stored",
-    )
+
+class FileRequest(models.Model):
 
     # Request details
     title = models.CharField(
