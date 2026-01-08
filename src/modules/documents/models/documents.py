@@ -60,7 +60,13 @@ class Document(models.Model):
     )
 
     # Relationships - UPDATED to reference clients.Client
-    folder = models.ForeignKey(Folder, on_delete=models.CASCADE, related_name="documents")
+from modules.core.encryption import field_encryption_service
+from modules.firm.utils import FirmScopedManager
+from modules.projects.models import Project
+from .folders import Folder
+
+
+class Document(models.Model):
     client = models.ForeignKey(
         "clients.Client",
         on_delete=models.CASCADE,
