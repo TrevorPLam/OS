@@ -460,7 +460,7 @@ class BookingService:
         ).exists()
 
         # Also check if new host is in collective_hosts of other appointments
-        collective_conflicts = Appointment.objects.filter(
+        collective_conflicts = Appointment.objects.select_for_update().filter(
             collective_hosts=new_host,
             status__in=["requested", "confirmed"],
             start_time__lt=appointment.end_time,
