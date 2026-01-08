@@ -194,8 +194,10 @@ class AvailabilityService:
                 )
                 host_profiles[host.id] = profile
             except AvailabilityProfile.DoesNotExist:
-                logger.warning(f"No availability profile for host {host.username}")
-
+                if host in required_hosts:
+                    logger.warning(f"Required host {host.username} has no availability profile, cannot compute collective slots.")
+                    return []
+                logger.warning(f"No availability profile for optional host {host.username}")
         if not host_profiles:
             return []
 
