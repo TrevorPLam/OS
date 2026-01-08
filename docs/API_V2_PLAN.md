@@ -23,6 +23,12 @@
 - **Month 6:** Disable new feature rollout on v1; require exception to add new fields. Continue serving v1 with stability fixes only.
 - **Month 12:** Retire targeted v1 endpoints after traffic is drained. Maintain `/api/v1/` portal read-only access for an additional 60 days to ensure stragglers can migrate.
 
+## Policy compliance check (API_VERSIONING_POLICY.md)
+- **Minimum support window:** v1 remains supported for at least 12 months after v2 GA (matches policy).
+- **Deprecation notice:** v1 consumers receive at least 6 months notice before endpoint retirement (matches policy + API_DEPRECATION_POLICY.md).
+- **Version identification:** v2 requires explicit `/api/v2/` path or `X-API-Version: v2` header; v1 remains the default for any unversioned traffic.
+- **Parallel support:** v1 and v2 run concurrently with separate OpenAPI schemas until retirement.
+
 ## Migration guide
 1. **Discover usage:** Inventory client calls to `/api/v1/` and `/api/public/` using access logs and API keys.
 2. **Adopt new URLs:** Switch client base paths to `/api/v2/` (portal clients use `/api/v2/portal/`).

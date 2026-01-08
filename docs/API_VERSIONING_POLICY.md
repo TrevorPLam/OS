@@ -79,7 +79,9 @@ When v2 is released:
 - v1 remains supported for minimum 1 year
 - v2 introduces breaking changes with migration guide
 - Both versions supported simultaneously
+- v2 requires explicit `/api/v2/` path or `X-API-Version: v2` header (no silent upgrades)
 - Deprecation notices sent 6 months before v1 retirement
+- See [API v2 Plan](./API_V2_PLAN.md) for the migration timeline and endpoint inventory
 
 ## Examples
 
