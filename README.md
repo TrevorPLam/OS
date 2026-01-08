@@ -22,6 +22,7 @@ ConsultantPro is a multi-tenant SaaS platform designed for service based firms. 
 - **Platform Capabilities:** [`docs/03-reference/platform-capabilities.md`](docs/03-reference/platform-capabilities.md) - Feature inventory (what exists and what's missing)
 - **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
 - **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md) - Complete API documentation
+- **Dependency Reference:** [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md) - Major dependency purposes and upgrade considerations
 - **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md) - Production deployment
 - **Changelog:** [`CHANGELOG.md`](CHANGELOG.md) - Release history and changes
 - **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow

@@ -237,8 +237,6 @@ References:
 - requirements-dev.txt
 Dependencies: None
 Effort: L
-
-### T-039: Review and consolidate numbered docs files (docs/1-35)
 Priority: P3
 Type: DOCS
 Owner: Trevor
