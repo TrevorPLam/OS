@@ -21,9 +21,12 @@ class ClientComment(models.Model):
     Visible to both firm team and client.
     """
 
-    client = models.ForeignKey(
-        Client, on_delete=models.CASCADE, related_name="task_comments", help_text="Client who owns this comment"
-    )
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .clients import Client
+
+
+class ClientComment(models.Model):
     task = models.ForeignKey(
         "projects.Task", on_delete=models.CASCADE, related_name="client_comments", help_text="Task being commented on"
     )
