@@ -104,12 +104,12 @@ class ConsentRecord(models.Model):
     ]
     
     # TIER 0: Firm tenancy (via contact)
-    contact = models.ForeignKey(
-        Contact,
-        on_delete=models.PROTECT,  # PROTECT: never delete consent records
-        related_name="consent_records",
-        help_text="Contact this consent record belongs to"
-    )
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .contacts import Contact
+
+
+class ConsentRecord(models.Model):
     
     # Consent details
     consent_type = models.CharField(
