@@ -21,7 +21,12 @@ class ClientNote(models.Model):
     Used for team collaboration and client history tracking.
     """
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="internal_notes")
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .clients import Client
+
+
+class ClientNote(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="authored_client_notes"
     )
