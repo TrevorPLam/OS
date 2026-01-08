@@ -38,14 +38,14 @@ class Client(models.Model):
     )
 
     # TIER 2.6: Organization grouping (OPTIONAL)
-    organization = models.ForeignKey(
-        Organization,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="clients",
-        help_text="Optional organization for cross-client collaboration",
-    )
+from django.utils import timezone
+
+from modules.core.validators import validate_safe_url
+from modules.firm.utils import FirmScopedManager
+from .organizations import Organization
+
+
+class Client(models.Model):
 
     # Origin Tracking (from CRM)
     source_prospect = models.ForeignKey(
