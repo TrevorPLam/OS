@@ -14,9 +14,22 @@ def main():
     load_dotenv(dotenv_path=env_path)
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
-    from config.env_validator import validate_environment
+    # Commands that can run without a fully configured environment.
+    COMMANDS_TO_SKIP_VALIDATION = {
+        "makemigrations",
+        "startapp",
+        "startproject",
+        "shell",
+        "dbshell",
+        "help",
+    }
 
-    validate_environment()
+    command = sys.argv[1] if len(sys.argv) > 1 else ""
+
+    if command not in COMMANDS_TO_SKIP_VALIDATION:
+        from config.env_validator import validate_environment
+
+        validate_environment()
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
