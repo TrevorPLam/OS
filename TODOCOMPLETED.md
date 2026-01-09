@@ -10,6 +10,23 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-046: Document monitoring and alerting requirements
+Priority: P1
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- OBSERVABILITY.md exists but doesn't define alert thresholds or monitoring requirements.
+Acceptance Criteria:
+- [x] Define alert thresholds.
+- [x] Document which metrics require 24/7 paging.
+- [x] Create runbook for common failure scenarios.
+- [x] Define SLO targets.
+References:
+- docs/OBSERVABILITY.md
+Dependencies: None
+Effort: M
+
 ### T-045: Implement Sentry monitoring hooks for critical flows
 Priority: P1
 Type: RELEASE

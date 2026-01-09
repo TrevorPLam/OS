@@ -60,24 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-046: Document monitoring and alerting requirements
-Priority: P1
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- OBSERVABILITY.md exists but doesn't define alert thresholds or monitoring requirements.
-Acceptance Criteria:
-- [ ] Define alert thresholds.
-- [ ] Document which metrics require 24/7 paging.
-- [ ] Create runbook for common failure scenarios.
-- [ ] Define SLO targets.
-References:
-- docs/OBSERVABILITY.md
-Dependencies: None
-Effort: M
-
 ### T-067: Add Meta-commentary to P1 integration modules
 Priority: P1
 Type: DOCS
