@@ -16,10 +16,11 @@ vi.mock('../../api/clients', () => ({
 
 describe('Clients form', () => {
   beforeEach(() => {
-    clientsApiMock.getClients.mockResolvedValue([])
-    clientsApiMock.createClient.mockResolvedValue({})
-    clientsApiMock.updateClient.mockResolvedValue({})
-    clientsApiMock.deleteClient.mockResolvedValue({})
+    vi.clearAllMocks();
+    clientsApiMock.getClients.mockResolvedValue([]);
+    clientsApiMock.createClient.mockResolvedValue({});
+    clientsApiMock.updateClient.mockResolvedValue({});
+    clientsApiMock.deleteClient.mockResolvedValue({});
   })
 
   it('shows the empty state when no clients exist', async () => {
