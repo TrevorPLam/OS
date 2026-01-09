@@ -29,6 +29,7 @@ References:
 Dependencies: None
 Effort: M
 
+
 ### T-078: Add Playwright E2E coverage for authentication flows
 Priority: P1
 Type: QUALITY

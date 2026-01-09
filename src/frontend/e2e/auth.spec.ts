@@ -30,6 +30,10 @@ const registerUser = async (request: APIRequestContext, user: E2EUser) => {
   expect(response.ok()).toBeTruthy()
 }
 
+test.afterEach(async ({ page }) => {
+  await page.context().clearCookies()
+})
+
 const loginThroughUI = async (page: Page, user: E2EUser) => {
   await page.goto('/login')
   await page.getByLabel('Username').fill(user.username)
@@ -39,6 +43,7 @@ const loginThroughUI = async (page: Page, user: E2EUser) => {
 }
 
 const decodeBase32 = (input: string) => {
+  // Note: Pads incomplete trailing bytes with zeros; suitable for standard TOTP secrets.
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
   const cleaned = input.toUpperCase().replace(/=+$/, '')
   let bits = ''
@@ -61,10 +66,10 @@ const decodeSecret = (secret: string) => {
   return decodeBase32(trimmed)
 }
 
-const generateTotp = (secret: string) => {
+const generateTotp = (secret: string, timestamp = Date.now()) => {
   const key = decodeSecret(secret)
   const step = 30
-  const counter = Math.floor(Date.now() / 1000 / step)
+  const counter = Math.floor(timestamp / 1000 / step)
   const counterBuffer = Buffer.alloc(8)
   counterBuffer.writeBigInt64BE(BigInt(counter))
 
@@ -73,6 +78,32 @@ const generateTotp = (secret: string) => {
   const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % 1_000_000
 
   return code.toString().padStart(6, '0')
+}
+
+const verifyTotpWithWindow = async (
+  request: APIRequestContext,
+  deviceId: number,
+  secret: string
+) => {
+  const offsets = [0, -1, 1]
+  let lastResponse: Awaited<ReturnType<typeof request.post>> | null = null
+
+  for (const offset of offsets) {
+    const totpCode = generateTotp(secret, Date.now() + offset * 30_000)
+    const response = await request.post(`${API_BASE_URL}/auth/mfa/verify/totp/`, {
+      data: {
+        device_id: deviceId,
+        code: totpCode,
+      },
+    })
+    if (response.ok()) {
+      return response
+    }
+    lastResponse = response
+  }
+
+  expect(lastResponse?.ok()).toBeTruthy()
+  return lastResponse
 }
 
 test('registers a new account', async ({ page }) => {
@@ -107,14 +138,7 @@ test('enrolls and verifies TOTP MFA', async ({ page }) => {
   expect(enrollResponse.ok()).toBeTruthy()
   const enrollData = await enrollResponse.json()
 
-  const totpCode = generateTotp(enrollData.secret)
-  const verifyResponse = await page.request.post(`${API_BASE_URL}/auth/mfa/verify/totp/`, {
-    data: {
-      device_id: enrollData.device_id,
-      code: totpCode,
-    },
-  })
-  expect(verifyResponse.ok()).toBeTruthy()
+  await verifyTotpWithWindow(page.request, enrollData.device_id, enrollData.secret)
 
   const statusResponse = await page.request.get(`${API_BASE_URL}/auth/mfa/status/`)
   expect(statusResponse.ok()).toBeTruthy()
@@ -126,6 +150,9 @@ test('initiates OAuth connection from calendar settings', async ({ page }) => {
   const user = buildUser()
   await registerUser(page.request, user)
   await loginThroughUI(page, user)
+
+  let initiateCalled = false
+  let callbackPayload: { code?: string; state?: string } | null = null
 
   await page.route('**/calendar/oauth-connections/', async (route) => {
     if (route.request().method() === 'GET') {
@@ -140,6 +167,7 @@ test('initiates OAuth connection from calendar settings', async ({ page }) => {
   })
 
   await page.route('**/calendar/oauth-connections/initiate_google_oauth/', async (route) => {
+    initiateCalled = true
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -152,6 +180,7 @@ test('initiates OAuth connection from calendar settings', async ({ page }) => {
   })
 
   await page.route('**/calendar/oauth-connections/oauth_callback/', async (route) => {
+    callbackPayload = route.request().postDataJSON()
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
@@ -164,5 +193,9 @@ test('initiates OAuth connection from calendar settings', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Connect Google Calendar' }).click()
 
+  await expect(page).toHaveURL(/calendar\/oauth\/callback/)
   await expect(page.getByRole('heading', { name: 'Success!' })).toBeVisible({ timeout: 10_000 })
+
+  expect(initiateCalled).toBeTruthy()
+  expect(callbackPayload).toMatchObject({ code: 'mock-code', state: 'mock-state' })
 })
