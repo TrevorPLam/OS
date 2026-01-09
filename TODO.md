@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-08
+Last Updated: 2026-01-09
 Task Truth Source: **TODO.md**
 
 This file is the single source of truth for actionable work.
@@ -59,26 +59,6 @@ Effort: M
 ### Phase 1 — Security and tenant isolation (P1/P3)
 
 #### P1 — High impact (do within 7 days)
-
-### T-045: Implement Sentry monitoring hooks for critical flows
-Priority: P1
-Type: RELEASE
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Sentry integration exists but critical flow instrumentation incomplete.
-Acceptance Criteria:
-- [ ] Payment processing wrapped in Sentry transaction spans.
-- [ ] Webhook handlers log custom breadcrumbs.
-- [ ] Email ingestion failures tagged with firm context.
-- [ ] Break-glass access events sent to Sentry.
-References:
-- src/config/sentry.py
-- src/modules/finance/
-- src/modules/webhooks/
-Dependencies: None
-Effort: M
 
 ### T-046: Document monitoring and alerting requirements
 Priority: P1

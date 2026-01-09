@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-08
+Last Updated: 2026-01-09
 Source: Completed tasks moved from `TODO.md`
 
 This file stores completed work in the same schema as `TODO.md`.
@@ -9,6 +9,25 @@ Move tasks here when Acceptance Criteria are met.
 
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
+
+### T-045: Implement Sentry monitoring hooks for critical flows
+Priority: P1
+Type: RELEASE
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Sentry integration exists but critical flow instrumentation incomplete.
+Acceptance Criteria:
+- [x] Payment processing wrapped in Sentry transaction spans.
+- [x] Webhook handlers log custom breadcrumbs.
+- [x] Email ingestion failures tagged with firm context.
+- [x] Break-glass access events sent to Sentry.
+References:
+- src/config/sentry.py
+- src/modules/finance/
+- src/modules/webhooks/
+Dependencies: None
+Effort: M
 
 ### T-033: Replace psycopg2-binary with psycopg2 for production
 Priority: P1

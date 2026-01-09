@@ -7,6 +7,7 @@ Handles asynchronous payment confirmations and updates.
 import logging
 from datetime import timedelta
 
+import sentry_sdk
 import stripe
 from django.conf import settings
 from django.db import IntegrityError, transaction
@@ -83,6 +84,13 @@ def stripe_webhook(request):
     event_id = event["id"]
     event_type = event["type"]
     event_data = event["data"]["object"]
+
+    sentry_sdk.add_breadcrumb(
+        category="webhook",
+        message="Stripe webhook received",
+        level="info",
+        data={"event_id": event_id, "event_type": event_type},
+    )
     
     # SEC-1: Check for duplicate webhook event
     # Try to create webhook event record atomically
@@ -113,6 +121,12 @@ def stripe_webhook(request):
     except IntegrityError:
         # Duplicate webhook delivery - event already processed
         logger.info(f"Duplicate Stripe webhook event received: {event_id}")
+        sentry_sdk.add_breadcrumb(
+            category="webhook",
+            message="Stripe webhook duplicate",
+            level="warning",
+            data={"event_id": event_id, "event_type": event_type},
+        )
         log_event(
             "stripe_webhook_duplicate",
             provider="stripe",
@@ -157,6 +171,12 @@ def stripe_webhook(request):
                 handle_charge_refunded(event_data, webhook_event)
             else:
                 logger.info(f"Unhandled Stripe event type: {event_type}")
+                sentry_sdk.add_breadcrumb(
+                    category="webhook",
+                    message="Stripe webhook unhandled",
+                    level="info",
+                    data={"event_id": event_id, "event_type": event_type},
+                )
                 log_event(
                     "stripe_webhook_unhandled",
                     provider="stripe",
@@ -170,6 +190,12 @@ def stripe_webhook(request):
     except Exception as e:
         processing_error = str(e)
         logger.error(f"Error processing Stripe webhook: {e}", exc_info=True)
+        sentry_sdk.add_breadcrumb(
+            category="webhook",
+            message="Stripe webhook processing failed",
+            level="error",
+            data={"event_id": event_id, "event_type": event_type, "error_class": e.__class__.__name__},
+        )
         log_event(
             "stripe_webhook_failed",
             provider="stripe",
@@ -189,6 +215,12 @@ def stripe_webhook(request):
         provider="stripe",
         webhook_type=event_type,
         status="success",
+    )
+    sentry_sdk.add_breadcrumb(
+        category="webhook",
+        message="Stripe webhook processed",
+        level="info",
+        data={"event_id": event_id, "event_type": event_type},
     )
     return HttpResponse(status=200)
 

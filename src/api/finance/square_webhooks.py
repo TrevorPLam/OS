@@ -10,6 +10,7 @@ import json
 import logging
 from decimal import Decimal
 
+import sentry_sdk
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
@@ -81,6 +82,13 @@ def square_webhook(request):
     event_id = event.get("event_id") or event.get("merchant_id", "unknown")  # Square uses event_id
     event_type = event.get("type")
     event_data = event.get("data", {}).get("object", {})
+
+    sentry_sdk.add_breadcrumb(
+        category="webhook",
+        message="Square webhook received",
+        level="info",
+        data={"event_id": event_id, "event_type": event_type},
+    )
     
     # SEC-1: Check for duplicate webhook event
     # Try to create webhook event record atomically
@@ -110,6 +118,12 @@ def square_webhook(request):
     except IntegrityError:
         # Duplicate webhook delivery - event already processed
         logger.info(f"Duplicate Square webhook event received: {event_id}")
+        sentry_sdk.add_breadcrumb(
+            category="webhook",
+            message="Square webhook duplicate",
+            level="warning",
+            data={"event_id": event_id, "event_type": event_type},
+        )
         log_event(
             "square_webhook_duplicate",
             provider="square",
@@ -156,6 +170,12 @@ def square_webhook(request):
                 handle_invoice_canceled(event_data, webhook_event)
             else:
                 logger.info(f"Unhandled Square event type: {event_type}")
+                sentry_sdk.add_breadcrumb(
+                    category="webhook",
+                    message="Square webhook unhandled",
+                    level="info",
+                    data={"event_id": event_id, "event_type": event_type},
+                )
                 log_event(
                     "square_webhook_unhandled",
                     provider="square",
@@ -169,6 +189,12 @@ def square_webhook(request):
     except Exception as e:
         processing_error = str(e)
         logger.error(f"Error processing Square webhook: {e}", exc_info=True)
+        sentry_sdk.add_breadcrumb(
+            category="webhook",
+            message="Square webhook processing failed",
+            level="error",
+            data={"event_id": event_id, "event_type": event_type, "error_class": e.__class__.__name__},
+        )
         log_event(
             "square_webhook_failed",
             provider="square",
@@ -188,6 +214,12 @@ def square_webhook(request):
         provider="square",
         webhook_type=event_type,
         status="success",
+    )
+    sentry_sdk.add_breadcrumb(
+        category="webhook",
+        message="Square webhook processed",
+        level="info",
+        data={"event_id": event_id, "event_type": event_type},
     )
     return HttpResponse(status=200)
 

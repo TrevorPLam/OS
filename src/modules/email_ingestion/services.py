@@ -12,6 +12,7 @@ from typing import Dict, Optional, Tuple, List
 from django.db import transaction
 from django.utils import timezone
 
+from config.sentry import capture_exception_with_context
 from modules.crm.models import Account, Engagement, Contact
 from modules.projects.models import WorkItem
 from .models import EmailArtifact, EmailConnection, IngestionAttempt
@@ -303,6 +304,18 @@ class EmailIngestionService:
                     correlation_id=correlation_id,
                     duration_ms=map_duration_ms,
                 )
+                capture_exception_with_context(
+                    map_error,
+                    context={
+                        "operation": "email_mapping",
+                        "connection_id": connection.id,
+                        "email_artifact_id": email.id,
+                    },
+                    level="warning",
+                    module="email_ingestion",
+                    firm_id=connection.firm_id,
+                    firm_name=getattr(connection.firm, "name", None),
+                )
                 # Email still created, just without mapping
 
             return email
@@ -319,5 +332,13 @@ class EmailIngestionService:
                 error_summary=f"Ingestion failed: {type(e).__name__}",
                 correlation_id=correlation_id,
                 duration_ms=duration_ms,
+            )
+            capture_exception_with_context(
+                e,
+                context={"operation": "email_ingestion", "connection_id": connection.id},
+                level="error",
+                module="email_ingestion",
+                firm_id=connection.firm_id,
+                firm_name=getattr(connection.firm, "name", None),
             )
             raise
