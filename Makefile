@@ -8,7 +8,7 @@ else
 Q :=
 endif
 
-.PHONY: setup lint test dev openapi docs-validate docs-check verify
+.PHONY: setup lint test dev openapi docs-validate docs-check verify e2e
 
 setup:
 	$(Q)set +e
@@ -73,6 +73,16 @@ test:
 	$(Q)summary=0
 	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
+
+e2e:
+	$(Q)set +e
+	frontend_status=0
+	$(Q)echo "=== FRONTEND E2E ==="
+	$(Q)$(MAKE) -C src/frontend e2e V=$(V)
+	frontend_status=$$?
+	$(Q)echo "=== SUMMARY ==="
+	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND E2E: PASS"; else echo "FRONTEND E2E: FAIL"; fi
+	$(Q)exit $$frontend_status
 
 dev:
 	$(Q)set +e

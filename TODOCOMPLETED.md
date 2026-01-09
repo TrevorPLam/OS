@@ -10,6 +10,25 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-077: Set up Playwright E2E testing harness
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Critical user journeys lack E2E test coverage.
+- Manual smoke testing is error-prone and slow.
+Acceptance Criteria:
+- [x] Install @playwright/test as dev dependency.
+- [x] Create e2e/ directory with Playwright config.
+- [x] Add make e2e command.
+References:
+- Docker Compose environment
+- RELEASEAUDIT.md smoke test checklist
+- Diamond Standard Plan Phase 3
+Dependencies: None
+Effort: M
+
 ### T-074: Set up frontend unit test tooling
 Priority: P1
 Type: QUALITY
