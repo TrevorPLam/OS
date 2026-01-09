@@ -200,26 +200,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-031: Remove unused dev dependencies (factory-boy, faker, import-linter)
-Priority: P2
-Type: DEPENDENCY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Three dev dependencies installed but unused.
-- Removing these simplifies dev environment and reduces attack surface.
-Acceptance Criteria:
-- [ ] Remove factory-boy==3.3.0 from requirements-dev.txt.
-- [ ] Remove faker==22.0.0 from requirements-dev.txt.
-- [ ] Remove import-linter==2.0 from requirements-dev.txt.
-- [ ] Run pip install -r requirements-dev.txt to verify no breaking changes.
-- [ ] Run test suite to verify no hidden dependencies.
-References:
-- requirements-dev.txt
-Dependencies: None
-Effort: S
-
 ### T-032: Consolidate pytest-cov and coverage dependencies
 Priority: P2
 Type: DEPENDENCY
@@ -622,6 +602,27 @@ References:
 - docs/STYLE_GUIDE.md
 - src/modules/ (files listed in Acceptance Criteria)
 Dependencies: T-064, T-065, T-066, T-067
+Effort: M
+
+### T-089: Define and implement document approval workflow requirements
+Priority: P2
+Type: FEATURE
+Owner: AGENT
+Status: BLOCKED
+Blocker: Product requirements for approval workflow (status transitions, roles, notifications).
+Context:
+- Document model includes placeholders for approval workflow fields.
+- Inline TODO markers referenced untracked workflow requirements in src/modules/documents/models/documents.py.
+- Requirements for approval lifecycle and permissions are not documented.
+Acceptance Criteria:
+- [ ] Define approval workflow statuses and transitions (draft → review → approved → published).
+- [ ] Document who can submit/review/publish and any notification requirements.
+- [ ] Implement service logic + API updates for approval workflow.
+- [ ] Update tests to cover approval workflow transitions and permissions.
+References:
+- src/modules/documents/models/documents.py
+- docs/14 DOCUMENTS_AND_STORAGE_SPEC
+Dependencies: None
 Effort: M
 
 #### P3 — Backlog / tech debt

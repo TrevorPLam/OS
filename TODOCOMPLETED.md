@@ -550,3 +550,22 @@ References:
 - src/modules/jobs/queue.py
 Dependencies: T-064
 Effort: M
+
+### T-031: Remove unused dev dependencies (factory-boy, faker, import-linter)
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Three dev dependencies installed but unused.
+- Removing these simplifies dev environment and reduces attack surface.
+Acceptance Criteria:
+- [x] Remove factory-boy==3.3.0 from requirements-dev.txt.
+- [x] Remove faker==22.0.0 from requirements-dev.txt.
+- [x] Remove import-linter==2.0 from requirements-dev.txt.
+- [x] Run pip install -r requirements-dev.txt to verify no breaking changes.
+- [x] Run test suite to verify no hidden dependencies.
+References:
+- requirements-dev.txt
+Dependencies: None
+Effort: S
