@@ -73,7 +73,7 @@ resolve, create a post-incident task in TODO.md.
 1) Identify endpoints with increased p95/p99 latency.
 2) Check database slow queries and background job backlog.
 3) Validate cache hit rate; warm caches if cold start detected.
-4) If no root cause, throttle heavy clients and open incident.
+4) If no root cause, throttle heavy clients and open an incident.
 
 ### Queue backlog / worker failure
 1) Validate worker health and concurrency settings.
