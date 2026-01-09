@@ -85,7 +85,7 @@ describe('api client', () => {
 
     const error = {
       response: { status: 401, headers: {} },
-      config: { url: '/api/v1/clients/' },
+      config: { url: '/api/v1/clients/', headers: {} },
     } as AxiosError
 
     expect(responseHandlers.onRejected).toBeDefined()
