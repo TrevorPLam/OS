@@ -42,8 +42,10 @@ describe('api client', () => {
   it('creates axios client with expected defaults', async () => {
     await import('../client')
 
+    const expectedBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
     expect(createMock).toHaveBeenCalledWith({
-      baseURL: 'http://localhost:8000/api',
+      baseURL: expectedBaseURL,
       headers: { 'Content-Type': 'application/json' },
       withCredentials: true,
     })
