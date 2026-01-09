@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
+import sentry_sdk
 from django.conf import settings
 
 
@@ -124,13 +125,18 @@ class SquareService:
                 body["note"] = f"Invoice: {metadata.get('invoice_number', '')}"
                 body["reference_id"] = str(metadata.get("invoice_id", ""))
 
-            result = self.client.payments.create_payment(body=body)
+            with sentry_sdk.start_transaction(op="payment", name="square.create_payment") as transaction:
+                transaction.set_tag("processor", "square")
+                transaction.set_tag("currency", currency)
+                transaction.set_data("amount_cents", amount_cents)
+                with transaction.start_child(op="square.request", description="payments.create_payment"):
+                    result = self.client.payments.create_payment(body=body)
 
-            if result.is_success():
-                return result.body["payment"]
-            elif result.is_error():
-                errors = result.errors
-                raise Exception(f"Failed to create Square payment: {errors}")
+                if result.is_success():
+                    return result.body["payment"]
+                elif result.is_error():
+                    errors = result.errors
+                    raise Exception(f"Failed to create Square payment: {errors}")
 
         except Exception as e:
             raise Exception(f"Square payment creation error: {str(e)}") from e

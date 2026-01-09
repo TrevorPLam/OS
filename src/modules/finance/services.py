@@ -7,6 +7,7 @@ Provides utilities for creating invoices, processing payments, and managing subs
 from decimal import Decimal
 from typing import Any
 
+import sentry_sdk
 import stripe
 from django.conf import settings
 
@@ -127,9 +128,14 @@ class StripeService:
             if idempotency_key:
                 kwargs["idempotency_key"] = idempotency_key
 
-            payment_intent = stripe.PaymentIntent.create(**kwargs)
+            with sentry_sdk.start_transaction(op="payment", name="stripe.create_payment_intent") as transaction:
+                transaction.set_tag("processor", "stripe")
+                transaction.set_tag("currency", currency)
+                transaction.set_data("amount_cents", amount_cents)
+                with transaction.start_child(op="stripe.request", description="payment_intent.create"):
+                    payment_intent = stripe.PaymentIntent.create(**kwargs)
 
-            return payment_intent
+                return payment_intent
         except stripe.error.StripeError as e:
             raise Exception(f"Failed to create payment intent: {str(e)}") from e
 
@@ -183,7 +189,12 @@ class StripeService:
             if amount is not None:
                 refund_params["amount"] = int(amount * 100)
 
-            return stripe.Refund.create(**refund_params)
+            with sentry_sdk.start_transaction(op="payment", name="stripe.refund_payment") as transaction:
+                transaction.set_tag("processor", "stripe")
+                transaction.set_tag("refund_full", amount is None)
+                transaction.set_data("amount_cents", refund_params.get("amount"))
+                with transaction.start_child(op="stripe.request", description="refund.create"):
+                    return stripe.Refund.create(**refund_params)
         except stripe.error.StripeError as e:
             raise Exception(f"Failed to refund payment: {str(e)}") from e
 

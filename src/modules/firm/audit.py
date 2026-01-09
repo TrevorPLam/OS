@@ -23,6 +23,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
+from config.sentry import capture_message_with_context
 
 class AuditEvent(models.Model):
     """
@@ -307,7 +308,7 @@ class AuditEventManager:
         if not reason:
             raise ValueError("Break-glass events require a reason")
 
-        return AuditEventManager.log_event(
+        event = AuditEventManager.log_event(
             firm=firm,
             category=AuditEvent.CATEGORY_BREAK_GLASS,
             action=action,
@@ -316,6 +317,22 @@ class AuditEventManager:
             severity=AuditEvent.SEVERITY_CRITICAL,
             **kwargs,
         )
+        capture_message_with_context(
+            "break_glass_event",
+            level="error",
+            context={
+                "action": action,
+                "actor_id": getattr(actor, "id", None),
+                "target_model": kwargs.get("target_model"),
+                "target_id": kwargs.get("target_id"),
+                "outcome": kwargs.get("outcome"),
+            },
+            module="firm",
+            category=AuditEvent.CATEGORY_BREAK_GLASS,
+            firm_id=getattr(firm, "id", None),
+            firm_name=getattr(firm, "name", None),
+        )
+        return event
 
     @staticmethod
     def log_purge_event(firm, action, actor, target_model, target_id, reason, **kwargs):

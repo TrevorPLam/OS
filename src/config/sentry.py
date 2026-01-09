@@ -274,3 +274,28 @@ def clear_context() -> None:
     """Clear all Sentry context (user, tags, etc.)."""
     sentry_sdk.set_user(None)
     sentry_sdk.clear_breadcrumbs()
+
+
+def add_webhook_breadcrumb(
+    message: str, level: str, event_id: str, event_type: str, extra_data: dict | None = None
+) -> None:
+    """
+    Add a standardized webhook breadcrumb to Sentry.
+
+    Args:
+        message: Breadcrumb message
+        level: Breadcrumb level (info, warning, error)
+        event_id: Webhook event identifier
+        event_type: Webhook event type
+        extra_data: Optional extra data to attach
+    """
+    data = {"event_id": event_id, "event_type": event_type}
+    if extra_data:
+        data.update(extra_data)
+
+    sentry_sdk.add_breadcrumb(
+        category="webhook",
+        message=message,
+        level=level,
+        data=data,
+    )

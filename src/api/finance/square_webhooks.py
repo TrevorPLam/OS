@@ -18,6 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
+from config.sentry import add_webhook_breadcrumb
 from modules.core.rate_limiting import enforce_webhook_rate_limit
 from modules.core.telemetry import log_event, log_metric, track_duration
 from modules.finance.billing import handle_payment_failure
@@ -81,6 +82,13 @@ def square_webhook(request):
     event_id = event.get("event_id") or event.get("merchant_id", "unknown")  # Square uses event_id
     event_type = event.get("type")
     event_data = event.get("data", {}).get("object", {})
+
+    add_webhook_breadcrumb(
+        message="Square webhook received",
+        level="info",
+        event_id=event_id,
+        event_type=event_type,
+    )
     
     # SEC-1: Check for duplicate webhook event
     # Try to create webhook event record atomically
@@ -110,6 +118,12 @@ def square_webhook(request):
     except IntegrityError:
         # Duplicate webhook delivery - event already processed
         logger.info(f"Duplicate Square webhook event received: {event_id}")
+        add_webhook_breadcrumb(
+            message="Square webhook duplicate",
+            level="warning",
+            event_id=event_id,
+            event_type=event_type,
+        )
         log_event(
             "square_webhook_duplicate",
             provider="square",
@@ -156,6 +170,12 @@ def square_webhook(request):
                 handle_invoice_canceled(event_data, webhook_event)
             else:
                 logger.info(f"Unhandled Square event type: {event_type}")
+                add_webhook_breadcrumb(
+                    message="Square webhook unhandled",
+                    level="info",
+                    event_id=event_id,
+                    event_type=event_type,
+                )
                 log_event(
                     "square_webhook_unhandled",
                     provider="square",
@@ -169,6 +189,13 @@ def square_webhook(request):
     except Exception as e:
         processing_error = str(e)
         logger.error(f"Error processing Square webhook: {e}", exc_info=True)
+        add_webhook_breadcrumb(
+            message="Square webhook processing failed",
+            level="error",
+            event_id=event_id,
+            event_type=event_type,
+            extra_data={"error_class": e.__class__.__name__},
+        )
         log_event(
             "square_webhook_failed",
             provider="square",
@@ -188,6 +215,12 @@ def square_webhook(request):
         provider="square",
         webhook_type=event_type,
         status="success",
+    )
+    add_webhook_breadcrumb(
+        message="Square webhook processed",
+        level="info",
+        event_id=event_id,
+        event_type=event_type,
     )
     return HttpResponse(status=200)
 
