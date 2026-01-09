@@ -193,7 +193,7 @@ class AccountingSyncService:
             Dict with success status and details
 
         Meta-commentary:
-        - **Current Status:** Push-only path stops after initial creation; inbound updates from QuickBooks/Xero overwrite local data implicitly via later pulls without field-level conflict resolution.
+        - **Current Status:** Invoice sync is push-only and relies on last-write-wins when payment pulls update invoice status, with no field-level conflict resolution between local edits and provider-side changes.
         - **Follow-up (T-067):** Add bidirectional invoice merge with per-field precedence rules plus sync-level locking to avoid concurrent push/pull cycles trampling each other.
         - **Assumption:** InvoiceSyncMapping entries remain fresh; retrying a failed push reuses stale external IDs without verifying remote deletion, voiding, or renumbering.
         - **Limitation:** Token freshness and mapping writes are not wrapped in the same transaction, and there is no deduplication lock around the sync, so partial failures can leave invoices flagged as synced while a competing worker pushes divergent versions.

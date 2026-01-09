@@ -32,8 +32,8 @@ class CalendarSyncService:
       changes without per-field conflict resolution or revision checks.
     - **Follow-up (T-067):** Add sync-scoped locks plus provider ETag/version comparisons so concurrent push/pull cycles do
       not interleave and to detect when remote updates should be merged instead of clobbered.
-    - **Assumption:** OAuthConnection.last_sync_cursor represents a reliable watermark; there is no audit to detect stale
-      cursors or deleted mappings, so removed external events may linger internally.
+    - **Assumption:** OAuthConnection.last_sync_cursor represents a reliable watermark; stale cursors or deleted external
+      events are not audited, so mapping staleness can persist until a manual resync.
     - **Limitation:** Sync operations do not reconcile orphaned Appointment↔external event mappings; missing webhook events or
       provider-side deletes are not detected without manual review.
     """
