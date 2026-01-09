@@ -3,6 +3,7 @@
 Run the E2E suite against a running frontend (and backend, if needed).
 
 ```bash
+npm run e2e:install
 E2E_BASE_URL=http://localhost:5173 npm run e2e
 ```
 
