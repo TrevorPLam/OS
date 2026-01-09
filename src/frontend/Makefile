@@ -20,6 +20,7 @@ lint:
 
 test:
 	$(Q)$(NPM) run typecheck
+	$(Q)$(NPM) run test
 
 build:
 	$(Q)$(NPM) run build

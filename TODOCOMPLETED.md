@@ -48,6 +48,24 @@ References:
 Dependencies: T-074
 Effort: M
 
+### T-076: Add frontend form component tests and coverage target
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Form components drive core workflows and need coverage.
+- Coverage target enforces baseline quality for frontend tests.
+Acceptance Criteria:
+- [x] Add unit tests for form components.
+- [x] Achieve 60%+ frontend test coverage.
+- [x] Update root Makefile to include frontend tests in make test.
+References:
+- src/frontend/
+- Makefile
+Dependencies: T-074, T-075
+Effort: M
+
 ### T-046: Document monitoring and alerting requirements
 Priority: P1
 Type: DOCS

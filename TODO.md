@@ -60,25 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-076: Add frontend form component tests and coverage target
-Priority: P1
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Form components drive core workflows and need coverage.
-- Coverage target enforces baseline quality for frontend tests.
-Acceptance Criteria:
-- [ ] Add unit tests for form components.
-- [ ] Achieve 60%+ frontend test coverage.
-- [ ] Update root Makefile to include frontend tests in make test.
-References:
-- src/frontend/
-- Makefile
-Dependencies: T-074, T-075
-Effort: M
-
 ### T-077: Set up Playwright E2E testing harness
 Priority: P1
 Type: QUALITY

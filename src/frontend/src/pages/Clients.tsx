@@ -101,9 +101,10 @@ const Clients: React.FC = () => {
             <h2>{editingClient ? 'Edit Client' : 'New Client'}</h2>
             <form onSubmit={handleSubmit} className="client-form">
               <div className="form-group">
-                <label>Company Name *</label>
+                <label htmlFor="client-company-name">Company Name *</label>
                 <input
                   type="text"
+                  id="client-company-name"
                   value={formData.company_name}
                   onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   required
@@ -112,16 +113,18 @@ const Clients: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Industry</label>
+                  <label htmlFor="client-industry">Industry</label>
                   <input
                     type="text"
+                    id="client-industry"
                     value={formData.industry}
                     onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                   />
                 </div>
                 <div className="form-group">
-                  <label>Status *</label>
+                  <label htmlFor="client-status">Status *</label>
                   <select
+                    id="client-status"
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                     required
@@ -135,9 +138,10 @@ const Clients: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label>Primary Contact Name *</label>
+                <label htmlFor="client-primary-contact-name">Primary Contact Name *</label>
                 <input
                   type="text"
+                  id="client-primary-contact-name"
                   value={formData.primary_contact_name}
                   onChange={(e) => setFormData({ ...formData, primary_contact_name: e.target.value })}
                   required
@@ -146,18 +150,20 @@ const Clients: React.FC = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Email *</label>
+                  <label htmlFor="client-primary-email">Email *</label>
                   <input
                     type="email"
+                    id="client-primary-email"
                     value={formData.primary_contact_email}
                     onChange={(e) => setFormData({ ...formData, primary_contact_email: e.target.value })}
                     required
                   />
                 </div>
                 <div className="form-group">
-                  <label>Phone</label>
+                  <label htmlFor="client-primary-phone">Phone</label>
                   <input
                     type="tel"
+                    id="client-primary-phone"
                     value={formData.primary_contact_phone}
                     onChange={(e) => setFormData({ ...formData, primary_contact_phone: e.target.value })}
                   />
