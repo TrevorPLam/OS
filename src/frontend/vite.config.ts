@@ -29,11 +29,7 @@ export default defineConfig({
       functions: 60,
       branches: 60,
       statements: 60,
-      include: [
-        'src/pages/Login.tsx',
-        'src/pages/Register.tsx',
-        'src/pages/Clients.tsx',
-      ],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/setupTests.ts', 'src/main.tsx', 'src/App.tsx'],
     },
   },
