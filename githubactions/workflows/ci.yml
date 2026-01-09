@@ -31,6 +31,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
 
+    - name: Install import-linter
+      run: |
+        pip install import-linter==2.0
+
     - name: Run flake8
       run: |
         # Stop the build if there are Python syntax errors or undefined names
