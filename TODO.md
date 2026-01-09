@@ -60,27 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-074: Set up frontend unit test tooling
-Priority: P1
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Frontend has no unit tests (CODEAUDIT.md finding).
-- React components untested increases regression risk.
-- Need test infrastructure before expanding features.
-Acceptance Criteria:
-- [ ] Install @testing-library/react and vitest as dev dependencies.
-- [ ] Configure vitest in vite.config.ts.
-- [ ] Create tests/ directory in src/frontend/.
-- [ ] Add npm test command to package.json.
-References:
-- src/frontend/
-- Diamond Standard Plan Phase 3
-Dependencies: None
-Effort: M
-
 ### T-075: Add frontend unit tests for auth context and API client
 Priority: P1
 Type: QUALITY
