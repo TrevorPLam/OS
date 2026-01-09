@@ -30,6 +30,24 @@ References:
 Dependencies: None
 Effort: M
 
+### T-075: Add frontend unit tests for auth context and API client
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Core auth and API client flows are untested.
+- These modules are high-risk for regressions.
+Acceptance Criteria:
+- [x] Add unit tests for AuthContext.
+- [x] Add unit tests for API client.
+- [x] Tests run via npm test.
+References:
+- src/frontend/src/contexts/AuthContext.tsx
+- src/frontend/src/api/client.ts
+Dependencies: T-074
+Effort: M
+
 ### T-046: Document monitoring and alerting requirements
 Priority: P1
 Type: DOCS

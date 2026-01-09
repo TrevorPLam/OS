@@ -60,25 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-075: Add frontend unit tests for auth context and API client
-Priority: P1
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Core auth and API client flows are untested.
-- These modules are high-risk for regressions.
-Acceptance Criteria:
-- [ ] Add unit tests for AuthContext.
-- [ ] Add unit tests for API client.
-- [ ] Tests run via npm test.
-References:
-- src/frontend/src/contexts/AuthContext.tsx
-- src/frontend/src/api/client.ts
-Dependencies: T-074
-Effort: M
-
 ### T-076: Add frontend form component tests and coverage target
 Priority: P1
 Type: QUALITY
