@@ -31,7 +31,7 @@ Applies to repos that run services (API, worker, cron, etc.). For libraries/CLI,
 
 ## Alert thresholds (initial)
 Define alert thresholds with clear severity and ownership. Page only for user-impacting
-or data-integrity issues. Everything else should route to the on-call Slack channel.
+or data integrity issues. Everything else should route to the on-call Slack channel.
 
 ### Critical (page 24/7)
 - API error rate > 2% for 5 minutes OR p95 latency > 1s for 10 minutes
