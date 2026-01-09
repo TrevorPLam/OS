@@ -569,9 +569,3 @@ ENABLE_AUTOMATED_CLEANUP = os.environ.get("ENABLE_AUTOMATED_CLEANUP", "true").lo
 from config.sentry import init_sentry  # noqa
 
 init_sentry()
-
-# =============================================================================
-# Environment Validation (runs on startup)
-# =============================================================================
-# Import at end to validate after all settings are loaded
-from config.env_validator import validate_environment  # noqa
