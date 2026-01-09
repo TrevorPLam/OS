@@ -23,8 +23,6 @@ test:
 	$(Q)$(NPM) run test
 
 e2e:
-	$(Q)if [ ! -d node_modules ]; then $(NPM) ci; fi
-	$(Q)if [ -z "$$E2E_SKIP_BROWSER_INSTALL" ]; then $(NPM) run e2e:install; fi
 	$(Q)$(NPM) run e2e
 
 build:

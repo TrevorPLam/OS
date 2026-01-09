@@ -47,17 +47,16 @@ If a dependency’s usage cannot be verified in code, it is marked **UNKNOWN** w
 | --- | --- | --- | --- | --- |
 | black | Python code formatter. | Config in `pyproject.toml` (`[tool.black]`). | **UNKNOWN** (no alternatives evaluated in-repo). | Align with ruff/isort rules; reformatting can be large—use in focused changes. |
 | ruff | Python linting/formatting. | Config in `pyproject.toml` (`[tool.ruff]`). | **UNKNOWN** (no alternatives evaluated in-repo). | Validate rule set changes; update ignores if new rules surface. |
-| import-linter | Architectural boundary enforcement. | Config in `.importlinter`; referenced in `docs/BOUNDARY_RULES.md`. | **UNKNOWN** (no alternatives evaluated in-repo). | Re-run boundary checks after upgrades; confirm contract syntax compatibility. |
 | pytest | Test runner. | Config in `pytest.ini`. | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm plugin compatibility; re-run full test suite after upgrades. |
 | pytest-django | Django test integration. | Config relies on `DJANGO_SETTINGS_MODULE` in `pytest.ini`. | **UNKNOWN** (no alternatives evaluated in-repo). | Ensure Django version compatibility; validate database reuse settings. |
 | pytest-cov | Coverage reporting for pytest. | Coverage flags configured in `pytest.ini`. | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm coverage output paths and thresholds after upgrades. |
 | coverage | Coverage library (used by pytest-cov). | Coverage flags configured in `pytest.ini`. | **UNKNOWN** (no alternatives evaluated in-repo). | Keep in sync with pytest-cov expectations; validate XML/HTML output. |
-| factory-boy | Test factories. | **UNKNOWN**: no direct imports found via `rg -n "factory_boy|Factory" tests src`. | **UNKNOWN** (no alternatives evaluated in-repo). | If unused, consider removal (see TODO T-031). |
-| faker | Fake data generation. | **UNKNOWN**: no direct imports found via `rg -n "faker|Faker" tests src`. | **UNKNOWN** (no alternatives evaluated in-repo). | If unused, consider removal (see TODO T-031). |
 | safety | Dependency vulnerability scanning. | **UNKNOWN**: no local config found via `rg -n "safety" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm intended usage in local scripts/CI before upgrading. |
 | bandit | Static security analysis. | **UNKNOWN**: no local config found via `rg -n "bandit" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Verify baseline ignores and target paths; re-run scans after upgrades. |
 | mypy | Static type checking. | **UNKNOWN**: no config found via `rg -n "mypy" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Add/verify config before enabling in CI; check Django stubs compatibility. |
 | django-stubs | Type hints for Django. | **UNKNOWN**: no config found via `rg -n "django-stubs" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Keep aligned with Django/mypy versions; enable when type checking is enforced. |
+
+**Note:** Architectural boundary checks use `import-linter==2.0`, which is installed directly in the CI workflow (`githubactions/workflows/ci.yml`) and is not listed in `requirements-dev.txt`.
 
 ## Upgrade workflow (recommended)
 1. Update the version pin in `requirements.txt` or `requirements-dev.txt`.

@@ -78,7 +78,7 @@ e2e:
 	$(Q)set +e
 	frontend_status=0
 	$(Q)echo "=== FRONTEND E2E ==="
-	$(Q)CI=$${CI:-1} $(MAKE) -C src/frontend e2e V=$(V)
+	$(Q)$(MAKE) -C src/frontend e2e V=$(V)
 	frontend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND E2E: PASS"; else echo "FRONTEND E2E: FAIL"; fi

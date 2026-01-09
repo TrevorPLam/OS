@@ -33,7 +33,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run --coverage",
-    "e2e:install": "playwright install --with-deps",
     "e2e": "playwright test",
     "deps:check": "npm outdated",
     "typecheck": "tsc --noEmit"
