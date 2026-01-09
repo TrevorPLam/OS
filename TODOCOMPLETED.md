@@ -10,6 +10,26 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-074: Set up frontend unit test tooling
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Frontend has no unit tests (CODEAUDIT.md finding).
+- React components untested increases regression risk.
+- Need test infrastructure before expanding features.
+Acceptance Criteria:
+- [x] Install @testing-library/react and vitest as dev dependencies.
+- [x] Configure vitest in vite.config.ts.
+- [x] Create tests/ directory in src/frontend/.
+- [x] Add npm test command to package.json.
+References:
+- src/frontend/
+- Diamond Standard Plan Phase 3
+Dependencies: None
+Effort: M
+
 ### T-046: Document monitoring and alerting requirements
 Priority: P1
 Type: DOCS
