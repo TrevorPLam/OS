@@ -103,7 +103,7 @@ class StripeService:
 
         Meta-commentary:
         - **Current Status:** Idempotency is caller-provided and optional, so retries without a key can double-charge; anti-duplicate guards rely entirely on upstream usage.
-        - **Follow-up (T-067):** Attach ledger-aware metadata (invoice IDs, tenant) and persist the returned PaymentIntent ID to enforce reconciliation and dispute tracing.
+        - **Follow-up (T-067):** Attach ledger-aware metadata (invoice IDs, tenant) and persist the returned PaymentIntent ID so reconciliation and dispute tracing do not depend on Stripe-only state.
         - **Assumption:** Automatic payment methods are enabled, but SCA/3DS outcomes are not inspected here; downstream invoice state updates assume webhook success elsewhere.
         - **Limitation:** No concurrency guard exists when multiple workers create intents for the same invoice, and there is no timeout/backoff policy on Stripe API errors.
         """

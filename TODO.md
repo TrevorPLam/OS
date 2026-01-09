@@ -60,33 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-067: Add Meta-commentary to P1 integration modules
-Priority: P1
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Integration modules have webhook handlers, sync services with incomplete retry/reconciliation.
-- Conflict resolution strategies and idempotency key usage need documentation.
-- Frequent troubleshooting makes Meta-commentary valuable.
-Acceptance Criteria:
-- [ ] Add Meta-commentary to src/modules/calendar/services.py: CalendarService (sync conflict resolution, mapping staleness).
-- [ ] Add Meta-commentary to src/modules/accounting_integrations/sync.py: sync_invoices_bidirectional (last-write-wins, sync locking missing).
-- [ ] Add Meta-commentary to src/modules/esignature/docusign_service.py: DocuSignService (webhook verification, retry on network errors).
-- [ ] Add Meta-commentary to src/modules/finance/stripe_service.py: create_payment_intent (idempotency enforcement, reconciliation gap).
-- [ ] Add Meta-commentary to src/modules/jobs/queue.py: claim_job (concurrency assumptions, stale worker detection).
-- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
-References:
-- docs/STYLE_GUIDE.md
-- src/modules/calendar/services.py
-- src/modules/accounting_integrations/sync.py
-- src/modules/esignature/docusign_service.py
-- src/modules/finance/stripe_service.py
-- src/modules/jobs/queue.py
-Dependencies: T-064
-Effort: M
-
 ### T-074: Set up frontend unit test tooling
 Priority: P1
 Type: QUALITY
