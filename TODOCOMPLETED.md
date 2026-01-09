@@ -29,6 +29,22 @@ References:
 Dependencies: None
 Effort: M
 
+### T-078: Add Playwright E2E coverage for authentication flows
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-09)
+Context:
+- Auth workflows are business-critical and must be covered end-to-end.
+Acceptance Criteria:
+- [x] Implement E2E tests for: registration, login, MFA, OAuth.
+- [x] Tests run against Docker Compose environment.
+References:
+- Docker Compose environment
+- src/frontend/
+Dependencies: T-077
+Effort: M
+
 ### T-074: Set up frontend unit test tooling
 Priority: P1
 Type: QUALITY
