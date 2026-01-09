@@ -68,3 +68,15 @@ Required outputs:
   - T-030: Split calendar/services.py into focused service classes (P3, CHORE, M)
 - Questions for Trevor:
   - None at this time. All findings can be addressed by AGENT.
+
+### 2026-01-09 — Code Audit Execution
+- Agent: AGENT
+- Scope: Focused scan for TODO/FIXME/HACK markers in src/
+- Findings:
+  - ⚠️ Document approval workflow placeholders found in src/modules/documents/models/documents.py without a tracked task.
+  - ✅ No new P0 security issues found.
+- Tasks created/updated:
+  - T-031: Remove unused dev dependencies (factory-boy, faker, import-linter) marked completed.
+  - T-089: Define and implement document approval workflow requirements.
+- Questions for Trevor:
+  - None at this time. Approval workflow requirements are blocked pending product definition.

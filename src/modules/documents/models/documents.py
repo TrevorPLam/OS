@@ -31,7 +31,7 @@ class Document(models.Model):
     ]
 
     # DOC-14.1: Document status (per docs/14 section 2.1)
-    # Extended with approval workflow (TODO 2.7)
+    # Extended with approval workflow (Tracked in TODO: T-089)
     STATUS_CHOICES = [
         ("draft", "Draft"),
         ("review", "Under Review"),
@@ -92,7 +92,7 @@ class Document(models.Model):
         help_text="Can clients see this document in the portal?",
     )
 
-    # DOC-14.1: Document status with approval workflow (TODO 2.7)
+    # DOC-14.1: Document status with approval workflow (Tracked in TODO: T-089)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -100,7 +100,7 @@ class Document(models.Model):
         help_text="Document status (draft → review → approved → published)",
     )
     
-    # Approval workflow fields (TODO 2.7)
+    # Approval workflow fields (Tracked in TODO: T-089)
     submitted_for_review_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
