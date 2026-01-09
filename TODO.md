@@ -60,25 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-044: Add production environment variable validation
-Priority: P1
-Type: RELEASE
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- No startup validation of required vars in production.
-- Missing critical vars could cause runtime failures.
-Acceptance Criteria:
-- [ ] Startup script validates required environment variables.
-- [ ] Missing vars cause immediate failure with clear error message.
-- [ ] Validation runs in manage.py or container entrypoint.
-References:
-- .env.example
-- src/config/env_validator.py
-Dependencies: None
-Effort: S
-
 ### T-045: Implement Sentry monitoring hooks for critical flows
 Priority: P1
 Type: RELEASE

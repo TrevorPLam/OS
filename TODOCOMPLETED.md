@@ -414,3 +414,21 @@ References:
 - requirements-dev.txt
 Dependencies: None
 Effort: L
+
+### T-044: Add production environment variable validation
+Priority: P1
+Type: RELEASE
+Owner: AGENT
+Status: COMPLETED (2026-01-08)
+Context:
+- No startup validation of required vars in production.
+- Missing critical vars could cause runtime failures.
+Acceptance Criteria:
+- [x] Startup script validates required environment variables.
+- [x] Missing vars cause immediate failure with clear error message.
+- [x] Validation runs in manage.py or container entrypoint.
+References:
+- .env.example
+- src/config/env_validator.py
+Dependencies: None
+Effort: S

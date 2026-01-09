@@ -195,20 +195,17 @@ class EnvironmentValidator:
 def validate_environment() -> None:
     """
     Main entry point for environment validation.
-    Call this from settings.py or wsgi.py on startup.
+    Call this from manage.py, wsgi.py, or asgi.py on startup.
     """
     # Skip validation in CI environments
     if os.environ.get("CI") == "true":
         print("ℹ️  Skipping environment validation (CI environment detected)")
         return
 
+    # Skip validation when running tests
+    if "test" in sys.argv or "pytest" in sys.modules:
+        print("ℹ️  Skipping environment validation (test environment detected)")
+        return
+
     validator = EnvironmentValidator()
     validator.validate_all()
-
-
-# Auto-run validation when this module is imported
-# (Will run when imported in settings.py)
-if __name__ != "__main__":
-    # Only validate if not in test mode
-    if "test" not in sys.argv and "pytest" not in sys.modules:
-        validate_environment()
