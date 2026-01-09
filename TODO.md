@@ -60,26 +60,6 @@ Effort: M
 
 #### P1 — High impact (do within 7 days)
 
-### T-077: Set up Playwright E2E testing harness
-Priority: P1
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Critical user journeys lack E2E test coverage.
-- Manual smoke testing is error-prone and slow.
-Acceptance Criteria:
-- [ ] Install @playwright/test as dev dependency.
-- [ ] Create e2e/ directory with Playwright config.
-- [ ] Add make e2e command.
-References:
-- Docker Compose environment
-- RELEASEAUDIT.md smoke test checklist
-- Diamond Standard Plan Phase 3
-Dependencies: None
-Effort: M
-
 ### T-078: Add Playwright E2E coverage for authentication flows
 Priority: P1
 Type: QUALITY
