@@ -39,20 +39,16 @@ describe('api client', () => {
     createMock.mockImplementation(() => mockInstance)
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
   it('creates axios client with expected defaults', async () => {
     await import('../client')
 
-    expect(createMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        baseURL: expect.any(String),
-        headers: { 'Content-Type': 'application/json' },
-        withCredentials: true,
-      })
-    )
+    const expectedBaseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+
+    expect(createMock).toHaveBeenCalledWith({
+      baseURL: expectedBaseURL,
+      headers: { 'Content-Type': 'application/json' },
+      withCredentials: true,
+    })
   })
 
   it('broadcasts impersonation status when header is present', async () => {
@@ -60,15 +56,13 @@ describe('api client', () => {
 
     await import('../client')
 
-    expect(responseHandlers.onFulfilled).toBeDefined()
-
     const response = {
       headers: {
         'x-break-glass-impersonation': JSON.stringify({ active: true, user_id: 42 }),
       },
     }
 
-    responseHandlers.onFulfilled!(response)
+    responseHandlers.onFulfilled?.(response)
 
     expect(dispatchSpy).toHaveBeenCalledTimes(1)
     const event = dispatchSpy.mock.calls[0][0] as CustomEvent
@@ -85,11 +79,10 @@ describe('api client', () => {
 
     const error = {
       response: { status: 401, headers: {} },
-      config: { url: '/api/v1/clients/', headers: {} },
+      config: { url: '/api/v1/clients/' },
     } as AxiosError
 
-    expect(responseHandlers.onRejected).toBeDefined()
-    const result = await responseHandlers.onRejected!(error)
+    const result = await responseHandlers.onRejected?.(error)
 
     expect(mockPost).toHaveBeenCalledWith('/auth/token/refresh/')
     expect(mockInstance).toHaveBeenCalledWith(expect.objectContaining({ url: '/api/v1/clients/', _retry: true }))
@@ -101,11 +94,10 @@ describe('api client', () => {
 
     const error = {
       response: { status: 401, headers: {} },
-      config: { url: '/auth/login/', headers: {} },
+      config: { url: '/auth/login/' },
     } as AxiosError
 
-    expect(responseHandlers.onRejected).toBeDefined()
-    await expect(responseHandlers.onRejected!(error)).rejects.toBe(error)
+    await expect(responseHandlers.onRejected?.(error)).rejects.toBe(error)
     expect(mockPost).not.toHaveBeenCalled()
   })
 })
