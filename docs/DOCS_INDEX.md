@@ -1,6 +1,6 @@
 # docs/DOCS_INDEX.md — Documentation Index
 
-Last Updated: 2026-01-05
+Last Updated: 2026-01-10
 
 ## Read order (agents)
 1) `../CODEBASECONSTITUTION.md`
@@ -30,3 +30,28 @@ Last Updated: 2026-01-05
 - `README.md` (this directory)
 - `../README.md` (project overview)
 - `../CHANGELOG.md`
+
+## Implementation docs
+- `ARCHITECTURE.md`
+- `DOMAIN_MODEL.md`
+- `BILLING_LEDGER_IMPLEMENTATION.md`
+- `WORKERS_QUEUES_IMPLEMENTATION.md`
+- `implementation/` (calendar implementation series)
+
+## Policy docs
+- `AI_COST_POLICY.md`
+- `DATA_RETENTION_POLICY.md`
+- `SECURITY_BASELINE.md`
+- `API_VERSIONING_POLICY.md`
+- `API_DEPRECATION_POLICY.md`
+
+## Integration guides
+- `integrations/`
+- `INTEGRATION_MAP.md`
+- `active-directory-integration-guide.md`
+- `calendar-sync-integration.md`
+
+## User guides
+- `06-user-guides/`
+- `accounting-integrations-user-guide.md`
+- `esignature-user-guide.md`

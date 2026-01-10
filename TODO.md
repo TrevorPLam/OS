@@ -189,13 +189,13 @@ Effort: M
 Priority: P2
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - Current DOCS_INDEX.md covers governance but omits implementation docs, policies, integration guides.
 Acceptance Criteria:
-- [ ] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
-- [ ] List major documents from each category.
+- [x] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
+- [x] List major documents from each category.
 References:
 - docs/DOCS_INDEX.md
 Dependencies: None
