@@ -5,6 +5,8 @@ SECURITY: All public authentication endpoints are rate-limited to prevent
 brute force attacks. See django-ratelimit documentation for configuration.
 """
 
+import hmac
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django_ratelimit.decorators import ratelimit
@@ -18,8 +20,15 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
 
-from .serializers import ChangePasswordSerializer, LoginSerializer, RegisterSerializer, UserSerializer
+from .serializers import (
+    ChangePasswordSerializer,
+    LoginSerializer,
+    ProvisionFirmSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
 from modules.auth.cookies import clear_auth_cookies, set_auth_cookies
+from modules.firm.provisioning import provision_firm
 
 User = get_user_model()
 
@@ -61,6 +70,48 @@ class RegisterView(generics.CreateAPIView):
         )
         set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
         return response
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@ratelimit(key="ip", rate="2/m", method="POST", block=True)
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
+    """
+    Debug-only endpoint to provision a firm for E2E testing.
+
+    Requires:
+    - DEBUG=True
+    - X-E2E-Seed: <token>
+    """
+    seed_header = request.headers.get("X-E2E-Seed", "")
+    expected_token = settings.E2E_PROVISION_TOKEN or ""
+
+    if (
+        not settings.DEBUG
+        or not expected_token
+        or not hmac.compare_digest(seed_header, expected_token)
+    ):
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProvisionFirmSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    result = provision_firm(**data)
+
+    admin_user = result["admin_user"]
+    firm = result["firm"]
+
+    return Response(
+        {
+            "firm_id": firm.id,
+            "firm_slug": firm.slug,
+            "admin_user_id": admin_user.id,
+            "admin_username": admin_user.username,
+            "admin_email": admin_user.email,
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["POST"])

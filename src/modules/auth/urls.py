@@ -10,6 +10,7 @@ from .views import (
     RegisterView,
     login_view,
     logout_view,
+    provision_firm_view,
     user_profile_view,
 )
 from .oauth_views import oauth_callback, oauth_provider_config
@@ -35,6 +36,7 @@ from .mfa_views import (
 urlpatterns = [
     # User authentication
     path("register/", RegisterView.as_view(), name="auth_register"),
+    path("provision-firm/", provision_firm_view, name="auth_provision_firm"),
     path("login/", login_view, name="auth_login"),
     path("logout/", logout_view, name="auth_logout"),
     path("profile/", user_profile_view, name="auth_profile"),
