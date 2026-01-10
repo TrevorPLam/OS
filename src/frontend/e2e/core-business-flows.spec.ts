@@ -82,7 +82,14 @@ test('provisions a firm and completes client-to-payment workflow', async ({ page
     due_date: formatDate(dueDate),
     currency: 'USD',
     status: 'sent',
-  }
+    line_items: [
+      {
+        description: 'E2E services',
+        quantity: 1,
+        rate: '1250.00',
+        amount: '1250.00',
+      },
+    ],
 
   const invoiceResponse = await page.request.post(`${API_BASE_URL}/finance/invoices/`, {
     data: invoicePayload,
