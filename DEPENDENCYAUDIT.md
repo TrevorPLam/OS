@@ -77,3 +77,20 @@ Required outputs:
   - Is SAML authentication actively used in production? (affects T-035)
   - Is image watermarking feature essential? (affects T-037)
   - Any known issues with current DocuSign integration? (affects T-036)
+
+### 2026-01-10 — DocuSign SDK Evaluation (T-036)
+- Agent: AGENT
+- Scope: DocuSign integration (SDK adoption evaluation)
+- Method: Reviewed `src/modules/esignature/docusign_service.py` and `src/modules/esignature/views.py` for current API usage; attempted to fetch PyPI metadata for `docusign-esign` (blocked by network 403).
+- Verification: `docs/scripts/check.sh` (failed: pytest invoked with `--cov` arguments, pytest-cov unavailable).
+- Findings:
+  - Current integration uses direct REST calls via `requests` for OAuth, user info, envelope create/send, status fetch, void, document download, and webhook signature verification.
+  - SDK size and dependency tree are **UNKNOWN** due to blocked PyPI access in this environment.
+  - Without verified SDK metadata or feature gaps, switching would add dependency risk without clear benefit.
+- Tasks created/updated:
+  - T-036: Marked complete after documenting evaluation and recommendation.
+- Recommendation:
+  - Stay with current custom integration until SDK dependency metadata and feature coverage can be verified in an environment with PyPI access, or until a concrete feature requirement (templates, embedded signing, bulk send) justifies the SDK.
+- Questions for Trevor:
+  - Can we allow PyPI metadata access for dependency evaluation in this environment?
+  - Are there upcoming DocuSign features (templates, embedded signing, bulk send) that would require the SDK?

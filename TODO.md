@@ -185,25 +185,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-036: Evaluate DocuSign SDK adoption
-Priority: P2
-Type: DEPENDENCY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Currently using raw requests library for DocuSign API.
-- Official SDK available: docusign-esign.
-Acceptance Criteria:
-- [ ] Research SDK size and dependencies.
-- [ ] Compare SDK methods to current implementation.
-- [ ] Make recommendation: migrate to SDK or keep custom implementation.
-- [ ] Document findings in DEPENDENCYAUDIT.md.
-References:
-- src/modules/esignature/docusign_service.py
-Dependencies: None
-Effort: M
-
 ### T-040: Expand DOCS_INDEX.md to include all major doc categories
 Priority: P2
 Type: DOCS
