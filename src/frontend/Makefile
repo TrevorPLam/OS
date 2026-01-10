@@ -10,7 +10,7 @@ endif
 
 NPM ?= npm
 
-.PHONY: setup lint test build dev deps-check e2e
+.PHONY: setup lint test build build-check dev deps-check e2e
 
 setup:
 	$(Q)$(NPM) ci
@@ -27,6 +27,12 @@ e2e:
 
 build:
 	$(Q)$(NPM) run build
+
+build-check:
+	$(Q)$(NPM) run build
+	$(Q)test -d dist
+	$(Q)test -f dist/index.html
+	$(Q)test -d dist/assets
 
 dev:
 	$(Q)$(NPM) run dev

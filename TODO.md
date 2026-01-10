@@ -205,14 +205,14 @@ Effort: S
 Priority: P2
 Type: QUALITY
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - Frontend build not verified in pre-release checks.
 Acceptance Criteria:
-- [ ] Root Makefile includes frontend build check.
-- [ ] Built assets verified to exist.
-- [ ] Frontend production build tested.
+- [x] Root Makefile includes frontend build check.
+- [x] Built assets verified to exist.
+- [x] Frontend production build tested.
 References:
 - src/frontend/Makefile
 - Makefile
