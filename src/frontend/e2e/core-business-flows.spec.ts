@@ -17,7 +17,9 @@ const buildProvisionPayload = () => {
     admin_password: PASSWORD,
     admin_first_name: 'E2E',
     admin_last_name: 'Admin',
-  }
+    timezone: 'America/Los_Angeles',
+    currency: 'USD',
+    subscription_tier: 'professional',
 }
 
 const provisionFirm = async (request: APIRequestContext) => {
