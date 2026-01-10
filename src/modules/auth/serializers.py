@@ -50,7 +50,20 @@ class ProvisionFirmSerializer(serializers.Serializer):
 
     firm_name = serializers.CharField(max_length=255)
     firm_slug = serializers.SlugField(max_length=255)
-    admin_email = serializers.EmailField()
+
+    def validate_firm_slug(self, value):
+        """
+        Ensure slug matches Firm.slug constraints: lowercase, [a-z0-9-], min length 3.
+        """
+        value = value.strip().lower()
+        if len(value) < 3:
+            raise serializers.ValidationError("Slug must be at least 3 characters long.")
+        for ch in value:
+            if not (ch.islower() or ch.isdigit() or ch == "-"):
+                raise serializers.ValidationError(
+                    "Slug must contain only lowercase letters, numbers, and hyphens."
+                )
+        return value
     admin_password = serializers.CharField(write_only=True)
     admin_first_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
     admin_last_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
