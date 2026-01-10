@@ -110,6 +110,11 @@ class ClientViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         base_queryset = super().get_queryset()
         return base_queryset.select_related("organization", "account_manager")
 
+    def perform_create(self, serializer):
+        """Set firm when creating a client."""
+        firm = get_request_firm(self.request)
+        serializer.save(firm=firm)
+
     @action(detail=True, methods=["get"])
     def overview(self, request, pk=None):
         """

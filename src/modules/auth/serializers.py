@@ -45,6 +45,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class ProvisionFirmSerializer(serializers.Serializer):
+    """Serializer for provisioning a firm in debug-only environments."""
+
+    firm_name = serializers.CharField(max_length=255)
+    firm_slug = serializers.SlugField(max_length=255)
+    admin_email = serializers.EmailField()
+    admin_password = serializers.CharField(write_only=True)
+    admin_first_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
+    admin_last_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
+    timezone = serializers.CharField(max_length=64, required=False, default="America/New_York")
+    currency = serializers.CharField(max_length=3, required=False, default="USD")
+    subscription_tier = serializers.CharField(max_length=50, required=False, default="starter")
+
+
 class LoginSerializer(serializers.Serializer):
     """Serializer for user login."""
 

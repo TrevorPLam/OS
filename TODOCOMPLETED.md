@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-09
+Last Updated: 2026-01-10
 Source: Completed tasks moved from `TODO.md`
 
 This file stores completed work in the same schema as `TODO.md`.
@@ -40,6 +40,23 @@ Context:
 Acceptance Criteria:
 - [x] Implement E2E tests for: registration, login, MFA, OAuth.
 - [x] Tests run against Docker Compose environment.
+References:
+- Docker Compose environment
+- src/frontend/
+Dependencies: T-077
+Effort: M
+
+### T-079: Add Playwright E2E coverage for core business workflows
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-10)
+Context:
+- Core workflows (firm/client/invoice/payment) need regression coverage.
+Acceptance Criteria:
+- [x] Implement E2E tests for: create firm, create client, create invoice, payment flow.
+- [x] Tests run against Docker Compose environment.
+- [x] Tests pass in CI (when enabled).
 References:
 - Docker Compose environment
 - src/frontend/

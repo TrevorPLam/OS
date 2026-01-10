@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
-const API_BASE_URL = process.env.E2E_API_URL ?? 'http://localhost:8000/api'
+const API_BASE_URL = process.env.E2E_API_URL ?? 'http://localhost:8000/api/v1'
 const PASSWORD = 'SecurePass123!'
 
 type E2EUser = {

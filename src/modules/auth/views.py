@@ -18,8 +18,15 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenViewBase
 
-from .serializers import ChangePasswordSerializer, LoginSerializer, RegisterSerializer, UserSerializer
+from .serializers import (
+    ChangePasswordSerializer,
+    LoginSerializer,
+    ProvisionFirmSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
 from modules.auth.cookies import clear_auth_cookies, set_auth_cookies
+from modules.firm.provisioning import provision_firm
 
 User = get_user_model()
 
@@ -61,6 +68,50 @@ class RegisterView(generics.CreateAPIView):
         )
         set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
         return response
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def provision_firm_view(request):
+    """
+    Debug-only endpoint to provision a firm for E2E testing.
+
+    Requires:
+    - DEBUG=True
+    - X-E2E-Seed: true
+    """
+    if not settings.DEBUG or request.headers.get("X-E2E-Seed") != "true":
+        return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ProvisionFirmSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+
+    result = provision_firm(
+        firm_name=data["firm_name"],
+        firm_slug=data["firm_slug"],
+        admin_email=data["admin_email"],
+        admin_password=data["admin_password"],
+        admin_first_name=data["admin_first_name"],
+        admin_last_name=data["admin_last_name"],
+        timezone=data["timezone"],
+        currency=data["currency"],
+        subscription_tier=data["subscription_tier"],
+    )
+
+    admin_user = result["admin_user"]
+    firm = result["firm"]
+
+    return Response(
+        {
+            "firm_id": firm.id,
+            "firm_slug": firm.slug,
+            "admin_user_id": admin_user.id,
+            "admin_username": admin_user.username,
+            "admin_email": admin_user.email,
+        },
+        status=status.HTTP_201_CREATED,
+    )
 
 
 @api_view(["POST"])

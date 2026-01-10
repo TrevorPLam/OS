@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-09
+Last Updated: 2026-01-10
 Task Truth Source: **TODO.md**
 
 This file is the single source of truth for actionable work.
@@ -59,24 +59,6 @@ Effort: M
 ### Phase 1 — Security and tenant isolation (P1/P3)
 
 #### P1 — High impact (do within 7 days)
-
-### T-079: Add Playwright E2E coverage for core business workflows
-Priority: P1
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Core workflows (firm/client/invoice/payment) need regression coverage.
-Acceptance Criteria:
-- [ ] Implement E2E tests for: create firm, create client, create invoice, payment flow.
-- [ ] Tests run against Docker Compose environment.
-- [ ] Tests pass in CI (when enabled).
-References:
-- Docker Compose environment
-- src/frontend/
-Dependencies: T-077
-Effort: M
 
 ### T-050: Create incident response runbooks
 Priority: P1
