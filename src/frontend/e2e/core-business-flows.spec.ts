@@ -63,7 +63,7 @@ test('provisions a firm and completes client-to-payment workflow', async ({ page
   expect(clientsResponse.ok()).toBeTruthy()
   const clientsData = await clientsResponse.json()
   const clients = clientsData.results ?? clientsData
-  const client = clients.find((item: { company_name: string }) => item.company_name === companyName)
+  const client = clients.find((item: { id: number; company_name: string }) => item.company_name === companyName)
   expect(client).toBeTruthy()
 
   const today = new Date()
