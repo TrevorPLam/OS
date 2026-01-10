@@ -149,15 +149,15 @@ Effort: M
 Priority: P2
 Type: DEPENDENCY
 Owner: AGENT
-Status: READY
-Blocker: None.
+Status: IN-REVIEW
+Blocker: Verification blocked (pip install requirements-dev.txt failed: proxy 403).
 Context:
 - Both pytest-cov and coverage are installed redundantly.
 - pytest-cov already includes coverage as a dependency.
 Acceptance Criteria:
-- [ ] Remove coverage==7.4.0 from requirements-dev.txt (keep pytest-cov).
-- [ ] Verify pytest-cov still works: pytest --cov=src tests/.
-- [ ] Update any CI/local scripts that reference coverage directly.
+- [x] Remove coverage==7.4.0 from requirements-dev.txt (keep pytest-cov).
+- [ ] Verify pytest-cov still works: pytest --cov=src tests/. (blocked: pytest-cov not installed in sandbox)
+- [x] Update any CI/local scripts that reference coverage directly (none found).
 References:
 - requirements-dev.txt
 - pyproject.toml
