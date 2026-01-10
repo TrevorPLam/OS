@@ -90,7 +90,7 @@ Required outputs:
 - Tasks created/updated:
   - T-036: Marked complete after documenting evaluation and recommendation.
 - Recommendation:
-  - Stay with current custom integration until SDK dependency metadata and feature coverage can be verified in an environment with PyPI access, or until a concrete feature requirement (templates, embedded signing, bulk send) justifies the SDK.
+  - Stay with current custom integration until SDK dependency metadata and feature coverage can be verified in an environment with PyPI access, or until a concrete feature requirement (e.g., templates, bulk send) justifies the SDK.
 - Questions for Trevor:
   - Can we allow PyPI metadata access for dependency evaluation in this environment?
-  - Are there upcoming DocuSign features (templates, embedded signing, bulk send) that would require the SDK?
+  - Are there upcoming DocuSign features (e.g., templates, bulk send) that would require the SDK?
