@@ -5,6 +5,8 @@ SECURITY: All public authentication endpoints are rate-limited to prevent
 brute force attacks. See django-ratelimit documentation for configuration.
 """
 
+import hmac
+
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django_ratelimit.decorators import ratelimit
@@ -72,32 +74,30 @@ class RegisterView(generics.CreateAPIView):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@ratelimit(key="ip", rate="2/m", method="POST", block=True)
 def provision_firm_view(request):
     """
     Debug-only endpoint to provision a firm for E2E testing.
 
     Requires:
     - DEBUG=True
-    - X-E2E-Seed: true
+    - X-E2E-Seed: <token>
     """
-    if not settings.DEBUG or request.headers.get("X-E2E-Seed") != "true":
+    seed_header = request.headers.get("X-E2E-Seed", "")
+    expected_token = settings.E2E_PROVISION_TOKEN or ""
+
+    if (
+        not settings.DEBUG
+        or not expected_token
+        or not hmac.compare_digest(seed_header, expected_token)
+    ):
         return Response({"error": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = ProvisionFirmSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
 
-    result = provision_firm(
-        firm_name=data["firm_name"],
-        firm_slug=data["firm_slug"],
-        admin_email=data["admin_email"],
-        admin_password=data["admin_password"],
-        admin_first_name=data["admin_first_name"],
-        admin_last_name=data["admin_last_name"],
-        timezone=data["timezone"],
-        currency=data["currency"],
-        subscription_tier=data["subscription_tier"],
-    )
+    result = provision_firm(**data)
 
     admin_user = result["admin_user"]
     firm = result["firm"]

@@ -29,9 +29,6 @@ from modules.finance.models import (
     RevenueByProjectMonthMV,
     ServiceLineProfitability,
 )
-from modules.firm.utils import get_request_firm
-from modules.firm.utils import FirmScopedMixin
-
 from .serializers import (
     BillSerializer,
     InvoiceSerializer,
@@ -43,9 +40,18 @@ from .serializers import (
     RevenueByProjectMonthMVSerializer,
     ServiceLineProfitabilitySerializer,
 )
+from modules.firm.utils import FirmScopedMixin, get_request_firm
 
 
-class InvoiceViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+class CreateWithFirmAndUserMixin:
+    """Set firm and created_by fields during creation."""
+
+    def perform_create(self, serializer):
+        firm = get_request_firm(self.request)
+        serializer.save(firm=firm, created_by=self.request.user)
+
+
+class InvoiceViewSet(QueryTimeoutMixin, FirmScopedMixin, CreateWithFirmAndUserMixin, viewsets.ModelViewSet):
     """
     ViewSet for Invoice model.
 
@@ -65,11 +71,6 @@ class InvoiceViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         """Override to add select_related for performance."""
         base_queryset = super().get_queryset()
         return base_queryset.select_related("client", "project", "created_by")
-
-    def perform_create(self, serializer):
-        """Set firm and created_by when creating invoices."""
-        firm = get_request_firm(self.request)
-        serializer.save(firm=firm, created_by=self.request.user)
 
 
 class BillViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
@@ -116,7 +117,7 @@ class LedgerEntryViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewS
         return base_queryset.select_related("invoice", "bill", "created_by")
 
 
-class PaymentViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+class PaymentViewSet(QueryTimeoutMixin, FirmScopedMixin, CreateWithFirmAndUserMixin, viewsets.ModelViewSet):
     """
     ViewSet for Payment model (Medium Feature 2.10).
     
@@ -139,11 +140,6 @@ class PaymentViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
         base_queryset = super().get_queryset()
         return base_queryset.select_related("client", "created_by")
 
-    def perform_create(self, serializer):
-        """Set firm and created_by when recording payments."""
-        firm = get_request_firm(self.request)
-        serializer.save(firm=firm, created_by=self.request.user)
-    
     @action(detail=True, methods=["post"])
     def allocate(self, request, pk=None):
         """

@@ -3,7 +3,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test'
 
 const API_BASE_URL = process.env.E2E_API_URL ?? 'http://localhost:8000/api/v1'
 const E2E_SEED_HEADER = process.env.E2E_SEED_HEADER ?? 'X-E2E-Seed'
-const E2E_SEED_VALUE = process.env.E2E_SEED_VALUE ?? 'true'
+const E2E_SEED_VALUE = process.env.E2E_SEED_VALUE ?? 'local-e2e-token'
 const PASSWORD = 'SecurePass123!'
 
 const formatDate = (date: Date) => date.toISOString().slice(0, 10)

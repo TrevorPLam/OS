@@ -27,6 +27,9 @@ SECRET_KEY = _secret_key
 # Explicitly set DJANGO_DEBUG=True for development
 DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
+# Debug-only E2E provisioning token (must be set to enable provisioning endpoint).
+E2E_PROVISION_TOKEN = os.environ.get("E2E_PROVISION_TOKEN")
+
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # Application definition
