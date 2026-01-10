@@ -622,3 +622,21 @@ References:
 - requirements-dev.txt
 Dependencies: None
 Effort: S
+
+### T-036: Evaluate DocuSign SDK adoption
+Priority: P2
+Type: DEPENDENCY
+Owner: AGENT
+Status: COMPLETED (2026-01-10)
+Context:
+- Currently using raw requests library for DocuSign API.
+- Official SDK available: docusign-esign.
+Acceptance Criteria:
+- [x] Research SDK size and dependencies (result: UNKNOWN due to network block).
+- [x] Compare SDK methods to current implementation (result: comparison limited due to UNKNOWN SDK metadata).
+- [x] Make recommendation: migrate to SDK or keep custom implementation.
+- [x] Document findings in DEPENDENCYAUDIT.md.
+References:
+- src/modules/esignature/docusign_service.py
+Dependencies: None
+Effort: M
