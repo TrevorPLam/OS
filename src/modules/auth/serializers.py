@@ -94,6 +94,17 @@ class ProvisionFirmSerializer(serializers.Serializer):
             raise serializers.ValidationError("Currency must be a 3-letter ISO code (uppercase).")
         return value
 
+    def validate_subscription_tier(self, value):
+        """
+        Enforce valid subscription tiers to match Firm.SUBSCRIPTION_TIER_CHOICES.
+        """
+        allowed_tiers = {"starter", "professional", "enterprise"}
+        value = (value or "").strip()
+        if value not in allowed_tiers:
+            raise serializers.ValidationError(
+                f"Invalid subscription tier. Allowed values are: {', '.join(sorted(allowed_tiers))}."
+            )
+        return value
 
 class LoginSerializer(serializers.Serializer):
     """Serializer for user login."""
