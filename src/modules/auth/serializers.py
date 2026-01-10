@@ -84,7 +84,15 @@ class ProvisionFirmSerializer(serializers.Serializer):
             raise serializers.ValidationError("Timezone must be a valid IANA timezone identifier.")
         return value
     currency = serializers.CharField(max_length=3, required=False, default="USD")
-    subscription_tier = serializers.CharField(max_length=50, required=False, default="starter")
+
+    def validate_currency(self, value):
+        """
+        Normalize and validate currency as a 3-letter uppercase ISO code.
+        """
+        value = (value or "").strip().upper()
+        if len(value) != 3 or not value.isalpha():
+            raise serializers.ValidationError("Currency must be a 3-letter ISO code (uppercase).")
+        return value
 
 
 class LoginSerializer(serializers.Serializer):
