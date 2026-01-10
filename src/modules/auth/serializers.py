@@ -67,7 +67,22 @@ class ProvisionFirmSerializer(serializers.Serializer):
     admin_password = serializers.CharField(write_only=True)
     admin_first_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
     admin_last_name = serializers.CharField(max_length=150, required=False, allow_blank=True, default="")
-    timezone = serializers.CharField(max_length=64, required=False, default="America/New_York")
+    timezone = serializers.CharField(max_length=50, required=False, default="America/New_York")
+
+    def validate_timezone(self, value):
+        """
+        Ensure timezone is a valid IANA identifier and within model length limits.
+        """
+        value = (value or "").strip()
+        # Enforce the same max length as Firm.timezone
+        if len(value) > 50:
+            raise serializers.ValidationError("Timezone must be at most 50 characters long.")
+        try:
+            from zoneinfo import ZoneInfo  # Local import to avoid global dependency
+            ZoneInfo(value)
+        except Exception:
+            raise serializers.ValidationError("Timezone must be a valid IANA timezone identifier.")
+        return value
     currency = serializers.CharField(max_length=3, required=False, default="USD")
     subscription_tier = serializers.CharField(max_length=50, required=False, default="starter")
 
