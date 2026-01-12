@@ -52,7 +52,7 @@ If a dependency’s usage cannot be verified in code, it is marked **UNKNOWN** w
 | pytest-cov | Coverage reporting for pytest. | Coverage flags configured in `pytest.ini`. | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm coverage output paths and thresholds after upgrades. |
 | safety | Dependency vulnerability scanning. | **UNKNOWN**: no local config found via `rg -n "safety" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm intended usage in local scripts/CI before upgrading. |
 | bandit | Static security analysis. | **UNKNOWN**: no local config found via `rg -n "bandit" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Verify baseline ignores and target paths; re-run scans after upgrades. |
-| mypy | Static type checking. | **UNKNOWN**: no config found via `rg -n "mypy" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Add/verify config before enabling in CI; check Django stubs compatibility. |
+| mypy | Static type checking. | Config in `pyproject.toml` (`[tool.mypy]`); invoked via `make typecheck` and `make verify`. | **UNKNOWN** (no alternatives evaluated in-repo). | Keep strict settings aligned with available stubs; evaluate Django/DRF stub packages if type coverage expands. |
 | django-stubs | Type hints for Django. | **UNKNOWN**: no config found via `rg -n "django-stubs" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Keep aligned with Django/mypy versions; enable when type checking is enforced. |
 
 **Note:** Architectural boundary checks use `import-linter==2.0`, which is installed directly in the CI workflow (`githubactions/workflows/ci.yml`) and is not listed in `requirements-dev.txt`.

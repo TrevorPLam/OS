@@ -223,18 +223,18 @@ Effort: S
 Priority: P2
 Type: QUALITY
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - MyPy configured in pyproject.toml but not enforced in CI.
 - Type hints provide value only when checked automatically.
 - Prevents type-related bugs.
 Acceptance Criteria:
-- [ ] Add make typecheck command to src/Makefile.
-- [ ] Command runs mypy src/ with strict settings.
-- [ ] Add typecheck to root make verify command.
-- [ ] Fix existing type errors (if any).
-- [ ] Document type checking requirements in CONTRIBUTING.md.
+- [x] Add make typecheck command to src/Makefile.
+- [x] Command runs mypy src/ with strict settings.
+- [x] Add typecheck to root make verify command.
+- [x] Fix existing type errors (if any).
+- [x] Document type checking requirements in CONTRIBUTING.md.
 References:
 - pyproject.toml
 - src/Makefile
