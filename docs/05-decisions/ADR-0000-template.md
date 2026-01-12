@@ -5,21 +5,25 @@
 **Deciders:** [List of people involved in decision]  
 **Tags:** [architecture, security, performance, etc.]
 
-## Context
+## Context and Problem Statement
 
 What is the issue that we're seeing that is motivating this decision or change?
 
-Describe the forces at play (technical, political, social, project local).
+## Decision Drivers
 
-## Decision
+List the forces at play (technical, political, social, project-local) that shaped the decision.
 
-What is the change that we're proposing and/or doing?
+## Considered Options
+
+1. [Option 1] (Pros: ..., Cons: ...)
+2. [Option 2] (Pros: ..., Cons: ...)
+3. [Option 3] (Pros: ..., Cons: ...)
+
+## Decision Outcome
+
+Chosen option: [Option N], because [justification].
 
 State the decision clearly in one or two sentences.
-
-## Consequences
-
-What becomes easier or more difficult to do because of this change?
 
 ### Positive Consequences
 
@@ -31,7 +35,7 @@ What becomes easier or more difficult to do because of this change?
 - [Trade-off 1]
 - [Trade-off 2]
 
-## Implementation
+## Implementation Plan
 
 ### Migration Steps
 
@@ -51,26 +55,6 @@ If this decision needs to be reversed:
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 
-## Alternatives Considered
-
-### Alternative 1: [Name]
-
-**Description:** [Brief description]
-
-**Pros:**
-- [Pro 1]
-- [Pro 2]
-
-**Cons:**
-- [Con 1]
-- [Con 2]
-
-**Why not chosen:** [Explanation]
-
-### Alternative 2: [Name]
-
-[Repeat structure]
-
 ## Constitution Impact
 
 (If this ADR amends the Coding Constitution)
@@ -85,7 +69,7 @@ If this decision needs to be reversed:
 - [ADR-NNNN: Related Decision 1](ADR-NNNN-related-decision.md)
 - [ADR-MMMM: Related Decision 2](ADR-MMMM-another-decision.md)
 
-## References
+## Links
 
 - [Link to relevant documentation]
 - [Link to discussion thread]
