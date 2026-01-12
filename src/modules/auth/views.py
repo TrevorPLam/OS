@@ -75,7 +75,7 @@ class RegisterView(generics.CreateAPIView):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @ratelimit(key="ip", rate="2/m", method="POST", block=True)
-@ratelimit(key="ip", rate="5/m", method="POST", block=True)
+def provision_firm_view(request):
     """
     Debug-only endpoint to provision a firm for E2E testing.
 

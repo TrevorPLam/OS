@@ -21,6 +21,12 @@ Thanks for your interest in improving ConsultantPro. This guide outlines expecta
 pytest
 ```
 
+## Running Type Checks
+
+```bash
+make typecheck
+```
+
 ## Dependency Updates
 
 ### Frontend Dependencies

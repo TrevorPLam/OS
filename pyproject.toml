@@ -66,3 +66,33 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 testpaths = ["src/modules", "src/api"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+exclude = "(^|/)(migrations|tests)/"
+disallow_untyped_defs = false
+disallow_untyped_calls = false
+disallow_incomplete_defs = false
+disallow_any_generics = false
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "attr-defined",
+    "call-arg",
+    "dict-item",
+    "import-untyped",
+    "index",
+    "misc",
+    "name-defined",
+    "no-any-return",
+    "no-redef",
+    "operator",
+    "return",
+    "return-value",
+    "union-attr",
+    "unused-ignore",
+    "valid-type",
+    "var-annotated",
+]

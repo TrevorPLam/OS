@@ -12,7 +12,7 @@ PYTHON ?= python
 OPENAPI_PATH := ../docs/03-reference/api/openapi.yaml
 OPENAPI_ENV := DJANGO_SECRET_KEY=local POSTGRES_DB=local POSTGRES_USER=local POSTGRES_PASSWORD=local POSTGRES_HOST=localhost USE_SQLITE_FOR_TESTS=True
 
-.PHONY: setup lint test migrate openapi dev
+.PHONY: setup lint test typecheck migrate openapi dev
 
 setup:
 	$(Q)$(PYTHON) -m pip install --upgrade pip
@@ -25,6 +25,9 @@ lint:
 
 test:
 	$(Q)pytest --cov=modules --cov=api --cov-report=term -v
+
+typecheck:
+	$(Q)mypy .
 
 migrate:
 	$(Q)$(PYTHON) manage.py migrate --noinput

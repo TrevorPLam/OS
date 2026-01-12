@@ -237,7 +237,7 @@ def firm():
 @pytest.fixture
 def user(firm):
     """Create a test user."""
-    from django.contrib.auth import get_user_model()
+    from django.contrib.auth import get_user_model
     User = get_user_model()
     return User.objects.create_user(
         username="testuser",
