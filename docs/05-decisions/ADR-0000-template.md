@@ -21,7 +21,7 @@ List the forces at play (technical, political, social, project-local) that shape
 
 ## Decision Outcome
 
-Chosen option: [Option N]
+Chosen option: [Option N], because [justification].
 
 State the decision clearly in one or two sentences.
 
