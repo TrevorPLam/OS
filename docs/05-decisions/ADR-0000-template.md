@@ -15,9 +15,9 @@ List the forces at play (technical, political, social, project-local) that shape
 
 ## Considered Options
 
-1. [Option 1]
-2. [Option 2]
-3. [Option 3]
+1. [Option 1] (Pros: ..., Cons: ...)
+2. [Option 2] (Pros: ..., Cons: ...)
+3. [Option 3] (Pros: ..., Cons: ...)
 
 ## Decision Outcome
 
