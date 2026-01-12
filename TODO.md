@@ -246,14 +246,14 @@ Effort: M
 Priority: P2
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - No ADRs for major architectural decisions.
 - Historical context lost, decisions re-litigated.
 Acceptance Criteria:
-- [ ] Create docs/05-decisions/ directory.
-- [ ] Add ADR template (MADR format).
+- [x] Create docs/05-decisions/ directory.
+- [x] Add ADR template (MADR format).
 References:
 - docs/DOCS_INDEX.md
 - CONTRIBUTING.md
