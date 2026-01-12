@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-09
+Last Updated: 2026-01-10
 Task Truth Source: **TODO.md**
 
 This file is the single source of truth for actionable work.
@@ -64,12 +64,12 @@ Effort: M
 Priority: P1
 Type: QUALITY
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - Core workflows (firm/client/invoice/payment) need regression coverage.
 Acceptance Criteria:
-- [ ] Implement E2E tests for: create firm, create client, create invoice, payment flow.
+- [x] Implement E2E tests for: create firm, create client, create invoice, payment flow.
 - [ ] Tests run against Docker Compose environment.
 - [ ] Tests pass in CI (when enabled).
 References:
