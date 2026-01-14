@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { dashboardApi, DashboardStats } from '../api/dashboard'
+import CommandCenter from '../components/CommandCenter'
 import './Dashboard.css'
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [viewMode, setViewMode] = useState<'command-center' | 'full'>('command-center')
 
   useEffect(() => {
     loadStats()
@@ -26,6 +28,12 @@ const Dashboard: React.FC = () => {
     return <div className="loading">Loading dashboard...</div>
   }
 
+  // Command Center view as default
+  if (viewMode === 'command-center') {
+    return <CommandCenter />
+  }
+
+  // Full dashboard view (legacy)
   return (
     <div className="dashboard">
       <div className="dashboard-header">
