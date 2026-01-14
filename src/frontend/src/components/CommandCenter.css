@@ -1,0 +1,210 @@
+.command-center {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* Fixed Header */
+.command-center-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #000;
+  color: #fff;
+  padding: 12px 16px;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.command-center-header .header-button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.command-center-header .header-button:hover {
+  opacity: 0.7;
+}
+
+.command-center-header .header-button:active {
+  opacity: 0.5;
+}
+
+.command-center-header .module-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+/* Content Area */
+.command-center-content {
+  flex: 1;
+  margin-top: 60px;
+  margin-bottom: 80px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.module-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.module-content h2 {
+  margin: 0 0 1rem 0;
+  color: #2d3748;
+  font-size: 2rem;
+}
+
+.module-content p {
+  margin: 0 0 1.5rem 0;
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.module-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.module-links a {
+  display: block;
+  padding: 1rem 1.5rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #667eea;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.module-links a:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+/* Fixed Bottom Navigation */
+.command-center-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #000;
+  color: #fff;
+  padding: 12px 16px;
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  transition: opacity 0.2s;
+  font-size: 1.5rem;
+  min-height: 56px;
+}
+
+.nav-button:hover {
+  opacity: 0.7;
+}
+
+.nav-button:active {
+  opacity: 0.5;
+}
+
+.nav-button-left,
+.nav-button-right {
+  flex: 1;
+}
+
+.nav-button-center {
+  flex: 0 0 auto;
+  padding: 8px 24px;
+}
+
+.nav-arrow {
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .command-center-header .module-title {
+    font-size: 1.25rem;
+  }
+
+  .module-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .module-links {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-button {
+    padding: 8px 12px;
+    font-size: 1.25rem;
+  }
+
+  .nav-arrow {
+    font-size: 1.25rem;
+  }
+
+  .nav-icon {
+    font-size: 1.25rem;
+  }
+}
+
+/* Ensure clickable area for navigation arrows */
+.nav-button-left {
+  padding-left: 8px;
+}
+
+.nav-button-right {
+  padding-right: 8px;
+}
+
+/* Make the entire button area clickable */
+.nav-button-left,
+.nav-button-right,
+.nav-button-center {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0.1);
+}
