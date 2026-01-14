@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './CommandCenter.css'
 
 interface Module {
@@ -10,6 +10,7 @@ interface Module {
 }
 
 const CommandCenter: React.FC = () => {
+  const navigate = useNavigate()
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0)
 
   const modules: Module[] = [
@@ -104,13 +105,13 @@ const CommandCenter: React.FC = () => {
   }
 
   const navigateToGrid = () => {
-    // Navigate to full grid view or dashboard
-    window.location.href = '/'
+    // For now, stay on dashboard. Could navigate to a grid view later
+    // navigate('/dashboard-grid')
   }
 
   const navigateToSettings = () => {
-    // Navigate to settings
-    window.location.href = '/settings'
+    // Navigate to settings - placeholder for now as settings route may not exist
+    // navigate('/settings')
   }
 
   return (
