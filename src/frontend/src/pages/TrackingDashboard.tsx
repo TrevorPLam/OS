@@ -65,7 +65,7 @@ export const TrackingDashboard = () => {
   const webVitalMetrics = useMemo(() => webVitalsSummary?.metrics ?? [], [webVitalsSummary])
 
   const formatWebVitalValue = (metric: WebVitalMetricSummary) => {
-    if (metric.p75 === null || metric.p75 === undefined) {
+    if (metric.p75 == null) {
       return '—'
     }
     if (metric.unit === 'score') {
