@@ -486,7 +486,7 @@ Module-to-navigation alignment below is inferred from module naming and route la
 - [x] Governance controls (governance.py)
 - [x] Input validation (input_validation.py)
 - [x] Logging & structured logging (logging_utils.py, structured_logging.py)
-- [x] Notifications utilities (notifications.py)
+- [x] Notification utilities (notifications.py)
 - [x] Observability & telemetry (observability.py, telemetry.py)
 - [x] Rate limiting (rate_limiting.py)
 - [x] Retention & purge workflows (retention.py, purge.py)
