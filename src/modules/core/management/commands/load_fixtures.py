@@ -163,7 +163,7 @@ class Command(BaseCommand):
                 defaults={"email": email, "is_staff": True},
             )
             if was_created:
-                user.set_password("fixture-password")
+                user.set_password(os.environ.get("FIXTURE_USER_PASSWORD", "fixture-password"))
                 user.save(update_fields=["password"])
                 created_users += 1
             users.append(user)
