@@ -412,7 +412,8 @@ class Command(BaseCommand):
                     "s3_key": s3_key,
                     "uploaded_by": firm_users[0] if firm_users else None,
                 }
-                document = Document(**{key: value for key, value in document_data.items() if key in document_field_names})
+                if "s3_fingerprint" in document_field_names:
+                    document_data["s3_fingerprint"] = fingerprint
 
                 if document_counter % 9 == 0:
                     document.legal_hold = True
