@@ -109,4 +109,6 @@ requirements.
 ---
 
 **Last Updated:** 2026-01-16  
-**Evidence Sources:** src/modules/finance/billing_ledger.py; docs/BILLING_LEDGER_IMPLEMENTATION.md
+**Evidence Sources:**
+- [Billing ledger implementation](../../src/modules/finance/billing_ledger.py)
+- [Billing ledger implementation guide](../BILLING_LEDGER_IMPLEMENTATION.md)
