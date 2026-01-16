@@ -8,7 +8,10 @@ else
 Q :=
 endif
 
-.PHONY: setup lint test typecheck dev openapi docs-validate docs-check verify e2e frontend-build fixtures
+LOCUST_HOST ?= http://localhost:8000
+LOCUST_ARGS ?= --headless -u 5 -r 1 -t 1m
+
+.PHONY: setup lint test typecheck dev openapi docs-validate docs-check verify e2e frontend-build fixtures benchmark
 
 setup:
 	$(Q)set +e
@@ -93,6 +96,9 @@ e2e:
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND E2E: PASS"; else echo "FRONTEND E2E: FAIL"; fi
 	$(Q)exit $$frontend_status
+
+benchmark:
+	$(Q)locust -f benchmarks/locustfile.py --host $(LOCUST_HOST) $(LOCUST_ARGS)
 
 frontend-build:
 	$(Q)set +e

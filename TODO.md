@@ -278,25 +278,6 @@ References:
 Dependencies: T-080
 Effort: S
 
-### T-083: Add Locust load test benchmarks
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- No performance regression testing.
-- Cannot validate SLO targets (p95 <200ms, FCP <1.5s).
-Acceptance Criteria:
-- [ ] Create benchmarks/ directory with Locust load tests.
-- [ ] Benchmark: auth, CRUD operations, list endpoints, search.
-- [ ] Add make benchmark command for Locust tests.
-References:
-- docs/OBSERVABILITY.md
-- Diamond Standard Plan Phase 8
-Dependencies: None
-Effort: M
-
 ### T-084: Add Lighthouse CI for frontend performance
 Priority: P2
 Type: QUALITY
