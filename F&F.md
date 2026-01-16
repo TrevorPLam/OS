@@ -841,3 +841,219 @@ Even with conservative scoring, there are cross-cutting feature classes that may
 - **AI/LLM integration layer** for the assistant behavior and cross-module reasoning.
 - **Mobile/portal-specific UX flows** that may live outside `src/modules`.
 - **Centralized notification & messaging strategy** across communications, sms, and email.
+
+---
+
+## Competitive Analysis & Differentiators (Addendum)
+
+The comparisons below use **world-class/first-class product expectations** as a benchmark and remain conservative: they **do not** assume features exist beyond what is documented above. Items labeled **UNKNOWN** require code-level validation or UI confirmation.
+
+### accounting_integrations
+- **World-class baseline:** bi-directional sync, reconciliation dashboards, error alerting, audit trails, and configurable sync cadence.
+- **Competitiveness:** **Mid** (solid integration coverage; limited visibility tooling).
+- **Evidence-based strengths:** QuickBooks + Xero services and sync orchestration are present.
+- **Key gaps to parity:** reconciliation dashboards, alerting/observability, and richer sync policy controls (**UNKNOWN**).
+- **Potential differentiators (if expanded):** cross-module variance insights (finance + projects) and automated remediation playbooks.
+
+### ad_sync
+- **World-class baseline:** multi-network connectors, schedule policies, error analytics, campaign performance dashboards.
+- **Competitiveness:** **Mid** (connector + sync services exist; reporting is thin).
+- **Evidence-based strengths:** connector abstraction, sync service, and background tasks.
+- **Key gaps to parity:** scheduled policy management, error reporting, performance dashboards (**UNKNOWN**).
+- **Potential differentiators (if expanded):** direct CRM attribution of ad spend and auto-generated client summaries.
+
+### assets
+- **World-class baseline:** upload pipeline, CDN delivery, transformations, metadata, versioning, and access governance.
+- **Competitiveness:** **Early** (models + admin only).
+- **Evidence-based strengths:** asset models/admin are present.
+- **Key gaps to parity:** upload/storage, CDN, transforms, access controls, versioning (**UNKNOWN**).
+- **Potential differentiators (if expanded):** asset usage analytics tied to campaign outcomes.
+
+### auth
+- **World-class baseline:** MFA, OAuth/SAML, password recovery, adaptive risk, and audit logs.
+- **Competitiveness:** **Advanced** (multiple auth flows documented; recovery unknown).
+- **Evidence-based strengths:** MFA, OAuth, SAML, role/permission mapping utilities.
+- **Key gaps to parity:** account recovery/password reset flows (**UNKNOWN**).
+- **Potential differentiators (if expanded):** policy-driven step-up auth informed by cross-module risk signals.
+
+### automation
+- **World-class baseline:** trigger/action library, versioning, audit trails, analytics, and rollback.
+- **Competitiveness:** **Mid-Advanced** (engine + analytics exist; governance missing).
+- **Evidence-based strengths:** triggers/actions, executor, analytics, API surface.
+- **Key gaps to parity:** versioning/rollback and audit trails (**UNKNOWN**).
+- **Potential differentiators (if expanded):** cross-module automation templates tied to CRM/finance outcomes.
+
+### calendar
+- **World-class baseline:** multi-provider sync, availability rules, routing, analytics, and capacity planning.
+- **Competitiveness:** **Advanced** (rich scheduling services; analytics missing).
+- **Evidence-based strengths:** Google/Microsoft integrations, routing, round robin, polls/group events.
+- **Key gaps to parity:** analytics and capacity planning (**UNKNOWN**).
+- **Potential differentiators (if expanded):** predictive capacity planning fed by project timelines.
+
+### clients
+- **World-class baseline:** segmentation, lifecycle automation, health analytics, portal UX, and compliance controls.
+- **Competitiveness:** **Advanced** (segmentation + health scoring + portal present).
+- **Evidence-based strengths:** segmentation, bulk ops, contact merging, health scoring, portal views.
+- **Key gaps to parity:** lifecycle automation and analytics dashboards (**UNKNOWN**).
+- **Potential differentiators (if expanded):** real-time client health signals from finance + support.
+
+### communications
+- **World-class baseline:** omnichannel delivery, templates, threading, compliance, analytics.
+- **Competitiveness:** **Early** (models + API only).
+- **Evidence-based strengths:** models and basic endpoints.
+- **Key gaps to parity:** multi-channel delivery, templates, tracking, analytics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** unified communications hub spanning email/SMS/support.
+
+### core
+- **World-class baseline:** governance, security monitoring, observability, retention, feature flags.
+- **Competitiveness:** **Advanced** (broad foundational controls).
+- **Evidence-based strengths:** access controls, encryption, retention, observability, rate limiting.
+- **Key gaps to parity:** feature flags/experimentation (**UNKNOWN**).
+- **Potential differentiators (if expanded):** platform-level policy engine reusable across modules.
+
+### crm
+- **World-class baseline:** pipeline, scoring, automation, timeline, forecasting, analytics.
+- **Competitiveness:** **Advanced** (strong operations + automation; forecasting missing).
+- **Evidence-based strengths:** lead scoring, assignment automation, enrichment.
+- **Key gaps to parity:** pipeline forecasting and activity timeline/audit (**UNKNOWN**).
+- **Potential differentiators (if expanded):** cross-module health-informed forecasting.
+
+### delivery
+- **World-class baseline:** scheduling, status tracking, SLA management, notifications, audit trails.
+- **Competitiveness:** **Early** (models + instantiation only).
+- **Evidence-based strengths:** delivery models, instantiation logic.
+- **Key gaps to parity:** scheduling, status, retries, notifications (**UNKNOWN**).
+- **Potential differentiators (if expanded):** delivery insights tied to project KPIs and CRM risk.
+
+### documents
+- **World-class baseline:** versioning, approval workflows, retention policies, search/indexing, audit.
+- **Competitiveness:** **Mid** (versioning + services + malware scan present).
+- **Evidence-based strengths:** versioning, malware scan, permissions.
+- **Key gaps to parity:** approvals, retention, search/indexing (**UNKNOWN**).
+- **Potential differentiators (if expanded):** automated document requirements tied to onboarding + billing.
+
+### email_ingestion
+- **World-class baseline:** robust parsing, spam filtering, attachment processing, reporting.
+- **Competitiveness:** **Mid** (ingestion + retry/staleness handling).
+- **Evidence-based strengths:** services, retry, staleness handling.
+- **Key gaps to parity:** attachment processing, spam filtering, analytics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** auto-triage into CRM/support queues.
+
+### esignature
+- **World-class baseline:** multi-provider support, template management, audit trails, reminders.
+- **Competitiveness:** **Mid** (DocuSign integration present).
+- **Evidence-based strengths:** DocuSign service, signals.
+- **Key gaps to parity:** multi-provider, template management, reminders (**UNKNOWN**).
+- **Potential differentiators (if expanded):** contract insight summaries linked to billing milestones.
+
+### finance
+- **World-class baseline:** billing, ledger, reconciliation, tax, dunning, reporting.
+- **Competitiveness:** **Mid** (ledger + reconciliation; reporting missing).
+- **Evidence-based strengths:** billing ledger, reconciliation utilities, Square integration.
+- **Key gaps to parity:** tax/VAT, dunning, reporting, forecasting (**UNKNOWN**).
+- **Potential differentiators (if expanded):** proactive cashflow + risk insights tied to CRM.
+
+### firm
+- **World-class baseline:** org settings, compliance reporting, data residency, firm analytics.
+- **Competitiveness:** **Mid** (provisioning + export + audit present).
+- **Evidence-based strengths:** provisioning, audit utilities, export, profile views.
+- **Key gaps to parity:** org settings UI, compliance dashboards, data residency (**UNKNOWN**).
+- **Potential differentiators (if expanded):** executive briefings across finance/CRM/projects.
+
+### integrations
+- **World-class baseline:** OAuth lifecycle, webhook verification, health dashboards, marketplace.
+- **Competitiveness:** **Mid** (models + services + API).
+- **Evidence-based strengths:** integration services, serialization, admin.
+- **Key gaps to parity:** OAuth lifecycle management, webhook verification, health dashboards (**UNKNOWN**).
+- **Potential differentiators (if expanded):** integration health SLAs tied to support workflows.
+
+### jobs
+- **World-class baseline:** queue integration, retry policies, observability, prioritization.
+- **Competitiveness:** **Early** (models + payload validation only).
+- **Evidence-based strengths:** payload validation rules.
+- **Key gaps to parity:** queue/worker integration, retry policies, metrics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** job health tied to project/customer impact.
+
+### knowledge
+- **World-class baseline:** search, semantic retrieval, versioning, approvals, analytics.
+- **Competitiveness:** **Mid** (CRUD + API; search missing).
+- **Evidence-based strengths:** CRUD and serialization.
+- **Key gaps to parity:** semantic search, approval workflows, analytics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** knowledge surfaced automatically in support flows.
+
+### marketing
+- **World-class baseline:** multi-channel orchestration, A/B testing, consent management, analytics.
+- **Competitiveness:** **Mid** (jobs/queue present).
+- **Evidence-based strengths:** jobs + queue + campaign views.
+- **Key gaps to parity:** A/B testing, consent/compliance, analytics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** closed-loop attribution to CRM and projects.
+
+### onboarding
+- **World-class baseline:** guided checklists, document collection, progress dashboards, reminders.
+- **Competitiveness:** **Mid** (basic workflows + API).
+- **Evidence-based strengths:** onboarding workflows and serialization.
+- **Key gaps to parity:** guided templates, progress dashboards, reminders (**UNKNOWN**).
+- **Potential differentiators (if expanded):** auto-generated onboarding plans from CRM deal context.
+
+### orchestration
+- **World-class baseline:** workflow definitions, event-driven triggers, tracing, error handling.
+- **Competitiveness:** **Early** (executor + models).
+- **Evidence-based strengths:** execution engine, models.
+- **Key gaps to parity:** workflow definitions/versioning, triggers, tracing (**UNKNOWN**).
+- **Potential differentiators (if expanded):** orchestration that spans automation + jobs + communications.
+
+### pricing
+- **World-class baseline:** promotions, versioning, analytics, experimentation.
+- **Competitiveness:** **Mid-Advanced** (evaluator + compatibility).
+- **Evidence-based strengths:** evaluator, schema compatibility.
+- **Key gaps to parity:** promotions/discounts, price versioning, analytics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** dynamic pricing informed by support and delivery cost.
+
+### projects
+- **World-class baseline:** project CRUD, timelines, resource mgmt, health dashboards.
+- **Competitiveness:** **Early-Mid** (models + critical path only).
+- **Evidence-based strengths:** critical path analysis, signals.
+- **Key gaps to parity:** CRUD API, timelines, resource management (**UNKNOWN**).
+- **Potential differentiators (if expanded):** integrated cost/health from finance + tracking.
+
+### recurrence
+- **World-class baseline:** timezone-aware rules, exceptions, UI configuration, validation.
+- **Competitiveness:** **Early** (generator + backfill).
+- **Evidence-based strengths:** recurrence generator, backfill utilities.
+- **Key gaps to parity:** UI, exceptions, validation, timezone handling (**UNKNOWN**).
+- **Potential differentiators (if expanded):** unified recurrence engine powering calendar + billing + tasks.
+
+### sms
+- **World-class baseline:** templating, scheduling, analytics, compliance.
+- **Competitiveness:** **Mid** (Twilio integration + webhooks).
+- **Evidence-based strengths:** Twilio service, webhook handling.
+- **Key gaps to parity:** template library, scheduling, analytics (**UNKNOWN**).
+- **Potential differentiators (if expanded):** SMS tied to invoice/payment events.
+
+### snippets
+- **World-class baseline:** versioning, tagging, analytics, sharing policies.
+- **Competitiveness:** **Mid** (CRUD + API).
+- **Evidence-based strengths:** CRUD workflows, serialization.
+- **Key gaps to parity:** versioning, analytics, access controls (**UNKNOWN**).
+- **Potential differentiators (if expanded):** context-aware snippet suggestions in support/communications.
+
+### support
+- **World-class baseline:** SLA management, routing, CSAT, analytics, KB integration.
+- **Competitiveness:** **Mid** (basic workflows + API).
+- **Evidence-based strengths:** core support workflows.
+- **Key gaps to parity:** SLAs, routing/escalation, CSAT (**UNKNOWN**).
+- **Potential differentiators (if expanded):** unified support + CRM risk scoring.
+
+### tracking
+- **World-class baseline:** event taxonomy, session stitching, retention controls, dashboards.
+- **Competitiveness:** **Mid** (basic tracking + API).
+- **Evidence-based strengths:** tracking models + views.
+- **Key gaps to parity:** taxonomy governance, stitching, dashboards (**UNKNOWN**).
+- **Potential differentiators (if expanded):** product analytics that feed into marketing and CRM scoring.
+
+### webhooks
+- **World-class baseline:** verified endpoints, signing, retry/backoff, delivery status, dashboards.
+- **Competitiveness:** **Early-Mid** (jobs + queue).
+- **Evidence-based strengths:** jobs/dispatch + queue handling.
+- **Key gaps to parity:** endpoint verification, signing, delivery status (**UNKNOWN**).
+- **Potential differentiators (if expanded):** webhook reliability insights tied to support escalation.
