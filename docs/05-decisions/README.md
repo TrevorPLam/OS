@@ -1,5 +1,11 @@
 # Architecture Decision Records (ADRs)
 
+**Purpose:** Explain what ADRs are, when to write them, and list active decisions.  
+**Audience:** Developers, Operators, Reviewers  
+**Evidence Status:** STATIC-ONLY
+
+---
+
 This directory contains Architecture Decision Records for ConsultantPro.
 
 Per Constitution Section 2.2:
@@ -31,6 +37,11 @@ Don't create ADRs for:
 | Number | Title | Status | Date |
 |--------|-------|--------|------|
 | [ADR-0000](ADR-0000-template.md) | ADR Template | - | - |
+| [ADR-004](ADR-004-esignature-provider-selection.md) | E-Signature Provider Selection | Accepted | 2026-01-01 |
+| [ADR-005](ADR-005-multi-tenancy-row-level-isolation.md) | Multi-tenancy uses firm-scoped row-level isolation | Accepted | 2026-01-16 |
+| [ADR-006](ADR-006-firm-scoped-query-enforcement.md) | Enforce firm-scoped queries as the default data access pattern | Accepted | 2026-01-16 |
+| [ADR-007](ADR-007-break-glass-access-control.md) | Require break-glass sessions for platform operator content access | Accepted | 2026-01-16 |
+| [ADR-008](ADR-008-ledger-first-billing.md) | Use a ledger-first billing model with immutable entries | Accepted | 2026-01-16 |
 
 ## Related Documents
 
@@ -38,5 +49,6 @@ Don't create ADRs for:
 
 ---
 
-**Last Updated:** December 30, 2025  
-**Owner:** Architecture Team
+**Last Updated:** 2026-01-16  
+**Owner:** Architecture Team  
+**Evidence Sources:** docs/05-decisions/ADR-0000-template.md; docs/05-decisions/ADR-004-esignature-provider-selection.md; docs/05-decisions/ADR-005-multi-tenancy-row-level-isolation.md; docs/05-decisions/ADR-006-firm-scoped-query-enforcement.md; docs/05-decisions/ADR-007-break-glass-access-control.md; docs/05-decisions/ADR-008-ledger-first-billing.md
