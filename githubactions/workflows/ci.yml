@@ -122,7 +122,7 @@ jobs:
     - name: Run query efficiency tests
       run: |
         cd src
-        pytest -m performance -v -o addopts= ../tests
+        pytest -m performance -v ../tests
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
