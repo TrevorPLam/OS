@@ -34,6 +34,7 @@
     "preview": "vite preview",
     "test": "vitest run --coverage",
     "e2e": "playwright test",
+    "lighthouse:ci": "npx @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs",
     "deps:check": "npm outdated",
     "typecheck": "tsc --noEmit"
   },

@@ -18,6 +18,17 @@ Applies to repos that run services (API, worker, cron, etc.). For libraries/CLI,
 - Use Locust benchmarks in `benchmarks/` to baseline auth, CRUD, list, and search performance.
 - Run `make benchmark` with `LOCUST_HOST` and test data environment variables configured.
 
+## Frontend performance (Lighthouse CI)
+Use Lighthouse CI to establish a repeatable frontend performance baseline and catch regressions.
+
+Local run (from `src/frontend/`):
+1) `npm run build`
+2) `npm run lighthouse:ci`
+
+Notes:
+- The configuration lives in `src/frontend/lighthouserc.cjs`.
+- `lighthouse:ci` uses `npx` to fetch the CLI if it is not already installed.
+
 ### SLO targets (baseline)
 - API availability: 99.9% monthly
 - API latency: p95 < 250ms, p99 < 750ms (business hours)

@@ -282,13 +282,13 @@ Effort: S
 Priority: P2
 Type: QUALITY
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - Frontend performance lacks automated verification.
 Acceptance Criteria:
-- [ ] Add Lighthouse CI configuration for frontend performance.
-- [ ] Document how to run Lighthouse CI locally.
+- [x] Add Lighthouse CI configuration for frontend performance.
+- [x] Document how to run Lighthouse CI locally.
 References:
 - src/frontend/
 - Diamond Standard Plan Phase 8
