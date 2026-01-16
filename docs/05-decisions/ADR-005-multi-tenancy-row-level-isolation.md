@@ -114,4 +114,7 @@ This ADR documents the existing implementation rather than introducing a new ten
 ---
 
 **Last Updated:** 2026-01-16  
-**Evidence Sources:** docs/4; src/modules/firm/README.md; src/modules/firm/utils.py
+**Evidence Sources:**
+- [Decision Log (ADR-lite)](../4)
+- [Firm module overview](../../src/modules/firm/README.md)
+- [Firm-scoped utilities](../../src/modules/firm/utils.py)
