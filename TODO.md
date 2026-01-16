@@ -265,13 +265,13 @@ Effort: S
 Priority: P2
 Type: DOCS
 Owner: AGENT
-Status: READY
+Status: IN-REVIEW
 Blocker: None.
 Context:
 - Contributors need to know when and how to add ADRs.
 Acceptance Criteria:
-- [ ] Add ADR process to CONTRIBUTING.md.
-- [ ] Link ADR directory from DOCS_INDEX.md.
+- [x] Add ADR process to CONTRIBUTING.md.
+- [x] Link ADR directory from DOCS_INDEX.md.
 References:
 - CONTRIBUTING.md
 - docs/DOCS_INDEX.md
