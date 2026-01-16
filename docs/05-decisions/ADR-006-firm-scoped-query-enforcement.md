@@ -110,4 +110,6 @@ modules and APIs.
 ---
 
 **Last Updated:** 2026-01-16  
-**Evidence Sources:** src/modules/firm/utils.py; src/job_guards.py
+**Evidence Sources:**
+- [Firm-scoped utilities](../../src/modules/firm/utils.py)
+- [Job guard for firm context](../../src/job_guards.py)
