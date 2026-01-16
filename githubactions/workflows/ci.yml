@@ -119,6 +119,11 @@ jobs:
         cd src
         pytest --cov=modules --cov=api --cov-report=xml --cov-report=term -v
 
+    - name: Run query efficiency tests
+      run: |
+        cd src
+        pytest -m performance -v ../tests
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:

@@ -19,6 +19,28 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-059: Add query optimization tests to prevent N+1 queries
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- N+1 query patterns cause performance degradation.
+- Manual review catches some but not all cases.
+- Automated tests prevent regressions.
+Acceptance Criteria:
+- [x] Install django-assert-num-queries or similar.
+- [x] Add query count assertions to critical endpoint tests.
+- [x] Test suite fails if query count exceeds baseline.
+- [x] Document query optimization patterns in CONTRIBUTING.md.
+- [x] Add CI check for query efficiency.
+References:
+- tests/
+- CONTRIBUTING.md
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M
+
 ### T-058: Implement Core Web Vitals tracking for frontend
 Priority: P2
 Type: QUALITY

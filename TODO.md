@@ -327,28 +327,6 @@ References:
 Dependencies: T-042 (deployment platform)
 Effort: M
 
-### T-059: Add query optimization tests to prevent N+1 queries
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- N+1 query patterns cause performance degradation.
-- Manual review catches some but not all cases.
-- Automated tests prevent regressions.
-Acceptance Criteria:
-- [ ] Install django-assert-num-queries or similar.
-- [ ] Add query count assertions to critical endpoint tests.
-- [ ] Test suite fails if query count exceeds baseline.
-- [ ] Document query optimization patterns in CONTRIBUTING.md.
-- [ ] Add CI check for query efficiency.
-References:
-- tests/
-- CONTRIBUTING.md
-- Diamond Standard Plan Phase 8
-Dependencies: None
-Effort: M
 ### T-086: Add Meta-commentary for billing, CRM, and automation modules
 Priority: P2
 Type: DOCS
