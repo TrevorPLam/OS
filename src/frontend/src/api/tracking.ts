@@ -57,6 +57,22 @@ export interface SiteMessageAnalyticsResponse {
   export_path?: string
 }
 
+export interface WebVitalMetricSummary {
+  metric: string
+  p75: number | null
+  count: number
+  unit: 'ms' | 'score'
+  target?: number | null
+  status: 'ok' | 'alert' | 'unknown' | 'info'
+}
+
+export interface WebVitalsSummaryResponse {
+  window_days: number
+  generated_at: string
+  metrics: WebVitalMetricSummary[]
+  targets: Record<string, number>
+}
+
 export const trackingApi = {
   async getSummary(): Promise<TrackingSummary> {
     const response = await apiClient.get('/tracking/summary/')
@@ -100,6 +116,11 @@ export const trackingApi = {
 
   async getSiteMessageAnalytics(params?: Record<string, string | number>): Promise<SiteMessageAnalyticsResponse> {
     const response = await apiClient.get('/tracking/site-messages/analytics/', { params })
+    return response.data
+  },
+
+  async getWebVitalsSummary(params?: Record<string, string | number>): Promise<WebVitalsSummaryResponse> {
+    const response = await apiClient.get('/tracking/web-vitals/summary/', { params })
     return response.data
   },
 }
