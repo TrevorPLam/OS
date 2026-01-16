@@ -10,6 +10,27 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-058: Implement Core Web Vitals tracking for frontend
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- No frontend performance monitoring.
+- User experience degradation undetected.
+- Core Web Vitals (LCP, FID, CLS) are industry standard metrics.
+Acceptance Criteria:
+- [x] Integrate web-vitals library in frontend.
+- [x] Send metrics to analytics service (Sentry, Google Analytics, or custom).
+- [x] Create dashboard showing: LCP, FID, CLS, TTFB, FCP, TTI.
+- [x] Set alert thresholds: LCP <2.5s, FID <100ms, CLS <0.1.
+- [x] Document in OBSERVABILITY.md.
+References:
+- src/frontend/
+- docs/OBSERVABILITY.md
+Dependencies: None
+Effort: M
+
 ### T-085: Document performance baselines and store benchmark results
 Priority: P2
 Type: QUALITY

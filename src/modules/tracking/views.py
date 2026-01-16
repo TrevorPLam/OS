@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import hashlib
+import math
 from datetime import timedelta
 from typing import Iterable
 from uuid import uuid4
@@ -302,6 +303,115 @@ class TrackingSummaryView(APIView):
             "export_path": "/api/v1/tracking/analytics/export/",
         }
         return Response(summary)
+
+    @staticmethod
+    def _is_member(user, firm) -> bool:
+        return (
+            getattr(user, "is_authenticated", False)
+            and FirmMembership.objects.filter(user=user, firm=firm, is_active=True).exists()
+        )
+
+
+class TrackingWebVitalsSummaryView(APIView):
+    """
+    Summarize Core Web Vitals captured via tracking events.
+
+    Meta-commentary:
+    - **Functionality:** Aggregates `web_vital` custom events into P75 values per metric.
+    - **Mapping:** Uses `TrackingEvent.properties.metric/value` emitted by the frontend tracking client.
+    - **Reasoning:** Keeps aggregation server-side so the dashboard can compare against alert thresholds.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    METRIC_ORDER = ("LCP", "FID", "CLS", "TTFB", "FCP", "TTI", "INP")
+    METRIC_UNITS = {
+        "LCP": "ms",
+        "FID": "ms",
+        "CLS": "score",
+        "TTFB": "ms",
+        "FCP": "ms",
+        "TTI": "ms",
+        "INP": "ms",
+    }
+    ALERT_THRESHOLDS = {
+        "LCP": 2500,
+        "FID": 100,
+        "CLS": 0.1,
+    }
+
+    def get(self, request, *args, **kwargs) -> Response:
+        firm = getattr(request, "firm", None)
+        if not firm or not self._is_member(request.user, firm):
+            return Response({"detail": "Firm context required"}, status=status.HTTP_403_FORBIDDEN)
+
+        days = int(request.query_params.get("days", "30"))
+        days = min(max(days, 1), 90)
+        since = timezone.now() - timedelta(days=days)
+
+        events = TrackingEvent.objects.filter(
+            firm=firm,
+            event_type="custom_event",
+            name="web_vital",
+            occurred_at__gte=since,
+        ).values_list("properties", flat=True)
+
+        metrics: dict[str, list[float]] = {metric: [] for metric in self.METRIC_ORDER}
+        for properties in events.iterator():
+            if not isinstance(properties, dict):
+                continue
+            metric_name = properties.get("metric")
+            value = properties.get("value")
+            if metric_name in metrics and isinstance(value, (int, float)):
+                metrics[metric_name].append(float(value))
+
+        response_metrics = []
+        for metric in self.METRIC_ORDER:
+            values = metrics[metric]
+            p75 = self._percentile(values, 75)
+            threshold = self.ALERT_THRESHOLDS.get(metric)
+            status_label = self._status_for_threshold(p75, threshold)
+            response_metrics.append(
+                {
+                    "metric": metric,
+                    "p75": p75,
+                    "count": len(values),
+                    "unit": self.METRIC_UNITS.get(metric, "ms"),
+                    "target": threshold,
+                    "status": status_label,
+                }
+            )
+
+        return Response(
+            {
+                "window_days": days,
+                "generated_at": timezone.now().isoformat(),
+                "metrics": response_metrics,
+                "targets": self.ALERT_THRESHOLDS,
+            }
+        )
+
+    @staticmethod
+    def _percentile(values: list[float], percentile: int) -> float | None:
+        if not values:
+            return None
+        values_sorted = sorted(values)
+        rank = (len(values_sorted) - 1) * (percentile / 100)
+        lower = math.floor(rank)
+        upper = math.ceil(rank)
+        if lower == upper:
+            return values_sorted[int(rank)]
+        lower_value = values_sorted[lower]
+        upper_value = values_sorted[upper]
+        return lower_value + (upper_value - lower_value) * (rank - lower)
+
+    @staticmethod
+    def _status_for_threshold(value: float | None, threshold: float | None) -> str:
+        if value is None:
+            return "unknown"
+        if threshold is None:
+            return "info"
+        return "ok" if value <= threshold else "alert"
 
     @staticmethod
     def _is_member(user, firm) -> bool:

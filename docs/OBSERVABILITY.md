@@ -1,6 +1,12 @@
 # OBSERVABILITY.md
 
-Last Updated: 2026-01-16
+**Purpose:** Define observability expectations, metrics, and verification for the platform.
+
+**Audience:** Developers, operators
+
+**Evidence Status:** STATIC-ONLY
+
+---
 
 Applies to repos that run services (API, worker, cron, etc.). For libraries/CLI, keep logging conventions only.
 
@@ -35,6 +41,19 @@ Notes:
 - Background jobs: 99% completed within 5 minutes of enqueue
 - Webhooks: 99.5% delivery success within 10 minutes
 - Frontend Core Web Vitals (P75): LCP < 2.5s, INP < 200ms, CLS < 0.1
+
+## Frontend Core Web Vitals tracking
+Frontend Core Web Vitals are captured in the browser and sent through the tracking ingestion endpoint.
+
+**Client hook:** `src/frontend/src/tracking/webVitals.ts` uses `web-vitals` to report CLS, FCP, FID, INP, LCP, and TTFB.
+
+**Event shape:** Each metric is sent as a `tracking` event named `web_vital` with properties:
+- `metric`, `value`, `delta`, `rating`, `id`
+- `navigation_type` (if provided)
+- `unit` (ms or score)
+- `source` (`web-vitals` or `tti-estimate`)
+
+**Backend ingestion:** `modules.tracking` accepts `custom_event` payloads and stores `properties` as JSON for analytics queries.
 
 ## Baseline metrics (current)
 Baseline values are tracked in `benchmarks/results/` to preserve history. The current file is
@@ -128,3 +147,8 @@ resolve, create a post-incident task in TODO.md.
 2) Verify webhook ingestion and reconciliation jobs are running.
 3) Pause auto-charges if failure rate exceeds threshold.
 4) Notify finance and support teams with impact estimate.
+
+---
+
+**Last Updated:** 2026-01-16
+**Evidence Sources:** docs/STYLE_GUIDE.md, benchmarks/results/, src/frontend/src/tracking/webVitals.ts, src/modules/tracking/views.py

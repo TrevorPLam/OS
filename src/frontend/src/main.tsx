@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import * as Sentry from '@sentry/react'
 import App from './App.tsx'
 import { TrackingClient, createTrackingClient } from './tracking/client'
+import { captureWebVitals } from './tracking/webVitals'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -42,6 +43,7 @@ if (trackingKey && trackingFirmSlug && typeof window !== 'undefined') {
   })
   tracker.setConsent('granted')
   tracker.startPageTracking()
+  captureWebVitals({ tracker })
   window.consultantProTracking = tracker
 }
 

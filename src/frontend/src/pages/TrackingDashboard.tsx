@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
-import { SiteMessageAnalyticsResponse, trackingApi, TrackingSummary } from '../api/tracking'
+import {
+  SiteMessageAnalyticsResponse,
+  trackingApi,
+  TrackingSummary,
+  WebVitalMetricSummary,
+  WebVitalsSummaryResponse,
+} from '../api/tracking'
+import './TrackingDashboard.css'
 
 const formatNumber = (value: number | undefined) => value?.toLocaleString() ?? '0'
 
 export const TrackingDashboard = () => {
   const [summary, setSummary] = useState<TrackingSummary | null>(null)
   const [siteMessageAnalytics, setSiteMessageAnalytics] = useState<SiteMessageAnalyticsResponse | null>(null)
+  const [webVitalsSummary, setWebVitalsSummary] = useState<WebVitalsSummaryResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -14,9 +22,10 @@ export const TrackingDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const [summaryResult, siteMessageResult] = await Promise.allSettled([
+        const [summaryResult, siteMessageResult, webVitalsResult] = await Promise.allSettled([
           trackingApi.getSummary(),
           trackingApi.getSiteMessageAnalytics(),
+          trackingApi.getWebVitalsSummary(),
         ])
         if (isMounted) {
           if (summaryResult.status === 'fulfilled') {
@@ -26,6 +35,9 @@ export const TrackingDashboard = () => {
           }
           if (siteMessageResult.status === 'fulfilled') {
             setSiteMessageAnalytics(siteMessageResult.value)
+          }
+          if (webVitalsResult.status === 'fulfilled') {
+            setWebVitalsSummary(webVitalsResult.value)
           }
         }
       } catch (err) {
@@ -50,6 +62,29 @@ export const TrackingDashboard = () => {
   const topPages = useMemo(() => summary?.top_pages ?? [], [summary])
   const topEvents = useMemo(() => summary?.top_events ?? [], [summary])
   const topMessages = useMemo(() => siteMessageAnalytics?.top_messages ?? [], [siteMessageAnalytics])
+  const webVitalMetrics = useMemo(() => webVitalsSummary?.metrics ?? [], [webVitalsSummary])
+
+  const formatWebVitalValue = (metric: WebVitalMetricSummary) => {
+    if (metric.p75 == null) {
+      return '—'
+    }
+    if (metric.unit === 'score') {
+      return metric.p75.toFixed(3)
+    }
+    return `${Math.round(metric.p75)} ms`
+  }
+
+  const statusLabel = (metric: WebVitalMetricSummary) => {
+    if (metric.status === 'alert') return 'alert'
+    if (metric.status === 'ok') return 'ok'
+    return 'unknown'
+  }
+
+  const statusText = (metric: WebVitalMetricSummary) => {
+    if (metric.status === 'alert') return 'Above target'
+    if (metric.status === 'ok') return 'Within target'
+    return 'No target'
+  }
 
   if (loading) {
     return <div>Loading tracking analytics...</div>
@@ -86,6 +121,40 @@ export const TrackingDashboard = () => {
         <div className="stat-card">
           <p className="label">Custom Events (30d)</p>
           <h2>{formatNumber(summary.custom_events_30d)}</h2>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <h3>Core Web Vitals (P75)</h3>
+            <p className="text-muted">
+              P75 values from tracking events for LCP, FID, CLS, TTFB, FCP, TTI, and INP.
+            </p>
+          </div>
+          <div className="card-meta">
+            {webVitalsSummary ? `Window: ${webVitalsSummary.window_days}d` : 'Window: —'}
+          </div>
+        </div>
+        <div className="vitals-grid">
+          {webVitalMetrics.length === 0 && <div className="text-muted">No Web Vitals data yet.</div>}
+          {webVitalMetrics.map((metric) => (
+            <div key={metric.metric} className="vital-card">
+              <div className="vital-header">
+                <span className="vital-name">{metric.metric}</span>
+                <span className={`badge badge-${statusLabel(metric)}`}>{statusText(metric)}</span>
+              </div>
+              <div className="vital-value">{formatWebVitalValue(metric)}</div>
+              <div className="vital-meta">
+                <span>Samples: {metric.count}</span>
+                {metric.target !== undefined && metric.target !== null && (
+                  <span className="text-muted">
+                    Target: {metric.unit === 'score' ? metric.target : `${metric.target} ms`}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

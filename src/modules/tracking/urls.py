@@ -14,6 +14,7 @@ from modules.tracking.views import (
     TrackingKeyViewSet,
     TrackingSessionViewSet,
     TrackingSummaryView,
+    TrackingWebVitalsSummaryView,
 )
 
 router = DefaultRouter()
@@ -25,6 +26,7 @@ router.register(r"site-messages", SiteMessageViewSet, basename="site-message")
 urlpatterns = [
     path("collect/", TrackingIngestView.as_view(), name="tracking-collect"),
     path("summary/", TrackingSummaryView.as_view(), name="tracking-summary"),
+    path("web-vitals/summary/", TrackingWebVitalsSummaryView.as_view(), name="tracking-web-vitals-summary"),
     path("analytics/export/", TrackingAnalyticsExportView.as_view(), name="tracking-analytics-export"),
     path("site-messages/display/", SiteMessageTargetingView.as_view(), name="site-message-display"),
     path("site-messages/manifest/", SiteMessageManifestView.as_view(), name="site-message-manifest"),
