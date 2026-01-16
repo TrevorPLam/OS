@@ -113,4 +113,6 @@ operator content access.
 ---
 
 **Last Updated:** 2026-01-16  
-**Evidence Sources:** src/modules/firm/models.py; src/modules/firm/permissions.py
+**Evidence Sources:**
+- [Break-glass session model](../../src/modules/firm/models.py)
+- [Break-glass permissions](../../src/modules/firm/permissions.py)
