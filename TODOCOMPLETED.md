@@ -10,6 +10,24 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-083: Add Locust load test benchmarks
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- No performance regression testing.
+- Cannot validate SLO targets (p95 <200ms, FCP <1.5s).
+Acceptance Criteria:
+- [x] Create benchmarks/ directory with Locust load tests.
+- [x] Benchmark: auth, CRUD operations, list endpoints, search.
+- [x] Add make benchmark command for Locust tests.
+References:
+- docs/OBSERVABILITY.md
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M
+
 ### T-054: Create make fixtures command with sample data
 Priority: P2
 Type: CHORE

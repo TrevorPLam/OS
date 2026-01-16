@@ -1,6 +1,6 @@
 # OBSERVABILITY.md
 
-Last Updated: 2026-01-09
+Last Updated: 2026-01-16
 
 Applies to repos that run services (API, worker, cron, etc.). For libraries/CLI, keep logging conventions only.
 
@@ -13,6 +13,10 @@ Applies to repos that run services (API, worker, cron, etc.). For libraries/CLI,
 - Request count, latency, error rate
 - Queue depth (workers)
 - CPU/memory (if containerized)
+
+## Load testing (recommended)
+- Use Locust benchmarks in `benchmarks/` to baseline auth, CRUD, list, and search performance.
+- Run `make benchmark` with `LOCUST_HOST` and test data environment variables configured.
 
 ### SLO targets (baseline)
 - API availability: 99.9% monthly
