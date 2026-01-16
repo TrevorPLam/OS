@@ -13,6 +13,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from modules.esignature.models import DocuSignConnection, Envelope, WebhookEvent
+from tests.utils.query_budget import assert_max_queries
 
 
 pytestmark = pytest.mark.django_db
@@ -72,13 +73,16 @@ class TestDocuSignConnectionViewSet:
 class TestEnvelopeViewSet:
     """Test Envelope API endpoints."""
 
+    @pytest.mark.performance
     def test_list_envelopes_authenticated(self, user, envelope):
         """Test listing envelopes for authenticated user."""
         client = APIClient()
         client.force_authenticate(user=user)
 
         url = reverse("envelope-list")
-        response = client.get(url)
+        # Query budget guard for the envelope list endpoint.
+        with assert_max_queries(12):
+            response = client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) >= 1

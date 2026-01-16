@@ -9,32 +9,17 @@ Meta-commentary:
 - Limitation: Budgets are max caps, not exact plans; updates to serializers may require adjusting caps.
 - Follow-up (T-059): Extend query-budget coverage to other high-traffic CRM endpoints.
 """
-from collections.abc import Iterator
-from contextlib import contextmanager
 from datetime import date
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from modules.crm.models import Deal, Pipeline, PipelineStage
 from modules.crm.views import DealViewSet
 from modules.firm.models import Firm, FirmMembership
+from tests.utils.query_budget import assert_max_queries
 
-
-@contextmanager
-def assert_max_queries(max_queries: int) -> Iterator[CaptureQueriesContext]:
-    """Assert that the wrapped block executes within the provided query budget."""
-    with CaptureQueriesContext(connection) as context:
-        yield context
-
-    executed = len(context)
-    assert executed <= max_queries, (
-        f"Expected at most {max_queries} queries, but captured {executed}. "
-        "Inspect viewset/select_related/prefetch_related usage for regressions."
-    )
 
 User = get_user_model()
 

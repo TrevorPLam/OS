@@ -19,7 +19,7 @@ Meta-commentary:
 ### Added
 
 - **Query Efficiency Guardrails** (2026-01-16)
-  - Added performance-marked tests with query-count caps for CRM deals and firm audit endpoints, plus a make target to run query efficiency checks.
+  - Added shared query-budget helpers, expanded performance-marked tests to include e-signature envelope listing, and wired query efficiency checks into the CI workflow.
 
 - **Tenant Isolation & RLS** (2026-01-06)
   - Hardened payment and portal booking endpoints to require firm-scoped querysets and portal client validation (T-073).

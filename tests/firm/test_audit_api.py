@@ -9,34 +9,18 @@ Meta-commentary:
 - Limitation: The guardrail does not assert specific query shapes or indexes.
 - Follow-up (T-059): Add query budgets for export endpoints after baseline metrics are captured.
 """
-from collections.abc import Iterator
-from contextlib import contextmanager
 from io import StringIO
 
 import csv
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.db import connection
-from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.test import APIClient
 
 from modules.firm.audit import AuditEvent
 from modules.firm.models import Firm, FirmMembership
-
-
-@contextmanager
-def assert_max_queries(max_queries: int) -> Iterator[CaptureQueriesContext]:
-    """Assert that the wrapped block executes within the provided query budget."""
-    with CaptureQueriesContext(connection) as context:
-        yield context
-
-    executed = len(context)
-    assert executed <= max_queries, (
-        f"Expected at most {max_queries} queries, but captured {executed}. "
-        "Inspect queryset/select_related/prefetch_related usage for regressions."
-    )
+from tests.utils.query_budget import assert_max_queries
 
 
 @pytest.fixture

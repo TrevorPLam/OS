@@ -42,7 +42,7 @@ make test-performance
 
 Guidelines:
 - Prefer `select_related` for single-valued foreign keys and `prefetch_related` for collections.
-- Use a local `assert_max_queries` helper (or `CaptureQueriesContext`) to set a **max** query budget per endpoint test.
+- Use `tests/utils/query_budget.py` (`assert_max_queries`) or `CaptureQueriesContext` to set a **max** query budget per endpoint test.
 - Keep budgets intentionally permissive; adjust if serializer or middleware changes legitimately add queries.
 - Add comments explaining the query budget choice and the endpoint it protects.
 
