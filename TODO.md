@@ -278,29 +278,6 @@ References:
 Dependencies: T-080
 Effort: S
 
-### T-054: Create make fixtures command with sample data
-Priority: P2
-Type: CHORE
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- No quick way to populate development environment with realistic data.
-- Manual data entry slows development and testing.
-- Sample data improves developer experience.
-Acceptance Criteria:
-- [ ] Create src/modules/core/management/commands/load_fixtures.py.
-- [ ] Command creates: 3 firms, 10 users, 20 clients, 30 projects, 50 documents, 10 invoices.
-- [ ] Data includes relationships and edge cases.
-- [ ] Add make fixtures command to Makefile.
-- [ ] Document in README.md.
-References:
-- src/modules/core/management/commands/
-- README.md
-- Diamond Standard Plan Phase 7
-Dependencies: None
-Effort: M
-
 ### T-055: Add VS Code workspace settings for consistent developer experience
 Priority: P2
 Type: CHORE

@@ -8,7 +8,7 @@ else
 Q :=
 endif
 
-.PHONY: setup lint test typecheck dev openapi docs-validate docs-check verify e2e frontend-build
+.PHONY: setup lint test typecheck dev openapi docs-validate docs-check verify e2e frontend-build fixtures
 
 setup:
 	$(Q)set +e
@@ -124,6 +124,16 @@ dev:
 	$(Q)summary=0
 	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
+
+fixtures:
+	$(Q)set +e
+	backend_status=0
+	$(Q)echo "=== BACKEND FIXTURES ==="
+	$(Q)$(MAKE) -C src fixtures V=$(V)
+	backend_status=$$?
+	$(Q)echo "=== SUMMARY ==="
+	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND FIXTURES: PASS"; else echo "BACKEND FIXTURES: FAIL"; fi
+	$(Q)exit $$backend_status
 
 openapi:
 	$(Q)set +e
