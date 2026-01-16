@@ -278,28 +278,6 @@ References:
 Dependencies: T-080
 Effort: S
 
-### T-055: Add VS Code workspace settings for consistent developer experience
-Priority: P2
-Type: CHORE
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- No shared IDE configuration causes inconsistent formatting and linting experience.
-- VS Code is primary development environment.
-- Workspace settings improve onboarding.
-Acceptance Criteria:
-- [ ] Create .vscode/settings.json with Python, TypeScript, formatting settings.
-- [ ] Configure: Black formatter, Ruff linter, ESLint, Prettier.
-- [ ] Add .vscode/extensions.json with recommended extensions.
-- [ ] Add .vscode/launch.json for debugging Django and frontend.
-- [ ] Document in README.md.
-References:
-- .vscode/
-- README.md
-- Diamond Standard Plan Phase 7
-Dependencies: None
-Effort: S
 ### T-083: Add Locust load test benchmarks
 Priority: P2
 Type: QUALITY

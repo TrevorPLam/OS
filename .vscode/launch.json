@@ -1,5 +1,10 @@
 {
-  // Debug profiles map to the documented Django + Vite dev workflows.
+  // Meta
+  // - Purpose: Provide debug profiles for backend/frontend dev workflows.
+  // - Task: T-055 (VS Code workspace settings).
+  // - Last updated: 2026-01-16.
+  // Commentary: These map to documented Django and Vite entrypoints so developers
+  // can attach debugging without reconfiguring per machine.
   "version": "0.2.0",
   "configurations": [
     {

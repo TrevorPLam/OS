@@ -1,6 +1,10 @@
 {
-  // Workspace defaults keep formatting/linting consistent across Python and frontend code.
-  // These settings map to repo tooling (Black + Ruff for Python, ESLint/Prettier for JS/TS).
+  // Meta
+  // - Purpose: Provide consistent formatting and linting defaults across the repo.
+  // - Task: T-055 (VS Code workspace settings).
+  // - Last updated: 2026-01-16.
+  // Commentary: These settings map directly to repo tooling (Black/Ruff for Python,
+  // ESLint/Prettier for JS/TS) so editors behave like CI and local make targets.
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
     "source.fixAll.ruff": true,
