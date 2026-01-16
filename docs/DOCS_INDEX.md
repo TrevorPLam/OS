@@ -1,6 +1,6 @@
 # docs/DOCS_INDEX.md — Documentation Index
 
-Last Updated: 2026-01-10
+Last Updated: 2026-01-16
 
 ## Read order (agents)
 1) `../CODEBASECONSTITUTION.md`
@@ -25,6 +25,10 @@ Last Updated: 2026-01-10
 ## Standards & health
 - `GOVERNANCE_HEALTH.md`
 - `ENHANCEMENT_SUMMARY.md`
+
+## Decision records (ADRs)
+- `05-decisions/`
+- `05-decisions/README.md`
 
 ## Getting oriented
 - `README.md` (this directory)

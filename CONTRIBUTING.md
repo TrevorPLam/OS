@@ -2,6 +2,8 @@
 
 Thanks for your interest in improving ConsultantPro. This guide outlines expectations for code and documentation changes.
 
+Last Updated: 2026-01-16
+
 ## Ground Rules
 
 - **Follow tier governance:** No tier skipping. See ARCHITECTURE.md for tier definitions and rules.
@@ -46,6 +48,14 @@ make typecheck
 - Follow the [Diátaxis framework](https://diataxis.fr/) for documentation structure.
 - Link to a single source of truth instead of duplicating instructions.
 - Ensure security-sensitive data is never committed to the repo.
+
+## Architecture Decision Records (ADRs)
+
+ADRs capture important architectural decisions and their context so humans and agents can understand the reasoning behind changes.
+
+1. Review ADR guidance in `docs/05-decisions/README.md` to confirm the decision warrants an ADR.
+2. Copy `docs/05-decisions/ADR-0000-template.md` for new ADRs and fill in every section.
+3. Store the new ADR in `docs/05-decisions/` and add it to the ADR index table.
 
 ## Pull Requests
 
