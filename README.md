@@ -115,6 +115,14 @@ python manage.py migrate
 python manage.py runserver 0.0.0.0:8000
 ```
 
+### Load sample data
+
+Populate the database with a deterministic fixture set (firms, users, clients, projects, documents, invoices):
+
+```bash
+make fixtures
+```
+
 ### API Docs
 
 - Swagger UI: http://localhost:8000/api/docs/

@@ -10,6 +10,28 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-054: Create make fixtures command with sample data
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- No quick way to populate development environment with realistic data.
+- Manual data entry slows development and testing.
+- Sample data improves developer experience.
+Acceptance Criteria:
+- [x] Create src/modules/core/management/commands/load_fixtures.py.
+- [x] Command creates: 3 firms, 10 users, 20 clients, 30 projects, 50 documents, 10 invoices.
+- [x] Data includes relationships and edge cases.
+- [x] Add make fixtures command to Makefile.
+- [x] Document in README.md.
+References:
+- src/modules/core/management/commands/
+- README.md
+- Diamond Standard Plan Phase 7
+Dependencies: None
+Effort: M
+
 ### T-081: Document existing key architectural decisions in ADRs
 Priority: P2
 Type: DOCS
