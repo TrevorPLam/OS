@@ -295,25 +295,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-085: Document performance baselines and store benchmark results
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Baseline metrics are needed for trend analysis and SLO tracking.
-Acceptance Criteria:
-- [ ] Document baseline metrics: API p95, p99, throughput, frontend Core Web Vitals.
-- [ ] Store results in benchmarks/results/ for trend analysis.
-- [ ] Update docs/OBSERVABILITY.md with baseline metrics and interpretation.
-References:
-- docs/OBSERVABILITY.md
-- benchmarks/results/
-- Diamond Standard Plan Phase 8
-Dependencies: T-083, T-084
-Effort: M
-
 ### T-057: Configure slow query logging and alerts
 Priority: P2
 Type: RELEASE
