@@ -498,7 +498,7 @@ class Command(BaseCommand):
                 elif status == "partial":
                     invoice.amount_paid = Decimal("2500.00")
                 elif status == "overdue":
-                    invoice.due_date = date.today() - timedelta(days=5)
+                    invoice.due_date = now.date() - timedelta(days=5)
                 invoice.save(update_fields=["amount_paid", "paid_date", "due_date"])
 
         return FixtureSummary(invoices_created=created)
