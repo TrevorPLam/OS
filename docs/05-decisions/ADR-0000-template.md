@@ -1,5 +1,11 @@
 # ADR-0000: [Short Title of Decision]
 
+**Purpose:** [One-sentence description of the decision]  
+**Audience:** [Developers, Operators, etc.]  
+**Evidence Status:** VERIFIED / STATIC-ONLY / UNKNOWN
+
+---
+
 **Status:** Proposed | Accepted | Superseded | Deprecated | Rejected  
 **Date:** YYYY-MM-DD  
 **Deciders:** [List of people involved in decision]  
@@ -87,3 +93,8 @@ If this decision needs to be reversed:
 |------|--------|--------|
 | YYYY-MM-DD | Initial draft | [Name] |
 | YYYY-MM-DD | Updated after review | [Name] |
+
+---
+
+**Last Updated:** YYYY-MM-DD  
+**Evidence Sources:** [List of primary sources]

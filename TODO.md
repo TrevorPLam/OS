@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-10
+Last Updated: 2026-01-16
 Task Truth Source: **TODO.md**
 
 This file is the single source of truth for actionable work.
@@ -260,23 +260,6 @@ References:
 - Diamond Standard Plan Phase 6
 Dependencies: None
 Effort: S
-
-### T-081: Document existing key architectural decisions in ADRs
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Major decisions need recorded context for future work.
-Acceptance Criteria:
-- [ ] Document decisions: multi-tenancy pattern, firm-scoped queries, break-glass access, billing ledger.
-- [ ] ADRs follow the template in docs/05-decisions/.
-References:
-- docs/05-decisions/
-- Diamond Standard Plan Phase 6
-Dependencies: T-080
-Effort: M
 
 ### T-082: Document ADR process in CONTRIBUTING and DOCS_INDEX
 Priority: P2

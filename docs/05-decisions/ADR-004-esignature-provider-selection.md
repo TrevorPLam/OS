@@ -1,5 +1,11 @@
 # ADR-004: E-Signature Provider Selection
 
+**Purpose:** Record the rationale for selecting the e-signature provider.  
+**Audience:** Developers, Product, Operators  
+**Evidence Status:** STATIC-ONLY
+
+---
+
 **Status:** Accepted  
 **Date:** 2026-01-01  
 **Deciders:** Development Team  
@@ -90,6 +96,15 @@ We have chosen **DocuSign** as the e-signature provider for the following reason
 
 ## References
 
+- [DocuSign Developer Portal](https://developers.docusign.com/)
+- [DocuSign OAuth 2.0 Guide](https://developers.docusign.com/platform/auth/)
+- [DocuSign Embedded Signing](https://developers.docusign.com/docs/esign-rest-api/esign101/concepts/embedding/embedded-signing/)
+- [DocuSign Webhook Integration](https://developers.docusign.com/platform/webhooks/)
+
+---
+
+**Last Updated:** 2026-01-16  
+**Evidence Sources:**
 - [DocuSign Developer Portal](https://developers.docusign.com/)
 - [DocuSign OAuth 2.0 Guide](https://developers.docusign.com/platform/auth/)
 - [DocuSign Embedded Signing](https://developers.docusign.com/docs/esign-rest-api/esign101/concepts/embedding/embedded-signing/)

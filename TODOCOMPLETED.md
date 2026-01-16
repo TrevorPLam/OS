@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-10
+Last Updated: 2026-01-16
 Source: Completed tasks moved from `TODO.md`
 
 This file stores completed work in the same schema as `TODO.md`.
@@ -9,6 +9,23 @@ Move tasks here when Acceptance Criteria are met.
 
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
+
+### T-081: Document existing key architectural decisions in ADRs
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- Major decisions need recorded context for future work.
+Acceptance Criteria:
+- [x] Document decisions: multi-tenancy pattern, firm-scoped queries, break-glass access, billing ledger.
+- [x] ADRs follow the template in docs/05-decisions/.
+References:
+- docs/05-decisions/
+- Diamond Standard Plan Phase 6
+Dependencies: T-080
+Effort: M
+
 
 ### T-077: Set up Playwright E2E testing harness
 Priority: P1
