@@ -36,6 +36,21 @@ Notes:
 - Webhooks: 99.5% delivery success within 10 minutes
 - Frontend Core Web Vitals (P75): LCP < 2.5s, INP < 200ms, CLS < 0.1
 
+## Baseline metrics (current)
+Baseline values are tracked in `benchmarks/results/` to preserve history. The current file is
+`benchmarks/results/baseline-2026-01-16.md`. If a metric is **UNKNOWN**, it has not been measured
+in this environment yet.
+
+### Interpretation guidance
+- Treat the first measured baseline as the reference point for trend deltas.
+- When p95/p99 or Core Web Vitals drift beyond targets, create a TODO.md task for remediation.
+- Always note the dataset, environment, and run duration alongside the numbers.
+
+### Meta-commentary (for AI iteration)
+- **Functionality:** This section links SLO targets to stored baseline measurements for audits.
+- **Mapping:** API metrics map to Locust results; frontend metrics map to Lighthouse CI outputs.
+- **Reasoning:** Keeping baselines in a dated file prevents silent overwrites and helps trend analysis.
+
 ## Tracing (optional)
 - Add distributed tracing when there are multiple services or external dependencies.
 

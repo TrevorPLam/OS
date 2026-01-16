@@ -10,6 +10,24 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-085: Document performance baselines and store benchmark results
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- Baseline metrics are needed for trend analysis and SLO tracking.
+Acceptance Criteria:
+- [x] Document baseline metrics: API p95, p99, throughput, frontend Core Web Vitals.
+- [x] Store results in benchmarks/results/ for trend analysis.
+- [x] Update docs/OBSERVABILITY.md with baseline metrics and interpretation.
+References:
+- docs/OBSERVABILITY.md
+- benchmarks/results/
+- Diamond Standard Plan Phase 8
+Dependencies: T-083, T-084
+Effort: M
+
 ### T-083: Add Locust load test benchmarks
 Priority: P2
 Type: QUALITY
