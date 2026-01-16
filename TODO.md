@@ -340,7 +340,6 @@ References:
 - Diamond Standard Plan Phase 8
 Dependencies: None
 Effort: M
-
 ### T-086: Add Meta-commentary for billing, CRM, and automation modules
 Priority: P2
 Type: DOCS

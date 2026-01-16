@@ -9,6 +9,7 @@ from rest_framework.test import APIClient
 
 from modules.firm.audit import AuditEvent
 from modules.firm.models import Firm, FirmMembership
+from tests.utils.query_assertions import assert_max_queries
 
 
 @pytest.fixture
@@ -29,6 +30,7 @@ def audit_api_client(db):
 
 
 @pytest.mark.django_db
+@pytest.mark.performance
 def test_audit_events_filter_by_category_and_severity(audit_api_client):
     client, firm, user = audit_api_client
     other_firm = Firm.objects.create(name="Other", slug="other")
@@ -54,7 +56,9 @@ def test_audit_events_filter_by_category_and_severity(audit_api_client):
         severity=AuditEvent.SEVERITY_CRITICAL,
     )
 
-    response = client.get("/api/v1/firm/audit-events/?category=AUTH&severity=CRITICAL")
+    # Guard the filtered list endpoint against N+1 regressions.
+    with assert_max_queries(15):
+        response = client.get("/api/v1/firm/audit-events/?category=AUTH&severity=CRITICAL")
     assert response.status_code == 200
 
     results = response.json()["results"]

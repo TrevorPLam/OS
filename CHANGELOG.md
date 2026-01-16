@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Query Efficiency Guardrails** (2026-01-16)
+  - Added performance-marked tests with query-count caps for CRM deals and firm audit endpoints, plus a make target to run query efficiency checks.
+
 - **Tenant Isolation & RLS** (2026-01-06)
   - Hardened payment and portal booking endpoints to require firm-scoped querysets and portal client validation (T-073).
   - Inventoried all firm-scoped tables and enabled PostgreSQL RLS policies via `app.current_firm_id` session guards (T-119, T-121).

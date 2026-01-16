@@ -7,6 +7,7 @@ from rest_framework.test import APIRequestFactory, force_authenticate
 from modules.crm.models import Deal, Pipeline, PipelineStage
 from modules.crm.views import DealViewSet
 from modules.firm.models import Firm, FirmMembership
+from tests.utils.query_assertions import assert_max_queries
 
 User = get_user_model()
 
@@ -45,6 +46,7 @@ def stages(db, pipeline):
 
 
 @pytest.mark.django_db
+@pytest.mark.performance
 def test_deal_list_is_firm_scoped(factory, firm, pipeline, stages, user):
     other_firm = Firm.objects.create(name="Other Firm", slug="other-firm", status="active")
     other_user = User.objects.create_user(username="other-user", email="other@example.com", password="pass1234")
@@ -80,7 +82,9 @@ def test_deal_list_is_firm_scoped(factory, firm, pipeline, stages, user):
     request.firm = firm
     force_authenticate(request, user=user)
 
-    response = DealViewSet.as_view({"get": "list"})(request)
+    # Query budget guard: list endpoint should remain stable as data grows.
+    with assert_max_queries(12):
+        response = DealViewSet.as_view({"get": "list"})(request)
 
     assert response.status_code == 200
     assert len(response.data) == 1

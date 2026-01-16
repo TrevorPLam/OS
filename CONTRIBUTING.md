@@ -23,6 +23,20 @@ Last Updated: 2026-01-16
 pytest
 ```
 
+## Query Efficiency Tests
+
+Use the performance marker to guard against N+1 regressions on critical endpoints:
+
+```bash
+make test-performance
+```
+
+Guidelines:
+- Prefer `select_related` for single-valued foreign keys and `prefetch_related` for collections.
+- Use `tests.utils.query_assertions.assert_max_queries` to set a **max** query budget per endpoint test.
+- Keep budgets intentionally permissive; adjust if serializer or middleware changes legitimately add queries.
+- Add comments explaining the query budget choice and the endpoint it protects.
+
 ## Running Type Checks
 
 ```bash
