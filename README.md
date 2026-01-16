@@ -140,6 +140,18 @@ The Django server will be available at http://localhost:8000.
 
 ---
 
+## 🧰 VS Code workspace
+
+The repository ships a shared VS Code workspace configuration to make formatting, linting, and debugging consistent across contributors:
+
+- **Workspace settings:** `.vscode/settings.json` sets Black + Ruff for Python and ESLint/Prettier for JS/TS formatting.  
+- **Recommended extensions:** `.vscode/extensions.json` lists the editor extensions that match the repo tooling.  
+- **Debug configs:** `.vscode/launch.json` includes launch profiles for the Django runserver and Vite dev server.  
+
+Open the repo in VS Code to pick up the defaults, then run the debug profiles as needed.
+
+---
+
 ## 🔒 Platform Architecture
 
 ### Multi-Tenant Model

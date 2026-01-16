@@ -300,7 +300,6 @@ References:
 - Diamond Standard Plan Phase 7
 Dependencies: None
 Effort: S
-
 ### T-083: Add Locust load test benchmarks
 Priority: P2
 Type: QUALITY

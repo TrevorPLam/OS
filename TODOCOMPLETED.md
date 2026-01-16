@@ -679,3 +679,25 @@ References:
 - src/modules/esignature/docusign_service.py
 Dependencies: None
 Effort: M
+
+### T-055: Add VS Code workspace settings for consistent developer experience
+Priority: P2
+Type: CHORE
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- No shared IDE configuration causes inconsistent formatting and linting experience.
+- VS Code is primary development environment.
+- Workspace settings improve onboarding.
+Acceptance Criteria:
+- [x] Create .vscode/settings.json with Python, TypeScript, formatting settings.
+- [x] Configure: Black formatter, Ruff linter, ESLint, Prettier.
+- [x] Add .vscode/extensions.json with recommended extensions.
+- [x] Add .vscode/launch.json for debugging Django and frontend.
+- [x] Document in README.md.
+References:
+- .vscode/
+- README.md
+- Diamond Standard Plan Phase 7
+Dependencies: None
+Effort: S
