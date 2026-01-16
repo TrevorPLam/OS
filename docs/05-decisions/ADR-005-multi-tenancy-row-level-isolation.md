@@ -92,7 +92,7 @@ Not applicable.
 
 ## Related Decisions
 
-- [ADR-0010: Tenancy model is firm-scoped row-level isolation (docs/4)](../4)
+- [ADR-006: Enforce firm-scoped queries as the default data access pattern](ADR-006-firm-scoped-query-enforcement.md)
 
 ## Links
 
