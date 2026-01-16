@@ -51,4 +51,10 @@ Don't create ADRs for:
 
 **Last Updated:** 2026-01-16  
 **Owner:** Architecture Team  
-**Evidence Sources:** docs/05-decisions/ADR-0000-template.md; docs/05-decisions/ADR-004-esignature-provider-selection.md; docs/05-decisions/ADR-005-multi-tenancy-row-level-isolation.md; docs/05-decisions/ADR-006-firm-scoped-query-enforcement.md; docs/05-decisions/ADR-007-break-glass-access-control.md; docs/05-decisions/ADR-008-ledger-first-billing.md
+**Evidence Sources:**
+- [ADR-0000](ADR-0000-template.md)
+- [ADR-004](ADR-004-esignature-provider-selection.md)
+- [ADR-005](ADR-005-multi-tenancy-row-level-isolation.md)
+- [ADR-006](ADR-006-firm-scoped-query-enforcement.md)
+- [ADR-007](ADR-007-break-glass-access-control.md)
+- [ADR-008](ADR-008-ledger-first-billing.md)
