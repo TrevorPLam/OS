@@ -4,6 +4,15 @@ Document Type: Workflow
 Last Updated: 2026-01-16
 Source: Completed tasks moved from `TODO.md`
 
+<!--
+Meta-commentary:
+- Current Status: Archive updated with completed T-059 entry.
+- Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
+- Reasoning: Preserve audit trail for completed tasks with original schema.
+- Assumption: Task records are appended without mutation.
+- Limitation: Detailed implementation context lives in code and PR history.
+-->
+
 This file stores completed work in the same schema as `TODO.md`.
 Move tasks here when Acceptance Criteria are met.
 

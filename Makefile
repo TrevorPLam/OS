@@ -1,3 +1,9 @@
+# Meta-commentary:
+# - Current Status: Orchestrates backend/frontend/docs workflows with summary reporting.
+# - Mapping: `test-performance` calls the backend performance target for query-efficiency checks.
+# - Reasoning: Keep verification steps explicit and centralized for deterministic local runs.
+# - Assumption: Backend performance tests run in environments with Django test settings configured.
+# - Limitation: Verify target is best-effort; some steps may fail in constrained environments.
 SHELL := /bin/bash
 .ONESHELL:
 

@@ -1,3 +1,9 @@
+# Meta-commentary:
+# - Current Status: Defines backend developer commands (lint/test/typecheck) used by top-level Makefile targets.
+# - Mapping: `test-performance` runs performance-marked tests from repo root to share pytest.ini settings.
+# - Reasoning: Keep backend commands scoped and re-usable by CI/local workflows.
+# - Assumption: Running from /src requires explicit test path to reuse repo-root pytest config.
+# - Limitation: Performance runs bypass repo addopts to avoid coverage flags in minimal environments.
 SHELL := /bin/bash
 .ONESHELL:
 
@@ -27,7 +33,7 @@ test:
 	$(Q)pytest --cov=modules --cov=api --cov-report=term -v
 
 test-performance:
-	$(Q)pytest -m performance -v ../tests
+	$(Q)pytest -m performance -v -o addopts= ../tests
 
 typecheck:
 	$(Q)mypy .
