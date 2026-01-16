@@ -1,5 +1,10 @@
 {
-  // Recommended extensions align with repo tooling so format/lint/debug runs consistently.
+  // Meta
+  // - Purpose: Recommend extensions aligned with repo tooling.
+  // - Task: T-055 (VS Code workspace settings).
+  // - Last updated: 2026-01-16.
+  // Commentary: Keeping these consistent helps onboarding and ensures lint/format
+  // behavior matches automated checks.
   "recommendations": [
     "ms-python.python",
     "ms-python.black-formatter",
