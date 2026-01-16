@@ -1,0 +1,10 @@
+{
+  // Recommended extensions align with repo tooling so format/lint/debug runs consistently.
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "astral-sh.ruff",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode"
+  ]
+}
