@@ -104,4 +104,8 @@ We have chosen **DocuSign** as the e-signature provider for the following reason
 ---
 
 **Last Updated:** 2026-01-16  
-**Evidence Sources:** https://developers.docusign.com/; https://developers.docusign.com/platform/auth/; https://developers.docusign.com/docs/esign-rest-api/esign101/concepts/embedding/embedded-signing/; https://developers.docusign.com/platform/webhooks/
+**Evidence Sources:**
+- [DocuSign Developer Portal](https://developers.docusign.com/)
+- [DocuSign OAuth 2.0 Guide](https://developers.docusign.com/platform/auth/)
+- [DocuSign Embedded Signing](https://developers.docusign.com/docs/esign-rest-api/esign101/concepts/embedding/embedded-signing/)
+- [DocuSign Webhook Integration](https://developers.docusign.com/platform/webhooks/)
