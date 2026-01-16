@@ -1,12 +1,40 @@
-import pytest
+"""
+CRM deal viewset tests with query-efficiency guardrails.
+
+Meta-commentary:
+- Current Status: Adds a query budget check to the deal list endpoint to prevent N+1 regressions.
+- Mapping: Targets DealViewSet.list (firm-scoped list endpoint) using APIRequestFactory + force_authenticate.
+- Reasoning: The list endpoint is frequently hit and serializer changes can silently increase query counts.
+- Assumption: SQLite query counts are acceptable for coarse guardrails; budgets may differ in Postgres.
+- Limitation: Budgets are max caps, not exact plans; updates to serializers may require adjusting caps.
+- Follow-up (T-059): Extend query-budget coverage to other high-traffic CRM endpoints.
+"""
+from collections.abc import Iterator
+from contextlib import contextmanager
 from datetime import date
 
+import pytest
 from django.contrib.auth import get_user_model
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from modules.crm.models import Deal, Pipeline, PipelineStage
 from modules.crm.views import DealViewSet
 from modules.firm.models import Firm, FirmMembership
+
+
+@contextmanager
+def assert_max_queries(max_queries: int) -> Iterator[CaptureQueriesContext]:
+    """Assert that the wrapped block executes within the provided query budget."""
+    with CaptureQueriesContext(connection) as context:
+        yield context
+
+    executed = len(context)
+    assert executed <= max_queries, (
+        f"Expected at most {max_queries} queries, but captured {executed}. "
+        "Inspect viewset/select_related/prefetch_related usage for regressions."
+    )
 
 User = get_user_model()
 
@@ -45,6 +73,7 @@ def stages(db, pipeline):
 
 
 @pytest.mark.django_db
+@pytest.mark.performance
 def test_deal_list_is_firm_scoped(factory, firm, pipeline, stages, user):
     other_firm = Firm.objects.create(name="Other Firm", slug="other-firm", status="active")
     other_user = User.objects.create_user(username="other-user", email="other@example.com", password="pass1234")
@@ -80,7 +109,9 @@ def test_deal_list_is_firm_scoped(factory, firm, pipeline, stages, user):
     request.firm = firm
     force_authenticate(request, user=user)
 
-    response = DealViewSet.as_view({"get": "list"})(request)
+    # Query budget guard: list endpoint should remain stable as data grows.
+    with assert_max_queries(12):
+        response = DealViewSet.as_view({"get": "list"})(request)
 
     assert response.status_code == 200
     assert len(response.data) == 1

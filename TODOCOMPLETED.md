@@ -4,6 +4,15 @@ Document Type: Workflow
 Last Updated: 2026-01-16
 Source: Completed tasks moved from `TODO.md`
 
+<!--
+Meta-commentary:
+- Current Status: Archive updated with completed T-059 entry.
+- Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
+- Reasoning: Preserve audit trail for completed tasks with original schema.
+- Assumption: Task records are appended without mutation.
+- Limitation: Detailed implementation context lives in code and PR history.
+-->
+
 This file stores completed work in the same schema as `TODO.md`.
 Move tasks here when Acceptance Criteria are met.
 
@@ -759,3 +768,25 @@ References:
 - Diamond Standard Plan Phase 7
 Dependencies: None
 Effort: S
+
+### T-059: Add query optimization tests to prevent N+1 queries
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-16)
+Context:
+- N+1 query patterns cause performance degradation.
+- Manual review catches some but not all cases.
+- Automated tests prevent regressions.
+Acceptance Criteria:
+- [x] Install django-assert-num-queries or similar.
+- [x] Add query count assertions to critical endpoint tests.
+- [x] Test suite fails if query count exceeds baseline.
+- [x] Document query optimization patterns in CONTRIBUTING.md.
+- [x] Add CI check for query efficiency.
+References:
+- tests/
+- CONTRIBUTING.md
+- Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M

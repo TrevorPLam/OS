@@ -2,6 +2,15 @@
 
 Thanks for your interest in improving ConsultantPro. This guide outlines expectations for code and documentation changes.
 
+<!--
+Meta-commentary:
+- Current Status: Contributor workflow guide with added query-efficiency testing guidance.
+- Mapping: References `make test-performance` and query budget helpers in tests.
+- Reasoning: Make performance guardrails discoverable and consistent for contributors.
+- Assumption: Contributors can run Make targets locally.
+- Limitation: Guidance does not guarantee test dependencies are installed in every environment.
+-->
+
 Last Updated: 2026-01-16
 
 ## Ground Rules
@@ -22,6 +31,20 @@ Last Updated: 2026-01-16
 ```bash
 pytest
 ```
+
+## Query Efficiency Tests
+
+Use the performance marker to guard against N+1 regressions on critical endpoints:
+
+```bash
+make test-performance
+```
+
+Guidelines:
+- Prefer `select_related` for single-valued foreign keys and `prefetch_related` for collections.
+- Use a local `assert_max_queries` helper (or `CaptureQueriesContext`) to set a **max** query budget per endpoint test.
+- Keep budgets intentionally permissive; adjust if serializer or middleware changes legitimately add queries.
+- Add comments explaining the query budget choice and the endpoint it protects.
 
 ## Running Type Checks
 

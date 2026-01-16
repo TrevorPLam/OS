@@ -4,6 +4,15 @@ Document Type: Workflow
 Last Updated: 2026-01-16
 Task Truth Source: **TODO.md**
 
+<!--
+Meta-commentary:
+- Current Status: Authoritative task list; T-059 is moved to TODOCOMPLETED.md.
+- Mapping: Mirrors completed work recorded in TODOCOMPLETED.md and CHANGELOG.md.
+- Reasoning: Keep task truth source accurate after completion.
+- Assumption: Tasks are appended/moved manually with auditability in mind.
+- Limitation: This file does not capture execution details beyond acceptance criteria.
+-->
+
 This file is the single source of truth for actionable work.
 If another document disagrees, the task record in this file wins (unless the Constitution overrides).
 
@@ -340,7 +349,6 @@ References:
 - Diamond Standard Plan Phase 8
 Dependencies: None
 Effort: M
-
 ### T-086: Add Meta-commentary for billing, CRM, and automation modules
 Priority: P2
 Type: DOCS

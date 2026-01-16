@@ -5,9 +5,21 @@ All notable changes to ConsultantPro will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+<!--
+Meta-commentary:
+- Current Status: Records query-efficiency guardrails under Unreleased > Added.
+- Mapping: Mirrors code/test changes in Makefiles and test modules.
+- Reasoning: Keep audit trail for performance guardrails and verification flow.
+- Assumption: Entries are updated with each shipped change set.
+- Limitation: Changelog does not include environment-specific test caveats.
+-->
+
 ## [Unreleased]
 
 ### Added
+
+- **Query Efficiency Guardrails** (2026-01-16)
+  - Added performance-marked tests with query-count caps for CRM deals and firm audit endpoints, plus a make target to run query efficiency checks.
 
 - **Tenant Isolation & RLS** (2026-01-06)
   - Hardened payment and portal booking endpoints to require firm-scoped querysets and portal client validation (T-073).

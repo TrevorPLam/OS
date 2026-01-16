@@ -1,14 +1,42 @@
-import csv
+"""
+Firm audit API tests with query-efficiency guardrails.
+
+Meta-commentary:
+- Current Status: Adds a query budget cap on the filtered audit event list endpoint.
+- Mapping: Targets /api/v1/firm/audit-events/ filtered GET to protect list queries.
+- Reasoning: Audit exports and list views can grow quickly; query caps help flag regressions early.
+- Assumption: Query counts are coarse guardrails; they may differ between SQLite and Postgres.
+- Limitation: The guardrail does not assert specific query shapes or indexes.
+- Follow-up (T-059): Add query budgets for export endpoints after baseline metrics are captured.
+"""
+from collections.abc import Iterator
+from contextlib import contextmanager
 from io import StringIO
 
+import csv
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 from rest_framework.test import APIClient
 
 from modules.firm.audit import AuditEvent
 from modules.firm.models import Firm, FirmMembership
+
+
+@contextmanager
+def assert_max_queries(max_queries: int) -> Iterator[CaptureQueriesContext]:
+    """Assert that the wrapped block executes within the provided query budget."""
+    with CaptureQueriesContext(connection) as context:
+        yield context
+
+    executed = len(context)
+    assert executed <= max_queries, (
+        f"Expected at most {max_queries} queries, but captured {executed}. "
+        "Inspect queryset/select_related/prefetch_related usage for regressions."
+    )
 
 
 @pytest.fixture
@@ -29,6 +57,7 @@ def audit_api_client(db):
 
 
 @pytest.mark.django_db
+@pytest.mark.performance
 def test_audit_events_filter_by_category_and_severity(audit_api_client):
     client, firm, user = audit_api_client
     other_firm = Firm.objects.create(name="Other", slug="other")
@@ -54,7 +83,9 @@ def test_audit_events_filter_by_category_and_severity(audit_api_client):
         severity=AuditEvent.SEVERITY_CRITICAL,
     )
 
-    response = client.get("/api/v1/firm/audit-events/?category=AUTH&severity=CRITICAL")
+    # Guard the filtered list endpoint against N+1 regressions.
+    with assert_max_queries(15):
+        response = client.get("/api/v1/firm/audit-events/?category=AUTH&severity=CRITICAL")
     assert response.status_code == 200
 
     results = response.json()["results"]
