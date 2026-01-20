@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **API Coverage Inventory** (2026-01-21)
+  - **T-122**: Documented module-level API coverage with a scripted inventory and follow-up task links.
+
 - **Database Query Timeouts** (2026-01-21)
   - **T-142**: Added global PostgreSQL statement timeouts, slow query logging middleware, and runbook guidance for timeout tuning.
 

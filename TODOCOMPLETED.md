@@ -19,6 +19,26 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-122: Validate API coverage gaps across modules lacking endpoints
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- F&F highlights inconsistent API coverage for modules without urls/views at module level.
+- Ensuring API coverage is required for product completeness.
+Acceptance Criteria:
+- [x] Inventory modules missing API endpoints (urls.py/views.py).
+- [x] Confirm or create tasks for missing API coverage per module.
+- [x] Document API coverage status in module docs.
+References:
+- F&F.md
+- src/modules/
+- docs/03-reference/api-module-coverage.md
+- docs/scripts/inventory_api_coverage.py
+Dependencies: None
+Effort: S
+
 ### T-127: Fix timing attack on OTP comparison (REFACTOR Phase 0)
 Priority: P0
 Type: SECURITY
