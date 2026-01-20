@@ -63,7 +63,7 @@ class QueryTimingWrapper:
 class QueryTimeoutMonitoringMiddleware:
     def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
         self.get_response = get_response
-        self.threshold_ms = getattr(settings, "DB_SLOW_QUERY_THRESHOLD_MS", 100)
+        self.threshold_ms = getattr(settings, "DB_SLOW_QUERY_THRESHOLD_MS", DEFAULT_SLOW_QUERY_THRESHOLD_MS)
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         wrapper = QueryTimingWrapper(self.threshold_ms, logger)
