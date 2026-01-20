@@ -14,6 +14,9 @@ if str(SRC_DIR) not in sys.path:
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings_auth_test")
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-secret-key")
 os.environ.setdefault("USE_SQLITE_FOR_TESTS", "True")
+os.environ.setdefault("KMS_BACKEND", "local")
+os.environ.setdefault("LOCAL_KMS_MASTER_KEY", "test-master-key-32-bytes-long!!")
+os.environ.setdefault("DEFAULT_FIRM_KMS_KEY_ID", "test-default-firm-key")
 
 django.setup()
 

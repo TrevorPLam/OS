@@ -112,7 +112,12 @@ def _firm_key_id(firm_id: int) -> str:
     firm = Firm.objects.only("id", "kms_key_id").get(id=firm_id)
     if firm.kms_key_id:
         return firm.kms_key_id
-    return settings.DEFAULT_FIRM_KMS_KEY_ID
+    if settings.DEFAULT_FIRM_KMS_KEY_ID:
+        return settings.DEFAULT_FIRM_KMS_KEY_ID
+    raise ValueError(
+        "DEFAULT_FIRM_KMS_KEY_ID is required when firm.kms_key_id is unset. "
+        "SECURITY: No hardcoded fallback key IDs allowed."
+    )
 
 
 @dataclass
@@ -122,8 +127,9 @@ class FieldEncryptionService:
 
     Meta-commentary:
     - **Current Status:** Firm-scoped encryption helpers implemented with per-firm key lookup.
+    - **Security Update (T-126):** Fail-fast when KMS backend/key configuration is missing.
     - **Follow-up (T-065):** Add per-firm key rotation and audit logging for key usage.
-    - **Assumption:** Firm.kms_key_id is configured or DEFAULT_FIRM_KMS_KEY_ID is valid.
+    - **Assumption:** Firm.kms_key_id or DEFAULT_FIRM_KMS_KEY_ID is configured via env.
     - **Missing:** Rotation workflows and key retirement validation.
     - **Limitation:** Key selection is request-time only; no cache invalidation strategy yet.
     """

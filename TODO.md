@@ -1,12 +1,12 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-16
+Last Updated: 2026-01-20
 Task Truth Source: **TODO.md**
 
 <!--
 Meta-commentary:
-- Current Status: Authoritative task list; T-059 is moved to TODOCOMPLETED.md.
+- Current Status: Authoritative task list; T-126 moved to TODOCOMPLETED.md.
 - Mapping: Mirrors completed work recorded in TODOCOMPLETED.md and CHANGELOG.md.
 - Reasoning: Keep task truth source accurate after completion.
 - Assumption: Tasks are appended/moved manually with auditability in mind.
@@ -41,30 +41,6 @@ If another document disagrees, the task record in this file wins (unless the Con
 ## Active tasks
 
 ### Phase 0 — Production readiness blockers (P0)
-
-### T-126: Fix hardcoded encryption key (REFACTOR Phase 0)
-Priority: P0
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 0 Item 1 - IMMEDIATE P0 FIX
-- Hardcoded encryption key fallback in src/modules/core/encryption.py:80
-- All encrypted data compromised if fallback key is used
-- FORENSIC_AUDIT.md Issue #5.1
-Acceptance Criteria:
-- [ ] Remove fallback key from src/modules/core/encryption.py
-- [ ] Raise exception if KMS_BACKEND or LOCAL_KMS_MASTER_KEY not set
-- [ ] Verify encrypted data operations fail fast without proper env vars
-- [ ] Run existing tests: pytest src/tests/
-- [ ] Document fail-fast behavior
-References:
-- REFACTOR_PLAN.md:147-151
-- FORENSIC_AUDIT.md Issue #5.1
-- src/modules/core/encryption.py:80
-Dependencies: None
-Effort: S
 
 ### T-127: Fix timing attack on OTP comparison (REFACTOR Phase 0)
 Priority: P0

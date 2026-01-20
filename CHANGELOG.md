@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **Encryption Fail-Fast Guardrails** (2026-01-20)
+  - **T-126**: Removed hardcoded KMS defaults, added explicit configuration checks for encryption key IDs, and documented fail-fast behavior for missing KMS environment variables.
+
 - **Query Efficiency Guardrails** (2026-01-16)
   - Added shared query-budget helpers, expanded performance-marked tests to include e-signature envelope listing, and wired query efficiency checks into the CI workflow.
 
