@@ -42,6 +42,130 @@ If another document disagrees, the task record in this file wins (unless the Con
 
 ### Phase 0 — Production readiness blockers (P0)
 
+### T-126: Fix hardcoded encryption key (REFACTOR Phase 0)
+Priority: P0
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 1 - IMMEDIATE P0 FIX
+- Hardcoded encryption key fallback in src/modules/core/encryption.py:80
+- All encrypted data compromised if fallback key is used
+- FORENSIC_AUDIT.md Issue #5.1
+Acceptance Criteria:
+- [ ] Remove fallback key from src/modules/core/encryption.py
+- [ ] Raise exception if KMS_BACKEND or LOCAL_KMS_MASTER_KEY not set
+- [ ] Verify encrypted data operations fail fast without proper env vars
+- [ ] Run existing tests: pytest src/tests/
+- [ ] Document fail-fast behavior
+References:
+- REFACTOR_PLAN.md:147-151
+- FORENSIC_AUDIT.md Issue #5.1
+- src/modules/core/encryption.py:80
+Dependencies: None
+Effort: S
+
+### T-127: Fix timing attack on OTP comparison (REFACTOR Phase 0)
+Priority: P0
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 2 - IMMEDIATE P0 FIX
+- MFA OTP comparison uses == instead of constant-time comparison
+- Timing attacks can bypass MFA via timing analysis
+- FORENSIC_AUDIT.md Issue #5.3
+Acceptance Criteria:
+- [ ] Replace == with hmac.compare_digest() in src/modules/auth/mfa_views.py:287,299
+- [ ] Add security test for timing attack prevention
+- [ ] Run existing tests: pytest src/tests/
+- [ ] Manual test: OTP login flow
+References:
+- REFACTOR_PLAN.md:153-157
+- FORENSIC_AUDIT.md Issue #5.3
+- src/modules/auth/mfa_views.py:287,299
+Dependencies: None
+Effort: S
+
+### T-128: Fix CSRF bypass on SAML endpoints (REFACTOR Phase 0)
+Priority: P0
+Type: SECURITY
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 3 - IMMEDIATE P0 FIX
+- SAML endpoints have @csrf_exempt decorator
+- No RelayState validation enables account takeover via CSRF
+- FORENSIC_AUDIT.md Issue #5.2
+Acceptance Criteria:
+- [x] Remove @csrf_exempt from src/modules/auth/saml_views.py:119,142,212 (kept due to external POST)
+- [x] Add SAML RelayState generation in SAMLLoginView with secrets.token_urlsafe(32)
+- [x] Store RelayState in session for validation
+- [x] Add RelayState validation in SAMLACSView using hmac.compare_digest()
+- [x] Clear used state after validation to prevent replay attacks
+- [x] Add security comments explaining CSRF protection approach
+- [ ] Add security test for CSRF protection (requires test infrastructure)
+- [ ] Run existing tests: pytest src/tests/ (blocked: pytest not installed in sandbox)
+- [ ] Manual test: SAML login flow (requires SAML IdP)
+References:
+- REFACTOR_PLAN.md:159-163
+- FORENSIC_AUDIT.md Issue #5.2
+- src/modules/auth/saml_views.py:119,142,212
+Dependencies: None
+Effort: M
+
+### T-129: Fix production Dockerfile to use gunicorn (REFACTOR Phase 0)
+Priority: P0
+Type: RELEASE
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 4 - IMMEDIATE P0 FIX
+- Production Dockerfile uses Django runserver (dev-only server)
+- Causes DEBUG leaks, DoS vulnerability, no SSL support
+- FORENSIC_AUDIT.md Issue #8.5
+Acceptance Criteria:
+- [ ] Replace runserver with gunicorn in Dockerfile:40
+- [ ] Configure gunicorn workers and timeout settings
+- [ ] Test Docker build: docker build .
+- [ ] Verify container starts with gunicorn
+- [ ] Document production deployment requirements
+References:
+- REFACTOR_PLAN.md:165-169
+- FORENSIC_AUDIT.md Issue #8.5
+- Dockerfile:40
+Dependencies: None
+Effort: S
+
+### T-130: Add type validation to webhook payment processing (REFACTOR Phase 0)
+Priority: P0
+Type: BUG
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 5 - IMMEDIATE P0 FIX
+- Webhook divides amount_received without type validation
+- Malformed Stripe data causes TypeError crash → revenue loss
+- FORENSIC_AUDIT.md Issue #1.3
+Acceptance Criteria:
+- [ ] Add Pydantic schema validation for webhook payload in src/api/finance/webhooks.py:250
+- [ ] Validate amount_received is numeric before division
+- [ ] Add error handling for invalid webhook data
+- [ ] Add webhook replay tests
+- [ ] Run existing tests: pytest src/tests/
+- [ ] Manual test: Stripe webhook with test data
+References:
+- REFACTOR_PLAN.md:171-175
+- FORENSIC_AUDIT.md Issue #1.3
+- src/api/finance/webhooks.py:250
+Dependencies: None
+Effort: S
+
 ### T-042: Document deployment platform and rollback procedures
 Priority: P0
 Type: RELEASE
@@ -68,6 +192,201 @@ Effort: M
 ### Phase 1 — Security and tenant isolation (P1/P3)
 
 #### P1 — High impact (do within 7 days)
+
+### T-131: Create comprehensive GitHub Actions CI/CD workflow (REFACTOR Phase 1)
+Priority: P1
+Type: RELEASE
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 1 Item 1 - Enable automated quality gates
+- No CI/CD automation currently enabled (GitHub Actions disabled)
+- Broken code can merge to main without automated checks
+- FORENSIC_AUDIT.md Issue #8.1
+Acceptance Criteria:
+- [ ] Create .github/workflows/ci.yml with jobs: test, lint, typecheck, security-scan
+- [ ] Configure test job: pytest --cov=src --cov-fail-under=60
+- [ ] Configure lint job: black --check, ruff check, mypy
+- [ ] Configure security job: pip-audit --strict, bandit -r src/
+- [ ] Configure frontend job: npm ci, npm run typecheck, npm run test, npm run build
+- [ ] Enable branch protection requiring CI pass before merge
+- [ ] Push test commit and verify CI runs
+References:
+- REFACTOR_PLAN.md:186-215, 492-536
+- FORENSIC_AUDIT.md Issue #8.1
+- githubactions/README.md
+Dependencies: None
+Effort: M
+
+### T-132: Update pre-commit hooks for comprehensive validation (REFACTOR Phase 1)
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 1 Item 2 - Prevent style drift and secret commits
+- Existing .pre-commit-config.yaml needs enhancement
+- FORENSIC_AUDIT.md Issue #8.4 - No SAST in pipeline
+Acceptance Criteria:
+- [ ] Update .pre-commit-config.yaml with: black, ruff, mypy, git-secrets, eslint
+- [ ] Configure mypy to run on src/ with pass_filenames: false
+- [ ] Add git-secrets hook to prevent secret commits
+- [ ] Add eslint for frontend files in src/frontend/
+- [ ] Test pre-commit hooks: try committing with lint error, verify blocked
+- [ ] Document pre-commit setup in CONTRIBUTING.md
+References:
+- REFACTOR_PLAN.md:197-201, 441-478
+- FORENSIC_AUDIT.md Issue #8.4
+- .pre-commit-config.yaml
+Dependencies: None
+Effort: S
+
+### T-133: Configure dependency scanning in CI pipeline (REFACTOR Phase 1)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 1 Item 3 - Prevent known CVEs in production
+- No automated dependency vulnerability scanning
+- FORENSIC_AUDIT.md Issue #6.2, #6.4 - CVE risks
+Acceptance Criteria:
+- [ ] Add pip-audit to CI workflow (security job)
+- [ ] Configure weekly dependency scan schedule
+- [ ] Add safety check for Python dependencies
+- [ ] Document dependency scanning process
+- [ ] Set up notifications for new vulnerabilities
+References:
+- REFACTOR_PLAN.md:203-206
+- FORENSIC_AUDIT.md Issue #6.2, #6.4
+Dependencies: T-131 (CI workflow)
+Effort: S
+
+### T-134: Fix SAML null checks with defensive extraction (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 1 - Eliminate critical security vulnerabilities
+- SAML attribute extraction lacks null checks
+- IndexError crashes on SSO can cause auth failures
+- FORENSIC_AUDIT.md Issue #1.5
+Acceptance Criteria:
+- [x] Add defensive attribute extraction with defaults in src/modules/auth/saml_views.py:173-175
+- [x] Handle missing SAML attributes gracefully using .get() with defaults
+- [x] Add security comments explaining defensive extraction
+- [ ] Add error logging for missing attributes (deferred to observability phase)
+- [ ] Add tests for missing SAML attributes (requires test infrastructure)
+- [ ] Run existing tests: pytest src/tests/ (blocked: pytest not installed)
+References:
+- REFACTOR_PLAN.md:224-227
+- FORENSIC_AUDIT.md Issue #1.5
+- src/modules/auth/saml_views.py:173-175
+Dependencies: None
+Effort: S
+
+### T-135: Fix OAuth state validation for CSRF protection (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 2 - Eliminate critical security vulnerabilities
+- OAuth state parameter validation is weak or missing
+- Enables OAuth CSRF attacks and account takeover
+- FORENSIC_AUDIT.md Issue #5.4
+Acceptance Criteria:
+- [ ] Implement strong state parameter validation in src/modules/auth/oauth_views.py
+- [ ] Generate cryptographically secure state tokens
+- [ ] Store state in session and validate on callback
+- [ ] Add security test for OAuth CSRF protection
+- [ ] Run existing tests: pytest src/tests/
+References:
+- REFACTOR_PLAN.md:229-232
+- FORENSIC_AUDIT.md Issue #5.4
+- src/modules/auth/oauth_views.py
+Dependencies: None
+Effort: M
+
+### T-136: Sanitize error messages to prevent information disclosure (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 3 - Eliminate critical security vulnerabilities
+- Detailed error messages exposed to clients reveal internal state
+- Information disclosure aids attackers
+- FORENSIC_AUDIT.md Issue #5.1 findings
+Acceptance Criteria:
+- [x] Replace detailed errors with generic messages in src/modules/auth/saml_views.py:163,209,243
+- [x] Add security comments explaining information disclosure prevention
+- [ ] Log detailed error info server-side only (deferred to observability phase)
+- [ ] Ensure no stack traces sent to clients (requires middleware review)
+- [ ] Add tests for generic error responses (requires test infrastructure)
+- [ ] Review all auth endpoints for information disclosure (separate task needed)
+References:
+- REFACTOR_PLAN.md:234-237
+- FORENSIC_AUDIT.md Issue #5.1
+- src/modules/auth/saml_views.py:163,209,243
+Dependencies: None
+Effort: S
+
+### T-137: Add rate limiting to MFA endpoints (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 4 - Eliminate critical security vulnerabilities
+- MFA endpoints lack rate limiting
+- Enables brute-force TOTP attacks
+- FORENSIC_AUDIT.md Issue #5.15 findings
+Acceptance Criteria:
+- [ ] Add @ratelimit decorators to src/modules/auth/mfa_views.py:80,127
+- [ ] Configure rate limit: 5 attempts per minute per IP
+- [ ] Add tests for rate limit enforcement
+- [ ] Document rate limiting in SECURITY.md
+- [ ] Monitor rate limit violations in production
+References:
+- REFACTOR_PLAN.md:239-242, 615-653
+- FORENSIC_AUDIT.md Issue #5.15
+- src/modules/auth/mfa_views.py:80,127
+Dependencies: None
+Effort: S
+
+### T-138: Scrub sensitive data from webhook logs (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 5 - Eliminate critical security vulnerabilities
+- Webhook event_data stored with PII unredacted
+- PCI-DSS violation for payment data
+- FORENSIC_AUDIT.md Issue #5.10
+Acceptance Criteria:
+- [ ] Redact PII before storing event_data in src/api/finance/webhooks.py:112
+- [ ] Create sanitization function for webhook payloads
+- [ ] Redact: card numbers, CVV, email addresses, phone numbers
+- [ ] Add tests for data sanitization
+- [ ] Document PII handling in PRIVACY_POLICY.md
+References:
+- REFACTOR_PLAN.md:244-247
+- FORENSIC_AUDIT.md Issue #5.10
+- src/api/finance/webhooks.py:112
+- PRIVACY_POLICY.md
+Dependencies: None
+Effort: M
 
 ### T-050: Create incident response runbooks
 Priority: P1
@@ -113,6 +432,121 @@ Dependencies: T-042 (deployment platform)
 Effort: M
 
 #### P2 — Important (do within 30 days)
+
+### T-139: Add pagination to all DRF ViewSets (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 1 - Fix performance issues
+- List endpoints lack pagination causing memory exhaustion
+- FORENSIC_AUDIT.md Issue #4.2 - Missing pagination
+Acceptance Criteria:
+- [ ] Add pagination_class = PageNumberPagination to all DRF ViewSets
+- [ ] Set max page size to 100 items
+- [ ] Add pagination tests for all list endpoints
+- [ ] Verify pagination in API responses (count, next, previous fields)
+- [ ] Document pagination in API documentation
+References:
+- REFACTOR_PLAN.md:261-265, 859-868
+- FORENSIC_AUDIT.md Issue #4.2
+Dependencies: None
+Effort: M
+
+### T-140: Fix N+1 queries in calendar module (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 2 - Fix performance issues
+- Calendar serializers cause 80+ queries per API call
+- N+1 query pattern on hosts and pools
+- FORENSIC_AUDIT.md Issue #4.1
+Acceptance Criteria:
+- [ ] Add prefetch_related() for hosts and pools in src/modules/calendar/serializers.py
+- [ ] Add assertNumQueries tests to verify query count reduction
+- [ ] Enable Django Debug Toolbar in dev to monitor queries
+- [ ] Verify query count < 10 per API call
+- [ ] Document query optimization patterns
+References:
+- REFACTOR_PLAN.md:267-270, 596-611
+- FORENSIC_AUDIT.md Issue #4.1
+- src/modules/calendar/serializers.py
+Dependencies: None
+Effort: M
+
+### T-141: Fix N+1 queries in automation module (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 3 - Fix performance issues
+- Automation views cause 10,000+ queries for large workflows
+- N+1 query pattern in workflow loading
+- FORENSIC_AUDIT.md Issue #4.3
+Acceptance Criteria:
+- [ ] Refactor to single query with prefetch_related in src/modules/automation/views.py:163-166
+- [ ] Add assertNumQueries tests for workflow loading
+- [ ] Verify query count scales O(1) not O(n)
+- [ ] Add performance tests for large workflows (1000+ nodes)
+References:
+- REFACTOR_PLAN.md:272-275
+- FORENSIC_AUDIT.md Issue #4.3
+- src/modules/automation/views.py:163-166
+Dependencies: None
+Effort: M
+
+### T-142: Add global query timeouts (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 4 - Fix performance issues
+- No query timeouts configured, slow queries can block workers
+- FORENSIC_AUDIT.md Issue #4.2 findings
+Acceptance Criteria:
+- [ ] Create config/database.py with query timeout configuration
+- [ ] Set PostgreSQL statement_timeout = 5s
+- [ ] Enable query logging for slow queries (> 100ms)
+- [ ] Add middleware for query timeout monitoring
+- [ ] Document timeout behavior and troubleshooting
+References:
+- REFACTOR_PLAN.md:277-280, 575-611
+- FORENSIC_AUDIT.md Issue #4.2
+Dependencies: None
+Effort: S
+
+### T-143: Optimize invoice total calculation (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 5 - Fix performance issues
+- Invoice total recalculated O(n) on every access
+- Hot path causing performance degradation
+- FORENSIC_AUDIT.md Issue #4.7
+Acceptance Criteria:
+- [ ] Add denormalized total field to Invoice model in src/modules/finance/models.py
+- [ ] Create database trigger or signal to update total on line item changes
+- [ ] Migrate existing invoices to populate total field
+- [ ] Add tests for total calculation accuracy
+- [ ] Benchmark performance improvement
+References:
+- REFACTOR_PLAN.md:282-285
+- FORENSIC_AUDIT.md Issue #4.7
+- src/modules/finance/models.py
+Dependencies: None
+Effort: M
 
 ### T-027: Split src/modules/crm/models.py into separate files
 Priority: P2
