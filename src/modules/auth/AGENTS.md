@@ -35,9 +35,10 @@ Authorization: Bearer <access_token>
 ### 2. OAuth Flow (Google/Microsoft)
 
 ```
-GET /api/v1/auth/oauth/google/
-→ Redirects to Google
-→ Callback: /api/v1/auth/oauth/google/callback/
+GET  /api/v1/auth/oauth/state/
+→ Returns state token for CSRF protection
+
+POST /api/v1/auth/oauth/callback/
 → Creates/links user, returns JWT
 ```
 
@@ -120,8 +121,8 @@ All routes under `/api/v1/auth/`:
 POST   /login/                  # JWT login
 POST   /logout/                 # Blacklist token
 POST   /refresh/                # Refresh token
-GET    /oauth/google/           # Start Google OAuth
-GET    /oauth/microsoft/        # Start Microsoft OAuth
+GET    /oauth/state/            # Generate OAuth state token
+POST   /oauth/callback/         # OAuth callback handler
 GET    /saml/login/             # Start SAML SSO
 POST   /saml/acs/               # SAML assertion endpoint
 POST   /mfa/setup/              # Setup TOTP
