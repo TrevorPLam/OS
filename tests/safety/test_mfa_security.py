@@ -61,6 +61,11 @@ def test_totp_verification_rate_limited_by_ip():
         force_authenticate(request, user=user)
         response = mfa_verify_totp(request)
 
+        # Note: We do not enroll a TOTP device for this user in this test.
+        # mfa_verify_totp returns 404 when no confirmed TOTP device exists, so both
+        # 400 (invalid code) and 404 (no device) are acceptable for the first 5 attempts.
+        # The security property under test is that the 6th request from the same IP
+        # is rate limited (429), regardless of device-enrollment state.
         if attempt < 5:
             assert response.status_code in {400, 404}
         else:
