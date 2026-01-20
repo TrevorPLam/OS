@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last Updated:** January 4, 2026
+**Last Updated:** January 20, 2026
 
 ConsultantPro is designed with privacy-first, firm-scoped data handling. This policy summarizes how data is retained and how users can request deletion.
 
@@ -13,6 +13,18 @@ Retention periods are defined in [docs/DATA_RETENTION_POLICY.md](docs/DATA_RETEN
 - **Audit trails:** 7 years (compliance minimum)
 
 Retention policies may be extended when required by legal hold or regulatory obligations.
+
+## Webhook Data Minimization
+
+Stripe webhook payloads are stored in a redacted form to minimize exposure of sensitive data. The
+platform scrubs the following fields before persisting webhook event data:
+
+- Card numbers and CVV/CVC values
+- Email addresses
+- Phone numbers
+
+This redaction applies to nested webhook payload fields and any free-text fields that match these
+patterns.
 
 ## Data Deletion Requests
 
