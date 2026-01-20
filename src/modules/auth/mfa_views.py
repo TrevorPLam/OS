@@ -54,10 +54,15 @@ def send_sms_otp(user, otp_code):
         from modules.sms.models import SMSMessage
         from modules.sms.services import send_sms
         
-        # SECURITY: Resolve phone number from MFA profile first, then fallback to user field.
-        # This avoids silent OTP delivery failures when the number lives on UserMFAProfile.
+        # SECURITY: Resolve phone number from MFA profile first, then fallback to user field
+        # (if the User object exposes a `phone_number` attribute). This avoids silent OTP
+        # delivery failures when the number lives on UserMFAProfile.
         mfa_profile = getattr(user, "mfa_profile", None)
-        phone_number = getattr(mfa_profile, "phone_number", None) or getattr(user, "phone_number", None)
+        phone_number = None
+        if mfa_profile and getattr(mfa_profile, "phone_number", None):
+            phone_number = mfa_profile.phone_number
+        elif hasattr(user, "phone_number"):
+            phone_number = getattr(user, "phone_number", None)
         if not phone_number:
             return False, "No phone number configured for user"
         
