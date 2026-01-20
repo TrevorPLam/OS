@@ -25,20 +25,21 @@ def _parse_non_negative_int(value: str | None, setting_name: str) -> int | None:
     return parsed_value
 
 
-def get_statement_timeout_ms() -> int:
+def _get_env_var_ms(env_var_name: str, default: int) -> int:
+    """Parse a non-negative integer from an environment variable, with a fallback."""
     parsed_value = _parse_non_negative_int(
-        os.environ.get("DB_STATEMENT_TIMEOUT_MS"),
-        "DB_STATEMENT_TIMEOUT_MS",
+        os.environ.get(env_var_name),
+        env_var_name,
     )
-    return DEFAULT_STATEMENT_TIMEOUT_MS if parsed_value is None else parsed_value
+    return default if parsed_value is None else parsed_value
+
+
+def get_statement_timeout_ms() -> int:
+    return _get_env_var_ms("DB_STATEMENT_TIMEOUT_MS", DEFAULT_STATEMENT_TIMEOUT_MS)
 
 
 def get_slow_query_threshold_ms() -> int:
-    parsed_value = _parse_non_negative_int(
-        os.environ.get("DB_SLOW_QUERY_THRESHOLD_MS"),
-        "DB_SLOW_QUERY_THRESHOLD_MS",
-    )
-    return DEFAULT_SLOW_QUERY_THRESHOLD_MS if parsed_value is None else parsed_value
+    return _get_env_var_ms("DB_SLOW_QUERY_THRESHOLD_MS", DEFAULT_SLOW_QUERY_THRESHOLD_MS)
 
 
 def build_database_options(engine: str) -> dict[str, str]:
