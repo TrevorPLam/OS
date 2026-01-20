@@ -34,6 +34,13 @@ Use this format:
   - Trade-offs: Requires session scoping for background jobs/CLI access; PostgreSQL-specific enforcement (tests skip on SQLite).
   - Follow-up (task IDs in TODO.md): T-123 (document RLS model + ops implications)
 
+- Date: 2026-01-20
+  - Decision: Created PERFECT.md to track comprehensive codebase cleanup and optimization project across 9 analysis criteria.
+  - Why: Problem statement requires systematic transformation of codebase to production-ready, world-class status with holistic quality tracking beyond individual TODO tasks.
+  - Alternatives considered: Using only TODO.md (rejected—lacks holistic quality view), creating separate tracking files per criterion (rejected—fragmented view).
+  - Trade-offs: PERFECT.md is read-mostly and must defer to TODO.md for task authority per CODEBASECONSTITUTION.md. Adds documentation overhead but provides essential progress visibility.
+  - Follow-up (task IDs in TODO.md): Phase 1 tasks (T-129, T-130) for critical security completion; new tasks to be created for gaps identified in 9-criteria analysis.
+
 ## Open questions
 - Q:
   - Context:
