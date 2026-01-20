@@ -19,6 +19,13 @@ This is not a task list; tasks belong in `TODO.md`.
 ## Decisions (append-only)
 Use this format:
 
+- Date: 2026-01-20
+  - Decision: Implement SAML CSRF protection using RelayState parameter instead of removing csrf_exempt decorators.
+  - Why: SAML POST requests come from external IdPs, not from our forms. Standard Django CSRF tokens don't work for cross-origin requests. RelayState is the SAML-standard approach for preventing CSRF attacks.
+  - Alternatives considered: Removing csrf_exempt entirely (rejected—breaks SAML spec), using custom CSRF middleware (rejected—overcomplicated).
+  - Trade-offs: Must keep csrf_exempt decorator but add explicit RelayState validation. Requires session storage for state tokens.
+  - Follow-up (task IDs in TODO.md): T-128 (SAML CSRF protection), T-134 (defensive attribute extraction), T-136 (error message sanitization)
+
 - Date: 2026-01-06
   - Decision: Enable PostgreSQL row-level security for all firm-scoped tables using `app.current_firm_id` session context.
   - Why: Close remaining tenant isolation gaps and provide database-level enforcement beyond application query guards.

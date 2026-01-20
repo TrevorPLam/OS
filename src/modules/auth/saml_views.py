@@ -6,6 +6,7 @@ Includes ACS (Assertion Consumer Service), SLO (Single Logout), and IdP metadata
 """
 
 import base64
+import secrets
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.core.exceptions import ValidationError
@@ -123,6 +124,9 @@ class SAMLLoginView(View):
     
     Redirects user to IdP for authentication.
     
+    SECURITY: Generates cryptographically secure RelayState for CSRF protection.
+    See: REFACTOR_PLAN.md Phase 0, FORENSIC_AUDIT.md Issue #5.2
+    
     GET /api/auth/saml/login/
     """
     def get(self, request):
@@ -135,8 +139,14 @@ class SAMLLoginView(View):
         req = prepare_django_request(request)
         auth = OneLogin_Saml2_Auth(req, get_saml_settings(request))
         
-        # Redirect to IdP
-        return HttpResponseRedirect(auth.login())
+        # SECURITY: Generate and store RelayState for CSRF protection
+        # This prevents attackers from forging SAML responses
+        relay_state = secrets.token_urlsafe(32)
+        request.session['saml_relay_state'] = relay_state
+        request.session.modified = True
+        
+        # Redirect to IdP with RelayState
+        return HttpResponseRedirect(auth.login(return_to=relay_state))
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -147,11 +157,30 @@ class SAMLACSView(View):
     Receives SAML assertion from IdP after authentication.
     Creates/links user account and generates JWT tokens.
     
+    SECURITY: Validates RelayState to prevent CSRF attacks.
+    See: REFACTOR_PLAN.md Phase 0, FORENSIC_AUDIT.md Issue #5.2
+    
     POST /api/auth/saml/acs/
     """
     def post(self, request):
         if not SAML_AVAILABLE:
             return HttpResponse("SAML is not configured", status=501)
+        
+        # SECURITY: Validate RelayState matches session to prevent CSRF
+        relay_state = request.POST.get('RelayState', '')
+        expected_state = request.session.get('saml_relay_state', '')
+        
+        if not relay_state or not expected_state:
+            return HttpResponse("Invalid SAML request: missing state", status=400)
+        
+        # Use constant-time comparison to prevent timing attacks
+        import hmac
+        if not hmac.compare_digest(relay_state, expected_state):
+            return HttpResponse("Invalid SAML request: state mismatch", status=400)
+        
+        # Clear used state to prevent replay attacks
+        del request.session['saml_relay_state']
+        request.session.modified = True
         
         req = prepare_django_request(request)
         auth = OneLogin_Saml2_Auth(req, get_saml_settings(request))
@@ -159,8 +188,9 @@ class SAMLACSView(View):
         
         errors = auth.get_errors()
         if errors:
-            error_reason = auth.get_last_error_reason()
-            return HttpResponse(f"SAML authentication failed: {error_reason}", status=400)
+            # SECURITY: Sanitize error messages to prevent information disclosure
+            # Log detailed errors server-side only (see T-136)
+            return HttpResponse("SAML authentication failed", status=400)
         
         if not auth.is_authenticated():
             return HttpResponse("SAML authentication failed", status=401)
@@ -170,9 +200,10 @@ class SAMLACSView(View):
         name_id = auth.get_nameid()
         
         # Extract user data (mapping configurable via SAMLConfiguration.attribute_mapping)
-        email = attributes.get('email', [name_id])[0] if 'email' in attributes else name_id
-        first_name = attributes.get('first_name', [''])[0]
-        last_name = attributes.get('last_name', [''])[0]
+        # SECURITY: Defensive attribute extraction with defaults (see T-134)
+        email = attributes.get('email', [name_id])[0] if attributes.get('email') else name_id
+        first_name = attributes.get('first_name', [''])[0] if attributes.get('first_name') else ''
+        last_name = attributes.get('last_name', [''])[0] if attributes.get('last_name') else ''
         
         # Create or link user account
         try:
@@ -206,7 +237,8 @@ class SAMLACSView(View):
                 set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
                 return response
         except Exception as e:
-            return HttpResponse(f"User account creation failed: {str(e)}", status=500)
+            # SECURITY: Generic error message to prevent information disclosure
+            return HttpResponse("Authentication failed", status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
