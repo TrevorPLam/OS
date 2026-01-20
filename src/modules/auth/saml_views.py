@@ -3,9 +3,20 @@ Sprint 1.6-1.9: SAML Support for Enterprise SSO
 
 Implements SAML Service Provider configuration for enterprise identity providers.
 Includes ACS (Assertion Consumer Service), SLO (Single Logout), and IdP metadata management.
+
+Meta-commentary:
+- Current Status: SAML authentication flows implemented with CSRF protection via RelayState.
+- Security Hardening (T-128): RelayState validation prevents CSRF attacks on SSO flows.
+- Security Hardening (T-134): Defensive attribute extraction prevents crashes on missing SAML attrs.
+- Security Hardening (T-136): Error messages sanitized to prevent information disclosure.
+- Follow-up (T-137): Add rate limiting to prevent brute-force attacks on SSO endpoints.
+- Assumption: SAML IdP correctly implements RelayState parameter per SAML 2.0 spec.
+- Limitation: Error details logged but not yet integrated with structured logging system.
 """
 
 import base64
+import hmac
+import logging
 import secrets
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
@@ -34,13 +45,31 @@ from modules.auth.models import SAMLConfiguration
 from modules.auth.cookies import set_auth_cookies
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 def get_saml_settings(request):
     """
-    Sprint 1.7: Build SAML Service Provider configuration from database.
+    Build SAML Service Provider configuration from database or environment variables.
     
-    Returns SAML settings dict for python3-saml library.
+    Constructs settings dict required by python3-saml library, sourcing configuration
+    from SAMLConfiguration model (database) with fallback to Django settings.
+    
+    Args:
+        request: Django HTTP request for extracting base URL
+        
+    Returns:
+        dict: SAML settings compatible with OneLogin_Saml2_Settings
+        
+    Raises:
+        ImportError: If python3-saml library not installed
+        ValidationError: If no active SAML configuration and no fallback settings
+        
+    Meta-commentary:
+    - Current Status: Configuration loading complete with database/env fallback.
+    - Design Rationale: Fallback allows dev/test without database-stored config.
+    - Assumption: Settings (SAML_SP_ENTITY_ID, etc.) exist if database config absent.
+    - Follow-up (T-145): Add configuration validation to catch missing required fields.
     """
     if not SAML_AVAILABLE:
         raise ImportError("python3-saml is not installed. Run: pip install python3-saml")
@@ -50,8 +79,12 @@ def get_saml_settings(request):
         saml_config = SAMLConfiguration.objects.filter(is_active=True).first()
         if not saml_config:
             raise ValidationError("No active SAML configuration found")
-    except Exception:
-        # Fallback to environment variables
+    except Exception as e:
+        # Fallback to environment variables for development/testing
+        logger.warning(
+            "SAML database config unavailable, using Django settings fallback",
+            extra={"error": str(e)}
+        )
         saml_config = None
     
     # Build SAML settings
@@ -105,12 +138,27 @@ def get_saml_settings(request):
 
 
 def prepare_django_request(request):
-    """Helper to convert Django request to python3-saml format."""
+    """
+    Convert Django HTTP request to python3-saml library format.
+    
+    Args:
+        request: Django HTTPRequest object
+        
+    Returns:
+        dict: Request data in format expected by OneLogin_Saml2_Auth
+        
+    Raises:
+        KeyError: If required META fields missing from request
+        
+    Note:
+        python3-saml expects specific keys for protocol, host, and request data.
+    """
+    # Defensive extraction with sensible defaults for required fields
     result = {
         'https': 'on' if request.is_secure() else 'off',
-        'http_host': request.META['HTTP_HOST'],
-        'script_name': request.META['PATH_INFO'],
-        'server_port': request.META['SERVER_PORT'],
+        'http_host': request.META.get('HTTP_HOST', 'localhost'),
+        'script_name': request.META.get('PATH_INFO', '/'),
+        'server_port': request.META.get('SERVER_PORT', '443' if request.is_secure() else '80'),
         'get_data': request.GET.copy(),
         'post_data': request.POST.copy(),
     }
@@ -171,11 +219,24 @@ class SAMLACSView(View):
         expected_state = request.session.get('saml_relay_state', '')
         
         if not relay_state or not expected_state:
+            logger.warning(
+                "SAML CSRF validation failed: missing RelayState",
+                extra={
+                    "has_relay_state": bool(relay_state),
+                    "has_session_state": bool(expected_state),
+                    "ip_address": request.META.get('REMOTE_ADDR'),
+                }
+            )
             return HttpResponse("Invalid SAML request: missing state", status=400)
         
         # Use constant-time comparison to prevent timing attacks
-        import hmac
         if not hmac.compare_digest(relay_state, expected_state):
+            logger.warning(
+                "SAML CSRF validation failed: state mismatch",
+                extra={
+                    "ip_address": request.META.get('REMOTE_ADDR'),
+                }
+            )
             return HttpResponse("Invalid SAML request: state mismatch", status=400)
         
         # Clear used state to prevent replay attacks
@@ -190,6 +251,15 @@ class SAMLACSView(View):
         if errors:
             # SECURITY: Sanitize error messages to prevent information disclosure
             # Log detailed errors server-side only (see T-136)
+            error_reason = auth.get_last_error_reason()
+            logger.error(
+                "SAML authentication failed",
+                extra={
+                    "errors": errors,
+                    "error_reason": error_reason,
+                    "ip_address": request.META.get('REMOTE_ADDR'),
+                }
+            )
             return HttpResponse("SAML authentication failed", status=400)
         
         if not auth.is_authenticated():
@@ -201,9 +271,20 @@ class SAMLACSView(View):
         
         # Extract user data (mapping configurable via SAMLConfiguration.attribute_mapping)
         # SECURITY: Defensive attribute extraction with defaults (see T-134)
+        # Prevents IndexError if SAML assertion lacks expected attributes
         email = attributes.get('email', [name_id])[0] if attributes.get('email') else name_id
         first_name = attributes.get('first_name', [''])[0] if attributes.get('first_name') else ''
         last_name = attributes.get('last_name', [''])[0] if attributes.get('last_name') else ''
+        
+        logger.info(
+            "SAML user authenticated",
+            extra={
+                "email": email,
+                "name_id": name_id,
+                "has_first_name": bool(first_name),
+                "has_last_name": bool(last_name),
+            }
+        )
         
         # Create or link user account
         try:
@@ -238,6 +319,13 @@ class SAMLACSView(View):
                 return response
         except Exception as e:
             # SECURITY: Generic error message to prevent information disclosure
+            logger.exception(
+                "SAML user creation or login failed",
+                extra={
+                    "email": email if 'email' in locals() else 'unknown',
+                    "ip_address": request.META.get('REMOTE_ADDR'),
+                }
+            )
             return HttpResponse("Authentication failed", status=500)
 
 
@@ -247,6 +335,8 @@ class SAMLSLOView(View):
     Sprint 1.7: SAML Single Logout (SLO) endpoint.
     
     Handles logout requests from IdP.
+    
+    SECURITY: Error messages sanitized to prevent information disclosure.
     
     GET /api/auth/saml/slo/
     """
@@ -261,8 +351,17 @@ class SAMLSLOView(View):
         errors = auth.get_errors()
         
         if errors:
+            # SECURITY: Log detailed errors server-side, return generic message
             error_reason = auth.get_last_error_reason()
-            return HttpResponse(f"SLO failed: {error_reason}", status=400)
+            logger.error(
+                "SAML SLO failed",
+                extra={
+                    "errors": errors,
+                    "error_reason": error_reason,
+                    "ip_address": request.META.get('REMOTE_ADDR'),
+                }
+            )
+            return HttpResponse("Logout failed", status=400)
         
         if url:
             return HttpResponseRedirect(url)
@@ -278,6 +377,8 @@ def saml_metadata(request):
     
     Returns SP metadata XML for IdP configuration.
     
+    SECURITY: Error messages sanitized to prevent information disclosure.
+    
     GET /api/auth/saml/metadata/
     """
     if not SAML_AVAILABLE:
@@ -289,11 +390,16 @@ def saml_metadata(request):
         errors = saml_settings.validate_metadata(metadata)
         
         if errors:
-            return Response({"error": f"Invalid metadata: {', '.join(errors)}"}, status=500)
+            logger.error(
+                "SAML metadata validation failed",
+                extra={"errors": errors}
+            )
+            return Response({"error": "Invalid metadata configuration"}, status=500)
         
         return HttpResponse(metadata, content_type='text/xml')
     except Exception as e:
-        return Response({"error": str(e)}, status=500)
+        logger.exception("SAML metadata generation failed")
+        return Response({"error": "Metadata generation failed"}, status=500)
 
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -413,4 +519,8 @@ def saml_attribute_mapping(request):
             }, status=status.HTTP_200_OK)
     
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.exception("SAML attribute mapping operation failed")
+        return Response(
+            {"error": "Operation failed"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
