@@ -9,6 +9,11 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from config.database import (
+    build_database_options,
+    get_slow_query_threshold_ms,
+    get_statement_timeout_ms,
+)
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -112,6 +117,8 @@ MIDDLEWARE = [
     "modules.firm.middleware.FirmRLSSessionMiddleware",
     # Sentry context middleware (must come after FirmContextMiddleware to capture firm context)
     "config.sentry_middleware.SentryContextMiddleware",
+    # Query timeout monitoring and slow query logging
+    "config.query_monitoring.QueryTimeoutMonitoringMiddleware",
     # TIER 0: Portal containment (must come after FirmContextMiddleware)
     "modules.clients.middleware.PortalContainmentMiddleware",
     # TIER 0.6: Break-glass awareness for impersonation banners + auditing
@@ -152,6 +159,13 @@ DATABASES = {
         "CONN_MAX_AGE": 600,  # Connection pooling
     }
 }
+
+DB_STATEMENT_TIMEOUT_MS = get_statement_timeout_ms()
+DB_SLOW_QUERY_THRESHOLD_MS = get_slow_query_threshold_ms()
+
+database_options = build_database_options(DATABASES["default"]["ENGINE"])
+if database_options:
+    DATABASES["default"].setdefault("OPTIONS", {}).update(database_options)
 
 # ASSESS-C3.10: Standardize tests to use Postgres (not SQLite)
 # SQLite only allowed for local development if explicitly enabled
@@ -466,6 +480,11 @@ LOGGING = {
         "config.exceptions": {
             "handlers": ["console", "error_file"],
             "level": "INFO",
+            "propagate": False,
+        },
+        "config.query_monitoring": {
+            "handlers": ["console", "file"],
+            "level": "WARNING",
             "propagate": False,
         },
         "modules": {

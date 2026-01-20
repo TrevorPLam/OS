@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **Database Query Timeouts** (2026-01-21)
+  - **T-142**: Added global PostgreSQL statement timeouts, slow query logging middleware, and runbook guidance for timeout tuning.
+
 - **OAuth CSRF Protection** (2026-01-20)
   - **T-135**: Added session-bound OAuth state tokens with constant-time validation and replay prevention in auth callbacks.
 
