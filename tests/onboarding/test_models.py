@@ -208,7 +208,7 @@ class TestOnboardingDocument:
         def fake_send(*args, **kwargs):
             return None
 
-        monkeypatch.setattr("modules.onboarding.models.EmailNotification.send", fake_send)
+        monkeypatch.setattr("modules.core.notifications.EmailNotification.send", fake_send)
 
         document = OnboardingDocument.objects.create(
             process=process,
