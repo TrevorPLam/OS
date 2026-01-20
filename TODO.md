@@ -6,8 +6,8 @@ Task Truth Source: **TODO.md**
 
 <!--
 Meta-commentary:
-- Current Status: Authoritative task list; T-126 moved to TODOCOMPLETED.md.
-- Mapping: Mirrors completed work recorded in TODOCOMPLETED.md and CHANGELOG.md.
+  - Current Status: Authoritative task list; T-127 and T-137 moved to TODOCOMPLETED.md.
+  - Mapping: Mirrors completed work recorded in TODOCOMPLETED.md and CHANGELOG.md.
 - Reasoning: Keep task truth source accurate after completion.
 - Assumption: Tasks are appended/moved manually with auditability in mind.
 - Limitation: This file does not capture execution details beyond acceptance criteria.
@@ -41,29 +41,6 @@ If another document disagrees, the task record in this file wins (unless the Con
 ## Active tasks
 
 ### Phase 0 — Production readiness blockers (P0)
-
-### T-127: Fix timing attack on OTP comparison (REFACTOR Phase 0)
-Priority: P0
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 0 Item 2 - IMMEDIATE P0 FIX
-- MFA OTP comparison uses == instead of constant-time comparison
-- Timing attacks can bypass MFA via timing analysis
-- FORENSIC_AUDIT.md Issue #5.3
-Acceptance Criteria:
-- [ ] Replace == with hmac.compare_digest() in src/modules/auth/mfa_views.py:287,299
-- [ ] Add security test for timing attack prevention
-- [ ] Run existing tests: pytest src/tests/
-- [ ] Manual test: OTP login flow
-References:
-- REFACTOR_PLAN.md:153-157
-- FORENSIC_AUDIT.md Issue #5.3
-- src/modules/auth/mfa_views.py:287,299
-Dependencies: None
-Effort: S
 
 ### T-128: Fix CSRF bypass on SAML endpoints (REFACTOR Phase 0)
 Priority: P0
@@ -312,30 +289,6 @@ References:
 - REFACTOR_PLAN.md:234-237
 - FORENSIC_AUDIT.md Issue #5.1
 - src/modules/auth/saml_views.py:163,209,243
-Dependencies: None
-Effort: S
-
-### T-137: Add rate limiting to MFA endpoints (REFACTOR Phase 2)
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 2 Item 4 - Eliminate critical security vulnerabilities
-- MFA endpoints lack rate limiting
-- Enables brute-force TOTP attacks
-- FORENSIC_AUDIT.md Issue #5.15 findings
-Acceptance Criteria:
-- [ ] Add @ratelimit decorators to src/modules/auth/mfa_views.py:80,127
-- [ ] Configure rate limit: 5 attempts per minute per IP
-- [ ] Add tests for rate limit enforcement
-- [ ] Document rate limiting in SECURITY.md
-- [ ] Monitor rate limit violations in production
-References:
-- REFACTOR_PLAN.md:239-242, 615-653
-- FORENSIC_AUDIT.md Issue #5.15
-- src/modules/auth/mfa_views.py:80,127
 Dependencies: None
 Effort: S
 

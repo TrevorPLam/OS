@@ -1,6 +1,6 @@
 # SECURITY.md
 
-Last Updated: 2026-01-02
+Last Updated: 2026-01-20
 
 ## Supported versions
 This repository is a template framework. When used in a real project, define supported release lines here.
@@ -17,6 +17,10 @@ If this repo is deployed/used in production, define a private reporting channel 
 ## Quick checks
 - Run: `make ci`
 - Review: `docs/SECURITY_BASELINE.md`
+
+## MFA rate limiting
+- TOTP enrollment and verification are limited to 5 requests per minute per IP.
+- SMS MFA endpoints remain protected with user/IP rate limits to deter brute-force attempts.
 
 ## Tenant isolation (RLS)
 - PostgreSQL row-level security is enabled for firm-scoped tables. See `docs/SECURITY_RLS.md` for the table inventory and session-handling rules (`app.current_firm_id` via middleware/background jobs).

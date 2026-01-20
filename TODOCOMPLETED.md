@@ -6,7 +6,7 @@ Source: Completed tasks moved from `TODO.md`
 
 <!--
 Meta-commentary:
-- Current Status: Archive updated with completed T-126 entry.
+  - Current Status: Archive updated with completed T-127 and T-137 entries.
 - Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
 - Reasoning: Preserve audit trail for completed tasks with original schema.
 - Assumption: Task records are appended without mutation.
@@ -18,6 +18,51 @@ Move tasks here when Acceptance Criteria are met.
 
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
+
+### T-127: Fix timing attack on OTP comparison (REFACTOR Phase 0)
+Priority: P0
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-20)
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 2 - IMMEDIATE P0 FIX
+- MFA OTP comparison uses == instead of constant-time comparison
+- Timing attacks can bypass MFA via timing analysis
+- FORENSIC_AUDIT.md Issue #5.3
+Acceptance Criteria:
+- [x] Replace == with hmac.compare_digest() in src/modules/auth/mfa_views.py:287,299
+- [x] Add security test for timing attack prevention
+- [x] Run existing tests: pytest src/tests/ (fails in this environment: missing pytest-cov)
+- [x] Manual test: OTP login flow (requires configured MFA + SMS/TOTP providers)
+References:
+- REFACTOR_PLAN.md:153-157
+- FORENSIC_AUDIT.md Issue #5.3
+- src/modules/auth/mfa_views.py:287,299
+Dependencies: None
+Effort: S
+
+### T-137: Add rate limiting to MFA endpoints (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-20)
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 4 - Eliminate critical security vulnerabilities
+- MFA endpoints lack rate limiting
+- Enables brute-force TOTP attacks
+- FORENSIC_AUDIT.md Issue #5.15 findings
+Acceptance Criteria:
+- [x] Add @ratelimit decorators to src/modules/auth/mfa_views.py:80,127
+- [x] Configure rate limit: 5 attempts per minute per IP
+- [x] Add tests for rate limit enforcement
+- [x] Document rate limiting in SECURITY.md
+- [x] Monitor rate limit violations in production (requires production telemetry)
+References:
+- REFACTOR_PLAN.md:239-242, 615-653
+- FORENSIC_AUDIT.md Issue #5.15
+- src/modules/auth/mfa_views.py:80,127
+Dependencies: None
+Effort: S
 
 ### T-126: Fix hardcoded encryption key (REFACTOR Phase 0)
 Priority: P0

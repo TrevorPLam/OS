@@ -75,8 +75,10 @@ def send_sms_otp(user, otp_code):
         return False, f"SMS sending failed: {str(e)}"
 
 
+# SECURITY: Rate limit enrollment to slow brute-force attempts (5/minute per IP).
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 def mfa_enroll_totp(request):
     """
     Sprint 1.11: Enroll in TOTP (Time-based OTP) authentication.
@@ -123,8 +125,10 @@ def mfa_enroll_totp(request):
     }, status=status.HTTP_201_CREATED)
 
 
+# SECURITY: Rate limit verification to slow brute-force attempts (5/minute per IP).
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 def mfa_verify_totp(request):
     """
     Sprint 1.11: Verify TOTP code to complete enrollment or during login.

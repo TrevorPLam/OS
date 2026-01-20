@@ -126,8 +126,22 @@ def test_impersonation_logged():
         target=target_user
     ).first()
     
-    assert log is not None
-    assert log.ip_address is not None
+assert log is not None
+assert log.ip_address is not None
+```
+
+### 6. MFA OTP Hardening (`test_mfa_security.py`)
+
+**Invariant**: MFA OTP verification uses constant-time comparisons and rate limits requests.
+
+```python
+def test_sms_mfa_uses_constant_time_comparison():
+    """OTP checks must call hmac.compare_digest (constant-time)."""
+    ...
+
+def test_totp_verification_rate_limited_by_ip():
+    """TOTP verification must block after 5 requests per minute per IP."""
+    ...
 ```
 
 ## Running Safety Tests
