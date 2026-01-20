@@ -32,6 +32,8 @@ The repository has comprehensive end-to-end testing infrastructure in place, wit
 
 ### 2. Codebase Assessment ✅
 
+*Note: All line counts measured using `wc -l` command, representing total lines including code, comments, and whitespace. Some tools may show +1 due to counting trailing newlines differently.*
+
 #### Backend E2E Tests (pytest):
 Located in `/tests/e2e/`:
 
@@ -60,8 +62,6 @@ Located in `/tests/e2e/`:
 
 **Backend E2E Total**: 1,095 lines of test code
 
-*Note: Line counts measured using `wc -l` command. Some tools may show +1 due to counting trailing newlines.*
-
 #### Frontend E2E Tests (Playwright):
 Located in `/src/frontend/e2e/`:
 
@@ -82,8 +82,6 @@ Located in `/src/frontend/e2e/`:
    - Basic app shell loading test
 
 **Frontend E2E Total**: 340 lines of test code
-
-*Note: Line counts measured using `wc -l` command. Some tools may show +1 due to counting trailing newlines.*
 
 #### Infrastructure:
 - ✅ pytest.ini configured with `@pytest.mark.e2e` marker
@@ -135,9 +133,9 @@ Task T-049: "Implement E2E tests for critical paths (Playwright)"
 - Tests cover critical paths → ✅ Auth, payments, workflows all covered
 - Configuration follows repository standards → ✅ Matches patterns
 
-## Recommended E2E Tests (Phase 3 Stretch Goals)
+## Recommended E2E Tests (Long-term Phase 3 Goals)
 
-TEST_COVERAGE.md documents 5 additional recommended E2E tests as **PHASE 3 STRETCH GOALS** (not currently implemented):
+TEST_COVERAGE.md documents 5 additional recommended E2E tests under **"Long-term (Phase 3)"** section:
 
 1. **Client Onboarding End-to-End**
    - Prospect → Client → Engagement → Project
@@ -154,8 +152,8 @@ TEST_COVERAGE.md documents 5 additional recommended E2E tests as **PHASE 3 STRET
 5. **Webhook Delivery Pipeline**
    - Event → Delivery → Retry → Success/Failure
 
-**Status**: These are documented as **future recommendations** in TEST_COVERAGE.md Phase 3, not missing implementations.
-**Action**: No immediate action needed - these are stretch goals for future expansion, not production blockers.
+**Status**: These are documented as **future recommendations** (TEST_COVERAGE.md "Phase 3 - Long-term" section), not missing implementations.
+**Action**: No immediate action needed - these are optional expansion goals for future work, not production blockers.
 
 ## Gap Analysis
 
