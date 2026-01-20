@@ -60,6 +60,8 @@ Located in `/tests/e2e/`:
 
 **Backend E2E Total**: 1,095 lines of test code
 
+*Note: Line counts measured using `wc -l` command. Some tools may show +1 due to counting trailing newlines.*
+
 #### Frontend E2E Tests (Playwright):
 Located in `/src/frontend/e2e/`:
 
@@ -80,6 +82,8 @@ Located in `/src/frontend/e2e/`:
    - Basic app shell loading test
 
 **Frontend E2E Total**: 340 lines of test code
+
+*Note: Line counts measured using `wc -l` command. Some tools may show +1 due to counting trailing newlines.*
 
 #### Infrastructure:
 - ✅ pytest.ini configured with `@pytest.mark.e2e` marker
