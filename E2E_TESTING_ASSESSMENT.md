@@ -28,8 +28,9 @@ The repository has comprehensive end-to-end testing infrastructure in place, wit
 - ⚠️ **8 modules lack test implementation** (not properly documented)
 - ✅ Clear instructions for running E2E tests
 - ✅ Proper test organization and categorization
-- ⚠️ Coverage metrics need correction (see TEST_COVERAGE_DISCREPANCY_REPORT.md)
+- ⚠️ Coverage metrics need correction
 - ✅ Next steps clearly defined
+- **Details documented in TEST_COVERAGE_DISCREPANCY_REPORT.md**
 
 ### 2. Codebase Assessment ✅
 
