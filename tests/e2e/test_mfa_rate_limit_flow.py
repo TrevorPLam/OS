@@ -36,5 +36,9 @@ def test_mfa_totp_rate_limit_blocks_after_five_attempts():
         force_authenticate(request, user=user)
         responses.append(mfa_verify_totp(request))
 
+    # No TOTP device is configured for this user; the initial 400/404 responses
+    # reflect invalid verification attempts. This test is specifically asserting
+    # that the IP-based rate limiting still triggers with a 429 after five tries,
+    # regardless of the underlying TOTP device state.
     assert all(response.status_code in {400, 404} for response in responses[:5])
     assert responses[5].status_code == 429
