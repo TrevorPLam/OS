@@ -26,11 +26,12 @@ def test_sms_mfa_uses_constant_time_comparison(monkeypatch):
     cache.set(f"sms_otp_enroll_{user.id}", "123456", timeout=60)
 
     calls = []
+    original_compare_digest = hmac.compare_digest
 
-    def tracking_compare_digest(left, right):
+    def tracking_compare_digest(a, b):
         # Keep behavior consistent while tracking invocation for security assurance.
-        calls.append((left, right))
-        return str(left) == str(right)
+        calls.append((a, b))
+        return original_compare_digest(a, b)
 
     monkeypatch.setattr(hmac, "compare_digest", tracking_compare_digest)
 
