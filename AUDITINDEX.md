@@ -99,6 +99,31 @@ A change meets Perfect Codebase Standard when:
 
 ---
 
+## Full-Spectrum Forensic Audit
+
+### G) Full-spectrum security and code quality forensic analysis
+For comprehensive repository-wide security and quality audits:
+
+Run:
+- FORENSIC_AUDIT.md (root level) - Complete forensic analysis
+
+This audit covers:
+- Language & Type System
+- Runtime & Execution
+- State & Architecture
+- Performance
+- Security
+- Dependencies
+- Testing & Observability
+- Build, CI/CD & Release
+- Accessibility & UX Safety
+- Cross-cutting concerns
+
+Purpose: Deep security analysis assuming repository is unsafe until proven otherwise.
+Not for routine changes - only for comprehensive security reviews.
+
+---
+
 ## Output Format (Always)
 Use: audits/templates/AUDIT_REPORT_TEMPLATE.md
 

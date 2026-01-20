@@ -36,5 +36,10 @@ EXPOSE 8000
 # Set working directory to src
 WORKDIR /app/src
 
-# Run Django development server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Run production server with gunicorn
+# SECURITY: Do not use Django's development server in production
+# - No SSL/TLS support
+# - Single-threaded (poor performance)
+# - DEBUG mode leaks stack traces
+# - Not hardened for security
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "config.wsgi:application"]

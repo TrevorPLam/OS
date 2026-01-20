@@ -284,7 +284,11 @@ def mfa_verify_sms(request):
     cache_key_login = f"sms_otp_login_{user.id}"
     stored_code_login = cache.get(cache_key_login)
     
-    if stored_code_enroll and code == stored_code_enroll:
+    # SECURITY: Use constant-time comparison to prevent timing attacks
+    # See: FORENSIC_AUDIT.md Issue #5.3
+    import hmac
+    
+    if stored_code_enroll and hmac.compare_digest(str(code), str(stored_code_enroll)):
         # Enrollment verification successful
         cache.delete(cache_key_enroll)
         
@@ -296,7 +300,7 @@ def mfa_verify_sms(request):
             "message": "SMS MFA enrollment successful"
         }, status=status.HTTP_200_OK)
     
-    elif stored_code_login and code == stored_code_login:
+    elif stored_code_login and hmac.compare_digest(str(code), str(stored_code_login)):
         # Login verification successful
         cache.delete(cache_key_login)
         return Response({
