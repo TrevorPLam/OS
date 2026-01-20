@@ -117,7 +117,7 @@ class TestDeliveryTemplate:
         )
 
         with pytest.raises(ValidationError):
-            template.full_clean()
+            template.save()
 
 
 @pytest.mark.django_db
