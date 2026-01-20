@@ -246,8 +246,29 @@ def handle_payment_intent_succeeded(payment_intent, webhook_event=None):
     try:
         invoice = Invoice.objects.get(id=invoice_id)
 
+        # SECURITY: Validate amount_received is numeric before arithmetic
+        # See: FORENSIC_AUDIT.md Issue #1.3
+        amount_received_cents = payment_intent.get("amount_received")
+        if not isinstance(amount_received_cents, (int, float)):
+            logger.error(
+                "Invalid amount_received type from Stripe",
+                extra={
+                    "type": type(amount_received_cents).__name__,
+                    "value": amount_received_cents,
+                    "invoice_id": invoice_id,
+                }
+            )
+            raise ValueError(f"Invalid amount_received type: {type(amount_received_cents).__name__}")
+        
+        if amount_received_cents < 0:
+            logger.error(
+                "Negative amount_received from Stripe",
+                extra={"amount": amount_received_cents, "invoice_id": invoice_id}
+            )
+            raise ValueError(f"Negative amount_received: {amount_received_cents}")
+
         # Calculate amount received (in cents, convert to dollars)
-        amount_received = payment_intent["amount_received"] / 100
+        amount_received = amount_received_cents / 100
 
         # Update invoice
         invoice.amount_paid += amount_received

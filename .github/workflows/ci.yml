@@ -1,0 +1,189 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'copilot/**'
+
+jobs:
+  # Backend Tests
+  test-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+      
+      - name: Run tests with coverage
+        run: |
+          cd src
+          pytest --cov=modules --cov=api --cov-report=term-missing --cov-report=html --cov-fail-under=10
+        env:
+          DJANGO_SECRET_KEY: "test-secret-key-for-ci-only"
+          DJANGO_DEBUG: "False"
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: src/htmlcov/
+
+  # Linting & Code Quality
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install linting tools
+        run: |
+          pip install --upgrade pip
+          pip install black ruff mypy
+      
+      - name: Check code formatting (black)
+        run: black --check src/
+      
+      - name: Run ruff linter
+        run: ruff check src/
+      
+      - name: Run type checker (mypy)
+        run: mypy src/
+        continue-on-error: true  # Allow failures initially while we fix type issues
+
+  # Security Scanning
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install security tools
+        run: |
+          pip install --upgrade pip
+          pip install pip-audit bandit[toml]
+      
+      - name: Run dependency audit
+        run: pip-audit --requirement requirements.txt --requirement requirements-dev.txt
+        continue-on-error: true  # Allow failures initially
+      
+      - name: Run Bandit security scanner
+        run: bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true  # Allow failures initially
+      
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  # Frontend Tests
+  test-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: |
+          cd src/frontend
+          npm ci
+      
+      - name: Run type checker
+        run: |
+          cd src/frontend
+          npm run typecheck
+      
+      - name: Run tests
+        run: |
+          cd src/frontend
+          npm run test
+      
+      - name: Build frontend
+        run: |
+          cd src/frontend
+          npm run build
+
+  # Docker Build Test
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: consultantpro:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # All checks must pass
+  ci-success:
+    runs-on: ubuntu-latest
+    needs: [test-backend, lint, security, test-frontend, docker-build]
+    if: always()
+    
+    steps:
+      - name: Check all jobs
+        run: |
+          if [ "${{ needs.test-backend.result }}" != "success" ]; then
+            echo "Backend tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.lint.result }}" != "success" ]; then
+            echo "Linting failed"
+            exit 1
+          fi
+          if [ "${{ needs.test-frontend.result }}" != "success" ]; then
+            echo "Frontend tests failed"
+            exit 1
+          fi
+          if [ "${{ needs.docker-build.result }}" != "success" ]; then
+            echo "Docker build failed"
+            exit 1
+          fi
+          echo "All CI checks passed!"

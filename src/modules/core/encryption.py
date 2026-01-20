@@ -74,10 +74,36 @@ class AWSKMSBackend:
 
 
 def _get_backend() -> EncryptionBackend:
-    backend = os.environ.get("KMS_BACKEND", "local").lower()
-    if backend == "aws":
+    """
+    Get encryption backend from environment.
+    
+    SECURITY: No fallback defaults. Application fails fast if misconfigured.
+    This prevents production deployments with hardcoded test keys.
+    """
+    backend = os.environ.get("KMS_BACKEND")
+    if not backend:
+        raise ValueError(
+            "KMS_BACKEND environment variable required. "
+            "Must be 'aws' or 'local'. "
+            "SECURITY: No defaults to prevent production misconfigurations."
+        )
+    
+    backend_lower = backend.lower()
+    if backend_lower == "aws":
         return AWSKMSBackend()
-    return LocalKMSBackend(os.environ.get("LOCAL_KMS_MASTER_KEY", "local-dev-master-key"))
+    elif backend_lower == "local":
+        key = os.environ.get("LOCAL_KMS_MASTER_KEY")
+        if not key:
+            raise ValueError(
+                "LOCAL_KMS_MASTER_KEY environment variable required for local KMS backend. "
+                "SECURITY: No hardcoded fallback keys allowed."
+            )
+        return LocalKMSBackend(key)
+    else:
+        raise ValueError(
+            f"Unknown KMS backend: {backend}. "
+            f"Supported backends: 'aws', 'local'"
+        )
 
 
 def _firm_key_id(firm_id: int) -> str:
