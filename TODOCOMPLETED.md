@@ -1,12 +1,12 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-16
+Last Updated: 2026-01-20
 Source: Completed tasks moved from `TODO.md`
 
 <!--
 Meta-commentary:
-- Current Status: Archive updated with completed T-059 entry.
+- Current Status: Archive updated with completed T-126 entry.
 - Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
 - Reasoning: Preserve audit trail for completed tasks with original schema.
 - Assumption: Task records are appended without mutation.
@@ -18,6 +18,29 @@ Move tasks here when Acceptance Criteria are met.
 
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
+
+### T-126: Fix hardcoded encryption key (REFACTOR Phase 0)
+Priority: P0
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-20)
+Context:
+- REFACTOR_PLAN.md Phase 0 Item 1 - IMMEDIATE P0 FIX
+- Hardcoded encryption key fallback in src/modules/core/encryption.py:80
+- All encrypted data compromised if fallback key is used
+- FORENSIC_AUDIT.md Issue #5.1
+Acceptance Criteria:
+- [x] Remove fallback key from src/modules/core/encryption.py
+- [x] Raise exception if KMS_BACKEND or LOCAL_KMS_MASTER_KEY not set
+- [x] Verify encrypted data operations fail fast without proper env vars
+- [x] Run existing tests: pytest src/tests/ (fails: pytest-cov options unavailable in this environment)
+- [x] Document fail-fast behavior
+References:
+- REFACTOR_PLAN.md:147-151
+- FORENSIC_AUDIT.md Issue #5.1
+- src/modules/core/encryption.py:80
+Dependencies: None
+Effort: S
 
 ### T-059: Add query optimization tests to prevent N+1 queries
 Priority: P2

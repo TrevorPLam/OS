@@ -295,8 +295,9 @@ AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME", "")
 AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME", "us-east-1")
 
 # E2EE / KMS Configuration
-DEFAULT_FIRM_KMS_KEY_ID = os.environ.get("DEFAULT_FIRM_KMS_KEY_ID", "local-default-key")
-KMS_BACKEND = os.environ.get("KMS_BACKEND", "local")
+# SECURITY: No hardcoded fallback keys/backends. Fail fast if unset.
+DEFAULT_FIRM_KMS_KEY_ID = os.environ.get("DEFAULT_FIRM_KMS_KEY_ID")
+KMS_BACKEND = os.environ.get("KMS_BACKEND")
 
 # Stripe Configuration (for Finance module)
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")

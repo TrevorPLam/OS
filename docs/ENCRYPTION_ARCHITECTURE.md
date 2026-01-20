@@ -368,12 +368,20 @@ python manage.py reencrypt_firm_data --firm-id=123
 
 **Local Development:**
 ```bash
+# Required fail-fast configuration
+export KMS_BACKEND="local"
+export DEFAULT_FIRM_KMS_KEY_ID="local-dev-firm-key"
+
 # Environment variable
 export LOCAL_KMS_MASTER_KEY="dev-key-not-for-production"
 
 # Never commit to git
 # Add to .env.local (gitignored)
 ```
+
+**Fail-fast behavior:** startup and encryption operations raise a `ValueError` if
+`KMS_BACKEND`, `LOCAL_KMS_MASTER_KEY` (for local), or `DEFAULT_FIRM_KMS_KEY_ID`
+is missing. This prevents silently using hardcoded or insecure defaults.
 
 ## Encryption Performance
 
