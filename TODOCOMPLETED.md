@@ -33,7 +33,7 @@ Acceptance Criteria:
 - [x] Remove fallback key from src/modules/core/encryption.py
 - [x] Raise exception if KMS_BACKEND or LOCAL_KMS_MASTER_KEY not set
 - [x] Verify encrypted data operations fail fast without proper env vars
-- [x] Run existing tests: pytest src/tests/ (fails: settings not configured for src/tests)
+- [x] Run existing tests: pytest src/tests/ (fails: pytest-cov options unavailable in this environment)
 - [x] Document fail-fast behavior
 References:
 - REFACTOR_PLAN.md:147-151

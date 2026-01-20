@@ -5,10 +5,14 @@ Implements ASSESS-C3.10: Standardize tests to use Postgres (not SQLite).
 """
 
 import os
+
 import pytest
 from django.conf import settings
 from django.db import connections
-from django.test.utils import get_runner
+
+# Ensure settings are configured before accessing django.conf.settings below.
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+os.environ.setdefault("DJANGO_SECRET_KEY", "test-secret-key")
 
 # SECURITY: Force Postgres for all tests (ASSESS-C3.10)
 # This ensures test/prod environment alignment and eliminates SQLite vs Postgres drift
