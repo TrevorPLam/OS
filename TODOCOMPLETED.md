@@ -188,6 +188,7 @@ References:
 - Docker Compose environment
 - src/frontend/
 Dependencies: T-077
+Effort: M
 
 ### T-049: Implement E2E tests for critical paths (Playwright)
 Priority: P1
@@ -213,7 +214,6 @@ References:
 Dependencies: None
 Child Tasks: T-077, T-078, T-079
 Effort: L
-Effort: M
 
 ### T-074: Set up frontend unit test tooling
 Priority: P1
