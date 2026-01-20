@@ -120,53 +120,57 @@ This document tracks end-to-end testing coverage for the ConsultantPro platform.
 
 ### 🟨 Test Structure Created (Needs Implementation)
 
-#### 1. **communications**
-- `tests/communications/__init__.py` ✅
-- **Needs**: Message models, delivery tracking, multi-channel tests
+**8 modules without test implementation:**
 
-#### 2. **accounting_integrations**
-- `tests/accounting_integrations/__init__.py` ✅
-- **Needs**: QuickBooks sync, reconciliation tests
+#### Modules with test directory but NO test files (7):
+1. **accounting_integrations** - `tests/accounting_integrations/__init__.py` ✅
+   - **Needs**: QuickBooks sync, reconciliation tests
 
-#### 3. **delivery**
-- `tests/delivery/__init__.py` ✅
-- **Needs**: Service delivery tracking, milestone tests
+2. **delivery** - `tests/delivery/__init__.py` ✅
+   - **Needs**: Service delivery tracking, milestone tests
 
-#### 4. **orchestration**
-- `tests/orchestration/__init__.py` ✅
-- **Needs**: Workflow orchestration, step execution tests
+3. **onboarding** - `tests/onboarding/__init__.py` ✅
+   - **Needs**: Client onboarding workflow tests
 
-#### 5. **pricing**
-- `tests/pricing/__init__.py` ✅
-- **Needs**: Pricing models, tier management tests
+4. **recurrence** - `tests/recurrence/__init__.py` ✅
+   - **Needs**: Recurring event generation tests
 
-#### 6. **email_ingestion**
-- `tests/email_ingestion/__init__.py` ✅
-- **Needs**: Email parsing, ingestion pipeline tests
+5. **sms** - `tests/sms/__init__.py` ✅
+   - **Needs**: SMS delivery, template tests
 
-#### 7. **knowledge**
-- `tests/knowledge/__init__.py` ✅
-- **Needs**: Knowledge base, article management tests
+6. **snippets** - `tests/snippets/__init__.py` ✅
+   - **Needs**: Code snippet management tests
 
-#### 8. **onboarding**
-- `tests/onboarding/__init__.py` ✅
-- **Needs**: Client onboarding workflow tests
+7. **support** - `tests/support/__init__.py` ✅
+   - **Needs**: Help desk, ticket management tests
 
-#### 9. **recurrence**
-- `tests/recurrence/__init__.py` ✅
-- **Needs**: Recurring event generation tests
+#### Module with NO test directory (1):
+8. **esignature** - No test directory at all
+   - **Needs**: E-signature workflow tests, provider integration tests
 
-#### 10. **sms**
-- `tests/sms/__init__.py` ✅
-- **Needs**: SMS delivery, template tests
+### ✅ Test Structure Created WITH Test Implementation (5 modules)
 
-#### 11. **snippets**
-- `tests/snippets/__init__.py` ✅
-- **Needs**: Code snippet management tests
+**Previously miscategorized as "structure only" - these modules have test implementation:**
 
-#### 12. **support**
-- `tests/support/__init__.py` ✅
-- **Needs**: Help desk, ticket management tests
+1. **communications** - `tests/communications/test_models.py` ✅
+   - **Has**: Message models tests
+   - **Note**: Previously listed as "needs implementation"
+
+2. **email_ingestion** - `tests/email_ingestion/test_models.py` ✅
+   - **Has**: Email parsing tests
+   - **Note**: Previously listed as "needs implementation"
+
+3. **knowledge** - `tests/knowledge/test_models.py` ✅
+   - **Has**: Knowledge base tests
+   - **Note**: Previously listed as "needs implementation"
+
+4. **orchestration** - `tests/orchestration/test_models.py` ✅
+   - **Has**: Workflow orchestration tests
+   - **Note**: Previously listed as "needs implementation"
+
+5. **pricing** - `tests/pricing/test_models.py` ✅
+   - **Has**: Pricing models tests
+   - **Note**: Previously listed as "needs implementation"
 
 ## End-to-End Test Coverage
 
@@ -270,16 +274,42 @@ pytest --cov=src/modules --cov-report=html
 ## Coverage Metrics
 
 ### Current Status
-- **Modules with Tests**: 17 / 30 (57%)
+- **Modules with Tests**: 22 / 30 (73% coverage)
 - **Test Files**: 60+ files
 - **Total Tests**: 400+ test cases
 - **Coverage Target**: ≥70% (enforced)
 - **Test Execution**: Automated via pytest
 
 ### Module Coverage Breakdown
-- ✅ **Fully Tested**: 17 modules (clients, core, automation, calendar, jobs, webhooks, crm, documents, finance, firm, projects, integrations, marketing, tracking, auth, ad_sync, assets)
-- 🟨 **Structure Ready**: 12 modules (communications, accounting_integrations, delivery, orchestration, pricing, email_ingestion, knowledge, onboarding, recurrence, sms, snippets, support)
-- ❌ **Not Started**: 1 module (esignature has partial tests)
+
+**✅ Fully Tested: 22 modules (73%)**
+- clients, core, automation, calendar, jobs, webhooks
+- crm, documents, finance, firm, projects, integrations
+- marketing, tracking, auth, ad_sync, assets
+- **communications, email_ingestion, knowledge, orchestration, pricing** (corrected: have test implementation)
+
+**🟨 Test Structure Only: 7 modules (23%)**
+- accounting_integrations, delivery, onboarding, recurrence, sms, snippets, support
+
+**❌ Not Started: 1 module (3%)**
+- esignature (no test directory)
+
+**⚠️ Total Missing Test Implementation: 8 modules**
+
+### Corrected Statistics (2026-01-20)
+
+**Previous (Incorrect):**
+- ✅ **Fully Tested**: 17 modules (57%)
+- 🟨 **Structure Ready**: 12 modules
+- ❌ **Not Started**: 1 module
+
+**Current (Corrected):**
+- ✅ **Fully Tested**: 22 modules (73%)
+- 🟨 **Structure Only**: 7 modules
+- ❌ **Not Started**: 1 module
+- **Note**: 5 modules (communications, email_ingestion, knowledge, orchestration, pricing) were previously miscategorized as "structure only" but have test implementation
+
+See TEST_COVERAGE_DISCREPANCY_REPORT.md for detailed analysis of the discrepancy.
 
 ## Next Steps
 
