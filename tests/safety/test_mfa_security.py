@@ -36,9 +36,25 @@ def test_sms_mfa_uses_constant_time_comparison(monkeypatch):
     monkeypatch.setattr(hmac, "compare_digest", tracking_compare_digest)
 
     factory = APIRequestFactory()
+
+    # Positive path: valid OTP should succeed and use compare_digest
     request = factory.post("/api/auth/mfa/verify/sms/", {"code": "123456"}, format="json")
     force_authenticate(request, user=user)
     response = mfa_verify_sms(request)
+
+    assert response.status_code == 200
+    assert calls, "compare_digest must be used for OTP comparisons"
+
+    # Reset tracking for negative path assertion
+    calls.clear()
+
+    # Negative path: invalid OTP should still invoke compare_digest and fail in constant time
+    request = factory.post("/api/auth/mfa/verify/sms/", {"code": "000000"}, format="json")
+    force_authenticate(request, user=user)
+    response = mfa_verify_sms(request)
+
+    assert response.status_code in (400, 401)
+    assert calls, "compare_digest must be used for OTP comparisons even on invalid codes"
 
     assert response.status_code == 200
     assert calls, "compare_digest must be used for OTP comparisons"
