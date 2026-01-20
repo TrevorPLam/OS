@@ -9,6 +9,7 @@ Reference documentation is information-oriented and designed for quick lookup of
 ### API & Contracts
 - [API Documentation](api/README.md) - REST API reference and OpenAPI specification
 - [Requirements Specifications](requirements/README.md) - Canonical requirements (DOC-1 through DOC-35)
+- [API Module Coverage](api-module-coverage.md) - Inventory of module-level API endpoint coverage
 
 ### Configuration
 - [Environment Variables](environment-variables.md) - Environment variable reference

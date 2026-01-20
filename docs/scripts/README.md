@@ -76,6 +76,22 @@ This script is automatically run by:
 - `0`: No violations found ✅
 - `1`: Violations detected ❌
 
+## Documentation Inventory Scripts
+
+### `inventory_api_coverage.py`
+
+**Purpose**: Inventory API endpoint coverage across `src/modules/` and `src/api/`.
+
+**What it checks**:
+- `src/modules/<module>/urls.py` and `src/modules/<module>/views.py`
+- `src/api/<module>/urls.py` and `src/api/<module>/views.py`
+
+**Usage**:
+
+```bash
+python docs/scripts/inventory_api_coverage.py
+```
+
 ## Setup
 
 ### Install development tools:
