@@ -6,7 +6,7 @@ Task Truth Source: **TODO.md**
 
 <!--
 Meta-commentary:
-  - Current Status: Authoritative task list; T-127 and T-137 moved to TODOCOMPLETED.md.
+  - Current Status: Authoritative task list; T-127, T-137, and T-138 moved to TODOCOMPLETED.md.
   - Mapping: Mirrors completed work recorded in TODOCOMPLETED.md and CHANGELOG.md.
 - Reasoning: Keep task truth source accurate after completion.
 - Assumption: Tasks are appended/moved manually with auditability in mind.
@@ -291,31 +291,6 @@ References:
 - src/modules/auth/saml_views.py:163,209,243
 Dependencies: None
 Effort: S
-
-### T-138: Scrub sensitive data from webhook logs (REFACTOR Phase 2)
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 2 Item 5 - Eliminate critical security vulnerabilities
-- Webhook event_data stored with PII unredacted
-- PCI-DSS violation for payment data
-- FORENSIC_AUDIT.md Issue #5.10
-Acceptance Criteria:
-- [ ] Redact PII before storing event_data in src/api/finance/webhooks.py:112
-- [ ] Create sanitization function for webhook payloads
-- [ ] Redact: card numbers, CVV, email addresses, phone numbers
-- [ ] Add tests for data sanitization
-- [ ] Document PII handling in PRIVACY_POLICY.md
-References:
-- REFACTOR_PLAN.md:244-247
-- FORENSIC_AUDIT.md Issue #5.10
-- src/api/finance/webhooks.py:112
-- PRIVACY_POLICY.md
-Dependencies: None
-Effort: M
 
 ### T-050: Create incident response runbooks
 Priority: P1

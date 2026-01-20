@@ -6,7 +6,7 @@ Source: Completed tasks moved from `TODO.md`
 
 <!--
 Meta-commentary:
-  - Current Status: Archive updated with completed T-127 and T-137 entries.
+  - Current Status: Archive updated with completed T-127, T-137, and T-138 entries.
 - Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
 - Reasoning: Preserve audit trail for completed tasks with original schema.
 - Assumption: Task records are appended without mutation.
@@ -223,7 +223,6 @@ References:
 - Diamond Standard Plan Phase 3
 Dependencies: None
 Effort: M
-
 
 ### T-078: Add Playwright E2E coverage for authentication flows
 Priority: P1
@@ -903,5 +902,29 @@ References:
 - tests/
 - CONTRIBUTING.md
 - Diamond Standard Plan Phase 8
+Dependencies: None
+Effort: M
+
+### T-138: Scrub sensitive data from webhook logs (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-20)
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 5 - Eliminate critical security vulnerabilities
+- Webhook event_data stored with PII unredacted
+- PCI-DSS violation for payment data
+- FORENSIC_AUDIT.md Issue #5.10
+Acceptance Criteria:
+- [x] Redact PII before storing event_data in src/api/finance/webhooks.py:112
+- [x] Create sanitization function for webhook payloads
+- [x] Redact: card numbers, CVV, email addresses, phone numbers
+- [x] Add tests for data sanitization
+- [x] Document PII handling in PRIVACY_POLICY.md
+References:
+- REFACTOR_PLAN.md:244-247
+- FORENSIC_AUDIT.md Issue #5.10
+- src/api/finance/webhooks.py:112
+- PRIVACY_POLICY.md
 Dependencies: None
 Effort: M

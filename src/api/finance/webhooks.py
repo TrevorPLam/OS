@@ -5,6 +5,8 @@ Handles asynchronous payment confirmations and updates.
 """
 
 import logging
+import re
+from collections.abc import Mapping
 from datetime import timedelta
 
 import stripe
@@ -25,6 +27,81 @@ from modules.finance.models import Invoice, StripeWebhookEvent
 logger = logging.getLogger(__name__)
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+REDACTION_TOKEN = "[REDACTED]"
+CARD_NUMBER_KEYS = {
+    "card_number",
+    "cardnumber",
+    "number",
+    "pan",
+    "primary_account_number",
+    "account_number",
+}
+CVV_KEYS = {"cvc", "cvv", "cvc2", "card_cvc", "security_code"}
+EMAIL_KEYS = {"email", "receipt_email", "billing_email", "customer_email"}
+PHONE_KEYS = {"phone", "phone_number", "billing_phone", "customer_phone", "mobile"}
+
+EMAIL_PATTERN = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+PHONE_PATTERN = re.compile(r"\+?\d[\d\s().-]{7,}\d")
+CARD_PATTERN = re.compile(r"(?:\d[ -]*?){12,19}")
+
+
+def _normalize_key(raw_key: str) -> str:
+    """Normalize keys for consistent redaction checks."""
+    return re.sub(r"[^a-z0-9]+", "_", raw_key.lower()).strip("_")
+
+
+def _is_luhn_valid(candidate: str) -> bool:
+    """Check card-number candidates with a Luhn checksum to avoid false positives."""
+    digits = [int(char) for char in re.sub(r"\D", "", candidate)]
+    if len(digits) < 12:
+        return False
+    checksum = 0
+    parity = len(digits) % 2
+    for index, digit in enumerate(digits):
+        if index % 2 == parity:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        checksum += digit
+    return checksum % 10 == 0
+
+
+def _should_redact_value(key: str | None, value: object) -> bool:
+    """Determine whether a value should be redacted based on key or content."""
+    if key:
+        normalized = _normalize_key(str(key))
+        if normalized in CARD_NUMBER_KEYS | CVV_KEYS | EMAIL_KEYS | PHONE_KEYS:
+            return True
+
+    if isinstance(value, str):
+        if EMAIL_PATTERN.search(value):
+            return True
+        if PHONE_PATTERN.search(value):
+            return True
+        if CARD_PATTERN.search(value) and _is_luhn_valid(value):
+            return True
+    return False
+
+
+def sanitize_webhook_payload(payload: object, key: str | None = None) -> object:
+    """Return a redacted copy of webhook payloads for safe audit storage.
+
+    Meta-commentary:
+    - Mapping: Applies SEC-PII redaction rules before persisting Stripe webhook payloads.
+    - Reasoning: Stripe payloads can contain card data, emails, and phone numbers.
+    - Limitation: Redaction is pattern-based and errs on the side of removing PII.
+    """
+    if _should_redact_value(key, payload):
+        return REDACTION_TOKEN
+    if isinstance(payload, Mapping):
+        return {
+            child_key: sanitize_webhook_payload(child_value, child_key)
+            for child_key, child_value in payload.items()
+        }
+    if isinstance(payload, list):
+        return [sanitize_webhook_payload(item, key) for item in payload]
+    return payload
 
 
 @csrf_exempt
@@ -84,6 +161,8 @@ def stripe_webhook(request):
     event_id = event["id"]
     event_type = event["type"]
     event_data = event["data"]["object"]
+    # SECURITY: Persist a redacted event payload to avoid storing PII in audit logs.
+    sanitized_event = sanitize_webhook_payload(event)
 
     add_webhook_breadcrumb(
         message="Stripe webhook received",
@@ -114,7 +193,7 @@ def stripe_webhook(request):
                 stripe_event_id=event_id,
                 idempotency_key=event_id,
                 event_type=event_type,
-                event_data=event,
+                event_data=sanitized_event,
                 processed_successfully=False,  # Will be updated after processing
             )
             

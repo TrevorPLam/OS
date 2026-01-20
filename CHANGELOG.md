@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--
 Meta-commentary:
-- Current Status: Records query-efficiency guardrails under Unreleased > Added.
+- Current Status: Records webhook payload redaction and query-efficiency guardrails under Unreleased > Added.
 - Mapping: Mirrors code/test changes in Makefiles and test modules.
 - Reasoning: Keep audit trail for performance guardrails and verification flow.
 - Assumption: Entries are updated with each shipped change set.
@@ -17,6 +17,9 @@ Meta-commentary:
 ## [Unreleased]
 
 ### Added
+
+- **Webhook PII Redaction** (2026-01-20)
+  - **T-138**: Added Stripe webhook payload sanitization to redact card data, CVV, emails, and phone numbers before audit storage.
 
 - **MFA Security Hardening** (2026-01-20)
   - **T-127**: Added constant-time OTP comparison coverage to block timing attacks in MFA flows.
