@@ -9,7 +9,7 @@ Meta-commentary:
 - Mapping: Mirrors SAML RelayState protection in saml_views.py for parity.
 - Reasoning: Prevent forged OAuth callbacks by binding state to user session.
 - Assumption: Frontend requests state token before initiating OAuth flow.
-- Limitation: State token stored in session; multi-tab logins may require fresh state.
+- Limitation: State tokens stored in session; keep session size bounded.
 """
 
 import hmac
@@ -33,9 +33,9 @@ from modules.auth.cookies import set_auth_cookies
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
-OAUTH_STATE_SESSION_KEY = "oauth_state"
-OAUTH_STATE_CREATED_AT_KEY = "oauth_state_created_at"
+OAUTH_STATE_SESSION_KEY = "oauth_state_entries"
 OAUTH_STATE_TTL = timedelta(minutes=10)
+OAUTH_STATE_MAX_ENTRIES = 5
 
 
 def _store_oauth_state(request, state_token):
@@ -46,15 +46,33 @@ def _store_oauth_state(request, state_token):
     - Mapping: Similar to SAML RelayState storage in saml_views.py.
     - Reasoning: Bind OAuth callback to the browser session that initiated it.
     """
-    request.session[OAUTH_STATE_SESSION_KEY] = state_token
-    request.session[OAUTH_STATE_CREATED_AT_KEY] = timezone.now().timestamp()
+    entries = list(request.session.get(OAUTH_STATE_SESSION_KEY, []))
+    entries.append(
+        {
+            "token": state_token,
+            "created_at": timezone.now().timestamp(),
+        }
+    )
+    request.session[OAUTH_STATE_SESSION_KEY] = entries[-OAUTH_STATE_MAX_ENTRIES:]
     request.session.modified = True
 
 
-def _clear_oauth_state(request):
+def _clear_oauth_state(request, state_token=None):
     """Remove stored OAuth state after validation to prevent replay."""
-    request.session.pop(OAUTH_STATE_SESSION_KEY, None)
-    request.session.pop(OAUTH_STATE_CREATED_AT_KEY, None)
+    if state_token is None:
+        request.session.pop(OAUTH_STATE_SESSION_KEY, None)
+        request.session.modified = True
+        return
+
+    entries = [
+        entry
+        for entry in request.session.get(OAUTH_STATE_SESSION_KEY, [])
+        if entry.get("token") != state_token
+    ]
+    if entries:
+        request.session[OAUTH_STATE_SESSION_KEY] = entries
+    else:
+        request.session.pop(OAUTH_STATE_SESSION_KEY, None)
     request.session.modified = True
 
 
@@ -66,44 +84,45 @@ def _validate_oauth_state(request, provided_state):
     - Security: Use constant-time comparison to prevent timing attacks.
     - Security: Enforce TTL to reduce replay window.
     """
-    expected_state = request.session.get(OAUTH_STATE_SESSION_KEY)
-    created_at = request.session.get(OAUTH_STATE_CREATED_AT_KEY)
+    entries = list(request.session.get(OAUTH_STATE_SESSION_KEY, []))
 
-    if not provided_state or not expected_state or not created_at:
+    def is_expired(timestamp):
+        if not isinstance(timestamp, (int, float)):
+            return True
+        return timezone.now() - datetime.fromtimestamp(timestamp, tz=timezone.utc) > OAUTH_STATE_TTL
+
+    entries = [entry for entry in entries if not is_expired(entry.get("created_at"))]
+    if entries:
+        request.session[OAUTH_STATE_SESSION_KEY] = entries
+    else:
+        request.session.pop(OAUTH_STATE_SESSION_KEY, None)
+    request.session.modified = True
+
+    if not provided_state or not entries:
         logger.warning(
             "OAuth CSRF validation failed: missing state",
             extra={
                 "has_provided_state": bool(provided_state),
-                "has_session_state": bool(expected_state),
-                "has_created_at": bool(created_at),
+                "has_session_state": bool(entries),
                 "ip_address": request.META.get("REMOTE_ADDR"),
             },
         )
-        _clear_oauth_state(request)
         return False
 
-    if not isinstance(created_at, (int, float)):
-        logger.warning(
-            "OAuth CSRF validation failed: invalid timestamp",
-            extra={"ip_address": request.META.get("REMOTE_ADDR")},
-        )
-        _clear_oauth_state(request)
-        return False
+    match = next(
+        (
+            entry
+            for entry in entries
+            if hmac.compare_digest(str(provided_state), str(entry.get("token")))
+        ),
+        None,
+    )
 
-    if timezone.now() - datetime.fromtimestamp(created_at, tz=timezone.utc) > OAUTH_STATE_TTL:
-        logger.warning(
-            "OAuth CSRF validation failed: state expired",
-            extra={"ip_address": request.META.get("REMOTE_ADDR")},
-        )
-        _clear_oauth_state(request)
-        return False
-
-    if not hmac.compare_digest(str(provided_state), str(expected_state)):
+    if not match:
         logger.warning(
             "OAuth CSRF validation failed: state mismatch",
             extra={"ip_address": request.META.get("REMOTE_ADDR")},
         )
-        _clear_oauth_state(request)
         return False
 
     return True
@@ -162,7 +181,7 @@ def oauth_callback(request):
         )
 
     if not all([provider, access_token, email]):
-        _clear_oauth_state(request)
+        _clear_oauth_state(request, state_token)
         return Response(
             {"error": "provider, access_token, and email are required"},
             status=status.HTTP_400_BAD_REQUEST
@@ -219,11 +238,11 @@ def oauth_callback(request):
             status=status.HTTP_200_OK,
         )
         set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
-        _clear_oauth_state(request)
+        _clear_oauth_state(request, state_token)
         return response
         
     except Exception as e:
-        _clear_oauth_state(request)
+        _clear_oauth_state(request, state_token)
         return Response(
             {"error": f"OAuth authentication failed: {str(e)}"},
             status=status.HTTP_400_BAD_REQUEST
