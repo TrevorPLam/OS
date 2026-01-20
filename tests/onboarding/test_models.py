@@ -2,7 +2,6 @@ import pytest
 from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 
 from modules.clients.models import Client, Organization
 from modules.firm.models import Firm
