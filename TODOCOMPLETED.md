@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-20
+Last Updated: 2026-01-21
 Source: Completed tasks moved from `TODO.md`
 
 <!--
@@ -951,3 +951,24 @@ References:
 - PRIVACY_POLICY.md
 Dependencies: None
 Effort: M
+
+### T-142: Add global query timeouts (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 4 - Fix performance issues
+- No query timeouts configured, slow queries can block workers
+- FORENSIC_AUDIT.md Issue #4.2 findings
+Acceptance Criteria:
+- [x] Create config/database.py with query timeout configuration
+- [x] Set PostgreSQL statement_timeout = 5s
+- [x] Enable query logging for slow queries (> 100ms)
+- [x] Add middleware for query timeout monitoring
+- [x] Document timeout behavior and troubleshooting
+References:
+- REFACTOR_PLAN.md:277-280, 575-611
+- FORENSIC_AUDIT.md Issue #4.2
+Dependencies: None
+Effort: S

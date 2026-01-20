@@ -1,6 +1,6 @@
 # Slow Response Times
 
-**Last Updated:** 2026-01-04  
+**Last Updated:** 2026-01-20  
 **Owner:** Platform Engineering  
 **Severity:** Medium
 
@@ -25,6 +25,9 @@ Guidance for diagnosing and mitigating elevated latency across API endpoints or 
 3. **Inspect code paths**:
    - Review recent deployments touching affected endpoints.
    - Look for N+1 queries or missing indexes in traces.
+4. **Review query timeout telemetry**:
+   - Scan application logs for `Slow database query detected` warnings (includes duration).
+   - Check for `Database statement timeout detected` errors indicating queries exceeding the timeout.
 
 ## Resolution Steps
 1. **Reduce load**:
@@ -33,6 +36,7 @@ Guidance for diagnosing and mitigating elevated latency across API endpoints or 
 2. **Optimize data access**:
    - Add or adjust indexes for slow queries (with DBA approval).
    - Batch expensive operations or move them to background jobs.
+   - If timeouts are expected temporarily, adjust `DB_STATEMENT_TIMEOUT_MS` and redeploy.
 3. **Validate**:
    - Re-run latency dashboards after changes; target return to baseline.
    - Execute user-level smoke tests for the affected flows.
@@ -42,6 +46,7 @@ Guidance for diagnosing and mitigating elevated latency across API endpoints or 
 - Add performance tests for critical endpoints.
 - Monitor queue depth and latency with alerts before saturation.
 - Review query plans regularly and prune unused indexes.
+- Keep `DB_SLOW_QUERY_THRESHOLD_MS` aligned with SLOs so slow query logs remain actionable.
 
 ## Related Resources
 - [Scaling Procedures](./SCALING.md)
