@@ -377,18 +377,18 @@ This document tracks the systematic cleanup and optimization of the codebase to 
 **Goal:** Eliminate P0 blockers and make codebase safe to iterate on
 
 **Tasks:**
-1. ✅ T-128: Fix CSRF bypass on SAML endpoints (IN-REVIEW)
-2. 🔲 T-129: Fix production Dockerfile to use gunicorn (READY)
-3. 🔲 T-130: Add type validation to webhook payment processing (READY)
+1. ✅ T-128: Fix CSRF bypass on SAML endpoints (IN-REVIEW - completed)
+2. ✅ T-129: Fix production Dockerfile to use gunicorn (IN-REVIEW - completed)
+3. ✅ T-130: Add type validation to webhook payment processing (IN-REVIEW - basic validation complete)
 4. 🔲 Fix hardcoded encryption key fallback (create task)
 5. 🔲 Fix timing attack on OTP verification (create task)
 6. 🔲 Remove DEBUG mode from production config (create task)
 
 **Success Criteria:**
-- Zero P0 security issues
-- Production Dockerfile uses gunicorn
-- All authentication flows hardened
-- CI/CD pipeline operational
+- Zero P0 security issues (3 of 6 complete, 3 require new tasks)
+- Production Dockerfile uses gunicorn ✅
+- All authentication flows hardened (SAML ✅, OAuth pending)
+- CI/CD pipeline operational (T-131 pending)
 
 ---
 
@@ -561,19 +561,28 @@ A file meets "Perfect" standards when:
 - ✅ Identified gaps in existing TODO.md coverage
 - ✅ Created comprehensive execution plan
 - ✅ Defined quality gates and success metrics
+- ✅ Verified T-128 (SAML CSRF protection) - IN-REVIEW
+- ✅ Verified T-129 (production Dockerfile with gunicorn) - COMPLETE
+- ✅ Verified T-130 (webhook type validation) - Basic validation complete
 
 **In Progress:**
-- 🔄 T-128: SAML CSRF protection (IN-REVIEW)
-- 🔄 T-134: SAML null checks (IN-REVIEW)
-- 🔄 T-136: Error message sanitization (IN-REVIEW)
+- 🔄 Phase 1: Critical Security & Stability (3 of 6 tasks complete)
+- 🔄 Identifying remaining P0 security issues for task creation
+
+**Findings:**
+- T-129 already implemented: Dockerfile uses gunicorn with proper production config (4 workers, 120s timeout)
+- T-130 partially complete: Basic isinstance() type validation added to prevent TypeError crashes
+- Additional P0 tasks needed for: encryption key fallback, OTP timing attacks, DEBUG mode
 
 **Next Week:**
-- Address Phase 1 (Critical Security & Stability) tasks
-- Begin systematic file-by-file improvements
+- Create remaining Phase 1 P0 security tasks
+- Begin Phase 2 (Testing Infrastructure) planning
 - Set up automated quality metrics tracking
 
 **Blockers:**
 - None
+
+---
 
 ---
 
