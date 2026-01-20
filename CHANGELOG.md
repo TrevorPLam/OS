@@ -18,6 +18,10 @@ Meta-commentary:
 
 ### Added
 
+- **MFA Security Hardening** (2026-01-20)
+  - **T-127**: Added constant-time OTP comparison coverage to block timing attacks in MFA flows.
+  - **T-137**: Applied per-IP rate limiting to TOTP enrollment and verification with regression coverage.
+
 - **Encryption Fail-Fast Guardrails** (2026-01-20)
   - **T-126**: Removed hardcoded KMS defaults, added explicit configuration checks for encryption key IDs, and documented fail-fast behavior for missing KMS environment variables.
 

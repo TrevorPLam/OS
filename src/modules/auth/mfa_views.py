@@ -54,8 +54,15 @@ def send_sms_otp(user, otp_code):
         from modules.sms.models import SMSMessage
         from modules.sms.services import send_sms
         
-        # Get user's phone number (assumes user profile has phone_number field)
-        phone_number = getattr(user, 'phone_number', None)
+        # SECURITY: Resolve phone number from MFA profile first, then fallback to user field
+        # (if the User object exposes a `phone_number` attribute). This avoids silent OTP
+        # delivery failures when the number lives on UserMFAProfile.
+        mfa_profile = getattr(user, "mfa_profile", None)
+        phone_number = None
+        if mfa_profile and getattr(mfa_profile, "phone_number", None):
+            phone_number = mfa_profile.phone_number
+        elif hasattr(user, "phone_number"):
+            phone_number = getattr(user, "phone_number", None)
         if not phone_number:
             return False, "No phone number configured for user"
         
@@ -75,8 +82,10 @@ def send_sms_otp(user, otp_code):
         return False, f"SMS sending failed: {str(e)}"
 
 
+# SECURITY: Rate limit enrollment to slow brute-force attempts (5/minute per IP).
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 def mfa_enroll_totp(request):
     """
     Sprint 1.11: Enroll in TOTP (Time-based OTP) authentication.
@@ -123,8 +132,10 @@ def mfa_enroll_totp(request):
     }, status=status.HTTP_201_CREATED)
 
 
+# SECURITY: Rate limit verification to slow brute-force attempts (5/minute per IP).
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
+@ratelimit(key="ip", rate="5/m", method="POST", block=True)
 def mfa_verify_totp(request):
     """
     Sprint 1.11: Verify TOTP code to complete enrollment or during login.
@@ -233,9 +244,10 @@ def mfa_enroll_sms(request):
     if not phone_number:
         return Response({"error": "phone_number is required"}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Save phone number to user profile
-    get_or_create_mfa_profile(user).phone_number = phone_number
-    user.save()
+    # Save phone number to MFA profile for SMS delivery
+    profile = get_or_create_mfa_profile(user)
+    profile.phone_number = phone_number
+    profile.save(update_fields=["phone_number"])
     
     # Generate OTP
     otp_code = generate_sms_otp()
