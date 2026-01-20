@@ -36,15 +36,18 @@ class QueryTimingWrapper:
             raise
         finally:
             elapsed_ms = (perf_counter() - start_time) * 1000
-            self._log_slow_query(elapsed_ms)
+            self._log_slow_query(elapsed_ms, sql)
 
-    def _log_slow_query(self, elapsed_ms: float) -> None:
+    def _log_slow_query(self, elapsed_ms: float, sql: str) -> None:
         if elapsed_ms < self.threshold_ms:
             return
 
         self.log.warning(
             "Slow database query detected",
-            extra={"duration_ms": round(elapsed_ms, 2)},
+            extra={
+                "duration_ms": round(elapsed_ms, 2),
+                "sql_preview": sql[:200],
+            },
         )
 
     def _log_timeout(self, error: DatabaseError) -> None:
