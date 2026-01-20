@@ -6,7 +6,7 @@ Task Truth Source: **TODO.md**
 
 <!--
 Meta-commentary:
-  - Current Status: Authoritative task list; T-127, T-137, and T-138 moved to TODOCOMPLETED.md.
+  - Current Status: Authoritative task list; T-127, T-135, T-137, and T-138 moved to TODOCOMPLETED.md.
   - Mapping: Mirrors completed work recorded in TODOCOMPLETED.md and CHANGELOG.md.
 - Reasoning: Keep task truth source accurate after completion.
 - Assumption: Tasks are appended/moved manually with auditability in mind.
@@ -242,30 +242,6 @@ References:
 - src/modules/auth/saml_views.py:173-175
 Dependencies: None
 Effort: S
-
-### T-135: Fix OAuth state validation for CSRF protection (REFACTOR Phase 2)
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 2 Item 2 - Eliminate critical security vulnerabilities
-- OAuth state parameter validation is weak or missing
-- Enables OAuth CSRF attacks and account takeover
-- FORENSIC_AUDIT.md Issue #5.4
-Acceptance Criteria:
-- [ ] Implement strong state parameter validation in src/modules/auth/oauth_views.py
-- [ ] Generate cryptographically secure state tokens
-- [ ] Store state in session and validate on callback
-- [ ] Add security test for OAuth CSRF protection
-- [ ] Run existing tests: pytest src/tests/
-References:
-- REFACTOR_PLAN.md:229-232
-- FORENSIC_AUDIT.md Issue #5.4
-- src/modules/auth/oauth_views.py
-Dependencies: None
-Effort: M
 
 ### T-136: Sanitize error messages to prevent information disclosure (REFACTOR Phase 2)
 Priority: P1

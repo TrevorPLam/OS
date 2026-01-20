@@ -7,9 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!--
 Meta-commentary:
-- Current Status: Records webhook payload redaction and query-efficiency guardrails under Unreleased > Added.
-- Mapping: Mirrors code/test changes in Makefiles and test modules.
-- Reasoning: Keep audit trail for performance guardrails and verification flow.
+- Current Status: Records OAuth CSRF hardening, webhook payload redaction, and query-efficiency guardrails under Unreleased > Added.
+- Mapping: Mirrors code/test changes in auth security and test modules.
+- Reasoning: Keep audit trail for security guardrails and verification flow.
 - Assumption: Entries are updated with each shipped change set.
 - Limitation: Changelog does not include environment-specific test caveats.
 -->
@@ -17,6 +17,9 @@ Meta-commentary:
 ## [Unreleased]
 
 ### Added
+
+- **OAuth CSRF Protection** (2026-01-20)
+  - **T-135**: Added session-bound OAuth state tokens with constant-time validation and replay prevention in auth callbacks.
 
 - **Webhook PII Redaction** (2026-01-20)
   - **T-138**: Added Stripe webhook payload sanitization to redact card data, CVV, emails, and phone numbers before audit storage.

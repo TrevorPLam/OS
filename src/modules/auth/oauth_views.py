@@ -3,11 +3,23 @@ Sprint 1.2-1.5: OAuth Authentication Views (Google/Microsoft)
 
 Implements SSO authentication flows with automatic user account linking/creation.
 All OAuth endpoints are rate-limited to prevent abuse.
+
+Meta-commentary:
+- Current Status: OAuth callback hardened with CSRF state validation (T-135).
+- Mapping: Mirrors SAML RelayState protection in saml_views.py for parity.
+- Reasoning: Prevent forged OAuth callbacks by binding state to user session.
+- Assumption: Frontend requests state token before initiating OAuth flow.
+- Limitation: State token stored in session; multi-tab logins may require fresh state.
 """
 
+import hmac
+import logging
+import secrets
+from datetime import datetime, timedelta
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django_ratelimit.decorators import ratelimit
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAdminUser
@@ -16,10 +28,105 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from allauth.socialaccount.models import SocialAccount, SocialApp
 
-from modules.firm.models import FirmMembership
 from modules.auth.cookies import set_auth_cookies
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
+OAUTH_STATE_SESSION_KEY = "oauth_state"
+OAUTH_STATE_CREATED_AT_KEY = "oauth_state_created_at"
+OAUTH_STATE_TTL = timedelta(minutes=10)
+
+
+def _store_oauth_state(request, state_token):
+    """
+    Store OAuth state token in session for CSRF protection.
+
+    Inline commentary:
+    - Mapping: Similar to SAML RelayState storage in saml_views.py.
+    - Reasoning: Bind OAuth callback to the browser session that initiated it.
+    """
+    request.session[OAUTH_STATE_SESSION_KEY] = state_token
+    request.session[OAUTH_STATE_CREATED_AT_KEY] = timezone.now().timestamp()
+    request.session.modified = True
+
+
+def _clear_oauth_state(request):
+    """Remove stored OAuth state after validation to prevent replay."""
+    request.session.pop(OAUTH_STATE_SESSION_KEY, None)
+    request.session.pop(OAUTH_STATE_CREATED_AT_KEY, None)
+    request.session.modified = True
+
+
+def _validate_oauth_state(request, provided_state):
+    """
+    Validate provided state token against session.
+
+    Inline commentary:
+    - Security: Use constant-time comparison to prevent timing attacks.
+    - Security: Enforce TTL to reduce replay window.
+    """
+    expected_state = request.session.get(OAUTH_STATE_SESSION_KEY)
+    created_at = request.session.get(OAUTH_STATE_CREATED_AT_KEY)
+
+    if not provided_state or not expected_state or not created_at:
+        logger.warning(
+            "OAuth CSRF validation failed: missing state",
+            extra={
+                "has_provided_state": bool(provided_state),
+                "has_session_state": bool(expected_state),
+                "has_created_at": bool(created_at),
+                "ip_address": request.META.get("REMOTE_ADDR"),
+            },
+        )
+        _clear_oauth_state(request)
+        return False
+
+    if not isinstance(created_at, (int, float)):
+        logger.warning(
+            "OAuth CSRF validation failed: invalid timestamp",
+            extra={"ip_address": request.META.get("REMOTE_ADDR")},
+        )
+        _clear_oauth_state(request)
+        return False
+
+    if timezone.now() - datetime.fromtimestamp(created_at, tz=timezone.utc) > OAUTH_STATE_TTL:
+        logger.warning(
+            "OAuth CSRF validation failed: state expired",
+            extra={"ip_address": request.META.get("REMOTE_ADDR")},
+        )
+        _clear_oauth_state(request)
+        return False
+
+    if not hmac.compare_digest(str(provided_state), str(expected_state)):
+        logger.warning(
+            "OAuth CSRF validation failed: state mismatch",
+            extra={"ip_address": request.META.get("REMOTE_ADDR")},
+        )
+        _clear_oauth_state(request)
+        return False
+
+    return True
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+@ratelimit(key="ip", rate="20/m", method="GET", block=True)
+def oauth_state(request):
+    """
+    Sprint 1.4: OAuth state token generator.
+
+    Returns a short-lived state token stored in session to protect OAuth callbacks.
+    """
+    state_token = secrets.token_urlsafe(32)
+    _store_oauth_state(request, state_token)
+    return Response(
+        {
+            "state": state_token,
+            "expires_in_seconds": int(OAUTH_STATE_TTL.total_seconds()),
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["POST"])
@@ -37,15 +144,25 @@ def oauth_callback(request):
         "provider": "google|microsoft",
         "access_token": "oauth_access_token",
         "email": "user@example.com",
+        "state": "csrf_state_token",
         "first_name": "John",
         "last_name": "Doe"
     }
     """
+    state_token = request.data.get("state")
     provider = request.data.get("provider")
     access_token = request.data.get("access_token")
     email = request.data.get("email")
-    
+
+    # SECURITY: Validate OAuth state token before processing callback payload.
+    if not _validate_oauth_state(request, state_token):
+        return Response(
+            {"error": "Invalid OAuth state"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     if not all([provider, access_token, email]):
+        _clear_oauth_state(request)
         return Response(
             {"error": "provider, access_token, and email are required"},
             status=status.HTTP_400_BAD_REQUEST
@@ -102,9 +219,11 @@ def oauth_callback(request):
             status=status.HTTP_200_OK,
         )
         set_auth_cookies(response, access_token=str(refresh.access_token), refresh_token=str(refresh))
+        _clear_oauth_state(request)
         return response
         
     except Exception as e:
+        _clear_oauth_state(request)
         return Response(
             {"error": f"OAuth authentication failed: {str(e)}"},
             status=status.HTTP_400_BAD_REQUEST

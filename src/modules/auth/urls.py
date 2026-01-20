@@ -13,7 +13,7 @@ from .views import (
     provision_firm_view,
     user_profile_view,
 )
-from .oauth_views import oauth_callback, oauth_provider_config
+from .oauth_views import oauth_callback, oauth_provider_config, oauth_state
 from .saml_views import (
     SAMLLoginView,
     SAMLACSView,
@@ -45,6 +45,7 @@ urlpatterns = [
     path("token/refresh/", CookieTokenRefreshView.as_view(), name="token_refresh"),
     
     # Sprint 1.2-1.5: OAuth Authentication
+    path("oauth/state/", oauth_state, name="oauth_state"),
     path("oauth/callback/", oauth_callback, name="oauth_callback"),
     path("oauth/config/", oauth_provider_config, name="oauth_provider_config"),
     

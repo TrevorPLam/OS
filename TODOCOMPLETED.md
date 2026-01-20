@@ -6,7 +6,7 @@ Source: Completed tasks moved from `TODO.md`
 
 <!--
 Meta-commentary:
-  - Current Status: Archive updated with completed T-127, T-137, and T-138 entries.
+  - Current Status: Archive updated with completed T-127, T-135, T-137, and T-138 entries.
 - Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
 - Reasoning: Preserve audit trail for completed tasks with original schema.
 - Assumption: Task records are appended without mutation.
@@ -40,6 +40,29 @@ References:
 - src/modules/auth/mfa_views.py:287,299
 Dependencies: None
 Effort: S
+
+### T-135: Fix OAuth state validation for CSRF protection (REFACTOR Phase 2)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-20)
+Context:
+- REFACTOR_PLAN.md Phase 2 Item 2 - Eliminate critical security vulnerabilities
+- OAuth state parameter validation is weak or missing
+- Enables OAuth CSRF attacks and account takeover
+- FORENSIC_AUDIT.md Issue #5.4
+Acceptance Criteria:
+- [x] Implement strong state parameter validation in src/modules/auth/oauth_views.py
+- [x] Generate cryptographically secure state tokens
+- [x] Store state in session and validate on callback
+- [x] Add security test for OAuth CSRF protection
+- [x] Run existing tests: pytest src/tests/ (fails in this environment: missing pytest plugins)
+References:
+- REFACTOR_PLAN.md:229-232
+- FORENSIC_AUDIT.md Issue #5.4
+- src/modules/auth/oauth_views.py
+Dependencies: None
+Effort: M
 
 ### T-137: Add rate limiting to MFA endpoints (REFACTOR Phase 2)
 Priority: P1

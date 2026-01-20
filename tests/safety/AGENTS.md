@@ -144,6 +144,20 @@ def test_totp_verification_rate_limited_by_ip():
     ...
 ```
 
+### 7. OAuth State Validation (`test_oauth_state.py`)
+
+**Invariant**: OAuth callbacks must validate session-bound state tokens to block CSRF.
+
+```python
+def test_oauth_callback_rejects_missing_state():
+    """OAuth callback must reject missing state."""
+    ...
+
+def test_oauth_callback_accepts_valid_state_once():
+    """OAuth callback must allow a valid state exactly once."""
+    ...
+```
+
 ## Running Safety Tests
 
 ```bash
