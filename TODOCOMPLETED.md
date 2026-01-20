@@ -190,6 +190,31 @@ References:
 Dependencies: T-077
 Effort: M
 
+### T-049: Implement E2E tests for critical paths (Playwright)
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-10)
+Context:
+- Phase 3 of Diamond Standard Plan: Test Coverage Expansion.
+- Need comprehensive E2E test coverage for critical business workflows.
+- E2E tests cover authentication, payments, and core workflows.
+Acceptance Criteria:
+- [x] Backend coverage ≥80% overall, ≥95% critical paths.
+- [x] Frontend coverage ≥60%.
+- [x] E2E tests cover: auth, payments, core workflows.
+- [x] Test suite infrastructure ready (runs in <5 minutes).
+- [x] Coverage reports automated (pytest-cov configured).
+References:
+- DIAMOND_STANDARD_PLAN.md Phase 3
+- TESTING_IMPLEMENTATION_SUMMARY.md
+- TEST_COVERAGE.md
+- tests/e2e/
+- src/frontend/e2e/
+Dependencies: None
+Child Tasks: T-077, T-078, T-079
+Effort: L
+
 ### T-074: Set up frontend unit test tooling
 Priority: P1
 Type: QUALITY
