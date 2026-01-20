@@ -54,8 +54,10 @@ def send_sms_otp(user, otp_code):
         from modules.sms.models import SMSMessage
         from modules.sms.services import send_sms
         
-        # Get user's phone number (assumes user profile has phone_number field)
-        phone_number = getattr(user, 'phone_number', None)
+        # SECURITY: Resolve phone number from MFA profile first, then fallback to user field.
+        # This avoids silent OTP delivery failures when the number lives on UserMFAProfile.
+        mfa_profile = getattr(user, "mfa_profile", None)
+        phone_number = getattr(mfa_profile, "phone_number", None) or getattr(user, "phone_number", None)
         if not phone_number:
             return False, "No phone number configured for user"
         
@@ -237,9 +239,10 @@ def mfa_enroll_sms(request):
     if not phone_number:
         return Response({"error": "phone_number is required"}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Save phone number to user profile
-    get_or_create_mfa_profile(user).phone_number = phone_number
-    user.save()
+    # Save phone number to MFA profile for SMS delivery
+    profile = get_or_create_mfa_profile(user)
+    profile.phone_number = phone_number
+    profile.save(update_fields=["phone_number"])
     
     # Generate OTP
     otp_code = generate_sms_otp()
