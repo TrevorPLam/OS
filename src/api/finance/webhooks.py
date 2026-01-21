@@ -19,6 +19,7 @@ from django.views.decorators.http import require_POST
 from django_ratelimit.decorators import ratelimit
 
 from config.sentry import add_webhook_breadcrumb
+from .stripe_schema import ValidationError, validate_stripe_event_payload
 from modules.core.rate_limiting import enforce_webhook_rate_limit
 from modules.core.telemetry import log_event, log_metric, track_duration
 from modules.finance.billing import handle_payment_failure
@@ -136,7 +137,7 @@ def stripe_webhook(request):
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
 
     try:
-        # Verify webhook signature
+        # Verify webhook signature before any processing to reject forged payloads early.
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
     except ValueError as e:
         # Invalid payload
@@ -157,12 +158,24 @@ def stripe_webhook(request):
         )
         return HttpResponse(status=400)
 
-    # Extract event metadata
-    event_id = event["id"]
-    event_type = event["type"]
-    event_data = event["data"]["object"]
+    try:
+        # Validate payload shape to avoid downstream KeyError/TypeError crashes.
+        validated_event = validate_stripe_event_payload(event)
+    except (ValidationError, ValueError) as exc:
+        logger.error("Stripe webhook schema validation failed")
+        log_event(
+            "stripe_webhook_schema_invalid",
+            provider="stripe",
+            error_class=exc.__class__.__name__,
+        )
+        return HttpResponse(status=400)
+
+    # Extract event metadata after validation to keep downstream logic deterministic.
+    event_id = validated_event.id
+    event_type = validated_event.type
+    event_data = validated_event.data.object
     # SECURITY: Persist a redacted event payload to avoid storing PII in audit logs.
-    sanitized_event = sanitize_webhook_payload(event)
+    sanitized_event = sanitize_webhook_payload(validated_event.model_dump())
 
     add_webhook_breadcrumb(
         message="Stripe webhook received",

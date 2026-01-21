@@ -35,6 +35,7 @@ stripe==7.9.0
 
 # Utilities
 python-dotenv==1.0.0
+pydantic==2.7.1  # Schema validation for webhook payloads
 Pillow==10.1.0
 requests==2.31.0  # Sprint 4: HTTP client for DocuSign API
 icalendar==5.0.11  # AVAIL-1: iCal/vCal feed support for calendar integrations
