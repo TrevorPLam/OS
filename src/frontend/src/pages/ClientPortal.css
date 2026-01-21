@@ -357,10 +357,110 @@
   cursor: pointer;
 }
 
+.profile-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.profile-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem;
+  background: #fafafa;
+}
+
+.profile-detail {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.profile-label {
+  font-weight: 600;
+  color: #374151;
+}
+
+.profile-permissions {
+  margin-top: 1rem;
+}
+
+.profile-permission-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.permission-pill {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  border: 1px solid transparent;
+}
+
+.permission-pill.enabled {
+  background: #ecfdf3;
+  color: #067647;
+  border-color: #abefc6;
+}
+
+.permission-pill.disabled {
+  background: #fef3f2;
+  color: #b42318;
+  border-color: #fecdca;
+}
+
+.profile-textarea {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d0d0d0;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.profile-save-btn,
+.account-switch-btn {
+  margin-top: 0.75rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.account-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.account-switcher select {
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d0d0d0;
+}
+
+.helper-text {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
 .error-state {
   color: #b42318;
   background: #fdecec;
   border: 1px solid #f4b4b4;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+}
+
+.success-state {
+  color: #067647;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
   padding: 0.75rem 1rem;
   border-radius: 8px;
 }
@@ -404,5 +504,10 @@
   .appointments-booking {
     border-left: none;
     padding-left: 0;
+  }
+
+  .profile-detail {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
