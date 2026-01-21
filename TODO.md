@@ -1,7 +1,7 @@
 # TODO.md — Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-21
+Last Updated: 2026-01-22
 Task Truth Source: **TODO.md**
 
 <!--
@@ -216,31 +216,6 @@ References:
 - REFACTOR_PLAN.md:203-206
 - FORENSIC_AUDIT.md Issue #6.2, #6.4
 Dependencies: T-131 (CI workflow)
-Effort: S
-
-### T-134: Fix SAML null checks with defensive extraction (REFACTOR Phase 2)
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: IN-REVIEW
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 2 Item 1 - Eliminate critical security vulnerabilities
-- SAML attribute extraction lacks null checks
-- IndexError crashes on SSO can cause auth failures
-- FORENSIC_AUDIT.md Issue #1.5
-Acceptance Criteria:
-- [x] Add defensive attribute extraction with defaults in src/modules/auth/saml_views.py:173-175
-- [x] Handle missing SAML attributes gracefully using .get() with defaults
-- [x] Add security comments explaining defensive extraction
-- [ ] Add error logging for missing attributes (deferred to observability phase)
-- [x] Add tests for missing SAML attributes (tests/auth/test_saml_views.py)
-- [ ] Run existing tests: pytest src/tests/ (blocked: pytest not installed)
-References:
-- REFACTOR_PLAN.md:224-227
-- FORENSIC_AUDIT.md Issue #1.5
-- src/modules/auth/saml_views.py:173-175
-Dependencies: None
 Effort: S
 
 ### T-136: Sanitize error messages to prevent information disclosure (REFACTOR Phase 2)

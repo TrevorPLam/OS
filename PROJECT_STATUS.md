@@ -4,7 +4,7 @@ Document Type: Operations
 Canonical Status: Canonical
 Owner: Trevor
 Audience: Humans + agents
-Last Updated: 2026-01-21
+Last Updated: 2026-01-22
 
 ## Purpose
 A lightweight place to record the current state of the project, major decisions, and open questions.
@@ -15,7 +15,7 @@ This is not a task list; tasks belong in `TODO.md`.
 - Environment: Local development (tests run with SQLite; RLS probes skip without PostgreSQL)
 - Last known “green” state (commit/tag): After completing T-026, T-060, T-123
 - Key risks: RLS enforcement requires PostgreSQL for full validation; ensure background jobs wrap DB access in `firm_db_session` before releasing.
-- Recent change: T-145 aligned client portal frontend API usage to `/api/portal/*` endpoints and portal document routes with coverage updates.
+- Recent change: Completed T-134 SAML attribute extraction logging with defensive validation and test coverage.
 
 ## Decisions (append-only)
 Use this format:
