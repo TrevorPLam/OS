@@ -113,6 +113,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Client Portal API Alignment** (2026-01-21)
+  - **T-145**: Switched client portal frontend API calls to `/api/portal/*` endpoints with portal document routing and coverage tests.
+
 - **Automation Query Optimization** (2026-01-21)
   - **T-141**: Prefetched workflow edge/goal relations with node details and added query-budget coverage for workflow detail serialization, including large-workflow guardrails.
 

@@ -21,11 +21,11 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 
 | Route | UI Entry | Primary UI Areas | Backend Calls Used | Coverage Status |
 | --- | --- | --- | --- | --- |
-| `/client-portal` | `ClientPortal` page | Work, Documents, Invoices, Messages, Engagement | `clientPortalApi` (`/api/clients/*`), `documentsApi` (`/documents/*`) | **Partial** (portal endpoints exist but are not used) |
+| `/client-portal` | `ClientPortal` page | Work, Documents, Invoices, Messages, Engagement | `clientPortalApi` (`/api/portal/*`), `portalDocumentsApi` (`/api/portal/documents`, `/api/portal/folders`) | **Aligned** (portal endpoints in use) |
 
 ### Portal UI Coverage Notes
 
-- The portal UI is a single route with tabbed sections (work/projects, documents, invoices, messages, engagement). It relies on staff-facing `/api/clients/*` endpoints and `/documents/*` endpoints rather than the `/api/portal/*` surface. This means portal users are not consuming the portal-specific allowlisted API surface from `src/api/portal/urls.py`.
+- The portal UI is a single route with tabbed sections (work/projects, documents, invoices, messages, engagement). It now relies on `/api/portal/*` endpoints for projects, billing, messaging, comments, and documents, ensuring portal users consume the allowlisted API surface from `src/api/portal/urls.py`.
 - The portal UI currently does **not** expose appointments booking, profile management, or account switching despite corresponding backend portal endpoints.
 
 ## Portal API Surface Inventory (Backend)
@@ -33,19 +33,19 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 | Portal Endpoint (Router) | Purpose | UI Coverage |
 | --- | --- | --- |
 | `/api/portal/home/` | Portal home dashboard | **Missing** (not surfaced in UI) |
-| `/api/portal/chat-threads/` | Portal messaging threads | **Partial** (UI uses `/api/clients/chat-threads/`) |
-| `/api/portal/messages/` | Portal messaging | **Partial** (UI uses `/api/clients/messages/`) |
-| `/api/portal/documents/` | Portal documents list | **Missing** (UI uses `/documents/documents/`) |
-| `/api/portal/folders/` | Portal document folders | **Missing** |
+| `/api/portal/chat-threads/` | Portal messaging threads | **Covered** |
+| `/api/portal/messages/` | Portal messaging | **Covered** |
+| `/api/portal/documents/` | Portal documents list | **Covered** |
+| `/api/portal/folders/` | Portal document folders | **Covered** |
 | `/api/portal/appointments/` | Portal appointments | **Missing** |
-| `/api/portal/invoices/` | Portal invoices | **Partial** (UI uses `/api/clients/invoices/`) |
-| `/api/portal/projects/` | Portal projects | **Partial** (UI uses `/api/clients/projects/`) |
-| `/api/portal/contracts/` | Portal contracts | **Partial** (UI uses `/api/clients/contracts/`) |
-| `/api/portal/proposals/` | Portal proposals | **Partial** (UI uses `/api/clients/proposals/`) |
-| `/api/portal/engagement-history/` | Portal engagement history | **Partial** (UI uses `/api/clients/engagement-history/`) |
+| `/api/portal/invoices/` | Portal invoices | **Covered** |
+| `/api/portal/projects/` | Portal projects | **Covered** |
+| `/api/portal/contracts/` | Portal contracts | **Covered** |
+| `/api/portal/proposals/` | Portal proposals | **Covered** |
+| `/api/portal/engagement-history/` | Portal engagement history | **Covered** |
 | `/api/portal/profile/` | Portal profile | **Missing** |
 | `/api/portal/accounts/` | Portal account switcher | **Missing** |
-| `/api/portal/comments/` | Portal task comments (legacy) | **Partial** (UI uses `/api/clients/comments/`) |
+| `/api/portal/comments/` | Portal task comments (legacy) | **Covered** |
 
 ## Mobile Coverage Inventory
 
@@ -55,9 +55,7 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 
 ## Gaps & Follow-up Tasks
 
-1. **Portal API alignment:** Portal UI uses `/api/clients/*` and `/documents/*` instead of `/api/portal/*`, bypassing the portal-specific allowlist.
-2. **Missing portal flows:** UI lacks appointments booking, portal profile management, and account switching despite backend support.
-3. **Document portal scoping:** Portal document list/download is calling staff document endpoints rather than portal endpoints.
+1. **Missing portal flows:** UI lacks appointments booking, portal profile management, and account switching despite backend support.
 
 Follow-up tasks added in `TODO.md`:
 - **T-145**: Align client portal frontend to `/api/portal/*` endpoints (client portal API migration).

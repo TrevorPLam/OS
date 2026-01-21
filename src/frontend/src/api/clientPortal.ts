@@ -253,35 +253,35 @@ export const clientPortalApi = {
    * List all projects for authenticated client
    */
   listProjects: (params?: { status?: string }) => {
-    return apiClient.get<{ results: ClientProject[] }>('/api/clients/projects/', { params });
+    return apiClient.get<{ results: ClientProject[] }>('/api/portal/projects/', { params });
   },
 
   /**
    * Get project detail with tasks
    */
   getProject: (projectId: number) => {
-    return apiClient.get<ClientProject>(`/api/clients/projects/${projectId}/`);
+    return apiClient.get<ClientProject>(`/api/portal/projects/${projectId}/`);
   },
 
   /**
    * Get tasks for a specific project
    */
   getProjectTasks: (projectId: number) => {
-    return apiClient.get<ClientTask[]>(`/api/clients/projects/${projectId}/tasks/`);
+    return apiClient.get<ClientTask[]>(`/api/portal/projects/${projectId}/tasks/`);
   },
 
   /**
    * List comments (optionally filtered by task)
    */
   listComments: (params?: { task_id?: number }) => {
-    return apiClient.get<{ results: ClientComment[] }>('/api/clients/comments/', { params });
+    return apiClient.get<{ results: ClientComment[] }>('/api/portal/comments/', { params });
   },
 
   /**
    * Create a new comment on a task
    */
   createComment: (data: CreateCommentData) => {
-    return apiClient.post<ClientComment>('/api/clients/comments/', data);
+    return apiClient.post<ClientComment>('/api/portal/comments/', data);
   },
 
   /**
@@ -289,7 +289,7 @@ export const clientPortalApi = {
    */
   markCommentAsRead: (commentId: number) => {
     return apiClient.post<{ status: string; comment: ClientComment }>(
-      `/api/clients/comments/${commentId}/mark_as_read/`
+      `/api/portal/comments/${commentId}/mark_as_read/`
     );
   },
 
@@ -297,139 +297,139 @@ export const clientPortalApi = {
    * Get unread comments (firm users only)
    */
   getUnreadComments: () => {
-    return apiClient.get<ClientComment[]>('/api/clients/comments/unread/');
+    return apiClient.get<ClientComment[]>('/api/portal/comments/unread/');
   },
 
   /**
    * List invoices for authenticated client
    */
   listInvoices: (params?: { status?: string }) => {
-    return apiClient.get<{ results: ClientInvoice[] }>('/api/clients/invoices/', { params });
+    return apiClient.get<{ results: ClientInvoice[] }>('/api/portal/invoices/', { params });
   },
 
   /**
    * Get invoice detail
    */
   getInvoice: (invoiceId: number) => {
-    return apiClient.get<ClientInvoice>(`/api/clients/invoices/${invoiceId}/`);
+    return apiClient.get<ClientInvoice>(`/api/portal/invoices/${invoiceId}/`);
   },
 
   /**
    * Get invoice summary statistics
    */
   getInvoiceSummary: () => {
-    return apiClient.get<InvoiceSummary>('/api/clients/invoices/summary/');
+    return apiClient.get<InvoiceSummary>('/api/portal/invoices/summary/');
   },
 
   /**
    * Generate Stripe payment link for invoice
    */
   generatePaymentLink: (invoiceId: number) => {
-    return apiClient.post<PaymentLinkResponse>(`/api/clients/invoices/${invoiceId}/generate_payment_link/`);
+    return apiClient.post<PaymentLinkResponse>(`/api/portal/invoices/${invoiceId}/generate_payment_link/`);
   },
 
   /**
    * Get active chat thread for today
    */
   getActiveThread: () => {
-    return apiClient.get<ClientChatThread>('/api/clients/chat-threads/active/');
+    return apiClient.get<ClientChatThread>('/api/portal/chat-threads/active/');
   },
 
   /**
    * List chat threads
    */
   listThreads: (params?: { is_active?: boolean }) => {
-    return apiClient.get<{ results: ClientChatThread[] }>('/api/clients/chat-threads/', { params });
+    return apiClient.get<{ results: ClientChatThread[] }>('/api/portal/chat-threads/', { params });
   },
 
   /**
    * Get thread detail
    */
   getThread: (threadId: number) => {
-    return apiClient.get<ClientChatThread>(`/api/clients/chat-threads/${threadId}/`);
+    return apiClient.get<ClientChatThread>(`/api/portal/chat-threads/${threadId}/`);
   },
 
   /**
    * List messages in a thread
    */
   listMessages: (params?: { thread?: number }) => {
-    return apiClient.get<{ results: ClientMessage[] }>('/api/clients/messages/', { params });
+    return apiClient.get<{ results: ClientMessage[] }>('/api/portal/messages/', { params });
   },
 
   /**
    * Send a message
    */
   sendMessage: (data: CreateMessageData) => {
-    return apiClient.post<ClientMessage>('/api/clients/messages/', data);
+    return apiClient.post<ClientMessage>('/api/portal/messages/', data);
   },
 
   /**
    * Mark message as read
    */
   markMessageAsRead: (messageId: number) => {
-    return apiClient.post<{ status: string; message: ClientMessage }>(`/api/clients/messages/${messageId}/mark_as_read/`);
+    return apiClient.post<{ status: string; message: ClientMessage }>(`/api/portal/messages/${messageId}/mark_as_read/`);
   },
 
   /**
    * Get unread messages
    */
   getUnreadMessages: () => {
-    return apiClient.get<ClientMessage[]>('/api/clients/messages/unread/');
+    return apiClient.get<ClientMessage[]>('/api/portal/messages/unread/');
   },
 
   /**
    * List proposals for authenticated client
    */
   listProposals: (params?: { status?: string; proposal_type?: string }) => {
-    return apiClient.get<{ results: ClientProposal[] }>('/api/clients/proposals/', { params });
+    return apiClient.get<{ results: ClientProposal[] }>('/api/portal/proposals/', { params });
   },
 
   /**
    * Get proposal detail
    */
   getProposal: (proposalId: number) => {
-    return apiClient.get<ClientProposal>(`/api/clients/proposals/${proposalId}/`);
+    return apiClient.get<ClientProposal>(`/api/portal/proposals/${proposalId}/`);
   },
 
   /**
    * Accept a proposal (e-signature placeholder)
    */
   acceptProposal: (proposalId: number) => {
-    return apiClient.post<{ status: string; message: string; proposal_number: string }>(`/api/clients/proposals/${proposalId}/accept/`);
+    return apiClient.post<{ status: string; message: string; proposal_number: string }>(`/api/portal/proposals/${proposalId}/accept/`);
   },
 
   /**
    * List contracts for authenticated client
    */
   listContracts: (params?: { status?: string }) => {
-    return apiClient.get<{ results: ClientContract[] }>('/api/clients/contracts/', { params });
+    return apiClient.get<{ results: ClientContract[] }>('/api/portal/contracts/', { params });
   },
 
   /**
    * Get contract detail
    */
   getContract: (contractId: number) => {
-    return apiClient.get<ClientContract>(`/api/clients/contracts/${contractId}/`);
+    return apiClient.get<ClientContract>(`/api/portal/contracts/${contractId}/`);
   },
 
   /**
    * Download contract document
    */
   downloadContract: (contractId: number) => {
-    return apiClient.get<{ download_url: string; contract_number: string; filename: string }>(`/api/clients/contracts/${contractId}/download/`);
+    return apiClient.get<{ download_url: string; contract_number: string; filename: string }>(`/api/portal/contracts/${contractId}/download/`);
   },
 
   /**
    * List engagement history
    */
   listEngagementHistory: (params?: { status?: string }) => {
-    return apiClient.get<{ results: ClientEngagement[] }>('/api/clients/engagement-history/', { params });
+    return apiClient.get<{ results: ClientEngagement[] }>('/api/portal/engagement-history/', { params });
   },
 
   /**
    * Get engagement timeline
    */
   getEngagementTimeline: () => {
-    return apiClient.get<EngagementTimeline>('/api/clients/engagement-history/timeline/');
+    return apiClient.get<EngagementTimeline>('/api/portal/engagement-history/timeline/');
   },
 };

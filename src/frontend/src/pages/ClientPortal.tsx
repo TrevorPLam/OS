@@ -3,7 +3,7 @@
  * Provides access to work, documents, invoices, messages, and analytics
  */
 import React, { useState, useEffect } from 'react';
-import { documentsApi } from '../api/documents';
+import { portalDocumentsApi } from '../api/documents';
 import { clientPortalApi, ClientProject, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage, ClientProposal, ClientContract, ClientEngagement } from '../api/clientPortal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClientPortal.css';
@@ -67,7 +67,7 @@ export const ClientPortal: React.FC = () => {
       }
 
       // Load client-visible documents only
-      const docsResponse = await documentsApi.getDocuments({});
+      const docsResponse = await portalDocumentsApi.getDocuments({});
       setDocuments(docsResponse || []);
 
       // Load invoices
@@ -130,7 +130,7 @@ export const ClientPortal: React.FC = () => {
 
   const handleDownloadDocument = async (documentId: number) => {
     try {
-      const response = await documentsApi.downloadDocument(documentId);
+      const response = await portalDocumentsApi.downloadDocument(documentId);
       window.open(response.download_url, '_blank');
     } catch (error) {
       console.error('Error downloading document:', error);

@@ -1492,7 +1492,6 @@ References:
 - src/api/portal/urls.py
 Dependencies: None
 Effort: M
-
 ### T-146: Add portal appointments booking UI to Client Portal
 Priority: P3
 Type: FEATURE
