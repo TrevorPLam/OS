@@ -1534,25 +1534,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-144: Confirm core module API coverage expectations
-Priority: P3
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- T-122 inventory flagged the core module as missing urls.py/views.py endpoints.
-- The core module may be intentionally internal-only, but the decision is undocumented.
-Acceptance Criteria:
-- [ ] Confirm whether core should expose API endpoints or remain internal-only.
-- [ ] If internal-only, document the rationale in docs/03-reference/api-module-coverage.md.
-- [ ] If API endpoints are required, create a follow-up task to add src/api/core/urls.py and src/api/core/views.py.
-References:
-- docs/03-reference/api-module-coverage.md
-- src/modules/core/
-Dependencies: None
-Effort: S
-
 ## Backlog
 <!-- Add future tasks here. -->
 

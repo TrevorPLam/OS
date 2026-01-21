@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **API Coverage Core Decision** (2026-01-21)
+  - **T-144**: Documented the core module as internal-only with no external API surface.
+
 - **API Coverage Inventory** (2026-01-21)
   - **T-122**: Documented module-level API coverage with a scripted inventory and follow-up task links.
 
