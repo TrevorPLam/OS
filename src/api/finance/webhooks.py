@@ -115,16 +115,13 @@ def sanitize_webhook_payload(payload: object, key: str | None = None) -> object:
 )
 def stripe_webhook(request):
     """
-    Handle Stripe webhook events (SEC-1: Idempotency tracking, SEC-2: Rate limiting).
-
-    Verifies webhook signature and processes payment events:
-    - payment_intent.succeeded: Mark invoice as paid
-    - payment_intent.payment_failed: Log failure
-    - invoice.payment_succeeded: Update invoice status
-    - charge.refunded: Handle refunds
+    Handle incoming Stripe webhook HTTP POST requests by enforcing rate limits and idempotency, verifying the Stripe signature, validating the payload schema, dispatching the event to the appropriate handler, and persisting a redacted audit record.
     
-    SEC-1: Implements idempotency by checking StripeWebhookEvent before processing.
-    SEC-2: Rate limited per settings to prevent webhook flooding.
+    Returns:
+        HttpResponse: 200 when the event is accepted or a duplicate delivery is detected, 400 for invalid payloads or signature/schema validation failures, 500 for internal processing errors.
+    
+    Notes:
+        - Side effects include creating a StripeWebhookEvent audit record (with PII redacted) and updating related Invoice records depending on event type.
     """
     rate_limit_response = enforce_webhook_rate_limit(
         request, provider="stripe", endpoint="stripe_webhook"

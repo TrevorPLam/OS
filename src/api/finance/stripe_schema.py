@@ -30,11 +30,18 @@ class StripeWebhookEventSchema(BaseModel):
 
 def normalize_stripe_event_payload(event: object) -> Mapping[str, Any]:
     """
-    Normalize Stripe event objects to plain mappings for validation.
-
-    Meta-commentary:
-    - Reasoning: Stripe SDK returns StripeObject; Pydantic expects a mapping.
-    - Constraint: Reject non-mapping inputs early to avoid ambiguous errors.
+    Convert a Stripe event object into a plain mapping suitable for schema validation.
+    
+    If the input provides a `to_dict()` method, its result is returned. If the input is already a `Mapping`, it is returned unchanged.
+    
+    Parameters:
+        event (object): A Stripe event object or a mapping. Accepted inputs are objects with a `to_dict()` method or instances of `collections.abc.Mapping`.
+    
+    Returns:
+        Mapping[str, Any]: A plain mapping representation of the event.
+    
+    Raises:
+        ValueError: If `event` is neither a mapping nor provides `to_dict()`.
     """
     if hasattr(event, "to_dict"):
         return event.to_dict()
@@ -45,11 +52,17 @@ def normalize_stripe_event_payload(event: object) -> Mapping[str, Any]:
 
 def validate_stripe_event_payload(event: object) -> StripeWebhookEventSchema:
     """
-    Validate a Stripe webhook payload and return the typed schema.
-
+    Validate and parse a Stripe webhook payload into a StripeWebhookEventSchema.
+    
+    Parameters:
+        event (object): A Stripe event mapping or an object with a `to_dict()` method representing the webhook payload.
+    
+    Returns:
+        stripe_event (StripeWebhookEventSchema): Validated and parsed webhook event.
+    
     Raises:
-        ValueError: If payload is not a mapping.
-        ValidationError: If required fields are missing or invalid.
+        ValueError: If the payload is not a mapping.
+        ValidationError: If required fields are missing or invalid during schema validation.
     """
     normalized = normalize_stripe_event_payload(event)
     return StripeWebhookEventSchema.model_validate(normalized)
