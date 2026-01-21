@@ -75,18 +75,19 @@ export const documentsApi = {
 }
 
 export const portalDocumentsApi = {
+  // Use `/portal` so the base `/api` URL resolves to `/api/portal/*` without a duplicate prefix.
   getDocuments: async (params?: { project?: number; folder?: number }): Promise<Document[]> => {
-    const response = await apiClient.get('/api/portal/documents/', { params })
+    const response = await apiClient.get('/portal/documents/', { params })
     return response.data.results || response.data
   },
 
   downloadDocument: async (id: number): Promise<{ download_url: string; expires_in: number }> => {
-    const response = await apiClient.get(`/api/portal/documents/${id}/download/`)
+    const response = await apiClient.get(`/portal/documents/${id}/download/`)
     return response.data
   },
 
   getFolders: async (params?: { project?: number }): Promise<Folder[]> => {
-    const response = await apiClient.get('/api/portal/folders/', { params })
+    const response = await apiClient.get('/portal/folders/', { params })
     return response.data.results || response.data
   },
 }

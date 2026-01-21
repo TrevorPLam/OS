@@ -21,11 +21,11 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 
 | Route | UI Entry | Primary UI Areas | Backend Calls Used | Coverage Status |
 | --- | --- | --- | --- | --- |
-| `/client-portal` | `ClientPortal` page | Work, Documents, Invoices, Messages, Engagement | `clientPortalApi` (`/api/portal/*`), `portalDocumentsApi` (`/api/portal/documents`, `/api/portal/folders`) | **Aligned** (portal endpoints in use) |
+| `/client-portal` | `ClientPortal` page | Work, Documents, Invoices, Messages, Engagement | `clientPortalApi` (`/portal/*` relative to base `/api`), `portalDocumentsApi` (`/portal/documents`, `/portal/folders`) | **Aligned** (portal endpoints in use) |
 
 ### Portal UI Coverage Notes
 
-- The portal UI is a single route with tabbed sections (work/projects, documents, invoices, messages, engagement). It now relies on `/api/portal/*` endpoints for projects, billing, messaging, comments, and documents, ensuring portal users consume the allowlisted API surface from `src/api/portal/urls.py`.
+- The portal UI is a single route with tabbed sections (work/projects, documents, invoices, messages, engagement). It now relies on `/portal/*` calls relative to the frontend `/api` base URL, keeping portal users on the allowlisted API surface from `src/api/portal/urls.py`.
 - The portal UI currently does **not** expose appointments booking, profile management, or account switching despite corresponding backend portal endpoints.
 
 ## Portal API Surface Inventory (Backend)
@@ -58,7 +58,6 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 1. **Missing portal flows:** UI lacks appointments booking, portal profile management, and account switching despite backend support.
 
 Follow-up tasks added in `TODO.md`:
-- **T-145**: Align client portal frontend to `/api/portal/*` endpoints (client portal API migration).
 - **T-146**: Add portal appointments booking UI to the Client Portal.
 - **T-147**: Add portal profile and account switcher UI in Client Portal.
 
