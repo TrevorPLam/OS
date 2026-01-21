@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **SAML Attribute Logging Hardening** (2026-01-22)
+  - **T-134**: Added defensive attribute extraction logging and validation to prevent missing-attribute failures.
+
 - **Portal Profile & Account Switcher UI** (2026-01-21)
   - **T-147**: Added profile management and account switching to the client portal with coverage docs and tests.
 

@@ -93,3 +93,44 @@ class TestSAMLACSView(TestCase):
 
         assert response.status_code == 400
         assert b"SAML authentication failed" in response.content
+
+
+class TestSAMLAttributeExtraction(TestCase):
+    def test_extract_saml_user_attributes_happy(self):
+        # Happy path: IdP provides all expected attributes.
+        attributes = {
+            "email": ["user@example.com"],
+            "first_name": ["Ada"],
+            "last_name": ["Lovelace"],
+        }
+
+        email, first_name, last_name, missing_fields = saml_views._extract_saml_user_attributes(
+            attributes,
+            name_id="user@example.com",
+        )
+
+        assert email == "user@example.com"
+        assert first_name == "Ada"
+        assert last_name == "Lovelace"
+        assert missing_fields == []
+
+    def test_extract_saml_user_attributes_empty(self):
+        # Edge case: attributes empty, so we rely on NameID fallback.
+        attributes = {}
+
+        email, first_name, last_name, missing_fields = saml_views._extract_saml_user_attributes(
+            attributes,
+            name_id="fallback@example.com",
+        )
+
+        assert email == "fallback@example.com"
+        assert first_name == ""
+        assert last_name == ""
+        assert sorted(missing_fields) == ["email", "first_name", "last_name"]
+
+    def test_extract_saml_user_attributes_error(self):
+        # Error path: no email attribute and no NameID should raise.
+        attributes = {}
+
+        with self.assertRaises(ValueError):
+            saml_views._extract_saml_user_attributes(attributes, name_id=None)

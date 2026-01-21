@@ -18,6 +18,7 @@ import base64
 import hmac
 import logging
 import secrets
+from typing import Mapping, Sequence
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.core.exceptions import ValidationError
@@ -165,6 +166,60 @@ def prepare_django_request(request):
     return result
 
 
+def _first_attribute_value(values: Sequence[str] | str | None, field: str, missing_fields: list[str]) -> str:
+    """
+    Extract the first attribute value while tracking missing fields.
+
+    Meta-commentary:
+    - Reasoning: Centralize extraction so missing-field tracking stays consistent.
+    - Constraint: Attribute values can be lists, strings, or None depending on IdP behavior.
+    """
+    if values is None:
+        missing_fields.append(field)
+        return ""
+    if isinstance(values, (list, tuple)):
+        if not values:
+            missing_fields.append(field)
+            return ""
+        return str(values[0])
+    if isinstance(values, str):
+        if not values:
+            missing_fields.append(field)
+        return values
+    # Fallback: treat unexpected value types as present but stringify for safety.
+    return str(values)
+
+
+def _extract_saml_user_attributes(
+    attributes: Mapping[str, Sequence[str] | str] | None,
+    name_id: str | None,
+) -> tuple[str, str, str, list[str]]:
+    """
+    Extract email/first/last name from SAML attributes with defensive checks.
+
+    Meta-commentary:
+    - Reasoning: Keep SAML attribute extraction deterministic and auditable.
+    - Assumption: NameID is an acceptable fallback for email when attributes are absent.
+    - Constraint: Avoid logging PII while still signaling missing attribute fields.
+    """
+    if not isinstance(attributes, Mapping):
+        raise ValueError("SAML attributes missing or malformed")
+
+    missing_fields: list[str] = []
+    email = _first_attribute_value(attributes.get("email"), "email", missing_fields)
+    first_name = _first_attribute_value(attributes.get("first_name"), "first_name", missing_fields)
+    last_name = _first_attribute_value(attributes.get("last_name"), "last_name", missing_fields)
+
+    # WHY: NameID is the only stable identifier in some IdP configs.
+    if not email:
+        if name_id:
+            email = name_id
+        else:
+            raise ValueError("SAML response missing email and NameID")
+
+    return email, first_name, last_name, missing_fields
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 class SAMLLoginView(View):
     """
@@ -271,10 +326,30 @@ class SAMLACSView(View):
         
         # Extract user data (mapping configurable via SAMLConfiguration.attribute_mapping)
         # SECURITY: Defensive attribute extraction with defaults (see T-134)
-        # Prevents IndexError if SAML assertion lacks expected attributes
-        email = attributes.get('email', [name_id])[0] if attributes.get('email') else name_id
-        first_name = attributes.get('first_name', [''])[0] if attributes.get('first_name') else ''
-        last_name = attributes.get('last_name', [''])[0] if attributes.get('last_name') else ''
+        # Prevents IndexError if SAML assertion lacks expected attributes.
+        try:
+            email, first_name, last_name, missing_fields = _extract_saml_user_attributes(attributes, name_id)
+        except ValueError as exc:
+            # SECURITY: Log missing identifiers without leaking PII.
+            logger.error(
+                "SAML attribute extraction failed",
+                extra={
+                    "error": str(exc),
+                    "has_name_id": bool(name_id),
+                    "ip_address": request.META.get("REMOTE_ADDR"),
+                },
+            )
+            return HttpResponse("Authentication failed", status=400)
+
+        if missing_fields:
+            # SECURITY: Log missing attributes to aid debugging without logging actual values.
+            logger.warning(
+                "SAML attributes missing expected fields",
+                extra={
+                    "missing_fields": missing_fields,
+                    "has_name_id": bool(name_id),
+                },
+            )
         
         logger.info(
             "SAML user authenticated",
