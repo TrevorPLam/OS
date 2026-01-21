@@ -558,7 +558,7 @@ For customers using Azure AD (cloud-only), provide Graph API integration as an a
 3. [ ] Implement LDAP connector (8-12 hours)
 4. [ ] Build sync configuration UI (6-8 hours)
 5. [ ] Implement full sync job (8-12 hours)
-6. [ ] Update TODO.md to mark research task as complete
+6. [ ] Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to mark research task as complete
 
 ---
 

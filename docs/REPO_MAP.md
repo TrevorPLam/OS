@@ -17,7 +17,7 @@ Hierarchy (what to read first):
 1) `CODEBASECONSTITUTION.md`
 2) `READMEAI.md`
 3) `AGENTS.md`
-4) `TODO.md`
+4) `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 5) Runbooks (`CODEAUDIT.md`, `SECURITYAUDIT.md`, `DEPENDENCYAUDIT.md`, `RELEASEAUDIT.md`, `DOCSAUDIT.md`)
 6) `repo.manifest.yaml`
 7) `PROJECT_STATUS.md`
@@ -32,7 +32,7 @@ Hierarchy (what to read first):
 - `CODEBASECONSTITUTION.md` → highest authority
 - `PROJECT_STATUS.md` → current truth + next step
 - `repo.manifest.yaml` → how to run/verify/ship (machine-readable)
-- `TODO.md` → task truth source
+- `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` → task truth source
 - `SECURITY.md` → reporting + baseline expectations
 - `CHANGELOG.md` + `VERSION` → release hygiene
 
@@ -41,7 +41,7 @@ Hierarchy (what to read first):
 ## 3) specs/
 - `specs/project-spec.md` → what/why
 - `specs/technical-plan.md` → how
-- `specs/*` → non-binding notes; convert to tasks in `TODO.md` when actionable
+- `specs/*` → non-binding notes; convert to tasks in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` when actionable
 
 ---
 

@@ -97,5 +97,5 @@ This schema will serve as:
 
 **Last Updated:** December 30, 2025  
 **Status:** Blocked by system check errors  
-**Tracked in:** TODO.md CONST-6  
+**Tracked in:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md CONST-6  
 **Related:** IMPLEMENTATION_ASSESSMENT.md (documents admin/model issues)

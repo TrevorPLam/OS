@@ -3,7 +3,7 @@
 **Authority & Precedence:**
 1) CODEBASECONSTITUTION.md
 2) READMEAI.md
-3) TODO.md (Task Truth Source)
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (Task Truth Source)
 4) This runbook (DEPENDENCYAUDIT.md)
 5) Supporting docs (DEPENDENCY_HEALTH.md)
 
@@ -12,7 +12,7 @@
 ## AGENT EXECUTION
 - **Inputs to Inspect:** requirements*.txt, pyproject.toml, package.json files, lockfiles, DEPENDENCY_HEALTH.md, security advisories, CI dependency scan results.
 - **Outputs to Produce:**
-  - Findings and upgrade tasks recorded in TODO.md with IDs and acceptance criteria.
+  - Findings and upgrade tasks recorded in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with IDs and acceptance criteria.
   - Summary notes appended below.
 - **Stop Rules:**
   - Do not remove pinned versions without approval.

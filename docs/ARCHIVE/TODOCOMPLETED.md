@@ -1,6 +1,6 @@
 # ConsultantPro — Completed Tasks Archive (Governance Format)
 
-**Task Truth Source:** TODO.md
+**Task Truth Source:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 **Schema:** Each entry includes ID, Priority, Type, Title, Owner (AGENT or Trevor), Context, Acceptance Criteria, References, Dependencies, Effort, Completion Date.
 
 ## Recently Completed
@@ -107,7 +107,7 @@ The following content is preserved verbatim from the previous TODO_COMPLETED.md 
 
 **Last Updated:** January 8, 2026
 
-This file contains all completed tasks that have been migrated from TODO.md.
+This file contains all completed tasks that have been migrated from P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 
 ---
 

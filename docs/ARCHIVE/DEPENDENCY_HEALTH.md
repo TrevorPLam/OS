@@ -8,7 +8,7 @@ Primary outputs:
 
 * A predictable dependency posture (few surprises, fewer abandoned libs)
 * Dependency changes recorded in CHANGELOG.md when they affect behavior
-* Any dependency findings converted into TODO.md tasks (with acceptance criteria)
+* Any dependency findings converted into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks (with acceptance criteria)
 
 Hard rules:
 
@@ -29,7 +29,7 @@ Constraints:
 * Assume the repo owner does not run scripts and does not use GitHub Actions.
 * You may inspect package.json, lockfiles, requirements.txt, pyproject.toml, etc.
 * You must not recommend large dependency upgrades unless you also list the risks and a safe upgrade plan.
-* Convert findings into concrete TODO.md tasks with:
+* Convert findings into concrete P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks with:
 
   * Priority (P0/P1/P2)
   * Type (QUALITY or ENHANCE)
@@ -39,7 +39,7 @@ Constraints:
 Deliverables:
 
 1. Append a “Dependency Health Summary” section to the bottom of this file (dated).
-2. Add/modify TODO.md tasks for any recommended changes (add/update/remove/dedupe).
+2. Add/modify P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks for any recommended changes (add/update/remove/dedupe).
 3. If a dependency change is already completed, ensure it is reflected in CHANGELOG.md and TODO_COMPLETED.md.
 
 ⠀
@@ -138,7 +138,7 @@ Common overlap categories (choose one):
 
 If overlap exists:
 
-* Create a TODO.md task to consolidate:
+* Create a P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md task to consolidate:
 
   * pick the canonical lib
   * list where the other is used
@@ -200,7 +200,7 @@ Acceptance criteria template:
 
 Every dependency change must be recorded:
 
-* Planned: TODO.md with task ID
+* Planned: P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with task ID
 * Completed: TODO_COMPLETED.md + CHANGELOG.md (if behavior impact)
 
 Recommended task labeling:

@@ -4,7 +4,7 @@
 **Last Updated:** 2026-01-08  
 **Owner:** Integrations  
 **Status:** Draft  
-**Dependencies:** READMEAI.md; TODO.md; CODEBASECONSTITUTION.md
+**Dependencies:** READMEAI.md; P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md; CODEBASECONSTITUTION.md
 
 ## Purpose
 Defines the health monitoring API for native integrations (Salesforce, Slack, Google Analytics) so admins can detect repeated failures and token expiry risks.

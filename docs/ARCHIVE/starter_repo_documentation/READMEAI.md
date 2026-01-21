@@ -4,7 +4,7 @@ Version: 1.3.1
 Last Updated: 2026-01-03
 Owner: Repository Root
 Status: Active
-Dependencies: CODEBASECONSTITUTION.md; TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; docs/CHANGELOG.md; docs/AI_WORKFLOWS.md; docs/SECURITY_BASELINE.md; docs/EMERGENCY_PROTOCOL.md; docs/DEPRECATION.md; docs/AI_TOOL_QUALIFICATION.md; docs/DECISION_LOG.md
+Dependencies: CODEBASECONSTITUTION.md; P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; docs/CHANGELOG.md; docs/AI_WORKFLOWS.md; docs/SECURITY_BASELINE.md; docs/EMERGENCY_PROTOCOL.md; docs/DEPRECATION.md; docs/AI_TOOL_QUALIFICATION.md; docs/DECISION_LOG.md
 
 Purpose: Single operational entrypoint for any AI working in this repository. Follow exactly.
 
@@ -15,7 +15,7 @@ If instructions conflict, follow this order (highest wins):
 
 1) Constitution (CODEBASECONSTITUTION.md + Amendments)
 2) READMEAI.md (this file)
-3) TODO.md (current priorities and acceptance criteria)
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (current priorities and acceptance criteria)
 4) docs/AI_WORKFLOWS.md (how to execute task types)
 5) All other documentation
 
@@ -50,7 +50,7 @@ Rule: The Constitution may only be changed via the Amendment process.
 Before executing any task, read:
 
 1) Constitution (CODEBASECONSTITUTION.md)
-2) TODO.md
+2) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 3) docs/README.md (Documentation map)
 4) docs/REPO_MAP.md
 5) docs/codingconstitution.md (if exists - comprehensive governance)

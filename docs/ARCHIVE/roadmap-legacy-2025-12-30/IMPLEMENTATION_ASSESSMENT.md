@@ -360,7 +360,7 @@ Mark others as "Needs Completion" in documentation.
 
 1. ✅ Create this assessment document
 2. Update MISSINGFEATURES.md to show actual status (not "complete")
-3. Update TODO.md to remove false checkmarks
+3. Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to remove false checkmarks
 4. Create follow-up tasks for each feature
 5. Commit assessment with clear status
 
@@ -370,7 +370,7 @@ Mark others as "Needs Completion" in documentation.
 
 1. ✅ Complete this assessment
 2. Update MISSINGFEATURES.md with honest status
-3. Update TODO.md with corrections
+3. Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with corrections
 4. Decide on Option 1, 2, or 3
 5. Execute chosen option
 6. Commit and push documentation

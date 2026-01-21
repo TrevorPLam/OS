@@ -108,7 +108,7 @@ This document analyzes the current documentation structure, identifies consolida
 1. Review both documents for unique content
 2. Create unified structure in `IMPLEMENTATION_SUMMARY.md`
 3. Delete `TODO_EXECUTION_SUMMARY.md`
-4. Update references in `TODO.md` and other docs
+4. Update references in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` and other docs
 
 **New Structure:**
 ```markdown

@@ -105,4 +105,4 @@ The following features are fully implemented and documented:
 
 - **ASSESS-R1.2:** Mark missing features as "Coming Soon"
 - **ASSESS-R1.4:** Align spec with reality - remove claims for non-implemented features
-- **TODO.md:** Missing Features Implementation section for detailed status
+- **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:** Missing Features Implementation section for detailed status

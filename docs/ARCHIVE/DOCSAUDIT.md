@@ -3,7 +3,7 @@
 **Authority & Precedence:**
 1) CODEBASECONSTITUTION.md
 2) READMEAI.md
-3) TODO.md (Task Truth Source)
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (Task Truth Source)
 4) This runbook (DOCSAUDIT.md)
 5) Supporting docs (DOCS_ROOT.md, docs/DOCS_INDEX.md, docs/REPO_MAP.md)
 
@@ -12,7 +12,7 @@
 ## AGENT EXECUTION
 - **Inputs to Inspect:** DOCS_ROOT.md, docs/DOCS_INDEX.md, docs/REPO_MAP.md, README.md files across modules, and documentation referenced by open TODO tasks.
 - **Outputs to Produce:**
-  - Documentation drift findings captured as TODO.md tasks with acceptance criteria.
+  - Documentation drift findings captured as P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks with acceptance criteria.
   - Notes appended to the `Summary` section below.
 - **Stop Rules:**
   - Do not delete documentation; archive outdated sections with context if necessary.

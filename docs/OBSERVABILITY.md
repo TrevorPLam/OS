@@ -62,7 +62,7 @@ in this environment yet.
 
 ### Interpretation guidance
 - Treat the first measured baseline as the reference point for trend deltas.
-- When p95/p99 or Core Web Vitals drift beyond targets, create a TODO.md task for remediation.
+- When p95/p99 or Core Web Vitals drift beyond targets, create a P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md task for remediation.
 - Always note the dataset, environment, and run duration alongside the numbers.
 
 ### Meta-commentary (for AI iteration)
@@ -110,7 +110,7 @@ revenue loss, or potential data loss:
 
 ## Runbook: common failure scenarios
 Use these steps as the first response. If a scenario repeats or takes >30 minutes to
-resolve, create a post-incident task in TODO.md.
+resolve, create a post-incident task in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 
 ### API error rate spike
 1) Confirm scope: check recent deploys, error logs, and request IDs.

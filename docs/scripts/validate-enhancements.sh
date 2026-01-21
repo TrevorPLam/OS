@@ -6,7 +6,7 @@ set -euo pipefail
 echo "=== Governance Framework Validation ==="
 echo
 
-echo "1) Regenerating TODO.md..."
+echo "1) Regenerating TODO.generated.md..."
 ./scripts/sync-todo.sh
 
 echo

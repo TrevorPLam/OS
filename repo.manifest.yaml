@@ -8,8 +8,11 @@ governance:
     - READMEAI.md
     - AGENTS.md
     - BESTPR.md
-    - TODO.md
-  task_truth_source: TODO.md
+    - P0TODO.md
+    - P1TODO.md
+    - P2TODO.md
+    - P3TODO.md
+  task_truth_source: P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
   completed_tasks: TODOCOMPLETED.md
   best_practices: BESTPR.md
   github_actions:

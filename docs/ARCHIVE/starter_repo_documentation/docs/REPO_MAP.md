@@ -12,7 +12,7 @@ Status: Active
 ├── README.md                     # Project overview and quickstart
 ├── CONTRIBUTING.md               # Development workflow and standards
 ├── CHANGELOG.md                  # Release history
-├── TODO.md                       # Development roadmap
+├── P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md                       # Development roadmap
 ├── SECURITY.md                   # Security policy and reporting
 ├── Makefile                      # Build orchestration (setup, lint, test, verify)
 ├── pyproject.toml                # Python tooling config (ruff, black, pytest)

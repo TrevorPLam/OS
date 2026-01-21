@@ -15,7 +15,7 @@ Token-optimized, repo-specific guide to ship quality, complementary code the fir
 1. `CODEBASECONSTITUTION.md` (highest authority)
 2. `READMEAI.md` (operating model)
 3. `AGENTS.md` (agent behavior rules)
-4. `TODO.md` (task truth source)
+4. `P0TODO.md` / `P1TODO.md` / `P2TODO.md` / `P3TODO.md` (task truth source)
 
 **USE THIS GUIDE**: When implementing features, fixing bugs, or reviewing code.
 
@@ -931,7 +931,7 @@ def test_dashboard_view(client, firm):
 
 ### 10.1 Adding a New Feature
 
-1. **Create task in `TODO.md`**
+1. **Create task in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, or `P3TODO.md`**
 2. **Read relevant `AGENTS.md` files**
 3. **Check existing patterns** (grep for similar code)
 4. **Implement with firm scoping**
@@ -951,7 +951,7 @@ def test_dashboard_view(client, firm):
 
 ### 10.3 Refactoring
 
-1. **Create task in `TODO.md`** with rationale
+1. **Create task in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, or `P3TODO.md`** with rationale
 2. **Ensure tests exist** (add if missing)
 3. **Refactor incrementally**
 4. **Run tests after each step**
@@ -1069,7 +1069,7 @@ make test       # Run test suite
 ## 15. Amendment Protocol
 
 Changes to this document require:
-1. A task in `TODO.md`
+1. A task in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, or `P3TODO.md`
 2. Rationale in the change description
 3. Update `Last Updated` date and version
 4. Notify all agents via `AGENTS.md` updates
@@ -1081,7 +1081,7 @@ Changes to this document require:
 - **Governance**: `CODEBASECONSTITUTION.md`
 - **Operating Model**: `READMEAI.md`
 - **Agent Rules**: `AGENTS.md`
-- **Task Truth**: `TODO.md`
+- **Task Truth**: `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 - **Project Status**: `PROJECT_STATUS.md`
 - **Verification**: `repo.manifest.yaml`
 

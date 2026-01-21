@@ -784,7 +784,7 @@ Create PR checklist in `.github/PULL_REQUEST_TEMPLATE.md`:
 
 ## Appendix C: Reference Documents
 
-- [TODO.md](./TODO.md) - Master TODO list
+- [P0TODO.md](./P0TODO.md), [P1TODO.md](./P1TODO.md), [P2TODO.md](./P2TODO.md), [P3TODO.md](./P3TODO.md) - Master TODO list
 - [TODO_ANALYSIS.md](./TODO_ANALYSIS.md) - Historical TODO analysis
 - [CONSTITUTION_ANALYSIS.md](./CONSTITUTION_ANALYSIS.md) - Constitution compliance analysis
 - [ChatGPT_CODEBASE_ASSESMENT](./docs/ChatGPT_CODEBASE_ASSESMENT) - External audit findings

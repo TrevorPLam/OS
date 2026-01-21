@@ -30,4 +30,4 @@ Top risks (technical, legal, product, go-to-market) and mitigations.
 
 ## 9) Open questions
 Add questions that need answers before building.
-Link to tasks in `TODO.md` for follow-ups.
+Link to tasks in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` for follow-ups.

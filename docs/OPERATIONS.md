@@ -185,7 +185,7 @@ The Django server will be available at http://localhost:8000.
 
 **Retention Policy:** UNKNOWN - Verify retention period and archival strategy.
 
-**Audit Export:** UNKNOWN - Verify if export tooling exists per TODO.md:216.
+**Audit Export:** UNKNOWN - Verify if export tooling exists per P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:216.
 
 ---
 
@@ -277,7 +277,7 @@ make verify
 ### 9.1 Rules (from Constitution)
 
 - Secrets must not be committed (enforced by `.github/workflows/ci.yml:206-210` - TruffleHog scan)
-- Secrets must not be printed in logs (evidence: TODO.md:248 - DOC-21.2 no-content logging)
+- Secrets must not be printed in logs (evidence: P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:248 - DOC-21.2 no-content logging)
 - Secrets must be rotatable (evidence: constitution requirement, implementation UNKNOWN)
 
 ### 9.2 Where Secrets are Stored
@@ -292,7 +292,7 @@ make verify
 
 ## 10. Monitoring & Observability
 
-**Evidence:** `README.md:84-94` (Sentry), TODO.md:212 (DOC-21.1 observability baseline)
+**Evidence:** `README.md:84-94` (Sentry), P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:212 (DOC-21.1 observability baseline)
 
 ### 10.1 Error Tracking
 
@@ -302,7 +302,7 @@ make verify
 
 ### 10.2 Metrics & Alerts
 
-**Evidence:** TODO.md:212 - "DOC-21.1 Observability baseline: correlation IDs end-to-end; tenant-safe metrics; DLQ + integration lag visibility ✅ Completed Dec 30, 2025"
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:212 - "DOC-21.1 Observability baseline: correlation IDs end-to-end; tenant-safe metrics; DLQ + integration lag visibility ✅ Completed Dec 30, 2025"
 
 **Metrics Documented:** `docs/ALERT_CONFIGURATION.md` (evidence: file exists per inventory)
 
@@ -322,7 +322,7 @@ For operational issues, see:
 
 ## 12. Health Checks
 
-**Evidence:** TODO.md:41 - "CONST-2: Implement health check endpoints"
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:41 - "CONST-2: Implement health check endpoints"
 
 **Endpoints:**
 - **Liveness:** `/health` (evidence: implemented in `src/config/health.py`)

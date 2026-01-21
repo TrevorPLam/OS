@@ -45,7 +45,7 @@ Every audit run must record:
 - any TODO tasks created
 
 ### 4) No premature closure
-Do not mark tasks COMPLETE in `TODO.md` until:
+Do not mark tasks COMPLETE in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` until:
 - required audits pass (no critical item scored 0)
 - verification per `repo.manifest.yaml` passes (or is blocked + TODO created)
 

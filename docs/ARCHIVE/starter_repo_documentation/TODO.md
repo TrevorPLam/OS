@@ -16,8 +16,8 @@ Dependencies: CODEBASECONSTITUTION.md; docs/ARCHITECTURE.md; docs/REPO_MAP.md; d
 - ✅ Active Directory sync and SAML/OAuth
 - ✅ Advanced scheduling (event types, booking links, buffer times)
 
-**Current Priority Areas (from TODO.md):**
-See root TODO.md for detailed roadmap including:
+**Current Priority Areas (from P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md):**
+See root P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md for detailed roadmap including:
 - Scheduling platform enhancements (Calendly-complete replacement)
 - CRM enrichment and lead scoring
 - Advanced reporting and analytics

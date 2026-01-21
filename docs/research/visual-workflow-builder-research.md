@@ -280,7 +280,7 @@ src/frontend/src/
 2. [ ] Create POC (Proof of Concept) with React Flow (4 hours)
 3. [ ] Review POC with team and gather feedback
 4. [ ] Proceed with Phase 1 implementation
-5. [ ] Update TODO.md to mark research task as complete
+5. [ ] Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to mark research task as complete
 
 ---
 

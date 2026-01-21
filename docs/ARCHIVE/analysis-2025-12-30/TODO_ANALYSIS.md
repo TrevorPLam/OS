@@ -166,18 +166,18 @@ This analysis categorizes all TODO items across the codebase by effort and impac
 
 ### Category D: Missing Workflow Implementations (Est: 1-2 days each)
 
-7. **2.7: Document Approval Workflow** (TODO.md:178)
+7. **2.7: Document Approval Workflow** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:178)
    - **Task:** Add state machine: Draft → Review → Approved → Published
    - **Impact:** HIGH - Required for governed artifacts
    - **Effort:** MEDIUM - State machine pattern exists in codebase
    - **Files:** Extend `src/modules/documents/models.py`
 
-8. **2.8: Client Acceptance Gate** (TODO.md:179)
+8. **2.8: Client Acceptance Gate** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:179)
    - **Task:** Prevent invoicing before client accepts deliverables
    - **Impact:** HIGH - Reduces disputes
    - **Effort:** MEDIUM - Add validation logic + API endpoint
 
-9. **DOC-14.2: Document Access Logging** (TODO.md:19)
+9. **DOC-14.2: Document Access Logging** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:19)
    - **Task:** Log URL issuance + downloads/uploads (metadata only)
    - **Impact:** HIGH - Audit requirement
    - **Effort:** MEDIUM - Audit system exists, add document hooks
@@ -206,27 +206,27 @@ This analysis categorizes all TODO items across the codebase by effort and impac
 
 ### Top 5 Doc-Driven Items by Strategic Value
 
-13. **DOC-04.1: Resolve Tenancy Contradiction** (TODO.md:15)
+13. **DOC-04.1: Resolve Tenancy Contradiction** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:15)
     - **Impact:** CRITICAL - Architectural foundation
     - **Effort:** HIGH - Requires schema migration decision
     - **Risk:** HIGH - Changes isolation model
 
-14. **DOC-18.1: Authorization Mapping** (TODO.md:16)
+14. **DOC-18.1: Authorization Mapping** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:16)
     - **Impact:** CRITICAL - Security foundation
     - **Effort:** HIGH - Touch every endpoint
     - **Risk:** HIGH - Authorization changes
 
-15. **DOC-14.1: Enforce Governed Artifact Invariants** (TODO.md:18)
+15. **DOC-14.1: Enforce Governed Artifact Invariants** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:18)
     - **Impact:** HIGH - Data governance requirement
     - **Effort:** HIGH - Cross-cutting concern
     - **Risk:** MEDIUM
 
-16. **DOC-33.1: Communications Model** (TODO.md:21)
+16. **DOC-33.1: Communications Model** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:21)
     - **Impact:** HIGH - New feature enabler
     - **Effort:** MEDIUM-HIGH - New domain
     - **Risk:** LOW - Additive feature
 
-17. **DOC-09.1: Pricing Engine MVP** (TODO.md:22)
+17. **DOC-09.1: Pricing Engine MVP** (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:22)
     - **Impact:** HIGH - Revenue capability
     - **Effort:** HIGH - Complex domain
     - **Risk:** MEDIUM

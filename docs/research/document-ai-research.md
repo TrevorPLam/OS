@@ -636,7 +636,7 @@ src/modules/document_ai/
 3. [ ] Implement basic OCR integration (6-8 hours)
 4. [ ] Build document classification with Google Document AI (8-12 hours)
 5. [ ] Create routing logic (4-6 hours)
-6. [ ] Update TODO.md to mark research task as complete
+6. [ ] Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to mark research task as complete
 
 ---
 

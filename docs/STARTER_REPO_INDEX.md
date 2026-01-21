@@ -17,7 +17,7 @@
 👉 **AI Agent?** Start here:
 1. [READMEAI.md](READMEAI.md) - AI operating instructions
 2. [CODEBASECONSTITUTION.md](CODEBASECONSTITUTION.md) - Repository governance
-3. [TODO.md](TODO.md) - Current priorities
+3. [P0TODO.md](P0TODO.md), [P1TODO.md](P1TODO.md), [P2TODO.md](P2TODO.md), [P3TODO.md](P3TODO.md) - Current priorities
 4. [docs/DOCS_INDEX.md](docs/DOCS_INDEX.md) - Documentation map
 
 ---
@@ -28,7 +28,7 @@
 starter_repo_documentation/
 ├── INDEX.md                      # This file
 ├── README.md                     # Project overview
-├── TODO.md                       # Development roadmap
+├── P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md                       # Development roadmap
 ├── CODEBASECONSTITUTION.md       # Repository standards
 ├── READMEAI.md                   # AI agent instructions
 ├── env.example                   # Environment variables template
@@ -73,7 +73,7 @@ starter_repo_documentation/
 
 ### 🤖 AI & Development
 - [READMEAI.md](READMEAI.md) - AI agent operating instructions
-- [TODO.md](TODO.md) - What's being worked on?
+- [P0TODO.md](P0TODO.md), [P1TODO.md](P1TODO.md), [P2TODO.md](P2TODO.md), [P3TODO.md](P3TODO.md) - What's being worked on?
 - [env.example](env.example) - What configuration is needed?
 
 ### 📡 API & Integration

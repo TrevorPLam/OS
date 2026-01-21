@@ -120,6 +120,6 @@ All major features implemented in December 2025 are documented in canonical desi
 ## References
 
 - **ASSESS-R1.8:** Review for scope creep
-- **TODO.md:** Missing Features Implementation section
+- **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:** Missing Features Implementation section
 - **Design Docs:** docs/1 through docs/35 (canonical requirements)
 - **ADR Process:** docs/05-decisions/README.md

@@ -6,7 +6,7 @@ This directory contains utility scripts for the ConsultantPro project. Scripts a
 
 - **Local hooks (opt-in):** Install pre-commit hooks with `pre-commit install` if you want local enforcement. Uninstall with `pre-commit uninstall` to return to a clean state.
 - **CI workflows:** GitHub Actions workflows live in `.github/workflows/`.
-- **Generated artifacts:** If any script outputs `TODO.generated.md`, keep it gitignored and never overwrite TODO.md automatically.
+- **Generated artifacts:** If any script outputs `TODO.generated.md`, keep it gitignored and never overwrite `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, or `P3TODO.md` automatically.
 
 ## TIER 0 Enforcement Scripts
 
@@ -16,7 +16,7 @@ This directory contains utility scripts for the ConsultantPro project. Scripts a
 
 **What it checks**:
 - `docs/PRE_LAUNCH_CHECKLIST.md` exists and has no unchecked items
-- `TODO.md` Status values are valid (READY, BLOCKED, IN-PROGRESS, IN-REVIEW)
+- `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` Status values are valid (READY, BLOCKED, IN-PROGRESS, IN-REVIEW)
 
 **Usage**:
 

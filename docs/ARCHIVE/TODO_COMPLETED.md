@@ -4,7 +4,7 @@
 
 > Governance note: TODOCOMPLETED.md is now the authoritative completed-task log. This file is preserved for reference and remains unchanged below.
 
-This file contains all completed tasks that have been migrated from TODO.md.
+This file contains all completed tasks that have been migrated from P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 
 ---
 

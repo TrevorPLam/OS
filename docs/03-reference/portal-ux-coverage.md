@@ -57,7 +57,7 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 
 1. **Portal flows:** Profile management and account switching are now covered in the Client Portal UI.
 
-Follow-up tasks added in `TODO.md`:
+Follow-up tasks added in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`:
 - None (T-147 completed).
 
 ## Notes

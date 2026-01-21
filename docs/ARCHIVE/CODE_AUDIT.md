@@ -5,7 +5,7 @@ Version: 1.0.0
 Last Updated: 2026-01-03
 Owner: Repository Root
 Status: Canonical
-Dependencies: CODEBASECONSTITUTION.md, TODO.md, DOCS_ROOT.md
+Dependencies: CODEBASECONSTITUTION.md, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md, DOCS_ROOT.md
 
 ## Purpose
 
@@ -88,7 +88,7 @@ How to run:
 2. Run all automated checks
 3. Review architectural boundaries
 4. Check documentation accuracy
-5. Document findings in TODO.md
+5. Document findings in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 
 ### Automated Audits
 
@@ -129,7 +129,7 @@ If audit fails but merge is necessary:
 3. Link to TODO task for remediation
 4. Require additional approval
 
-## Integration with TODO.md
+## Integration with P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 
 All audit findings must be tracked:
 
@@ -170,7 +170,7 @@ Format in TODO:
 
 Precedence: CODEBASECONSTITUTION.md → READMEAI.md → specs/* → this document.
 
-Purpose: produce a trustworthy, prioritized TODO.md and TODO_COMPLETED.md by running a phased audit:
+Purpose: produce a trustworthy, prioritized P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md and TODO_COMPLETED.md by running a phased audit:
 
 1. Task Hygiene (consolidate tasks from docs/code/config)
 2. Spec Completeness (requirements → implementation coverage)
@@ -181,7 +181,7 @@ Purpose: produce a trustworthy, prioritized TODO.md and TODO_COMPLETED.md by run
 ⠀
 Primary outputs (must be produced/updated):
 
-* TODO.md (execution backlog)
+* P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (execution backlog)
 * TODO_COMPLETED.md (dated archive)
 
 Secondary outputs (optional, only if needed):
@@ -206,15 +206,15 @@ You must:
 * Avoid adding new feature scope. This is an audit + backlog hygiene task.
 * Produce concrete tasks only (no vague refactors).
 * Use file references and acceptance criteria for every task.
-* Remove “task leakage” by moving actionable items out of docs and code comments into TODO.md (or replacing them with task IDs).
+* Remove “task leakage” by moving actionable items out of docs and code comments into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (or replacing them with task IDs).
 
 If you cannot run commands, still proceed by static analysis and file inspection.
 
 Deliverables:
 
-1. Update TODO.md and TODO_COMPLETED.md.
-2. Remove or replace actionable TODO/FIXME/TBD markers in docs/code with references to T-### tasks in TODO.md.
-3. Ensure TODO.md is deduped and prioritized, and that the top 5 tasks are immediately actionable.
+1. Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md and TODO_COMPLETED.md.
+2. Remove or replace actionable TODO/FIXME/TBD markers in docs/code with references to T-### tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
+3. Ensure P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md is deduped and prioritized, and that the top 5 tasks are immediately actionable.
 
 ⠀
 Stop conditions:
@@ -224,7 +224,7 @@ Stop conditions:
 
 ## Task Format Standard (REQUIRED)
 
-Every task in TODO.md must follow this template:
+Every task in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md must follow this template:
 
 * ID: T-###
 * Priority: P0 / P1 / P2
@@ -261,12 +261,12 @@ Rules:
 1. Determine task truth source:
 
 ⠀
-* If specs/project-tasks.md is source-of-truth: update that first, then sync TODO.md.
-* Otherwise: TODO.md is source-of-truth.
+* If specs/project-tasks.md is source-of-truth: update that first, then sync P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
+* Otherwise: P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md is source-of-truth.
 
-Record one sentence at the top of TODO.md:
+Record one sentence at the top of P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:
 
-“Task truth source: (specs/project-tasks.md | TODO.md)”
+“Task truth source: (specs/project-tasks.md | P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)”
 
 Gate:
 
@@ -279,7 +279,7 @@ Goal: no executable tasks remain stranded in docs/code/config; completed tasks a
 
 Step 1 — Move completed tasks
 
-* Scan TODO.md.
+* Scan P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 * Move completed tasks into TODO_COMPLETED.md with:
 
   * completion date (YYYY-MM-DD)
@@ -293,7 +293,7 @@ Search /docs/** for:
 * TODO, FIXME, HACK, TBD, TKTK, OPEN QUESTION, UNDECIDED, REVISIT, “follow up”, “later”, “missing”
 
 * For each actionable item:
-* Create/merge a task in TODO.md (format required)
+* Create/merge a task in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (format required)
 * Remove the actionable line from the doc OR replace it with: “Tracked in TODO: T-###”
 
 Step 3 — Sweep code for tasks
@@ -303,7 +303,7 @@ Search codebase for:
 * TODO:, FIXME:, HACK:, XXX:, @todo, TKTK, OPEN QUESTION, UNDECIDED, REVISIT, TEMP, REMOVE ME
 
 * For each actionable item:
-* Create/merge a task in TODO.md
+* Create/merge a task in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 * Replace the inline note with: “Tracked in TODO: T-###”
 * If the comment is necessary context, keep context but remove the “task” directive.
 
@@ -332,7 +332,7 @@ Step 6 — Provisional prioritize
 
 Gate:
 
-* TODO.md has no completed tasks.
+* P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md has no completed tasks.
 * Docs/code no longer contain executable tasks (only “Tracked in TODO: T-###” pointers).
 * Top 5 tasks are immediately startable.
 ---
@@ -483,7 +483,7 @@ Categories:
 
 Output:
 
-* Add ENHANCE tasks into TODO.md with category in the title or context.
+* Add ENHANCE tasks into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with category in the title or context.
 
 Gate:
 
@@ -492,7 +492,7 @@ Gate:
 
 ## Phase 6 — FINAL MERGE + PRIORITIZATION
 
-Goal: one coherent TODO.md.
+Goal: one coherent P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 
 Steps:
 
@@ -510,7 +510,7 @@ Steps:
 ⠀
 Final acceptance:
 
-* TODO.md matches required format.
+* P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md matches required format.
 * TODO_COMPLETED.md contains dated completed items.
 * Docs/code do not contain executable TODOs—only pointers to task IDs.
 ---

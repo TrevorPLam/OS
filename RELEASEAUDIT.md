@@ -2,7 +2,7 @@
 
 Document Type: Audit Runbook
 Last Updated: 2026-01-05
-Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `TODO.md` → this document
+Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` → this document
 Owner: AGENT
 
 Purpose: Provide a deterministic release checklist and a release record that works even when CI/CD is disabled.
@@ -24,11 +24,11 @@ Stop conditions:
 - If a release requires an external action (DNS, provider settings, secret rotation), create Owner: Trevor task and mark BLOCKED until done.
 
 Required outputs:
-- Update/create tasks in TODO.md.
+- Update/create tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 - Append a run summary to this document.
 
 ## Task writing rules
-- Tasks must be created/updated in `TODO.md` using the required schema.
+- Tasks must be created/updated in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` using the required schema.
 - If a task is ambiguous, set **Status: BLOCKED** and add a question in the task Context.
 - Do not invent repo facts. If evidence is missing, write **UNKNOWN** and cite what you checked.
 

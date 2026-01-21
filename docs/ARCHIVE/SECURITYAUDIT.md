@@ -3,16 +3,16 @@
 **Authority & Precedence:**
 1) CODEBASECONSTITUTION.md
 2) READMEAI.md
-3) TODO.md (Task Truth Source)
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (Task Truth Source)
 4) This runbook (SECURITYAUDIT.md)
 5) Supporting docs (SECURITY.md, SECURITY_REVIEW.md, SECURITY_HARDENING_COMPLETE.md)
 
 **Purpose:** Provide consistent security verification and escalation steps while preserving prior security reviews and hardening notes.
 
 ## AGENT EXECUTION
-- **Inputs to Inspect:** SECURITY.md, SECURITY_REVIEW.md, SECURITY_HARDENING_COMPLETE.md, TODO.md security tasks, environment configuration docs, dependency advisories.
+- **Inputs to Inspect:** SECURITY.md, SECURITY_REVIEW.md, SECURITY_HARDENING_COMPLETE.md, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md security tasks, environment configuration docs, dependency advisories.
 - **Outputs to Produce:**
-  - Security findings/tasks added to TODO.md with IDs and owners.
+  - Security findings/tasks added to P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with IDs and owners.
   - Notes appended to the `Summary` section below.
 - **Stop Rules:**
   - Do not expose secrets; redact sensitive values in findings.

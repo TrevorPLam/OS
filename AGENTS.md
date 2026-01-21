@@ -7,7 +7,7 @@ Applies To: Any coding/documentation agent operating in this repo
 1) `CODEBASECONSTITUTION.md`
 2) `READMEAI.md`
 3) `AGENTS.md`
-4) `TODO.md`
+4) `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 5) `BESTPR.md` (best practices guide for quality code)
 6) Audit runbooks (`CODEAUDIT.md`, `SECURITYAUDIT.md`, etc.)
 7) `specs/` (non-binding notes)
@@ -15,7 +15,7 @@ Applies To: Any coding/documentation agent operating in this repo
 ## Non-negotiables
 - Do not invent facts about the repo. Use **UNKNOWN** + cite what you checked.
 - If requirements are ambiguous, ask questions before implementing.
-- `TODO.md` is the task truth source. Do not auto-edit it except to add/update tasks.
+- `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` are the task truth source. Do not auto-edit them except to add/update tasks.
 - Secrets must never be committed.
 
 ## Output expectations

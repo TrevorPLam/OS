@@ -16,7 +16,7 @@ Status: Active
 | Work with the API | API docs at `/api/docs/` when running |
 | Understand governance | [../CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md) |
 | AI agent instructions | [../READMEAI.md](../READMEAI.md) |
-| Current priorities | [../TODO.md](../TODO.md) |
+| Current priorities | [P0TODO.md](../P0TODO.md), [P1TODO.md](../P1TODO.md), [P2TODO.md](../P2TODO.md), [P3TODO.md](../P3TODO.md) |
 
 ## Documentation Structure
 
@@ -64,7 +64,7 @@ This repository follows the [Diátaxis framework](https://diataxis.fr/) for docu
 - [REPO_MAP.md](REPO_MAP.md) - Repository structure
 
 ### Development
-- [TODO.md](../TODO.md) - Development roadmap
+- [P0TODO.md](../P0TODO.md), [P1TODO.md](../P1TODO.md), [P2TODO.md](../P2TODO.md), [P3TODO.md](../P3TODO.md) - Development roadmap
 - [CHANGELOG.md](../CHANGELOG.md) - Release history
 
 ### Operations
@@ -80,7 +80,7 @@ This repository follows the [Diátaxis framework](https://diataxis.fr/) for docu
 4. Explore [REPO_MAP.md](REPO_MAP.md)
 
 **I need to implement a feature:**
-1. Check [TODO.md](../TODO.md) for current priorities
+1. Check [P0TODO.md](../P0TODO.md), [P1TODO.md](../P1TODO.md), [P2TODO.md](../P2TODO.md), [P3TODO.md](../P3TODO.md) for current priorities
 2. Review [CODEBASECONSTITUTION.md](../CODEBASECONSTITUTION.md) for standards
 3. Find the relevant module in [REPO_MAP.md](REPO_MAP.md)
 4. Review module-specific documentation

@@ -3,17 +3,17 @@
 **Authority & Precedence:**
 1) CODEBASECONSTITUTION.md
 2) READMEAI.md
-3) TODO.md (Task Truth Source)
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (Task Truth Source)
 4) This runbook (RELEASEAUDIT.md)
 5) Supporting docs (RELEASE_CHECKLIST.md, CODE_AUDIT_REPORT.md)
 
 **Purpose:** Standardize pre-release verification while retaining existing release checklists and evidence requirements.
 
 ## AGENT EXECUTION
-- **Inputs to Inspect:** RELEASE_CHECKLIST.md, CODE_AUDIT_REPORT.md, CHANGELOG.md, deployment manifests, TODO.md release tasks.
+- **Inputs to Inspect:** RELEASE_CHECKLIST.md, CODE_AUDIT_REPORT.md, CHANGELOG.md, deployment manifests, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md release tasks.
 - **Outputs to Produce:**
   - Release readiness notes appended to the `Summary` below.
-  - Follow-up tasks added to TODO.md for gaps.
+  - Follow-up tasks added to P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md for gaps.
 - **Stop Rules:**
   - Do not skip mandatory release gates from RELEASE_CHECKLIST.md.
   - Do not change release processes without TODO-backed approval.

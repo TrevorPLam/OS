@@ -108,7 +108,7 @@ pip install -r requirements.txt
 
 **Symptom:** Tests pass locally but fail in CI, or vice versa.
 
-**Evidence:** TODO.md:129 - "ASSESS-C3.10 Eliminate test non-determinism - Standardize tests to use Postgres (not SQLite)"
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:129 - "ASSESS-C3.10 Eliminate test non-determinism - Standardize tests to use Postgres (not SQLite)"
 
 **Cause:** SQLite and PostgreSQL have different behaviors (e.g., foreign key constraints).
 

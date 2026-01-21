@@ -133,5 +133,5 @@ make verify
 
 1. Read [ARCHITECTURE.md](ARCHITECTURE.md) for system overview
 2. Review [REPO_MAP.md](REPO_MAP.md) for codebase structure
-3. Check [../TODO.md](../TODO.md) for current development priorities
+3. Check [P0TODO.md](../P0TODO.md), [P1TODO.md](../P1TODO.md), [P2TODO.md](../P2TODO.md), [P3TODO.md](../P3TODO.md) for current development priorities
 4. See [API documentation](http://localhost:8000/api/docs/) for endpoint reference

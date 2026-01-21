@@ -3,7 +3,7 @@ Version: 1.0.0
 Last Updated: 2026-01-03
 Owner: Repository Root
 Status: Active
-Dependencies: CODEBASECONSTITUTION.md; READMEAI.md; TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; docs/CHANGELOG.md
+Dependencies: CODEBASECONSTITUTION.md; READMEAI.md; P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; docs/CHANGELOG.md
 
 ConsultantPro is a multi-tenant SaaS platform for service-based firms (consulting, accounting, legal, etc.) with emphasis on privacy-first architecture and tiered governance.
 
@@ -34,7 +34,7 @@ ConsultantPro is a multi-tenant SaaS platform for service-based firms (consultin
 Start here (mandatory):
 1) CODEBASECONSTITUTION.md
 2) READMEAI.md
-3) TODO.md
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 4) docs/DOCS_INDEX.md
 5) docs/SETUP.md
 6) docs/ARCHITECTURE.md

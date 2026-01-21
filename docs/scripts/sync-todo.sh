@@ -2,7 +2,7 @@
 # scripts/sync-todo.sh — OPTIONAL helper (non-binding)
 #
 # Generates TODO.generated.md from specs/project-tasks.md (non-binding notes) (planning notes).
-# This script must NOT modify TODO.md. TODO.md is the task truth source.
+# This script must NOT modify P0TODO.md/P1TODO.md/P2TODO.md/P3TODO.md. Those files are the task truth source.
 
 set -euo pipefail
 
@@ -27,7 +27,7 @@ header = f"""# TODO.generated.md — Generated View (Non-Binding)
 Last Generated: 2026-01-05
 
 This file is generated from `specs/project-tasks.md (non-binding notes)` and is **not authoritative**.
-Authoritative tasks live in `TODO.md`.
+Authoritative tasks live in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`.
 
 ---
 

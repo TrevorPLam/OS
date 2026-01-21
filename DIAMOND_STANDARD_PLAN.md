@@ -10,7 +10,7 @@
 
 ## Quick Links
 
-- [TODO.md](TODO.md) - Single source of truth for all tasks
+- [P0TODO.md](P0TODO.md), [P1TODO.md](P1TODO.md), [P2TODO.md](P2TODO.md), [P3TODO.md](P3TODO.md) - Single source of truth for all tasks
 - [PRE_LAUNCH_CHECKLIST.md](docs/PRE_LAUNCH_CHECKLIST.md) - Production readiness gate
 
 ---
@@ -294,7 +294,7 @@ This plan systematically elevates the ConsultantPro OS codebase from its current
 - **LLM-1, LLM-2** (P2, AGENT): LLM integration features
 
 **Completion Criteria:**
-- All TODO.md tasks resolved
+- All P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks resolved
 - Diamond Standard score ≥95/100
 - No P0/P1/P2 tasks remaining
 
@@ -394,14 +394,14 @@ This plan systematically elevates the ConsultantPro OS codebase from its current
 **P2 Tasks:** 29 (important for excellence)  
 **P3 Tasks:** 8 (ongoing improvement)
 
-Track progress via TODO.md status updates and weekly review.
+Track progress via P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md status updates and weekly review.
 
 ---
 
 ## Weekly Cadence
 
 ### Monday: Planning
-- Review TODO.md status and blockers
+- Review P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md status and blockers
 - Identify next 5 tasks for the week
 - Assign AGENT vs Trevor workstreams
 - Update blockers
@@ -412,7 +412,7 @@ Track progress via TODO.md status updates and weekly review.
 
 ### Friday: Review
 - `make verify` to ensure quality
-- Mark completed tasks in TODO.md
+- Mark completed tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 - Report progress to stakeholders
 
 ### Monthly: Retrospective
@@ -456,7 +456,7 @@ Next Week Plan:
 - [Task 2]
 ...
 
-Progress: See TODO.md
+Progress: See P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 ```
 
 ---
@@ -490,4 +490,4 @@ This plan provides a systematic path to Diamond Standard achievement through pha
 3. **Team:** Weekly TODO review every Monday
 4. **Team:** Monthly audit execution to track progress
 
-**Questions?** See [TODO.md](TODO.md) for all tasks.
+**Questions?** See [P0TODO.md](P0TODO.md), [P1TODO.md](P1TODO.md), [P2TODO.md](P2TODO.md), [P3TODO.md](P3TODO.md) for all tasks.

@@ -528,7 +528,7 @@ Rows Scanned: 80 (MV only)
 2. [`SPRINT_5_IMPLEMENTATION_SUMMARY.md`](./SPRINT_5_IMPLEMENTATION_SUMMARY.md) - This document
 
 ### Updated Documents
-1. [`TODO.md`](../TODO.md) - Mark Sprint 5 tasks complete
+1. [P0TODO.md](../P0TODO.md), [P1TODO.md](../P1TODO.md), [P2TODO.md](../P2TODO.md), [P3TODO.md](../P3TODO.md) - Mark Sprint 5 tasks complete
 2. [`CHANGELOG.md`](../CHANGELOG.md) - Add Sprint 5 changes (pending)
 
 ---

@@ -79,7 +79,7 @@ The `specs/` directory contains:
 - Design proposals (pending approval)
 - Research notes
 
-**IMPORTANT**: Specs are NOT binding until converted to tasks in `TODO.md`.
+**IMPORTANT**: Specs are NOT binding until converted to tasks in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`.
 
 ## Reference
 

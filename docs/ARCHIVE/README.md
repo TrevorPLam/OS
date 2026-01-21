@@ -13,18 +13,18 @@ This directory contains outdated or superseded documentation that is retained fo
 
 **Location:** `analysis-2025-12-30/`
 
-**Reason for Archive:** These were point-in-time assessments created during codebase audits. The findings have been addressed or incorporated into TODO.md and the coding constitution compliance tracking.
+**Reason for Archive:** These were point-in-time assessments created during codebase audits. The findings have been addressed or incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md and the coding constitution compliance tracking.
 
 **Archived Files:**
 - `CONSTITUTION_ANALYSIS.md` - Constitution compliance analysis (superseded by constitution compliance completion on 2025-12-30)
-- `TODO_ANALYSIS.md` - Analysis of in-code TODOs (findings incorporated into TODO.md)
+- `TODO_ANALYSIS.md` - Analysis of in-code TODOs (findings incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 - `FORENSIC_ANALYSIS.md` - Codebase forensic analysis (findings incorporated into assessment documents)
 - `ANALYSIS_SUMMARY.md` - Summary of analyses (superseded by constitution compliance completion)
-- `ChatGPT_CODEBASE_ASSESMENT` - External audit report (449KB, findings tracked in TODO.md)
+- `ChatGPT_CODEBASE_ASSESMENT` - External audit report (449KB, findings tracked in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 
 **What Replaced Them:**
-- Active constitution compliance: See TODO.md "PRIORITY #1: Coding Constitution Compliance" section
-- Active assessment remediation: See TODO.md "PRIORITY #2: ChatGPT Codebase Assessment Remediation" section
+- Active constitution compliance: See P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md "PRIORITY #1: Coding Constitution Compliance" section
+- Active assessment remediation: See P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md "PRIORITY #2: ChatGPT Codebase Assessment Remediation" section
 
 ---
 
@@ -32,17 +32,17 @@ This directory contains outdated or superseded documentation that is retained fo
 
 **Location:** `roadmap-legacy-2025-12-30/`
 
-**Reason for Archive:** Multiple overlapping roadmap/status documents caused confusion about source of truth. Per TODO.md line 295: "The sections below are preserved for historical context only."
+**Reason for Archive:** Multiple overlapping roadmap/status documents caused confusion about source of truth. Per P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md line 295: "The sections below are preserved for historical context only."
 
 **Archived Files:**
-- `STRATEGIC_IMPLEMENTATION_PLAN.md` - 10-week execution plan (incorporated into TODO.md)
-- `IMPLEMENTATION_ASSESSMENT.md` - Assessment of missing features (incorporated into TODO.md)
-- `MISSINGFEATURES.md` - Missing features checklist (incorporated into TODO.md)
-- `QUICK_WINS_IMPLEMENTATION.md` - Quick wins tracker (incorporated into TODO.md)
-- `IMPLEMENTATION_SUMMARY.md` - Implementation summary (incorporated into TODO.md)
+- `STRATEGIC_IMPLEMENTATION_PLAN.md` - 10-week execution plan (incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
+- `IMPLEMENTATION_ASSESSMENT.md` - Assessment of missing features (incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
+- `MISSINGFEATURES.md` - Missing features checklist (incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
+- `QUICK_WINS_IMPLEMENTATION.md` - Quick wins tracker (incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
+- `IMPLEMENTATION_SUMMARY.md` - Implementation summary (incorporated into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 
 **What Replaced Them:**
-- Single source of truth: `TODO.md` - "Current Work & Roadmap"
+- Single source of truth: `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` - "Current Work & Roadmap"
 - Canonical requirements: `docs/03-reference/requirements/` (DOC-1 through DOC-35)
 
 ---
@@ -88,27 +88,27 @@ This archive structure fulfills Constitution Section 3.2 requirements:
 
 **Location:** `checklists/`
 
-**Reason for Archive:** Historical development checklists that are no longer actively used. Tasks have been migrated to TODO.md or TODO_COMPLETED.md.
+**Reason for Archive:** Historical development checklists that are no longer actively used. Tasks have been migrated to P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md or TODO_COMPLETED.md.
 
 **Archived Files:**
 - `CHECKLIST.md` through `CHECKLIST6.md` - Six iterations of development checklists
 
 **What Replaced Them:**
-- `TODO.md` - Current development roadmap with prioritized tasks
+- `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` - Current development roadmap with prioritized tasks
 - `TODO_COMPLETED.md` - Archive of completed tasks
 
 ### Analysis Documents (2026-01-02)
 
 **Location:** `analysis/`
 
-**Reason for Archive:** Historical analysis documents from various development phases. Findings have been incorporated into the current TODO.md.
+**Reason for Archive:** Historical analysis documents from various development phases. Findings have been incorporated into the current P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 
 **Archived Files:**
 - `CHECKLIST2_ANALYSIS_SUMMARY.md` through `CHECKLIST6_ANALYSIS_SUMMARY.md`
 - `CHECKLIST_ANALYSIS.md`, `checklist_analysis_summary.md`
 
 **What Replaced Them:**
-- Current task prioritization in `TODO.md`
+- Current task prioritization in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 - Active documentation in `docs/` directory
 
 ### Implementation Summaries (2026-01-02)

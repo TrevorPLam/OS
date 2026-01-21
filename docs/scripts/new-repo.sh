@@ -28,7 +28,10 @@ copy READMEAI.md READMEAI.md
 copy CODEBASECONSTITUTION.md CODEBASECONSTITUTION.md
 copy BOOTSTRAP_GUIDE.md BOOTSTRAP_GUIDE.md
 copy PROJECT_STATUS.md PROJECT_STATUS.md
-copy TODO.md TODO.md
+copy P0TODO.md P0TODO.md
+copy P1TODO.md P1TODO.md
+copy P2TODO.md P2TODO.md
+copy P3TODO.md P3TODO.md
 copy repo.manifest.yaml repo.manifest.yaml
 copy SECURITY.md SECURITY.md
 copy CHANGELOG.md CHANGELOG.md

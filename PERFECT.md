@@ -4,15 +4,15 @@
 **Version:** 1.0.0
 **Last Updated:** 2026-01-20
 **Status:** Active
-**Authority:** Operates under CODEBASECONSTITUTION.md → READMEAI.md → TODO.md
+**Authority:** Operates under CODEBASECONSTITUTION.md → READMEAI.md → P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 
 ---
 
 ## Purpose
 
-This document tracks the systematic cleanup and optimization of the codebase to achieve world-class, production-ready status. It complements the existing TODO.md by providing a holistic view of quality improvements across 9 comprehensive analysis criteria.
+This document tracks the systematic cleanup and optimization of the codebase to achieve world-class, production-ready status. It complements the existing P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md by providing a holistic view of quality improvements across 9 comprehensive analysis criteria.
 
-**Relationship to TODO.md:** This document cross-references existing TODO.md tasks and identifies gaps. All actionable work must still be tracked in TODO.md per CODEBASECONSTITUTION.md governance rules.
+**Relationship to P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:** This document cross-references existing P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks and identifies gaps. All actionable work must still be tracked in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md per CODEBASECONSTITUTION.md governance rules.
 
 ---
 
@@ -558,7 +558,7 @@ A file meets "Perfect" standards when:
 **Completed:**
 - ✅ Created PERFECT.md tracking document
 - ✅ Mapped 9 analysis criteria to existing audit findings
-- ✅ Identified gaps in existing TODO.md coverage
+- ✅ Identified gaps in existing P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md coverage
 - ✅ Created comprehensive execution plan
 - ✅ Defined quality gates and success metrics
 - ✅ Verified T-128 (SAML CSRF protection) - IN-REVIEW
@@ -590,7 +590,7 @@ A file meets "Perfect" standards when:
 
 - **CODEBASECONSTITUTION.md**: Governance framework (highest authority)
 - **READMEAI.md**: AI operating instructions
-- **TODO.md**: Task truth source (all work must be tracked here)
+- **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md**: Task truth source (all work must be tracked here)
 - **FORENSIC_AUDIT.md**: Comprehensive audit findings (71 issues)
 - **FORENSIC_AUDIT_SUMMARY.md**: Executive summary of audit
 - **REFACTOR_PLAN.md**: Phase-based refactoring approach
@@ -602,10 +602,10 @@ A file meets "Perfect" standards when:
 
 ## Notes
 
-- This document is READ-MOSTLY. All actionable tasks must be created in TODO.md.
+- This document is READ-MOSTLY. All actionable tasks must be created in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 - Weekly updates are append-only (never delete history).
 - Quality metrics should be updated weekly.
-- This document does not override CODEBASECONSTITUTION.md or TODO.md authority.
+- This document does not override CODEBASECONSTITUTION.md or P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md authority.
 
 ---
 

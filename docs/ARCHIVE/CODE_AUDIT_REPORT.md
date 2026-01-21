@@ -12,7 +12,7 @@
 The CODE_AUDIT has been executed successfully, resulting in improved task hygiene and codebase organization. This audit identified 40 TODO/FIXME markers (28 in code, 12 in documentation) and consolidated them into 15 structured, actionable tasks with clear acceptance criteria and file references.
 
 **Key Outcomes:**
-- ✅ Task truth source documented (TODO.md)
+- ✅ Task truth source documented (P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 - ✅ 15 new structured tasks created (T-001 through T-015)
 - ✅ 40 TODO markers replaced with task references (28 code + 12 docs)
 - ✅ All tasks prioritized (P0/P1/P2) and categorized by type
@@ -41,8 +41,8 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
    - spec/SYSTEM_INVARIANTS.md
    - spec/README.md
    - spec/*/\*.md files
-2. Determined task truth source: **TODO.md** (no specs/project-tasks.md exists)
-3. Recorded task truth source at top of TODO.md
+2. Determined task truth source: **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md** (no specs/project-tasks.md exists)
+3. Recorded task truth source at top of P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 
 **Gate Met:** ✅ Task truth source documented and understood
 
@@ -54,7 +54,7 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
 **Effort:** ~6 hours
 
 **Step 1: Move Completed Tasks** ✅
-- **Finding:** 38 completed tasks found in TODO.md (all marked with ✅ COMPLETED January 2, 2026)
+- **Finding:** 38 completed tasks found in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (all marked with ✅ COMPLETED January 2, 2026)
 - **Action:** Verified all are properly documented in TODO_COMPLETED.md
 - **Result:** No additional moves needed; archiving is current
 
@@ -115,7 +115,7 @@ The CODE_AUDIT has been executed successfully, resulting in improved task hygien
   - T-015: Implement Public Access Endpoint
 
 **Gate Met:** ✅ All criteria satisfied
-- TODO.md has no completed tasks (T-005, T-009, T-012, T-013, and T-014 moved to TODO_COMPLETED.md)
+- P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md has no completed tasks (T-005, T-009, T-012, T-013, and T-014 moved to TODO_COMPLETED.md)
 - Docs/code no longer contain executable tasks (all replaced with "Tracked in TODO: T-###")
 - Top 5 P1 tasks are immediately startable
 
@@ -223,7 +223,7 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 
 **Actions Completed:**
 1. **Deduplication:** All 15 tasks are unique and non-overlapping
-2. **Priority Ordering:** Tasks ordered by P1 → P2 within TODO.md
+2. **Priority Ordering:** Tasks ordered by P1 → P2 within P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 3. **Dependency Chain:** Dependencies documented (T-007 depends on T-002)
 4. **Top 6 P1 Tasks Verification:**
    - T-002 (P1): Webhook background jobs - ✅ Actionable
@@ -267,7 +267,7 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 ## Files Modified
 
 ### Documentation
-- **TODO.md:** Added 15 tasks (T-001 through T-015) under "CODE AUDIT - Task Hygiene" section
+- **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:** Added 15 tasks (T-001 through T-015) under "CODE AUDIT - Task Hygiene" section
 - **CODE_AUDIT_REPORT.md:** Created and updated (this file)
 - **docs/runbooks/README.md:** Replaced 9 TODO markers with task references (T-012, T-013)
 - **docs/STYLE_GUIDE.md:** Replaced 2 TODO markers with task reference (T-014)
@@ -301,7 +301,7 @@ Quality gates should be run by CI/CD pipeline as per normal development workflow
 3. ✅ **Quality Gates:** Comprehensive `make lint`, `make test`, `make verify` available
 4. ✅ **Test Coverage:** Contract tests and edge case tests exist
 5. ✅ **Recent Maintenance:** Active development with completed tasks from January 2, 2026
-6. ✅ **Clear Prioritization:** TODO.md has well-structured backlog
+6. ✅ **Clear Prioritization:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md has well-structured backlog
 
 ### Areas for Improvement
 1. ⚠️ **Incomplete Integrations:** Several automation actions have stub implementations (T-008)
@@ -386,8 +386,8 @@ The CODE_AUDIT execution successfully achieved its primary objectives:
 
 1. **Task Hygiene:** ✅ All inline TODOs consolidated into tracked tasks
 2. **Zero Task Leakage:** ✅ No actionable items remain in comments
-3. **Clear Backlog:** ✅ TODO.md now has 11 new structured tasks with acceptance criteria
-4. **Improved Maintainability:** ✅ Future developers can track work via TODO.md instead of scattered comments
+3. **Clear Backlog:** ✅ P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md now has 11 new structured tasks with acceptance criteria
+4. **Improved Maintainability:** ✅ Future developers can track work via P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md instead of scattered comments
 
 The repository demonstrates **excellent organizational health** with:
 - Comprehensive documentation of spec compliance
@@ -398,7 +398,7 @@ The repository demonstrates **excellent organizational health** with:
 **Next Steps:**
 1. Prioritize P1 tasks (T-002, T-004, T-006, T-008, T-011) for next sprint
 2. Run quality gates (`make verify`) before merging changes
-3. Continue regular TODO.md maintenance and archiving
+3. Continue regular P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md maintenance and archiving
 4. Monitor completion of new tasks and update TODO_COMPLETED.md accordingly
 
 ---

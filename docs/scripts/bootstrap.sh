@@ -21,7 +21,7 @@ else
   echo "[bootstrap] No .git directory found (skipping hook install)."
 fi
 
-# Generate TODO.md from tasks
+# Generate TODO.generated.md from non-binding notes
 if [[ -x "scripts/sync-todo.sh" ]]; then
   scripts/sync-todo.sh || true
 fi

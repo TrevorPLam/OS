@@ -939,7 +939,7 @@ logger.info("Provisioning firm", extra={"firm_name": firm_name})
 **3. python3-saml Maintenance**
 - **Status:** Library unmaintained for 2+ years (Issue #6.1)
 - **Risk:** Security vulnerabilities won't be patched
-- **Mitigation:** Evaluate alternatives (T-035 in TODO.md), consider vendor directly
+- **Mitigation:** Evaluate alternatives (T-035 in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md), consider vendor directly
 - **Decision Required:** Product owner to confirm SAML usage
 - **Timeline:** Week 4 (investigation)
 
@@ -970,7 +970,7 @@ logger.info("Provisioning firm", extra={"firm_name": firm_name})
 ### 6.3 External Dependencies
 
 **1. Deployment Platform Decision**
-- **Status:** Blocked (T-042 in TODO.md)
+- **Status:** Blocked (T-042 in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 - **Risk:** Cannot configure monitoring, alerting, secrets rotation
 - **Mitigation:** None until decision made
 - **Owner:** Trevor (product owner)

@@ -4,7 +4,7 @@ Version: 1.4.0
 Last Updated: 2026-01-03
 Owner: Repository Root
 Status: Active
-Dependencies: CODEBASECONSTITUTION.md; TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; CHANGELOG.md; docs/SECURITY_BASELINE.md
+Dependencies: CODEBASECONSTITUTION.md; P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md; docs/DOCS_INDEX.md; docs/REPO_MAP.md; CHANGELOG.md; docs/SECURITY_BASELINE.md
 
 Purpose: Single operational entrypoint for any AI working in this repository. Follow exactly.
 
@@ -15,7 +15,7 @@ If instructions conflict, follow this order (highest wins):
 
 1) Constitution (CODEBASECONSTITUTION.md)
 2) READMEAI.md (this file)
-3) TODO.md (current priorities and acceptance criteria)
+3) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (current priorities and acceptance criteria)
 4) docs/DOCS_INDEX.md (documentation hub)
 5) All other documentation
 
@@ -50,7 +50,7 @@ Rule: The Constitution may only be changed via the Amendment process.
 Before executing any task, read:
 
 1) Constitution (CODEBASECONSTITUTION.md)
-2) TODO.md
+2) P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 3) docs/DOCS_INDEX.md (Documentation hub)
 4) docs/REPO_MAP.md
 5) Relevant module documentation for the task at hand

@@ -37,4 +37,4 @@ Define “done” for v1 in testable bullets.
 Restate non-goals.
 
 ## 9) Open questions
-Add blocking unknowns and link to BLOCKED tasks in `TODO.md`.
+Add blocking unknowns and link to BLOCKED tasks in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`.

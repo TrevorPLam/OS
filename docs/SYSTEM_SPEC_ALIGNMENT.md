@@ -1223,7 +1223,7 @@ Invoices link to:
 2. **Implement FirmScopedQuerySet** - Quick fix, high impact
 3. **Document canonical graph mapping** - Create ADR for current → canonical mapping
 4. **Create action plan for DOC-06.1** - Separate initiative for canonical graph
-5. **Update TODO.md** - Mark DOC-05.1 as complete with known gaps documented
+5. **Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md** - Mark DOC-05.1 as complete with known gaps documented
 6. **Commit and push** - Save progress
 
 DOC-05.1 will be considered COMPLETE once this document exists and is reviewed, even though gaps remain (gaps become new DOC items).

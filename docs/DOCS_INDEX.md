@@ -6,7 +6,7 @@ Last Updated: 2026-01-21
 1) `../CODEBASECONSTITUTION.md`
 2) `../READMEAI.md`
 3) `../AGENTS.md`
-4) `../TODO.md`
+4) `../P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md`
 5) Runbooks (listed below)
 6) `../repo.manifest.yaml`
 7) `../PROJECT_STATUS.md`

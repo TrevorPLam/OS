@@ -22,7 +22,7 @@ This repo must be:
 5) **Continuity**: keep `PROJECT_STATUS.md` and `CHANGELOG.md` accurate
 
 ## 3) Task governance
-- Task truth source is `TODO.md`.
+- Task truth source is `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`.
 - Completed tasks move to `TODOCOMPLETED.md` (preserve original records).
 - `specs/` are non-binding notes until converted into tasks.
 
@@ -37,5 +37,5 @@ This repo must be:
 
 ## 6) Amendment protocol
 Constitution changes require:
-- A task in `TODO.md`
+- A task in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, or `P3TODO.md`
 - A short rationale in the change description (or `CHANGELOG.md`)

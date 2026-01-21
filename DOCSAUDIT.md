@@ -2,7 +2,7 @@
 
 Document Type: Audit Runbook
 Last Updated: 2026-01-05
-Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `TODO.md` → this document
+Precedence: `CODEBASECONSTITUTION.md` → `READMEAI.md` → `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` → this document
 Owner: AGENT
 
 Purpose: Keep documentation searchable, consistent, and non-contradictory so agents can operate with less context load.
@@ -17,18 +17,18 @@ Inputs to inspect:
 Execution steps:
 1) Ensure docs do not contradict the Constitution, READMEAI, or TODO truth model.
 2) Create/refresh docs index so an agent can find what it needs quickly.
-3) Remove/convert task leakage from docs into TODO.md tasks, leaving references behind.
+3) Remove/convert task leakage from docs into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks, leaving references behind.
 4) Archive outdated docs instead of deleting when uncertain.
 
 Stop conditions:
 - If a doc’s truth cannot be verified, mark UNKNOWN and create a task to verify rather than guessing.
 
 Required outputs:
-- Update/create tasks in TODO.md.
+- Update/create tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
 - Append a run summary to this document.
 
 ## Task writing rules
-- Tasks must be created/updated in `TODO.md` using the required schema.
+- Tasks must be created/updated in `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md` using the required schema.
 - If a task is ambiguous, set **Status: BLOCKED** and add a question in the task Context.
 - Do not invent repo facts. If evidence is missing, write **UNKNOWN** and cite what you checked.
 
@@ -51,7 +51,7 @@ Required outputs:
 - Agent: AGENT
 - Scope: docs/ directory, root docs, specs/, repo.manifest.yaml
 - Findings:
-  - Removed pipeline task leakage from docs and moved tasks into TODO.md with references.
+  - Removed pipeline task leakage from docs and moved tasks into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with references.
   - Corrected doc navigation links and indexes to match current repo structure.
   - Updated governance docs to reflect docs/scripts usage and TODO truth source.
 - Tasks created/updated:
@@ -66,7 +66,7 @@ Required outputs:
 - Findings:
   - ✅ No contradictions between docs and Constitution/READMEAI/TODO.
   - ✅ Authority hierarchy correctly respected throughout.
-  - ✅ Task leakage clean - all TODO items properly tracked in TODO.md.
+  - ✅ Task leakage clean - all TODO items properly tracked in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md.
   - ✅ Archive structure healthy with clear policies.
   - ⚠️ DOCS_INDEX.md limited coverage - omits implementation docs, policies, integration guides.
   - ⚠️ 35 numbered docs files (docs/1-35) without .md extension, not indexed.

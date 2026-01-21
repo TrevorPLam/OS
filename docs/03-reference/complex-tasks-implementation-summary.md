@@ -430,7 +430,7 @@ Each task must include:
 - [Architecture Overview](architecture-overview.md)
 - [API Usage Guide](api-usage.md)
 - [CPQ System Documentation](cpq-system.md)
-- [Active Work Items](../../TODO.md)
+- [P0TODO.md](../../P0TODO.md), [P1TODO.md](../../P1TODO.md), [P2TODO.md](../../P2TODO.md), [P3TODO.md](../../P3TODO.md)
 
 ---
 

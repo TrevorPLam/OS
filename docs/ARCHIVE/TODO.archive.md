@@ -1,8 +1,8 @@
-# TODO.md — Repository Task List
+# P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md — Repository Task List
 
 Document Type: Workflow
 Last Updated: 2026-01-05
-Task Truth Source: **TODO.md**
+Task Truth Source: **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md**
 
 This file is the single source of truth for actionable work.
 If another document disagrees, the task record in this file wins (unless the Constitution overrides).
@@ -122,7 +122,7 @@ Acceptance Criteria:
 - [ ] Completed or duplicate items are migrated to TODOCOMPLETED.md with completion dates.
 - [ ] Top-priority tasks are clearly ranked for immediate execution.
 References:
-- TODO.md
+- P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 - TODOCOMPLETED.md
 - CODEAUDIT.md
 Dependencies: None
@@ -318,12 +318,12 @@ Normalization is tracked in T-017.
 - Optional scripts may generate `TODO.generated.md` for convenience; it is never authoritative.
 
 ## Appendix: Legacy Roadmap (Reference Only)
-The following content is preserved verbatim from the prior TODO.md to avoid content loss. It is reference-only and not the task truth source.
+The following content is preserved verbatim from the prior P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to avoid content loss. It is reference-only and not the task truth source.
 
 # ConsultantPro - Development Roadmap
 
 **Last Updated:** January 5, 2026
-**Task Truth Source:** TODO.md
+**Task Truth Source:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 
 ## Code Audit Tasks (2026-01-05)
 
@@ -400,13 +400,13 @@ The following content is preserved verbatim from the prior TODO.md to avoid cont
 * Priority: P1
 * Type: HYGIENE
 * Title: Normalize legacy roadmap entries into the CODE_AUDIT task format
-* Context: The existing roadmap entries in TODO.md predate the CODE_AUDIT task template and need normalization for consistency.
+* Context: The existing roadmap entries in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md predate the CODE_AUDIT task template and need normalization for consistency.
 * Acceptance Criteria:
   * Legacy roadmap entries are converted into T-### tasks following the required template.
   * Duplicate or completed items are moved to TODO_COMPLETED.md with dates.
   * Top 5 tasks are clearly prioritized and immediately actionable.
 * References:
-  * TODO.md
+  * P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
   * TODO_COMPLETED.md
   * CODE_AUDIT.md
 * Dependencies: None

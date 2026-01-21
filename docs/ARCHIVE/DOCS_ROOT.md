@@ -21,7 +21,7 @@ Hard rules:
 
 1. One truth for each topic. No duplicated “authoritative” docs.
 2. Root is for operator control docs only. Everything else lives in /docs.
-3. Docs must not hold executable tasks. Tasks belong in TODO.md (see CODE_AUDIT.md).
+3. Docs must not hold executable tasks. Tasks belong in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md (see CODE_AUDIT.md).
 4. Every doc must have an owner path: it is referenced by docs/DOCS_INDEX.md or it is archived/deleted.
 
 ⠀
@@ -38,7 +38,7 @@ Your job is to implement DOCS ROOT rules across the repo:
 * Create/refresh docs/DOCS_INDEX.md so a reader can find anything in under 60 seconds.
 * Deduplicate overlapping docs and declare a single canonical source for each topic.
 * Archive or delete obsolete docs safely.
-* Remove executable tasks from docs by converting them into TODO.md tasks and replacing with “Tracked in TODO: T-###”.
+* Remove executable tasks from docs by converting them into P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md tasks and replacing with “Tracked in TODO: T-###”.
 
 If you cannot run commands, proceed by static inspection and file edits.
 
@@ -48,7 +48,7 @@ Deliverables:
 2. Updated docs/REPO_MAP.md (if structure changed)
 3. A clean root folder consistent with “Root Allowed Set”
 4. A docs/ARCHIVE/ structure for deprecated docs (if needed)
-5. Any tasks created or moved must be placed in TODO.md using repo task format
+5. Any tasks created or moved must be placed in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md using repo task format
 
 ⠀
 Stop conditions:
@@ -66,7 +66,7 @@ Required (core operators)
 * CODEBASECONSTITUTION.md (rules/standards)
 * CODE_AUDIT.md (code audit pipeline)
 * DOCS_ROOT.md (this doc)
-* TODO.md
+* P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 * TODO_COMPLETED.md
 * CHANGELOG.md (optional but recommended; choose root or docs, not both)
 * DECISIONS.md (optional but recommended; choose root or docs, not both)
@@ -157,7 +157,7 @@ Steps:
 
    * Move to /docs/<category>/... OR docs/ARCHIVE/...
 2. Update references in READMEAI.md and docs/DOCS_INDEX.md to new paths.
-3. Ensure TODO.md / TODO_COMPLETED.md remain at root.
+3. Ensure P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md / TODO_COMPLETED.md remain at root.
 
 ⠀
 Gate:
@@ -220,7 +220,7 @@ Steps:
 1. Search docs for TODO/FIXME/TBD/TKTK/open questions.
 2. For executable items:
 
-   * create tasks in TODO.md using repo task format
+   * create tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md using repo task format
    * replace in doc with: “Tracked in TODO: T-###”
 3. Keep context in docs; remove only the “action directive.”
 

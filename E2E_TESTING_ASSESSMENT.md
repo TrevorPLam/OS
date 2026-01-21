@@ -91,10 +91,10 @@ Located in `/src/frontend/e2e/`:
 - ✅ package.json has `e2e` script command
 - ✅ Playwright installed as dev dependency (@playwright/test@^1.57.0)
 
-### 3. TODO.md Assessment ✅
+### 3. P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md Assessment ✅
 
 #### Current State:
-- ⚠️ No explicit e2e testing tasks in TODO.md
+- ⚠️ No explicit e2e testing tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 - ✅ This is **CORRECT** - all e2e work is complete
 - ✅ Tasks T-077, T-078, T-079 completed (tracked in TODOCOMPLETED.md)
 - ✅ Task T-049 from DIAMOND_STANDARD_PLAN.md effectively completed
@@ -118,10 +118,10 @@ Task T-049: "Implement E2E tests for critical paths (Playwright)"
 - pytest.ini declares e2e marker → ✅ Tests use @pytest.mark.e2e
 - Makefiles declare e2e targets → ✅ Commands work
 
-#### Documentation ↔ TODO.md:
+#### Documentation ↔ P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:
 ✅ **FULLY ALIGNED**
 
-- No e2e tasks in TODO.md → ✅ Correct, work is complete
+- No e2e tasks in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md → ✅ Correct, work is complete
 - TODOCOMPLETED.md tracks T-077, T-078, T-079 → ✅ All marked complete
 - DIAMOND_STANDARD_PLAN.md T-049 → ✅ Completion criteria met
 
@@ -194,7 +194,7 @@ E2E testing remains well implemented and aligned with documentation. Module-leve
 ### Current Status:
 - Module Tests: **30 / 30 (100%)**
 - Documentation ↔ Implementation: **✅ ALIGNED**
-- Documentation ↔ TODO.md: **✅ ALIGNED**
+- Documentation ↔ P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md: **✅ ALIGNED**
 - Implementation ↔ Standards: **✅ COMPLIANT**
 
 ### Next Steps:

@@ -79,7 +79,7 @@ Build a multi-tenant SaaS platform for service-based firms with privacy-first ar
 ├── README.md
 ├── CONTRIBUTING.md
 ├── CHANGELOG.md
-├── TODO.md
+├── P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 ├── SECURITY.md
 ├── Makefile (orchestration: setup, lint, test, verify)
 ├── pyproject.toml (Python tooling config: ruff, black, pytest)

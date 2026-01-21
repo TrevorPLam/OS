@@ -407,7 +407,7 @@ src/frontend/package-lock.json                      # Dependencies
 
 **Documentation:**
 ```
-TODO.md                                             # Updated status
+P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md                                             # Updated status
 ```
 
 ### Pre-existing Backend Files (No Changes)

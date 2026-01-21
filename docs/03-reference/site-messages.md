@@ -4,7 +4,7 @@
 **Last Updated:** 2026-01-08  
 **Owner:** Web Personalization  
 **Status:** Draft (Ready for implementation)  
-**Dependencies:** READMEAI.md; TODO.md; CODEBASECONSTITUTION.md; docs/03-reference/site-tracking-architecture.md
+**Dependencies:** READMEAI.md; P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md; CODEBASECONSTITUTION.md; docs/03-reference/site-tracking-architecture.md
 
 ## Purpose
 Defines the server-side model and API support for Web Personalization tasks (PERS-1, PERS-2). Captures message types, targeting rules, builder configuration, and delivery constraints.

@@ -162,7 +162,7 @@ The following sections are compliant or substantially compliant:
 ## Next Steps
 
 1. Review this analysis with team
-2. Update TODO.md with prioritized constitution compliance tasks
+2. Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with prioritized constitution compliance tasks
 3. Create GitHub issues for each deviation
 4. Begin Phase 1 implementation
 

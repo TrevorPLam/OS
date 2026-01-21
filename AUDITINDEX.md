@@ -6,7 +6,7 @@
 1. READMEAI.md
 2. CODEBASECONSTITUTION.md (or equivalent constitution file)
 3. AGENTS.md
-4. TODO.md
+4. P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 5. repo.manifest.yaml (verification commands)
 
 If any file above is missing, STOP and create a TODO task to add/repair it.
@@ -95,7 +95,7 @@ A change meets Perfect Codebase Standard when:
 1. All **critical audit items** score != 0
 2. Required audits for the task type pass the threshold
 3. repo.manifest.yaml verification passes (or is explicitly blocked with a newly created TODO task)
-4. TODO.md + directly related docs are updated to match reality
+4. P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md + directly related docs are updated to match reality
 
 ---
 

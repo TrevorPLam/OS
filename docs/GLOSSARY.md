@@ -18,7 +18,7 @@ An immutable log entry recording a sensitive action with metadata (actor, timest
 
 **Autopay**
 Automated recurring payment workflow for subscriptions.
-**Evidence:** TODO.md:310 - "4.6: Recurring payments/autopay workflow"
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:310 - "4.6: Recurring payments/autopay workflow"
 
 ---
 
@@ -42,7 +42,7 @@ The `codingconstitution.md` document defining non-negotiable rules for the repos
 
 **Correlation ID**
 Unique identifier that tracks a request across service boundaries and async operations.
-**Evidence:** TODO.md:212 - DOC-21.1, `docs/codingconstitution.md:320` - Section 12.2
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:212 - DOC-21.1, `docs/codingconstitution.md:320` - Section 12.2
 
 ---
 
@@ -50,7 +50,7 @@ Unique identifier that tracks a request across service boundaries and async oper
 
 **DAG (Directed Acyclic Graph)**
 Graph structure used for delivery templates to prevent circular dependencies.
-**Evidence:** TODO.md:205 - DOC-12.1, `docs/DELIVERY_TEMPLATE_IMPLEMENTATION.md`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:205 - DOC-12.1, `docs/DELIVERY_TEMPLATE_IMPLEMENTATION.md`
 
 **Diátaxis**
 Documentation framework organizing docs into tutorials, how-to, reference, and explanation.
@@ -58,11 +58,11 @@ Documentation framework organizing docs into tutorials, how-to, reference, and e
 
 **DLQ (Dead Letter Queue)**
 Queue for messages that failed processing after maximum retry attempts.
-**Evidence:** TODO.md:207 - DOC-11.1, `docs/codingconstitution.md:246-250` - Section 9.5
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:207 - DOC-11.1, `docs/codingconstitution.md:246-250` - Section 9.5
 
 **DOC-N (DOC-1 through DOC-35)**
 Canonical requirements specifications numbered 1-35.
-**Evidence:** TODO.md:188-256, files `docs/1` through `docs/35`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:188-256, files `docs/1` through `docs/35`
 
 ---
 
@@ -70,7 +70,7 @@ Canonical requirements specifications numbered 1-35.
 
 **E2EE (End-to-End Encryption)**
 Customer content encryption where platform cannot access plaintext.
-**Evidence:** `README.md:129`, TODO.md:333 - "E2EE deferred - infrastructure dependency"
+**Evidence:** `README.md:129`, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:333 - "E2EE deferred - infrastructure dependency"
 
 **Evidence-Based Documentation**
 Documentation style requiring factual claims to cite code locations and verification status.
@@ -82,11 +82,11 @@ Documentation style requiring factual claims to cite code locations and verifica
 
 **Firm**
 Multi-tenant boundary representing a consulting company using the platform.
-**Evidence:** `README.md:12`, TODO.md:328 - "Firm/Workspace tenancy"
+**Evidence:** `README.md:12`, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:328 - "Firm/Workspace tenancy"
 
 **FirmScopedQuerySet**
 QuerySet utility enforcing firm-level data isolation.
-**Evidence:** TODO.md:213 - DOC-05.1, implemented in `src/modules/firm/utils.py`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:213 - DOC-05.1, implemented in `src/modules/firm/utils.py`
 
 ---
 
@@ -94,7 +94,7 @@ QuerySet utility enforcing firm-level data isolation.
 
 **Governance Classification**
 Data classification system for PII/HR data redaction in logs and serializers.
-**Evidence:** TODO.md:198 - DOC-07.1, `src/modules/core/governance.py`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:198 - DOC-07.1, `src/modules/core/governance.py`
 
 ---
 
@@ -110,11 +110,11 @@ Documenting or implementing features/configs that don't exist in the codebase (f
 
 **Idempotency Key**
 Unique identifier ensuring an operation executes at-most-once even if retried.
-**Evidence:** `docs/codingconstitution.md:212` - Section 8.3, TODO.md:228 - DOC-13.1
+**Evidence:** `docs/codingconstitution.md:212` - Section 8.3, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:228 - DOC-13.1
 
 **IDOR (Insecure Direct Object Reference)**
 Security vulnerability where user can access objects they shouldn't by manipulating IDs.
-**Evidence:** TODO.md:119 - ASSESS-S6.2 risk
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:119 - ASSESS-S6.2 risk
 
 ---
 
@@ -138,7 +138,7 @@ Specification format for REST APIs, generated from Django code.
 
 **Orchestration**
 Multi-step workflow engine with retry logic, error classification, and DLQ routing.
-**Evidence:** TODO.md:207 - DOC-11.1, `src/modules/orchestration/`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:207 - DOC-11.1, `src/modules/orchestration/`
 
 ---
 
@@ -150,7 +150,7 @@ Client-facing interface with restricted access (default-deny).
 
 **PII (Personally Identifiable Information)**
 Data that can identify an individual (email, phone, SSN, etc.), subject to redaction rules.
-**Evidence:** TODO.md:248 - DOC-21.2, `docs/NO_CONTENT_LOGGING_COMPLIANCE.md`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:248 - DOC-21.2, `docs/NO_CONTENT_LOGGING_COMPLIANCE.md`
 
 ---
 
@@ -158,7 +158,7 @@ Data that can identify an individual (email, phone, SSN, etc.), subject to redac
 
 **Recurrence Engine**
 System for generating recurring events (appointments, invoices) with DST-safety and deduplication.
-**Evidence:** TODO.md:206 - DOC-10.1, `src/modules/recurrence/`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:206 - DOC-10.1, `src/modules/recurrence/`
 
 **Runbook**
 Operational procedure documenting how to handle failures or execute critical workflows.
@@ -170,7 +170,7 @@ Operational procedure documenting how to handle failures or execute critical wor
 
 **SAST (Static Application Security Testing)**
 Automated security scanning of source code (e.g., bandit for Python).
-**Evidence:** `.github/workflows/ci.yml:193-197` - bandit, TODO.md:33 - CONST-1
+**Evidence:** `.github/workflows/ci.yml:193-197` - bandit, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:33 - CONST-1
 
 **Spec (Specification)**
 Frozen contract defining data schemas, API shapes, or system invariants.
@@ -178,7 +178,7 @@ Frozen contract defining data schemas, API shapes, or system invariants.
 
 **STRIDE**
 Threat modeling framework: Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege.
-**Evidence:** TODO.md:47 - CONST-5, `docs/THREAT_MODEL.md`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:47 - CONST-5, `docs/THREAT_MODEL.md`
 
 ---
 
@@ -190,11 +190,11 @@ Synonym for "Firm" - isolated customer boundary in multi-tenant architecture.
 
 **Tier**
 Governance level in the tiered implementation model (Tier 0-5).
-**Evidence:** `README.md:34-48`, TODO.md:298-369
+**Evidence:** `README.md:34-48`, P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:298-369
 
 **Tombstone**
 Soft-delete pattern retaining metadata while removing content.
-**Evidence:** TODO.md:350 - "Purge semantics (tombstones, metadata retention)"
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:350 - "Purge semantics (tombstones, metadata retention)"
 
 ---
 

@@ -2,18 +2,18 @@
 
 Document Type: Workflow
 Last Updated: 2026-01-22
-Source: Completed tasks moved from `TODO.md`
+Source: Completed tasks moved from `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 
 <!--
 Meta-commentary:
   - Current Status: Archive updated with completed T-127, T-135, T-137, and T-138 entries.
-- Mapping: Complements TODO.md task removal and CHANGELOG.md addition.
+- Mapping: Complements P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md task removal and CHANGELOG.md addition.
 - Reasoning: Preserve audit trail for completed tasks with original schema.
 - Assumption: Task records are appended without mutation.
 - Limitation: Detailed implementation context lives in code and PR history.
 -->
 
-This file stores completed work in the same schema as `TODO.md`.
+This file stores completed work in the same schema as `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`.
 Move tasks here when Acceptance Criteria are met.
 
 ## Completed tasks
@@ -661,9 +661,9 @@ Context:
 Acceptance Criteria:
 - [x] docs/PRE_LAUNCH_CHECKLIST.md exists with sign-off fields.
 - [x] Gate script fails verification when checklist conditions are unmet.
-- [x] Gate script validates TODO.md schema (no invalid Status values).
+- [x] Gate script validates P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md schema (no invalid Status values).
 References:
-- TODO.md
+- P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 - docs/RELEASEAUDIT.md
 Dependencies: None
 Effort: M
@@ -674,13 +674,13 @@ Type: CHORE
 Owner: AGENT
 Status: COMPLETED (2026-01-06)
 Context:
-- Completed tasks were previously left in TODO.md using an invalid Status value.
+- Completed tasks were previously left in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md using an invalid Status value.
 - TODOCOMPLETED.md is currently empty, breaking auditability.
 Acceptance Criteria:
-- [x] TODO.md contains only allowed Status values.
+- [x] P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md contains only allowed Status values.
 - [x] Completed tasks are moved to TODOCOMPLETED.md (original records preserved).
 References:
-- TODO.md
+- P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
 - TODOCOMPLETED.md
 Dependencies: None
 Effort: S

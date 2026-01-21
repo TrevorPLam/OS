@@ -23,6 +23,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Task Truth Source Split** (2026-01-21)
+  - Split TODO into `P0TODO.md`–`P3TODO.md`, archived the original TODO, and updated references/scripts.
+
 - **GitHub Actions Enablement** (2026-01-22)
   - Removed cost-control governance language and moved workflows into `.github/workflows/` now that Actions are enabled.
 
@@ -258,7 +261,7 @@ Meta-commentary:
   - Database models: Pipeline, PipelineStage, Deal, DealTask
   - Multi-tenant isolation for all pipeline and deal operations
   - Validation rules for stage-pipeline consistency
-  - See [TODO.md](TODO.md) for full feature roadmap
+  - See [P0TODO.md](P0TODO.md), [P1TODO.md](P1TODO.md), [P2TODO.md](P2TODO.md), [P3TODO.md](P3TODO.md) for full feature roadmap
 
 - **Sprint 5: Performance & Reporting** (2026-01-01)
   - Materialized views for revenue and utilization reporting
@@ -307,7 +310,7 @@ Meta-commentary:
 
 ### Changed - Documentation Updates
 
-- **TODO.md Maintenance Update** (January 1, 2026)
+- **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md Maintenance Update** (January 1, 2026)
   - Marked 4 completed medium-priority tasks as done:
     - ✅ SMS service integration (full Twilio integration with 6 models)
     - ✅ RBAC/ABAC policy system (role-based permissions complete)
@@ -359,7 +362,7 @@ Meta-commentary:
 
 ### Documentation
 
-- Updated TODO.md to mark MISSING-8 through MISSING-12 as complete
+- Updated P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to mark MISSING-8 through MISSING-12 as complete
 - Updated CHANGELOG.md with migration completion status
 
 ### Platform Progress
@@ -395,7 +398,7 @@ Meta-commentary:
 
 ### Documentation
 - Added IMPLEMENTATION_SUMMARY_2.7-2.10.md with comprehensive feature documentation
-- Updated TODO.md to mark Medium features 2.7-2.10 as complete
+- Updated P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to mark Medium features 2.7-2.10 as complete
 
 ### Platform Progress
 - **4 out of 10 Medium features complete (40% of Medium tier)** ✅
@@ -421,7 +424,7 @@ Meta-commentary:
 - Fixed import error in `modules.core.observability` (added `get_correlation_id` alias)
 
 ### Documentation
-- Updated TODO.md with accurate status (Dec 31, 2025)
+- Updated P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md with accurate status (Dec 31, 2025)
 - Updated README.md to reflect 100% tier completion
 - Updated CHANGELOG.md with Tier 5 completion
 

@@ -4,7 +4,7 @@
 **Last Updated:** 2026-01-06  
 **Owner:** Platform Architecture  
 **Status:** Draft (Ready for implementation)  
-**Dependencies:** READMEAI.md; TODO.md; CODEBASECONSTITUTION.md; docs/03-reference/platform-capabilities.md
+**Dependencies:** READMEAI.md; P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md; CODEBASECONSTITUTION.md; docs/03-reference/platform-capabilities.md
 
 ## Purpose
 Defines the end-to-end architecture for web tracking across ConsultantPro properties (marketing site, app shell, embedded widgets). Covers SDK responsibilities, data contracts, privacy controls, storage, and downstream automation hooks.

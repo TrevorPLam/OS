@@ -629,7 +629,7 @@ This repository exhibits **CRITICAL PRODUCTION BLOCKERS** across multiple domain
 - **How It Manifests:** Version conflicts; unpredictable coverage behavior
 - **Why Dangerous:** Testing infrastructure fragility; CI flakiness
 - **Preventable:** YES - Remove coverage (keep pytest-cov only)
-- **Guardrail:** Dependency deduplication tool (T-032 in TODO.md)
+- **Guardrail:** Dependency deduplication tool (T-032 in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 
 ### Issue #6.6: Unnecessary Dependency - Pillow for Single Watermark Use
 - **Category:** Dependency / Security
@@ -639,7 +639,7 @@ This repository exhibits **CRITICAL PRODUCTION BLOCKERS** across multiple domain
 - **Failure Mode:** Large native dependency (1.5MB) used in 1 location (image watermarking)
 - **How It Manifests:** Increased attack surface; longer build times; CVE exposure
 - **Why Dangerous:** Benefit vs. risk ratio poor; simpler alternatives exist
-- **Preventable:** YES - Evaluate necessity (T-037 in TODO.md)
+- **Preventable:** YES - Evaluate necessity (T-037 in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 - **Guardrail:** Dependency minimization policy
 
 ---
@@ -727,7 +727,7 @@ This repository exhibits **CRITICAL PRODUCTION BLOCKERS** across multiple domain
 - **Category:** Observability / Ops
 - **Severity:** Data Loss
 - **Confidence:** Certain
-- **Location:** No alerting configuration observed (T-051 in TODO.md = BLOCKED)
+- **Location:** No alerting configuration observed (T-051 in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md = BLOCKED)
 - **Failure Mode:** Service down but no one notified
 - **How It Manifests:** Customers discover outage before team; SLA breach; reputation damage
 - **Why Dangerous:** MTTR (mean time to recovery) in hours instead of minutes
@@ -823,7 +823,7 @@ This repository exhibits **CRITICAL PRODUCTION BLOCKERS** across multiple domain
 - **Category:** Ops / Risk
 - **Severity:** Degradation
 - **Confidence:** Certain
-- **Location:** No feature flag system observed (T-100 in TODO.md)
+- **Location:** No feature flag system observed (T-100 in P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md)
 - **Failure Mode:** Buggy feature deployed → cannot disable without redeploy
 - **How It Manifests:** Payment processing bug → must rollback entire app → downtime
 - **Why Dangerous:** Emergency response requires full deployment; increased MTTR

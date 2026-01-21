@@ -385,7 +385,7 @@ Add to system crontab:
 ## References
 
 - **SECURITY_REVIEW.md** - Security review findings (2026-01-03)
-- **TODO.md** - Security hardening tasks (SEC-1 through SEC-5)
+- **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md** - Security hardening tasks (SEC-1 through SEC-5)
 - **SECURITY.md** - Application security policy
 - **DATA_RETENTION_IMPLEMENTATION.md** - Retention infrastructure details
 - **SEC-1-IMPLEMENTATION-SUMMARY.md** - Webhook idempotency implementation

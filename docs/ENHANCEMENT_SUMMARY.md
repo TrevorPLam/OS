@@ -16,7 +16,7 @@ This release adds determinism, enforcement, and environment reproducibility impr
 
 ## Changed
 - READMEAI.md reader path reduced to a core set + conditional reads
-- TODO.md is the task truth source; docs/scripts/sync-todo.sh can generate TODO.generated.md from specs/project-tasks.md (non-binding notes)
+- P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md is the task truth source; docs/scripts/sync-todo.sh can generate TODO.generated.md from specs/project-tasks.md (non-binding notes)
 - Validation script avoids external Python dependencies
 
 ## Fixed

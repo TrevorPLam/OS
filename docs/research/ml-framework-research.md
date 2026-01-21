@@ -417,7 +417,7 @@ shap_values = explainer.shap_values(X_test[0:1])
 2. [ ] Create ML module infrastructure (4-6 hours)
 3. [ ] Build lead scoring MVP (12-16 hours)
 4. [ ] Set up model monitoring (4-6 hours)
-5. [ ] Update TODO.md to mark research task as complete
+5. [ ] Update P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md to mark research task as complete
 
 ---
 
