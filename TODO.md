@@ -195,7 +195,6 @@ References:
 - .pre-commit-config.yaml
 Dependencies: None
 Effort: S
-
 ### T-133: Configure dependency scanning in CI pipeline (REFACTOR Phase 1)
 Priority: P1
 Type: SECURITY

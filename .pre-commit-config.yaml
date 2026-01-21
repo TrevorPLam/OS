@@ -16,6 +16,23 @@ repos:
     hooks:
       - id: black
 
+  # Mypy - Type checking
+  # WHY: Catch type drift before code lands, matching CI expectations.
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        args: [src]
+        pass_filenames: false
+
+  # Git secrets - Prevent accidental secret commits
+  # WHY: Block common secret patterns before they reach git history.
+  - repo: https://github.com/awslabs/git-secrets
+    rev: v1.3.0
+    hooks:
+      - id: git-secrets
+        args: ["--scan"]
+
   # TIER 0: Custom firm scoping linter
   - repo: local
     hooks:
@@ -37,6 +54,17 @@ repos:
         types: [python]
         pass_filenames: false
         always_run: true
+
+  # Frontend ESLint
+  # WHY: Enforce frontend linting for TS/React changes pre-commit.
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: Frontend ESLint
+        entry: bash -c 'cd src/frontend && npm run lint'
+        language: system
+        files: ^src/frontend/
+        pass_filenames: false
 
   # Trailing whitespace and file endings
   - repo: https://github.com/pre-commit/pre-commit-hooks
