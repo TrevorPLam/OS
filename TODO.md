@@ -1447,25 +1447,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-124: Audit mobile/portal UX flows for coverage gaps
-Priority: P3
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- F&F cross-module assessment notes potential gaps in mobile/portal-specific UX flows.
-- UI coverage must be validated against module capabilities.
-Acceptance Criteria:
-- [ ] Inventory mobile/portal routes and corresponding backend coverage.
-- [ ] Identify missing UX flows and create follow-up tasks.
-- [ ] Document UX coverage in relevant frontend docs.
-References:
-- F&F.md
-- src/frontend/
-Dependencies: None
-Effort: S
-
 ### T-125: Define centralized notification and messaging strategy
 Priority: P3
 Type: FEATURE
@@ -1485,6 +1466,75 @@ References:
 - src/modules/sms/
 - src/modules/email_ingestion/
 Dependencies: None
+Effort: M
+
+### T-145: Align client portal frontend API usage with /api/portal endpoints
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- T-124 audit shows Client Portal UI uses staff-facing `/api/clients/*` and `/documents/*` endpoints.
+- Portal allowlist endpoints exist under `src/api/portal/urls.py` but are not used by the UI.
+- Aligning frontend usage with portal endpoints reduces accidental scope drift.
+Acceptance Criteria:
+- [ ] Update `src/frontend/src/api/clientPortal.ts` to use `/api/portal/*` endpoints.
+- [ ] Update `src/frontend/src/api/documents.ts` usage (portal flows) to call `/api/portal/documents/` and `/api/portal/folders/` where applicable.
+- [ ] Ensure `src/frontend/src/pages/ClientPortal.tsx` continues to load portal data with updated APIs.
+- [ ] Add tests covering happy path, empty results, and error responses for portal API calls.
+- [ ] Update portal UX coverage doc with completed alignment.
+References:
+- docs/03-reference/portal-ux-coverage.md
+- src/frontend/src/api/clientPortal.ts
+- src/frontend/src/api/documents.ts
+- src/frontend/src/pages/ClientPortal.tsx
+- src/api/portal/urls.py
+Dependencies: None
+Effort: M
+
+### T-146: Add portal appointments booking UI to Client Portal
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Portal backend exposes appointment endpoints at `/api/portal/appointments/`.
+- Client Portal UI lacks appointment booking flow.
+Acceptance Criteria:
+- [ ] Add an appointments tab or section in `src/frontend/src/pages/ClientPortal.tsx`.
+- [ ] Surface available appointment types and slots from `/api/portal/appointments/available-types/` and `/api/portal/appointments/available-slots/`.
+- [ ] Add booking and cancellation actions tied to portal endpoints.
+- [ ] Include tests for happy path booking, empty availability, and error responses.
+- [ ] Update portal UX coverage doc with new appointment flow coverage.
+References:
+- docs/03-reference/portal-ux-coverage.md
+- src/frontend/src/pages/ClientPortal.tsx
+- src/api/portal/urls.py
+Dependencies: T-145
+Effort: M
+
+### T-147: Add portal profile and account switcher UI
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Portal backend exposes profile and account switching endpoints under `/api/portal/profile/` and `/api/portal/accounts/`.
+- Client Portal UI does not expose profile management or account switching.
+Acceptance Criteria:
+- [ ] Add profile view/edit UI in `src/frontend/src/pages/ClientPortal.tsx` (or a dedicated portal settings page).
+- [ ] Add account switcher UI wired to `/api/portal/accounts/` endpoints.
+- [ ] Ensure portal navigation surfaces the profile/account actions.
+- [ ] Include tests for happy path updates, empty account lists, and error responses.
+- [ ] Update portal UX coverage doc with profile/account coverage status.
+References:
+- docs/03-reference/portal-ux-coverage.md
+- src/frontend/src/pages/ClientPortal.tsx
+- src/api/portal/urls.py
+Dependencies: T-145
 Effort: M
 
 ## Backlog

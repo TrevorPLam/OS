@@ -38,9 +38,25 @@ References:
 - REFACTOR_PLAN.md:272-275
 - FORENSIC_AUDIT.md Issue #4.3
 - src/modules/automation/views.py
-- tests/automation/test_views.py
+
+### T-124: Audit mobile/portal UX flows for coverage gaps
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- F&F cross-module assessment notes potential gaps in mobile/portal-specific UX flows.
+- UI coverage must be validated against module capabilities.
+Acceptance Criteria:
+- [x] Inventory mobile/portal routes and corresponding backend coverage.
+- [x] Identify missing UX flows and create follow-up tasks.
+- [x] Document UX coverage in relevant frontend docs.
+References:
+- F&F.md
+- src/frontend/
+- docs/03-reference/portal-ux-coverage.md
 Dependencies: None
-Effort: M
+Effort: S
 
 ### T-140: Fix N+1 queries in calendar module (REFACTOR Phase 3)
 Priority: P2

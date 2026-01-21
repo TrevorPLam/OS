@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **Portal UX Coverage Audit** (2026-01-21)
+  - **T-124**: Documented portal/mobile UX coverage, API alignment gaps, and follow-up tasks.
+
 - **SAML Security Regression Coverage** (2026-01-21)
   - Added ACS tests for RelayState CSRF validation, missing-attribute handling, and generic error responses.
 

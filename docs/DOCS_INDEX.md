@@ -1,6 +1,6 @@
 # docs/DOCS_INDEX.md — Documentation Index
 
-Last Updated: 2026-01-16
+Last Updated: 2026-01-21
 
 ## Read order (agents)
 1) `../CODEBASECONSTITUTION.md`
@@ -41,6 +41,10 @@ Last Updated: 2026-01-16
 - `BILLING_LEDGER_IMPLEMENTATION.md`
 - `WORKERS_QUEUES_IMPLEMENTATION.md`
 - `implementation/` (calendar implementation series)
+
+## Reference docs
+- `03-reference/README.md`
+- `03-reference/portal-ux-coverage.md`
 
 ## Policy docs
 - `AI_COST_POLICY.md`

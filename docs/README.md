@@ -58,6 +58,7 @@ Use this guide to find the right documentation quickly. We follow the Diátaxis 
 
 ### Reference Materials
 - **[Platform Capabilities Inventory](03-reference/platform-capabilities.md)** - What exists and what's missing
+- **[Portal UX Coverage](03-reference/portal-ux-coverage.md)** - Portal routes, backend coverage, and mobile responsiveness audit
 - Environment Variables - UNKNOWN (tracked in TODO: T-022)
 - Management Commands - UNKNOWN (tracked in TODO: T-023)
 - **[Hidden Assumptions](HIDDEN_ASSUMPTIONS.md)** - Key assumptions and design decisions
