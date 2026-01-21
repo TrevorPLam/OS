@@ -13,9 +13,8 @@ governance:
   completed_tasks: TODOCOMPLETED.md
   best_practices: BESTPR.md
   github_actions:
-    status: off_by_default
-    storage_path: githubactions/
-    enable_instructions: githubactions/README.md
+    status: enabled
+    storage_path: .github/workflows/
 
 verification:
   notes: >

@@ -15,7 +15,7 @@ This is not a task list; tasks belong in `TODO.md`.
 - Environment: Local development (tests run with SQLite; RLS probes skip without PostgreSQL)
 - Last known “green” state (commit/tag): After completing T-026, T-060, T-123
 - Key risks: RLS enforcement requires PostgreSQL for full validation; ensure background jobs wrap DB access in `firm_db_session` before releasing.
-- Recent change: Completed T-134 SAML attribute extraction logging with defensive validation and test coverage.
+- Recent change: Enabled GitHub Actions workflows and removed cost-control governance language.
 
 ## Decisions (append-only)
 Use this format:
@@ -33,6 +33,13 @@ Use this format:
   - Alternatives considered: Per-app gradual rollout (would delay coverage), relaxing policies when `app.current_firm_id` is unset (rejected—would weaken isolation).
   - Trade-offs: Requires session scoping for background jobs/CLI access; PostgreSQL-specific enforcement (tests skip on SQLite).
   - Follow-up (task IDs in TODO.md): T-123 (document RLS model + ops implications)
+
+- Date: 2026-01-22
+  - Decision: Run GitHub Actions workflows from `.github/workflows/` and remove disabled-by-default governance.
+  - Why: Actions are now enabled, so workflows should live in the standard directory with docs aligned.
+  - Alternatives considered: Keeping a parking-lot directory (rejected—conflicts with enabled CI).
+  - Trade-offs: CI runs on pushes and PRs; keep workflows scoped to needed checks.
+  - Follow-up (task IDs in TODO.md): T-148 (enable workflows + governance updates)
 
 - Date: 2026-01-20
   - Decision: Created PERFECT.md to track comprehensive codebase cleanup and optimization project across 9 analysis criteria.

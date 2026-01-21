@@ -39,9 +39,8 @@ Purpose: Make work in this repo deterministic, auditable, and agent-executable w
 - If commands are missing, record **UNKNOWN** and create a task to add them.
 - For UI changes: verify **mobile** behavior explicitly.
 
-## GitHub Actions (cost control)
-GitHub Actions are stored under `githubactions/` and are **disabled by default**.
-See `githubactions/README.md` to enable/disable.
+## GitHub Actions
+GitHub Actions workflows live in `.github/workflows/`.
 
 ## Documentation rule
 If you change behavior, update the relevant docs and/or tasks so agents don’t drift.

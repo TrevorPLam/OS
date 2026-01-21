@@ -26,21 +26,16 @@ This repo must be:
 - Completed tasks move to `TODOCOMPLETED.md` (preserve original records).
 - `specs/` are non-binding notes until converted into tasks.
 
-## 4) Cost control constraints
-- GitHub Actions are OFF by default.
-- Any automation that increases spend must be explicitly approved in a task (Owner: Trevor).
-- Workflows are stored under `githubactions/` for safe keeping.
-
-## 5) Security non-negotiables
+## 4) Security non-negotiables
 - Never commit secrets (keys, tokens, credentials).
 - Authorization must be enforced server-side for privileged or per-user data.
 - If a credible secret leak or auth bypass is found: create a P0 task and stop.
 
-## 6) Documentation expectations
+## 5) Documentation expectations
 - Docs must reflect reality.
 - If a doc’s truth cannot be verified, mark **UNKNOWN** and create a verification task.
 
-## 7) Amendment protocol
+## 6) Amendment protocol
 Constitution changes require:
 - A task in `TODO.md`
 - A short rationale in the change description (or `CHANGELOG.md`)

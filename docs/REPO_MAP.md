@@ -78,4 +78,4 @@ Hierarchy (what to read first):
 
 ## 7) CI + hooks
 - Local: `.githooks/pre-commit`
-- CI: `githubactions/workflows (disabled by default)/governance-ci.yml`
+- CI: `.github/workflows/ci.yml`

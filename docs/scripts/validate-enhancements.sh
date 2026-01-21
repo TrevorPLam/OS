@@ -24,7 +24,9 @@ bash -n scripts/*.sh
 echo
 echo "5) Basic existence checks for new components..."
 required=(
-  "githubactions/workflows (disabled by default)/governance-ci.yml"
+  ".github/workflows/ci.yml"
+  ".github/workflows/docs.yml"
+  ".github/workflows/docs-quality.yml"
   ".github/copilot-instructions.md"
   ".cursor/rules/00-governance/RULE.md"
   "repo.manifest.yaml"

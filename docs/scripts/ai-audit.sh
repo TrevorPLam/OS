@@ -28,8 +28,9 @@ required=(
   "SECURITY.md"
   "CHANGELOG.md"
   "VERSION"
-  "githubactions/README.md"
-  "githubactions/workflows/governance-ci.yml"
+  ".github/workflows/ci.yml"
+  ".github/workflows/docs.yml"
+  ".github/workflows/docs-quality.yml"
   "scripts/README.md"
 )
 for f in "${required[@]}"; do

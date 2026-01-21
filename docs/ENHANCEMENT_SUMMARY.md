@@ -9,10 +9,9 @@ This release adds determinism, enforcement, and environment reproducibility impr
 - Machine-readable run contract: repo.manifest.yaml
 - Environment options: Devcontainer + mise/asdf templates, documented in docs/ENVIRONMENT.md
 - Single-command workflow: Makefile + docs/scripts/check.sh + docs/scripts/bootstrap.sh
-- CI gating: githubactions/workflows (disabled by default)/governance-ci.yml
+- CI gating: .github/workflows/ci.yml
 - Security + release hygiene: SECURITY.md, CHANGELOG.md, VERSION, docs/SECURITY_BASELINE.md
 - Decision log: docs/adr/* + template
-- Cost controls: docs/AI_COST_POLICY.md
 - Observability + deployment placeholders: docs/OBSERVABILITY.md, docs/DEPLOYMENT.md
 
 ## Changed
