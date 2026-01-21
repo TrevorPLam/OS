@@ -170,11 +170,12 @@ def stripe_webhook(request):
         )
         return HttpResponse(status=400)
 
-    # Extract event metadata after validation to keep downstream logic deterministic.
+    # Extract event metadata from the typed, validated model before serializing for storage.
     event_id = validated_event.id
     event_type = validated_event.type
     event_data = validated_event.data.object
-    # SECURITY: Persist a redacted event payload to avoid storing PII in audit logs.
+    # SECURITY: Serialize the validated model to a dict, then persist a redacted payload to avoid
+    # storing PII in audit logs. The typed object is only used for extraction, not persistence.
     sanitized_event = sanitize_webhook_payload(validated_event.model_dump())
 
     add_webhook_breadcrumb(
