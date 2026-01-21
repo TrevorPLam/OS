@@ -239,6 +239,51 @@ export interface ClientEngagement {
   has_renewals: boolean;
 }
 
+export interface PortalAppointmentType {
+  id: number;
+  name: string;
+  description: string;
+  duration_minutes: number;
+  location_mode: string;
+}
+
+export interface PortalAppointmentSlot {
+  start_time: string;
+  end_time: string;
+  duration_minutes?: number;
+}
+
+export interface PortalAppointment {
+  id: number;
+  appointment_type: number;
+  appointment_type_name: string;
+  staff_user: number | null;
+  staff_name: string | null;
+  start_time: string;
+  end_time: string;
+  location_mode: string;
+  location_details: string | null;
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface PortalAppointmentBookingRequest {
+  appointment_type_id: number;
+  start_time: string;
+  notes?: string;
+}
+
+export interface PortalAppointmentSlotsRequest {
+  appointment_type_id: number;
+  start_date: string;
+  end_date: string;
+}
+
+export interface PortalAppointmentSlotsResponse {
+  slots: PortalAppointmentSlot[];
+}
+
 export interface EngagementTimeline {
   client_name: string;
   total_versions: number;
@@ -432,5 +477,40 @@ export const clientPortalApi = {
    */
   getEngagementTimeline: () => {
     return apiClient.get<EngagementTimeline>('/portal/engagement-history/timeline/');
+  },
+
+  /**
+   * List portal appointments for the authenticated client.
+   */
+  listAppointments: (params?: { status?: string }) => {
+    return apiClient.get<{ results: PortalAppointment[] }>('/portal/appointments/', { params });
+  },
+
+  /**
+   * List available appointment types for booking.
+   */
+  listAppointmentTypes: () => {
+    return apiClient.get<PortalAppointmentType[]>('/portal/appointments/available-types/');
+  },
+
+  /**
+   * Fetch available slots for a given appointment type and date range.
+   */
+  listAvailableAppointmentSlots: (data: PortalAppointmentSlotsRequest) => {
+    return apiClient.post<PortalAppointmentSlotsResponse>('/portal/appointments/available-slots/', data);
+  },
+
+  /**
+   * Book a new appointment.
+   */
+  bookAppointment: (data: PortalAppointmentBookingRequest) => {
+    return apiClient.post<PortalAppointment>('/portal/appointments/book/', data);
+  },
+
+  /**
+   * Cancel an appointment owned by the portal user.
+   */
+  cancelAppointment: (appointmentId: number) => {
+    return apiClient.post<PortalAppointment>(`/portal/appointments/${appointmentId}/cancel/`);
   },
 };

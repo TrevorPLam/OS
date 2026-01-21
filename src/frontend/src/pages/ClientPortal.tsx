@@ -4,7 +4,21 @@
  */
 import React, { useState, useEffect } from 'react';
 import { portalDocumentsApi } from '../api/documents';
-import { clientPortalApi, ClientProject, CreateCommentData, ClientInvoice, InvoiceSummary, ClientChatThread, ClientMessage, ClientProposal, ClientContract, ClientEngagement } from '../api/clientPortal';
+import {
+  clientPortalApi,
+  ClientProject,
+  CreateCommentData,
+  ClientInvoice,
+  InvoiceSummary,
+  ClientChatThread,
+  ClientMessage,
+  ClientProposal,
+  ClientContract,
+  ClientEngagement,
+  PortalAppointment,
+  PortalAppointmentSlot,
+  PortalAppointmentType,
+} from '../api/clientPortal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClientPortal.css';
 
@@ -21,7 +35,7 @@ interface Document {
 // Invoice and Chat interfaces now imported from clientPortal.ts
 
 export const ClientPortal: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'work' | 'documents' | 'invoices' | 'messages' | 'engagement'>('work');
+  const [activeTab, setActiveTab] = useState<'work' | 'documents' | 'invoices' | 'messages' | 'engagement' | 'appointments'>('work');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<ClientProject[]>([]);
   const [selectedProject, setSelectedProject] = useState<ClientProject | null>(null);
@@ -40,6 +54,18 @@ export const ClientPortal: React.FC = () => {
   const [contracts, setContracts] = useState<ClientContract[]>([]);
   const [engagementHistory, setEngagementHistory] = useState<ClientEngagement[]>([]);
   const [selectedEngagementView, setSelectedEngagementView] = useState<'proposals' | 'contracts' | 'history'>('contracts');
+  const [appointments, setAppointments] = useState<PortalAppointment[]>([]);
+  const [appointmentTypes, setAppointmentTypes] = useState<PortalAppointmentType[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<PortalAppointmentSlot[]>([]);
+  const [selectedAppointmentType, setSelectedAppointmentType] = useState<PortalAppointmentType | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<PortalAppointmentSlot | null>(null);
+  const [appointmentNotes, setAppointmentNotes] = useState('');
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [bookingAppointment, setBookingAppointment] = useState(false);
+  const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeProjects: 0,
@@ -89,6 +115,8 @@ export const ClientPortal: React.FC = () => {
       const engagementResponse = await clientPortalApi.listEngagementHistory();
       setEngagementHistory(engagementResponse.data.results || []);
 
+      await loadAppointmentData();
+
       // Calculate stats
       const activeProjectsCount = projectsList.filter(p => p.status === 'in_progress').length;
       const pendingInvoicesCount = invoicesList.filter(inv =>
@@ -125,6 +153,111 @@ export const ClientPortal: React.FC = () => {
       console.error('Error loading portal data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAppointmentData = async () => {
+    try {
+      setAppointmentsLoading(true);
+      setAppointmentsError(null);
+
+      const [appointmentsResponse, typesResponse] = await Promise.all([
+        clientPortalApi.listAppointments(),
+        clientPortalApi.listAppointmentTypes(),
+      ]);
+
+      setAppointments(appointmentsResponse.data.results || []);
+      setAppointmentTypes(typesResponse.data || []);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+      setAppointmentsError('Unable to load appointment options right now.');
+    } finally {
+      setAppointmentsLoading(false);
+    }
+  };
+
+  const buildAvailabilityRange = () => {
+    // Keep a deterministic 14-day window so availability is predictable and fast for portal users.
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(startDate.getDate() + 14);
+
+    return {
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+    };
+  };
+
+  const handleSelectAppointmentType = (type: PortalAppointmentType) => {
+    // Reset slots when switching types so users never book against stale availability.
+    setSelectedAppointmentType(type);
+    setAvailableSlots([]);
+    setSelectedSlot(null);
+    setSlotsError(null);
+    setBookingError(null);
+  };
+
+  const handleLoadSlots = async () => {
+    if (!selectedAppointmentType) {
+      setSlotsError('Select an appointment type to see available times.');
+      return;
+    }
+
+    try {
+      setSlotsLoading(true);
+      setSlotsError(null);
+
+      const { startDate, endDate } = buildAvailabilityRange();
+      const response = await clientPortalApi.listAvailableAppointmentSlots({
+        appointment_type_id: selectedAppointmentType.id,
+        start_date: startDate,
+        end_date: endDate,
+      });
+
+      setAvailableSlots(response.data.slots || []);
+    } catch (error) {
+      console.error('Error loading appointment slots:', error);
+      setSlotsError('Unable to load appointment times. Please try again.');
+    } finally {
+      setSlotsLoading(false);
+    }
+  };
+
+  const handleBookAppointment = async () => {
+    if (!selectedAppointmentType || !selectedSlot) {
+      setBookingError('Pick a type and time before booking.');
+      return;
+    }
+
+    try {
+      setBookingAppointment(true);
+      setBookingError(null);
+
+      await clientPortalApi.bookAppointment({
+        appointment_type_id: selectedAppointmentType.id,
+        start_time: selectedSlot.start_time,
+        notes: appointmentNotes.trim() || undefined,
+      });
+
+      setAppointmentNotes('');
+      setSelectedSlot(null);
+      await loadAppointmentData();
+      alert('Appointment booked successfully!');
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      setBookingError('Unable to book this appointment. Please try another time.');
+    } finally {
+      setBookingAppointment(false);
+    }
+  };
+
+  const handleCancelAppointment = async (appointmentId: number) => {
+    try {
+      await clientPortalApi.cancelAppointment(appointmentId);
+      await loadAppointmentData();
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      alert('Unable to cancel appointment right now.');
     }
   };
 
@@ -288,6 +421,12 @@ export const ClientPortal: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  const formatSlotLabel = (slot: PortalAppointmentSlot): string => {
+    const start = new Date(slot.start_time).toLocaleString();
+    const end = new Date(slot.end_time).toLocaleTimeString();
+    return `${start} → ${end}`;
+  };
+
   if (loading) {
     return <LoadingSpinner message="Loading your portal..." />;
   }
@@ -362,6 +501,12 @@ export const ClientPortal: React.FC = () => {
           onClick={() => setActiveTab('engagement')}
         >
           📋 Engagement
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'appointments' ? 'active' : ''}`}
+          onClick={() => setActiveTab('appointments')}
+        >
+          🗓️ Appointments
         </button>
       </div>
 
@@ -1095,6 +1240,138 @@ export const ClientPortal: React.FC = () => {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'appointments' && (
+          <div className="appointments-tab">
+            <h2>Appointments</h2>
+
+            {appointmentsError && (
+              <p className="error-state">{appointmentsError}</p>
+            )}
+
+            <div className="appointments-layout">
+              <div className="appointments-list">
+                <h3>Upcoming Appointments</h3>
+                {appointmentsLoading ? (
+                  <p className="loading-state">Loading appointments...</p>
+                ) : appointments.length === 0 ? (
+                  <p className="empty-state">No upcoming appointments yet.</p>
+                ) : (
+                  <div className="appointment-cards">
+                    {appointments.map((appointment) => (
+                      <div key={appointment.id} className="appointment-card">
+                        <div className="appointment-card-header">
+                          <div>
+                            <h4>{appointment.appointment_type_name}</h4>
+                            <p className="appointment-meta">
+                              {formatDateTime(appointment.start_time)}
+                            </p>
+                          </div>
+                          <span className={`appointment-status appointment-status-${appointment.status}`}>
+                            {appointment.status.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <div className="appointment-details">
+                          {appointment.staff_name && (
+                            <p><strong>Staff:</strong> {appointment.staff_name}</p>
+                          )}
+                          <p><strong>Location:</strong> {appointment.location_mode}</p>
+                        </div>
+                        {appointment.status === 'scheduled' && (
+                          <button
+                            className="cancel-appointment-btn"
+                            onClick={() => handleCancelAppointment(appointment.id)}
+                          >
+                            Cancel appointment
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="appointments-booking">
+                <h3>Book a New Appointment</h3>
+
+                {appointmentTypes.length === 0 ? (
+                  <p className="empty-state">No appointment types available.</p>
+                ) : (
+                  <div className="appointment-types">
+                    {appointmentTypes.map((type) => (
+                      <button
+                        key={type.id}
+                        className={`appointment-type-card ${selectedAppointmentType?.id === type.id ? 'active' : ''}`}
+                        onClick={() => handleSelectAppointmentType(type)}
+                      >
+                        <h4>{type.name}</h4>
+                        <p>{type.description}</p>
+                        <span>{type.duration_minutes} min • {type.location_mode}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedAppointmentType && (
+                  <div className="appointment-availability">
+                    <div className="availability-header">
+                      <h4>Available Times</h4>
+                      <button
+                        className="load-slots-btn"
+                        onClick={handleLoadSlots}
+                        disabled={slotsLoading}
+                      >
+                        {slotsLoading ? 'Loading...' : 'Check availability'}
+                      </button>
+                    </div>
+
+                    {slotsError && <p className="error-state">{slotsError}</p>}
+
+                    {availableSlots.length === 0 && !slotsLoading ? (
+                      <p className="empty-state">No available times yet. Try another type or check back soon.</p>
+                    ) : (
+                      <div className="appointment-slots">
+                        {availableSlots.map((slot) => (
+                          <button
+                            key={slot.start_time}
+                            className={`slot-btn ${selectedSlot?.start_time === slot.start_time ? 'active' : ''}`}
+                            onClick={() => {
+                              setSelectedSlot(slot);
+                              setBookingError(null);
+                            }}
+                          >
+                            {formatSlotLabel(slot)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="appointment-notes">
+                      <label htmlFor="appointment-notes">Notes (optional)</label>
+                      <textarea
+                        id="appointment-notes"
+                        placeholder="Share any context or prep notes with your team."
+                        value={appointmentNotes}
+                        onChange={(event) => setAppointmentNotes(event.target.value)}
+                        rows={3}
+                      />
+                    </div>
+
+                    {bookingError && <p className="error-state">{bookingError}</p>}
+
+                    <button
+                      className="book-appointment-btn"
+                      onClick={handleBookAppointment}
+                      disabled={bookingAppointment || !selectedSlot}
+                    >
+                      {bookingAppointment ? 'Booking...' : 'Book appointment'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
