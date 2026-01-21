@@ -162,7 +162,7 @@ def stripe_webhook(request):
         # Validate payload shape to avoid downstream KeyError/TypeError crashes.
         validated_event = validate_stripe_event_payload(event)
     except (ValidationError, ValueError) as exc:
-        logger.error("Stripe webhook schema validation failed")
+        logger.error("Stripe webhook schema validation failed: %s", exc)
         log_event(
             "stripe_webhook_schema_invalid",
             provider="stripe",
