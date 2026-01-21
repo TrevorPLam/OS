@@ -1468,30 +1468,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-145: Align client portal frontend API usage with /api/portal endpoints
-Priority: P3
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- T-124 audit shows Client Portal UI uses staff-facing `/api/clients/*` and `/documents/*` endpoints.
-- Portal allowlist endpoints exist under `src/api/portal/urls.py` but are not used by the UI.
-- Aligning frontend usage with portal endpoints reduces accidental scope drift.
-Acceptance Criteria:
-- [ ] Update `src/frontend/src/api/clientPortal.ts` to use `/api/portal/*` endpoints.
-- [ ] Update `src/frontend/src/api/documents.ts` usage (portal flows) to call `/api/portal/documents/` and `/api/portal/folders/` where applicable.
-- [ ] Ensure `src/frontend/src/pages/ClientPortal.tsx` continues to load portal data with updated APIs.
-- [ ] Add tests covering happy path, empty results, and error responses for portal API calls.
-- [ ] Update portal UX coverage doc with completed alignment.
-References:
-- docs/03-reference/portal-ux-coverage.md
-- src/frontend/src/api/clientPortal.ts
-- src/frontend/src/api/documents.ts
-- src/frontend/src/pages/ClientPortal.tsx
-- src/api/portal/urls.py
-Dependencies: None
-Effort: M
 ### T-146: Add portal appointments booking UI to Client Portal
 Priority: P3
 Type: FEATURE
@@ -1511,7 +1487,7 @@ References:
 - docs/03-reference/portal-ux-coverage.md
 - src/frontend/src/pages/ClientPortal.tsx
 - src/api/portal/urls.py
-Dependencies: T-145
+Dependencies: None
 Effort: M
 
 ### T-147: Add portal profile and account switcher UI
@@ -1533,7 +1509,7 @@ References:
 - docs/03-reference/portal-ux-coverage.md
 - src/frontend/src/pages/ClientPortal.tsx
 - src/api/portal/urls.py
-Dependencies: T-145
+Dependencies: None
 Effort: M
 
 ## Backlog
