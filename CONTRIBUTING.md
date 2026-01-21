@@ -26,6 +26,20 @@ Last Updated: 2026-01-16
 3. Run tests and any applicable checks.
 4. Update or add documentation as needed.
 
+## Pre-commit Hooks
+
+Install and run pre-commit hooks to catch formatting, typing, secret scanning, and frontend lint issues early:
+
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+Notes:
+- The frontend ESLint hook relies on `npm run lint`, so run `npm install` in `src/frontend` before the first lint run.
+- If you skip pre-commit locally, the same checks are expected to pass in CI.
+
 ## Running Tests
 
 ```bash
