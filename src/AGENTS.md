@@ -1,7 +1,9 @@
 # AGENTS.md — Backend Source Directory
 
-Last Updated: 2026-01-06
+Last Updated: 2026-01-21
 Applies To: All agents working in `/src/`
+
+**IMPORTANT**: See `/BESTPR.md` for comprehensive best practices, patterns, and conventions.
 
 ## Purpose
 
