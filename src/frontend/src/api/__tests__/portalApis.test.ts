@@ -51,6 +51,44 @@ describe('clientPortalApi', () => {
 
     await expect(clientPortalApi.getInvoiceSummary()).rejects.toThrow('network down')
   })
+
+  it('test_listAppointmentTypes_returns_available_types', async () => {
+    // Happy path: appointment types should be returned as a list for portal booking.
+    mockedClient.get.mockResolvedValueOnce({ data: [{ id: 7, name: 'Kickoff' }] })
+
+    const response = await clientPortalApi.listAppointmentTypes()
+
+    expect(mockedClient.get).toHaveBeenCalledWith('/portal/appointments/available-types/')
+    expect(response.data).toHaveLength(1)
+  })
+
+  it('test_listAvailableAppointmentSlots_allows_empty_slots', async () => {
+    // Empty state: no slots should still return a valid response.
+    mockedClient.post.mockResolvedValueOnce({ data: { slots: [] } })
+
+    const response = await clientPortalApi.listAvailableAppointmentSlots({
+      appointment_type_id: 3,
+      start_date: '2026-01-01',
+      end_date: '2026-01-14',
+    })
+
+    expect(mockedClient.post).toHaveBeenCalledWith('/portal/appointments/available-slots/', {
+      appointment_type_id: 3,
+      start_date: '2026-01-01',
+      end_date: '2026-01-14',
+    })
+    expect(response.data.slots).toEqual([])
+  })
+
+  it('test_bookAppointment_propagates_errors', async () => {
+    // Error handling: booking failures should be reported to callers.
+    mockedClient.post.mockRejectedValueOnce(new Error('booking failed'))
+
+    await expect(clientPortalApi.bookAppointment({
+      appointment_type_id: 9,
+      start_time: '2026-01-05T10:00:00Z',
+    })).rejects.toThrow('booking failed')
+  })
 })
 
 describe('portalDocumentsApi', () => {

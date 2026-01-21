@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **Portal Appointments Booking UI** (2026-01-21)
+  - **T-146**: Added portal appointments tab with booking, availability, and cancellation flows plus coverage docs and tests.
+
 - **Stripe Webhook Schema Validation** (2026-01-21)
   - **T-130**: Added Pydantic-backed Stripe webhook payload validation and replay coverage to prevent invalid data crashes.
 

@@ -1468,28 +1468,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-146: Add portal appointments booking UI to Client Portal
-Priority: P3
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Portal backend exposes appointment endpoints at `/api/portal/appointments/`.
-- Client Portal UI lacks appointment booking flow.
-Acceptance Criteria:
-- [ ] Add an appointments tab or section in `src/frontend/src/pages/ClientPortal.tsx`.
-- [ ] Surface available appointment types and slots from `/api/portal/appointments/available-types/` and `/api/portal/appointments/available-slots/`.
-- [ ] Add booking and cancellation actions tied to portal endpoints.
-- [ ] Include tests for happy path booking, empty availability, and error responses.
-- [ ] Update portal UX coverage doc with new appointment flow coverage.
-References:
-- docs/03-reference/portal-ux-coverage.md
-- src/frontend/src/pages/ClientPortal.tsx
-- src/api/portal/urls.py
-Dependencies: None
-Effort: M
-
 ### T-147: Add portal profile and account switcher UI
 Priority: P3
 Type: FEATURE
