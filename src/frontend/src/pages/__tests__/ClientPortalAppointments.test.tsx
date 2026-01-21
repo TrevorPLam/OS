@@ -21,6 +21,10 @@ const clientPortalApiMock = vi.hoisted(() => ({
   listAvailableAppointmentSlots: vi.fn(),
   bookAppointment: vi.fn(),
   cancelAppointment: vi.fn(),
+  getProfile: vi.fn(),
+  updateProfile: vi.fn(),
+  listAccounts: vi.fn(),
+  switchAccount: vi.fn(),
 }))
 
 vi.mock('../../api/documents', () => ({
@@ -71,6 +75,44 @@ const setupBaseMocks = () => {
   clientPortalApiMock.listAvailableAppointmentSlots.mockResolvedValue({ data: { slots: [] } })
   clientPortalApiMock.bookAppointment.mockResolvedValue({ data: {} })
   clientPortalApiMock.cancelAppointment.mockResolvedValue({ data: {} })
+  clientPortalApiMock.getProfile.mockResolvedValue({
+    data: {
+      id: 1,
+      email: 'client@example.com',
+      full_name: 'Portal User',
+      client_name: 'Acme Co',
+      can_view_projects: true,
+      can_view_invoices: true,
+      can_view_documents: true,
+      can_upload_documents: false,
+      can_message_staff: true,
+      can_book_appointments: true,
+      notification_preferences: { email: true },
+    },
+  })
+  clientPortalApiMock.updateProfile.mockResolvedValue({
+    data: {
+      id: 1,
+      email: 'client@example.com',
+      full_name: 'Portal User',
+      client_name: 'Acme Co',
+      can_view_projects: true,
+      can_view_invoices: true,
+      can_view_documents: true,
+      can_upload_documents: false,
+      can_message_staff: true,
+      can_book_appointments: true,
+      notification_preferences: { email: true },
+    },
+  })
+  clientPortalApiMock.listAccounts.mockResolvedValue({
+    data: {
+      accounts: [{ id: 10, name: 'Acme Co', account_number: 'AC-10' }],
+      current_account_id: 10,
+      has_multiple_accounts: false,
+    },
+  })
+  clientPortalApiMock.switchAccount.mockResolvedValue({ data: { success: true } })
 }
 
 describe('ClientPortal appointments', () => {

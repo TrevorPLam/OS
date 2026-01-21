@@ -18,6 +18,8 @@ import {
   PortalAppointment,
   PortalAppointmentSlot,
   PortalAppointmentType,
+  PortalAccount,
+  PortalProfile,
 } from '../api/clientPortal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClientPortal.css';
@@ -32,10 +34,33 @@ interface Document {
   description: string;
 }
 
+const buildPortalPermissionSummary = (profile: PortalProfile) => [
+  { label: 'Projects', enabled: profile.can_view_projects },
+  { label: 'Invoices', enabled: profile.can_view_invoices },
+  { label: 'Documents', enabled: profile.can_view_documents },
+  { label: 'Uploads', enabled: profile.can_upload_documents },
+  { label: 'Messages', enabled: profile.can_message_staff },
+  { label: 'Appointments', enabled: profile.can_book_appointments },
+];
+
+const stringifyPreferences = (preferences: Record<string, unknown> | null) =>
+  JSON.stringify(preferences ?? {}, null, 2);
+
+const parsePreferences = (value: string) => {
+  // Treat empty input as "no preferences" so users can reset without syntax errors.
+  if (!value.trim()) {
+    return {};
+  }
+
+  return JSON.parse(value) as Record<string, unknown>;
+};
+
 // Invoice and Chat interfaces now imported from clientPortal.ts
 
 export const ClientPortal: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'work' | 'documents' | 'invoices' | 'messages' | 'engagement' | 'appointments'>('work');
+  const [activeTab, setActiveTab] = useState<
+    'work' | 'documents' | 'invoices' | 'messages' | 'engagement' | 'appointments' | 'profile'
+  >('work');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<ClientProject[]>([]);
   const [selectedProject, setSelectedProject] = useState<ClientProject | null>(null);
@@ -66,6 +91,18 @@ export const ClientPortal: React.FC = () => {
   const [appointmentsError, setAppointmentsError] = useState<string | null>(null);
   const [slotsError, setSlotsError] = useState<string | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<PortalProfile | null>(null);
+  const [profilePreferences, setProfilePreferences] = useState('');
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<PortalAccount[]>([]);
+  const [accountsLoading, setAccountsLoading] = useState(false);
+  const [accountsError, setAccountsError] = useState<string | null>(null);
+  const [currentAccountId, setCurrentAccountId] = useState<number | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [switchingAccount, setSwitchingAccount] = useState(false);
+  const [accountSwitchMessage, setAccountSwitchMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeProjects: 0,
@@ -116,6 +153,7 @@ export const ClientPortal: React.FC = () => {
       setEngagementHistory(engagementResponse.data.results || []);
 
       await loadAppointmentData();
+      await Promise.all([loadProfileData(), loadAccountData()]);
 
       // Calculate stats
       const activeProjectsCount = projectsList.filter(p => p.status === 'in_progress').length;
@@ -176,6 +214,39 @@ export const ClientPortal: React.FC = () => {
     }
   };
 
+  const loadProfileData = async () => {
+    try {
+      setProfileLoading(true);
+      setProfileError(null);
+
+      const response = await clientPortalApi.getProfile();
+      setProfile(response.data);
+      setProfilePreferences(stringifyPreferences(response.data.notification_preferences ?? null));
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      setProfileError('Unable to load profile details right now.');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const loadAccountData = async () => {
+    try {
+      setAccountsLoading(true);
+      setAccountsError(null);
+
+      const response = await clientPortalApi.listAccounts();
+      setAccounts(response.data.accounts || []);
+      setCurrentAccountId(response.data.current_account_id ?? null);
+      setSelectedAccountId(response.data.current_account_id ?? null);
+    } catch (error) {
+      console.error('Error loading accounts:', error);
+      setAccountsError('Unable to load account options right now.');
+    } finally {
+      setAccountsLoading(false);
+    }
+  };
+
   const buildAvailabilityRange = () => {
     // Keep a deterministic 14-day window so availability is predictable and fast for portal users.
     const startDate = new Date();
@@ -186,6 +257,70 @@ export const ClientPortal: React.FC = () => {
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
     };
+  };
+
+  const handleSaveProfilePreferences = async () => {
+    if (!profile) {
+      setProfileError('Profile data is unavailable. Please refresh.');
+      return;
+    }
+
+    // Fail fast on invalid JSON so we do not send malformed preferences to the API.
+    let parsedPreferences: Record<string, unknown>;
+    try {
+      parsedPreferences = parsePreferences(profilePreferences);
+    } catch (error) {
+      setProfileError('Notification preferences must be valid JSON.');
+      return;
+    }
+
+    try {
+      setProfileSaving(true);
+      setProfileError(null);
+
+      const response = await clientPortalApi.updateProfile({
+        notification_preferences: parsedPreferences,
+      });
+
+      setProfile(response.data);
+      setProfilePreferences(stringifyPreferences(response.data.notification_preferences ?? null));
+    } catch (error) {
+      console.error('Error saving profile preferences:', error);
+      setProfileError('Unable to save profile changes right now.');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  const handleSwitchAccount = async () => {
+    if (!selectedAccountId) {
+      setAccountsError('Select an account to switch.');
+      return;
+    }
+
+    // Short-circuit when the user selects the already active account.
+    if (selectedAccountId === currentAccountId) {
+      setAccountSwitchMessage('You are already viewing this account.');
+      return;
+    }
+
+    try {
+      setSwitchingAccount(true);
+      setAccountsError(null);
+      setAccountSwitchMessage(null);
+
+      await clientPortalApi.switchAccount(selectedAccountId);
+      setCurrentAccountId(selectedAccountId);
+      setAccountSwitchMessage('Account switched successfully.');
+
+      // Refresh portal data to reflect the newly active account scope.
+      await loadPortalData();
+    } catch (error) {
+      console.error('Error switching account:', error);
+      setAccountsError('Unable to switch accounts right now.');
+    } finally {
+      setSwitchingAccount(false);
+    }
   };
 
   const handleSelectAppointmentType = (type: PortalAppointmentType) => {
@@ -507,6 +642,12 @@ export const ClientPortal: React.FC = () => {
           onClick={() => setActiveTab('appointments')}
         >
           🗓️ Appointments
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profile')}
+        >
+          👤 Profile
         </button>
       </div>
 
@@ -1371,6 +1512,118 @@ export const ClientPortal: React.FC = () => {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="profile-tab">
+            <h2>Profile & Accounts</h2>
+
+            {profileError && <p className="error-state">{profileError}</p>}
+
+            <div className="profile-grid">
+              <section className="profile-card">
+                <h3>Your Profile</h3>
+                {profileLoading ? (
+                  <p className="loading-state">Loading profile...</p>
+                ) : profile ? (
+                  <>
+                    <div className="profile-detail">
+                      <span className="profile-label">Name</span>
+                      <span>{profile.full_name}</span>
+                    </div>
+                    <div className="profile-detail">
+                      <span className="profile-label">Email</span>
+                      <span>{profile.email}</span>
+                    </div>
+                    <div className="profile-detail">
+                      <span className="profile-label">Account</span>
+                      <span>{profile.client_name}</span>
+                    </div>
+                    <div className="profile-permissions">
+                      <span className="profile-label">Permissions</span>
+                      <div className="profile-permission-list">
+                        {buildPortalPermissionSummary(profile).map((permission) => (
+                          <span
+                            key={permission.label}
+                            className={`permission-pill ${permission.enabled ? 'enabled' : 'disabled'}`}
+                          >
+                            {permission.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <p className="empty-state">Profile details are unavailable.</p>
+                )}
+              </section>
+
+              <section className="profile-card">
+                <h3>Notification Preferences</h3>
+                <p className="helper-text">
+                  Update your notification preferences using JSON (for example, {`{"email": true}`}).
+                </p>
+                <textarea
+                  className="profile-textarea"
+                  aria-label="Notification preferences"
+                  value={profilePreferences}
+                  onChange={(event) => setProfilePreferences(event.target.value)}
+                  rows={6}
+                />
+                <button
+                  className="profile-save-btn"
+                  onClick={handleSaveProfilePreferences}
+                  disabled={profileSaving || profileLoading}
+                >
+                  {profileSaving ? 'Saving...' : 'Save preferences'}
+                </button>
+              </section>
+
+              <section className="profile-card">
+                <h3>Account Switcher</h3>
+                {accountsError && <p className="error-state">{accountsError}</p>}
+                {accountSwitchMessage && <p className="success-state">{accountSwitchMessage}</p>}
+                {accountsLoading ? (
+                  <p className="loading-state">Loading accounts...</p>
+                ) : accounts.length === 0 ? (
+                  <p className="empty-state">No accounts available for switching.</p>
+                ) : (
+                  <div className="account-switcher">
+                    <label htmlFor="account-switcher" className="profile-label">
+                      Active account
+                    </label>
+                    <select
+                      id="account-switcher"
+                      value={selectedAccountId ?? ''}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setSelectedAccountId(nextValue ? Number(nextValue) : null);
+                        setAccountSwitchMessage(null);
+                      }}
+                    >
+                      {accounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.name}{account.account_number ? ` • ${account.account_number}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className="account-switch-btn"
+                      onClick={handleSwitchAccount}
+                      disabled={switchingAccount}
+                    >
+                      {switchingAccount ? 'Switching...' : 'Switch account'}
+                    </button>
+                    {currentAccountId && (
+                      <p className="helper-text">
+                        Current account ID: {currentAccountId}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </section>
             </div>
           </div>
         )}

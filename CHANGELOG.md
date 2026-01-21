@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **Portal Profile & Account Switcher UI** (2026-01-21)
+  - **T-147**: Added profile management and account switching to the client portal with coverage docs and tests.
+
 - **Portal Appointments Booking UI** (2026-01-21)
   - **T-146**: Added portal appointments tab with booking, availability, and cancellation flows plus coverage docs and tests.
 

@@ -284,6 +284,36 @@ export interface PortalAppointmentSlotsResponse {
   slots: PortalAppointmentSlot[];
 }
 
+export interface PortalProfile {
+  id: number;
+  email: string;
+  full_name: string;
+  client_name: string;
+  can_view_projects: boolean;
+  can_view_invoices: boolean;
+  can_view_documents: boolean;
+  can_upload_documents: boolean;
+  can_message_staff: boolean;
+  can_book_appointments: boolean;
+  notification_preferences: Record<string, unknown> | null;
+}
+
+export interface PortalProfileUpdateRequest {
+  notification_preferences: Record<string, unknown>;
+}
+
+export interface PortalAccount {
+  id: number;
+  name: string;
+  account_number: string | null;
+}
+
+export interface PortalAccountListResponse {
+  accounts: PortalAccount[];
+  current_account_id: number;
+  has_multiple_accounts: boolean;
+}
+
 export interface EngagementTimeline {
   client_name: string;
   total_versions: number;
@@ -512,5 +542,36 @@ export const clientPortalApi = {
    */
   cancelAppointment: (appointmentId: number) => {
     return apiClient.post<PortalAppointment>(`/portal/appointments/${appointmentId}/cancel/`);
+  },
+
+  /**
+   * Get the current portal user's profile.
+   */
+  getProfile: () => {
+    return apiClient.get<PortalProfile>('/portal/profile/me/');
+  },
+
+  /**
+   * Update the portal user's profile preferences.
+   */
+  updateProfile: (data: PortalProfileUpdateRequest) => {
+    return apiClient.patch<PortalProfile>('/portal/profile/me/', data);
+  },
+
+  /**
+   * List accounts available for account switching.
+   */
+  listAccounts: () => {
+    return apiClient.get<PortalAccountListResponse>('/portal/accounts/accounts/');
+  },
+
+  /**
+   * Switch the active account for the portal session.
+   */
+  switchAccount: (accountId: number) => {
+    return apiClient.post<{ success: boolean; active_account_id: number; message: string }>(
+      '/portal/accounts/switch/',
+      { account_id: accountId }
+    );
   },
 };

@@ -19,6 +19,27 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-147: Add portal profile and account switcher UI
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- Portal backend exposes profile and account switching endpoints under `/api/portal/profile/` and `/api/portal/accounts/`.
+- Client Portal UI does not expose profile management or account switching.
+Acceptance Criteria:
+- [x] Add profile view/edit UI in `src/frontend/src/pages/ClientPortal.tsx` (or a dedicated portal settings page).
+- [x] Add account switcher UI wired to `/api/portal/accounts/` endpoints.
+- [x] Ensure portal navigation surfaces the profile/account actions.
+- [x] Include tests for happy path updates, empty account lists, and error responses.
+- [x] Update portal UX coverage doc with profile/account coverage status.
+References:
+- docs/03-reference/portal-ux-coverage.md
+- src/frontend/src/pages/ClientPortal.tsx
+- src/api/portal/urls.py
+Dependencies: None
+Effort: M
+
 ### T-146: Add portal appointments booking UI to Client Portal
 Priority: P3
 Type: FEATURE

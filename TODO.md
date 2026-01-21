@@ -1468,28 +1468,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-147: Add portal profile and account switcher UI
-Priority: P3
-Type: FEATURE
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Portal backend exposes profile and account switching endpoints under `/api/portal/profile/` and `/api/portal/accounts/`.
-- Client Portal UI does not expose profile management or account switching.
-Acceptance Criteria:
-- [ ] Add profile view/edit UI in `src/frontend/src/pages/ClientPortal.tsx` (or a dedicated portal settings page).
-- [ ] Add account switcher UI wired to `/api/portal/accounts/` endpoints.
-- [ ] Ensure portal navigation surfaces the profile/account actions.
-- [ ] Include tests for happy path updates, empty account lists, and error responses.
-- [ ] Update portal UX coverage doc with profile/account coverage status.
-References:
-- docs/03-reference/portal-ux-coverage.md
-- src/frontend/src/pages/ClientPortal.tsx
-- src/api/portal/urls.py
-Dependencies: None
-Effort: M
-
 ## Backlog
 <!-- Add future tasks here. -->
 

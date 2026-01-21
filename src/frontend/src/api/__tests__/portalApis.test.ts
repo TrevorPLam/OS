@@ -8,6 +8,7 @@ vi.mock('../client', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    patch: vi.fn(),
     delete: vi.fn(),
   },
 }))
@@ -15,6 +16,7 @@ vi.mock('../client', () => ({
 type MockedApiClient = {
   get: ReturnType<typeof vi.fn>
   post: ReturnType<typeof vi.fn>
+  patch: ReturnType<typeof vi.fn>
   delete: ReturnType<typeof vi.fn>
 }
 
@@ -88,6 +90,35 @@ describe('clientPortalApi', () => {
       appointment_type_id: 9,
       start_time: '2026-01-05T10:00:00Z',
     })).rejects.toThrow('booking failed')
+  })
+
+  it('test_getProfile_returns_portal_profile', async () => {
+    // Happy path: portal profile uses the allowlisted portal endpoint.
+    mockedClient.get.mockResolvedValueOnce({ data: { id: 1, email: 'client@example.com' } })
+
+    const response = await clientPortalApi.getProfile()
+
+    expect(mockedClient.get).toHaveBeenCalledWith('/portal/profile/me/')
+    expect(response.data.email).toBe('client@example.com')
+  })
+
+  it('test_listAccounts_handles_empty_accounts', async () => {
+    // Empty state: account switcher should handle an empty account list gracefully.
+    mockedClient.get.mockResolvedValueOnce({
+      data: { accounts: [], current_account_id: 1, has_multiple_accounts: false },
+    })
+
+    const response = await clientPortalApi.listAccounts()
+
+    expect(mockedClient.get).toHaveBeenCalledWith('/portal/accounts/accounts/')
+    expect(response.data.accounts).toEqual([])
+  })
+
+  it('test_updateProfile_propagates_errors', async () => {
+    // Error handling: profile update failures should bubble to the caller.
+    mockedClient.patch.mockRejectedValueOnce(new Error('update failed'))
+
+    await expect(clientPortalApi.updateProfile({ notification_preferences: {} })).rejects.toThrow('update failed')
   })
 })
 

@@ -26,7 +26,7 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 ### Portal UI Coverage Notes
 
 - The portal UI is a single route with tabbed sections (work/projects, documents, invoices, messages, engagement, appointments). It now relies on `/portal/*` calls relative to the frontend `/api` base URL, keeping portal users on the allowlisted API surface from `src/api/portal/urls.py`.
-- The portal UI now exposes appointment booking (types, availability, booking, cancellation) but still lacks profile management and account switching despite corresponding backend portal endpoints.
+- The portal UI now exposes appointment booking (types, availability, booking, cancellation) plus profile management and account switching against the portal allowlist endpoints.
 
 ## Portal API Surface Inventory (Backend)
 
@@ -43,8 +43,8 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 | `/api/portal/contracts/` | Portal contracts | **Covered** |
 | `/api/portal/proposals/` | Portal proposals | **Covered** |
 | `/api/portal/engagement-history/` | Portal engagement history | **Covered** |
-| `/api/portal/profile/` | Portal profile | **Missing** |
-| `/api/portal/accounts/` | Portal account switcher | **Missing** |
+| `/api/portal/profile/` | Portal profile | **Covered** |
+| `/api/portal/accounts/` | Portal account switcher | **Covered** |
 | `/api/portal/comments/` | Portal task comments (legacy) | **Covered** |
 
 ## Mobile Coverage Inventory
@@ -55,10 +55,10 @@ Document the current portal and mobile UX coverage, map frontend routes to backe
 
 ## Gaps & Follow-up Tasks
 
-1. **Missing portal flows:** UI still lacks portal profile management and account switching despite backend support.
+1. **Portal flows:** Profile management and account switching are now covered in the Client Portal UI.
 
 Follow-up tasks added in `TODO.md`:
-- **T-147**: Add portal profile and account switcher UI in Client Portal.
+- None (T-147 completed).
 
 ## Notes
 
