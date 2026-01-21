@@ -1,6 +1,8 @@
 # AGENTS.md — Tracking Module (Site & Event Analytics)
 
 Last Updated: 2026-01-06
+
+**IMPORTANT**: See `/BESTPR.md` for repo-wide best practices and patterns.
 Applies To: `src/modules/tracking/`
 
 ## Purpose

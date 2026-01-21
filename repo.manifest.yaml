@@ -7,9 +7,11 @@ governance:
     - CODEBASECONSTITUTION.md
     - READMEAI.md
     - AGENTS.md
+    - BESTPR.md
     - TODO.md
   task_truth_source: TODO.md
   completed_tasks: TODOCOMPLETED.md
+  best_practices: BESTPR.md
   github_actions:
     status: off_by_default
     storage_path: githubactions/

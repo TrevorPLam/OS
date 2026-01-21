@@ -1,6 +1,8 @@
 # AGENTS.md — AD Sync Module (Active Directory Integration)
 
 Last Updated: 2026-01-06
+
+**IMPORTANT**: See `/BESTPR.md` for repo-wide best practices and patterns.
 Applies To: `src/modules/ad_sync/`
 
 ## Purpose

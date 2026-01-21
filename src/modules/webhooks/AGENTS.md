@@ -1,6 +1,8 @@
 # AGENTS.md — Webhooks Module (Webhook Platform)
 
 Last Updated: 2026-01-06
+
+**IMPORTANT**: See `/BESTPR.md` for repo-wide best practices and patterns.
 Applies To: `src/modules/webhooks/`
 
 ## Purpose
