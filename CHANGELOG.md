@@ -107,6 +107,12 @@ Meta-commentary:
 
 ### Changed
 
+- **Calendar Query Optimization** (2026-01-21)
+  - **T-140**: Prefetched appointment type host/pool relationships, added query-budget coverage for list serialization, and enabled the Django Debug Toolbar for local query inspection.
+
+- **CRM Model Import Stability** (2026-01-21)
+  - Switched the Contract → Proposal relation to a lazy reference to avoid import-time errors during test setup.
+
 - **Dependency Management** (2026-01-09)
   - **T-031**: Removed unused dev dependencies (factory-boy, faker, import-linter) from requirements-dev.txt.
   - Added a dedicated CI install step for import-linter to keep boundary checks available when CI is enabled.

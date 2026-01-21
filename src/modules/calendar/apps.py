@@ -1,6 +1,7 @@
 """App configuration for calendar module."""
 
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class CalendarConfig(AppConfig):
@@ -12,4 +13,5 @@ class CalendarConfig(AppConfig):
     
     def ready(self):
         """Import signals when app is ready."""
-        import modules.calendar.signals  # noqa: F401
+        if getattr(settings, "CALENDAR_ENABLE_SIGNALS", True):
+            import modules.calendar.signals  # noqa: F401

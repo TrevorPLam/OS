@@ -75,6 +75,15 @@ class AppointmentTypeSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+    @staticmethod
+    def setup_eager_loading(queryset):
+        """Prefetch host and pool relationships to avoid N+1 queries."""
+        return queryset.prefetch_related(
+            "required_hosts",
+            "optional_hosts",
+            "round_robin_pool",
+        )
+
     def get_required_hosts_display(self, obj):
         """Return display names for required hosts."""
         return [{"id": user.id, "username": user.username, "email": user.email} for user in obj.required_hosts.all()]
