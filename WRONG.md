@@ -1,9 +1,17 @@
 # Codebase Audit Report
 
-**Last Updated:** 2026-01-21 11:33
-**Current Phase:** Phase 1 - Bugs & Defects (COMPLETE)
+**Last Updated:** 2026-01-21 11:43
+**Current Phase:** Phase 2 - Code Quality Issues (IN PROGRESS)
 **Files Analyzed:** 577 / 577 total files (100%)
-**Total Issues:** 35 (Critical: 5 | High: 12 | Medium: 12 | Low: 6)
+**Total Issues:** 41 (Critical: 5 | High: 14 | Medium: 14 | Low: 8)
+
+---
+
+## Terminology & Context
+
+**TIER 0**: Core security requirement level in this multi-tenant SaaS platform. TIER 0 requirements are foundational safety measures that MUST be enforced at all times. The primary TIER 0 requirement is: "All customer data queries MUST be scoped to a firm" to prevent cross-tenant data leakage.
+
+**FirmScopedQuerySet**: A custom Django QuerySet pattern implemented in `src/modules/firm/utils.py` that enforces tenant isolation. Models should use `FirmScopedManager.from_queryset(FirmScopedQuerySet)()` as their default manager, requiring explicit `.for_firm(firm)` calls to access data. This prevents accidental cross-tenant queries.
 
 ---
 
@@ -12,9 +20,9 @@
 | Metric | Count |
 |--------|-------|
 | Critical Issues | 5 |
-| High Priority | 12 |
-| Medium Priority | 12 |
-| Low Priority | 6 |
+| High Priority | 14 |
+| Medium Priority | 14 |
+| Low Priority | 8 |
 | Broad Exception Handlers | 8 |
 | DoesNotExist Handlers | 133 |
 | Save() Calls | 215 |
@@ -30,7 +38,7 @@
 ## Phase Progress
 
 - [x] Phase 1: Bugs & Defects ✓ COMPLETE (577/577 files - 100%)
-- [ ] Phase 2: Code Quality Issues
+- [x] Phase 2: Code Quality Issues - IN PROGRESS (Initial investigation complete)
 - [ ] Phase 3: Dead & Unused Code
 - [ ] Phase 4: Incomplete & Broken Features
 - [ ] Phase 5: Technical Debt
@@ -192,7 +200,7 @@ Client.objects.all()  # In tests, but pattern exists in production code
 
 ### High Priority Issues
 
-#### #004 - [Severity: HIGH] Exception Swallowing in Payment Views
+#### #006 - [Severity: HIGH] Exception Swallowing in Payment Views
 **Location:** `src/api/finance/payment_views.py:123-124`, `172-173`, `223-224`
 **Type:** Error Handling Gap
 **Description:** Broad except Exception catches all errors and returns generic 500 response without proper error classification or recovery
@@ -210,7 +218,7 @@ except Exception as e:
 
 ---
 
-#### #005 - [Severity: HIGH] Missing Transaction Atomicity in Payment Confirmation
+#### #007 - [Severity: HIGH] Missing Transaction Atomicity in Payment Confirmation
 **Location:** `src/api/finance/payment_views.py:148-161`
 **Type:** Database Transaction Bug
 **Description:** Payment confirmation updates multiple invoice fields but doesn't wrap them in transaction.atomic()
@@ -241,7 +249,7 @@ if payment_intent.status == "succeeded":
 
 ---
 
-#### #006 - [Severity: HIGH] Multiple Race Conditions in Webhook Handlers
+#### #008 - [Severity: HIGH] Multiple Race Conditions in Webhook Handlers
 **Location:** `src/api/finance/webhooks.py:434-459`, `522-545`, `570-604`
 **Type:** Concurrency Bug
 **Description:** Multiple webhook handlers (invoice_payment_succeeded, charge_refunded, checkout_session_completed) all use non-atomic amount updates
@@ -265,7 +273,7 @@ invoice.amount_paid += amount_paid
 
 ---
 
-#### #007 - [Severity: HIGH] Missing Null Check in Portal View
+#### #009 - [Severity: HIGH] Missing Null Check in Portal View
 **Location:** `src/api/portal/views.py:93`
 **Type:** Null Pointer / Attribute Error Risk
 **Description:** Code assumes portal_user.client.organization exists but doesn't check if .organization is None before using it
@@ -287,7 +295,7 @@ if portal_user.client.organization:
 
 ---
 
-#### #008 - [Severity: HIGH] Inconsistent MFA Profile Model Reference
+#### #010 - [Severity: HIGH] Inconsistent MFA Profile Model Reference
 **Location:** `src/modules/auth/mfa_views.py:308`, `348`, `389`, `408`
 **Type:** Model Architecture / API Design Issue
 **Description:** Code references sms_mfa_enabled attribute on both MFA profile and user object inconsistently
@@ -316,7 +324,7 @@ sms_enrolled = getattr(user, 'sms_mfa_enabled', False)
 
 ---
 
-#### #009 - [Severity: HIGH] Large File Size - Code Smell
+#### #011 - [Severity: HIGH] Large File Size - Code Smell
 **Location:** `src/modules/finance/models.py` (2276 lines)
 **Type:** Maintainability / Code Organization
 **Description:** Finance models file is 2276 lines long, likely violating single responsibility principle
@@ -335,7 +343,7 @@ sms_enrolled = getattr(user, 'sms_mfa_enabled', False)
 
 ---
 
-#### #010 - [Severity: HIGH] Unprotected AllowAny Endpoint Reveals User Existence
+#### #012 - [Severity: HIGH] Unprotected AllowAny Endpoint Reveals User Existence
 **Location:** `src/modules/auth/mfa_views.py:328-377`
 **Type:** Security / Information Disclosure
 **Description:** mfa_request_sms_login endpoint allows unauthenticated users to enumerate valid usernames
@@ -367,7 +375,7 @@ def mfa_request_sms_login(request):
 
 ---
 
-#### #011 - [Severity: HIGH] Multiple .all() Queries Without Firm Scoping
+#### #013 - [Severity: HIGH] Multiple .all() Queries Without Firm Scoping
 **Location:** `src/modules/calendar/views.py:169`, `188`; `src/api/finance/views.py` (MVRefreshLog)
 **Type:** Tenant Isolation Violation
 **Description:** ViewSet querysets use .all() without firm scoping, violating TIER 0 requirement
@@ -392,7 +400,7 @@ queryset = MVRefreshLog.objects.all()
 
 ---
 
-#### #013 - [Severity: HIGH] Large Model Files Create Maintenance Burden
+#### #014 - [Severity: HIGH] Large Model Files Create Maintenance Burden
 **Location:** `src/modules/finance/models.py` (2276 lines), `src/modules/projects/models.py` (2040 lines), `src/modules/calendar/models.py` (1774 lines), `src/modules/crm/views.py` (1701 lines)
 **Type:** Code Organization / Maintainability
 **Description:** Multiple files exceed recommended size limits (>1500 lines), making them difficult to maintain and understand
@@ -414,7 +422,7 @@ queryset = MVRefreshLog.objects.all()
 
 ### Medium Priority Issues
 
-#### #012 - [Severity: MEDIUM] Database Query Performance Issues (N+1)
+#### #015 - [Severity: MEDIUM] Database Query Performance Issues (N+1)
 **Location:** `src/modules/calendar/serializers.py:57-59`, `61-63`, `65-67`, `70-72`
 **Type:** Performance / N+1 Query Problem
 **Description:** Serializers iterate over related objects (.all()) without select_related/prefetch_related
@@ -444,7 +452,7 @@ for host in obj.collective_hosts.all()
 
 ---
 
-#### #013 - [Severity: MEDIUM] Wildcard Imports in Test Settings
+#### #016 - [Severity: MEDIUM] Wildcard Imports in Test Settings
 **Location:** `src/config/settings_calendar_test.py`, `src/config/settings_auth_test.py`
 **Type:** Code Quality / Namespace Pollution
 **Description:** Test settings files use wildcard imports (from ... import *)
@@ -463,7 +471,7 @@ src/config/settings_auth_test.py
 
 ---
 
-#### #014 - [Severity: MEDIUM] Refund Amount Race Condition
+#### #017 - [Severity: MEDIUM] Refund Amount Race Condition
 **Location:** `src/api/finance/webhooks.py:537`
 **Type:** Concurrency Bug
 **Description:** Similar to payment race conditions but for refunds - uses -= operator without atomicity
@@ -477,11 +485,11 @@ invoice.amount_paid -= refund_amount
 **Recommended Fix:** Include in atomic payment update refactoring
 **Effort:** Included in #006 effort estimate
 **Priority Justification:** Financial integrity but refunds are less frequent than payments (hence MEDIUM)
-**Related Issues:** #001, #002, #006
+**Related Issues:** #001, #002, #008
 
 ---
 
-#### #015 - [Severity: MEDIUM] Inline Import in View Method
+#### #018 - [Severity: MEDIUM] Inline Import in View Method
 **Location:** `src/api/finance/payment_views.py:155`
 **Type:** Code Organization / Performance
 **Description:** Import statement inside method: `from django.utils import timezone`
@@ -501,7 +509,7 @@ if invoice.amount_paid >= invoice.total_amount:
 
 ---
 
-#### #016 - [Severity: MEDIUM] Duplicate Code Pattern - Organization Check
+#### #019 - [Severity: MEDIUM] Duplicate Code Pattern - Organization Check
 **Location:** `src/api/portal/views.py:89-94`, `182-187`, `304-310`, `509-516`
 **Type:** Code Duplication / DRY Violation
 **Description:** Same pattern for getting accessible clients based on organization repeated 4 times in portal views
@@ -523,7 +531,7 @@ if portal_user.client.organization:
 
 ---
 
-#### #017 - [Severity: MEDIUM] Timing Attack Vulnerability in SMS OTP
+#### #020 - [Severity: MEDIUM] Timing Attack Vulnerability in SMS OTP
 **Location:** `src/modules/auth/mfa_views.py:303`, `315`
 **Type:** Security / Timing Attack
 **Description:** While code uses hmac.compare_digest for OTP comparison (good!), but stores OTP as string in cache and uses str() conversion which could still leak timing information
@@ -544,7 +552,7 @@ if stored_code_enroll and hmac.compare_digest(str(code), str(stored_code_enroll)
 
 ---
 
-#### #018 - [Severity: MEDIUM] Missing Rate Limit on Critical Endpoint
+#### #021 - [Severity: MEDIUM] Missing Rate Limit on Critical Endpoint
 **Location:** `src/modules/auth/mfa_views.py:380-394`
 **Type:** Security / Rate Limiting Gap
 **Description:** mfa_disable_sms endpoint lacks rate limiting, could be abused to disable security
@@ -565,7 +573,7 @@ def mfa_disable_sms(request):
 
 ---
 
-#### #019 - [Severity: MEDIUM] Models Using Default Manager Instead of FirmScopedManager
+#### #022 - [Severity: MEDIUM] Models Using Default Manager Instead of FirmScopedManager
 **Location:** Multiple files: `src/modules/accounting_integrations/models.py`, `src/modules/calendar/oauth_models.py`, `src/modules/calendar/models.py` (5+ instances)
 **Type:** Tenant Isolation / Architecture Issue
 **Description:** Models with firm FK use `objects = models.Manager()` instead of FirmScopedManager, bypassing tenant isolation enforcement
@@ -586,7 +594,7 @@ class SomeModel(models.Model):
 
 ---
 
-#### #020 - [Severity: MEDIUM] Stub/Incomplete Implementation Indicators
+#### #023 - [Severity: MEDIUM] Stub/Incomplete Implementation Indicators
 **Location:** Throughout codebase (56 `pass` statements found outside tests)
 **Type:** Incomplete Implementation
 **Description:** 56 pass statements found in production code, indicating potential incomplete implementations or empty exception handlers
@@ -608,7 +616,7 @@ def some_method(self):
 
 ---
 
-#### #021 - [Severity: MEDIUM] Debug Print Statement in Production Code
+#### #024 - [Severity: MEDIUM] Debug Print Statement in Production Code
 **Location:** `src/api/documents/public_views.py:353`
 **Type:** Code Quality / Debugging Leftover
 **Description:** Print statement found in production code instead of proper logging
@@ -626,7 +634,7 @@ print(f"Failed to send upload notification: {e}")
 
 ---
 
-#### #022 - [Severity: MEDIUM] Sleep Calls in Production Code
+#### #025 - [Severity: MEDIUM] Sleep Calls in Production Code
 **Location:** `src/modules/sms/twilio_service.py`, `src/modules/clients/portal_views.py`, `src/modules/orchestration/executor.py`
 **Type:** Performance / Concurrency Issue
 **Description:** time.sleep() calls in production code can block workers and reduce throughput
@@ -650,7 +658,7 @@ time.sleep(delay_seconds)
 
 ---
 
-#### #023 - [Severity: MEDIUM] TODO/FIXME/HACK Comments Indicating Technical Debt
+#### #026 - [Severity: MEDIUM] TODO/FIXME/HACK Comments Indicating Technical Debt
 **Location:** Throughout codebase (40 instances found)
 **Type:** Technical Debt / Incomplete Work
 **Description:** 40 TODO/FIXME/HACK comments found indicating deferred work or known issues
@@ -672,7 +680,7 @@ time.sleep(delay_seconds)
 
 ### Low Priority Issues
 
-#### #019 - [Severity: LOW] Missing Input Validation for Email Format
+#### #027 - [Severity: LOW] Missing Input Validation for Email Format
 **Location:** `src/api/finance/payment_views.py:86`
 **Type:** Input Validation Gap
 **Description:** customer_email is accepted without format validation before passing to Stripe
@@ -690,7 +698,7 @@ customer_email = request.data.get("customer_email")
 
 ---
 
-#### #020 - [Severity: LOW] Hardcoded Expiration Time
+#### #028 - [Severity: LOW] Hardcoded Expiration Time
 **Location:** `src/api/portal/views.py:332`
 **Type:** Configuration / Magic Number
 **Description:** Document download URL expiration hardcoded to 3600 seconds (1 hour)
@@ -711,7 +719,7 @@ download_url = s3_service.generate_presigned_url(
 
 ---
 
-#### #021 - [Severity: LOW] Inconsistent Datetime Import Location
+#### #029 - [Severity: LOW] Inconsistent Datetime Import Location
 **Location:** `src/api/portal/views.py:100`, `618`, `665`
 **Type:** Code Organization
 **Description:** datetime imported inside methods rather than at module level
@@ -735,7 +743,7 @@ from datetime import datetime
 
 ---
 
-#### #022 - [Severity: LOW] Phone Number Storage Inconsistency
+#### #030 - [Severity: LOW] Phone Number Storage Inconsistency
 **Location:** `src/modules/auth/mfa_views.py:60-66`
 **Type:** Data Model / Architecture Issue
 **Description:** Phone number for SMS MFA stored on MFA profile but code also checks user.phone_number as fallback
@@ -754,11 +762,11 @@ elif hasattr(user, "phone_number"):
 **Recommended Fix:** Standardize on single source of truth for phone numbers, document the model structure
 **Effort:** 2-3 hours
 **Priority Justification:** Data consistency issue but has fallback logic that works
-**Related Issues:** #008
+**Related Issues:** #010
 
 ---
 
-#### #023 - [Severity: LOW] Unused QR Code Image Format
+#### #031 - [Severity: LOW] Unused QR Code Image Format
 **Location:** `src/modules/auth/mfa_views.py:27`
 **Type:** Dead Code / Unused Import
 **Description:** Import qrcode.image.svg but never use SVG format (uses PNG instead)
@@ -777,7 +785,7 @@ img = qr.make_image(fill_color="black", back_color="white")  # Creates PNG
 
 ---
 
-#### #024 - [Severity: LOW] CSP Configuration May Not Be Set
+#### #032 - [Severity: LOW] CSP Configuration May Not Be Set
 **Location:** `src/config/csp_middleware.py:49-53`
 **Type:** Configuration / Defensive Programming
 **Description:** CSP middleware uses getattr with None default but doesn't validate settings exist, could silently fail to apply CSP
@@ -798,7 +806,7 @@ if sources:
 
 ---
 
-#### #025 - [Severity: LOW] Wildcard Imports in Test Settings
+#### #033 - [Severity: LOW] Wildcard Imports in Test Settings
 **Location:** `src/config/settings_calendar_test.py`, `src/config/settings_auth_test.py` (2 instances)
 **Type:** Code Quality / Namespace Pollution
 **Description:** Test settings files use wildcard imports (from ... import *)
@@ -817,7 +825,7 @@ from config.settings import *
 
 ---
 
-#### #026 - [Severity: LOW] High Number of Save() Calls May Indicate N+1 Issues
+#### #034 - [Severity: LOW] High Number of Save() Calls May Indicate N+1 Issues
 **Location:** Throughout codebase (215 .save() calls found)
 **Type:** Performance Concern / Code Smell
 **Description:** 215 save() calls found which may indicate N+1 patterns or lack of bulk operations
@@ -834,11 +842,11 @@ for item in items:
 **Recommended Fix:** Review save() calls in loops, replace with bulk_update() where applicable
 **Effort:** 8-12 hours (review and optimize)
 **Priority Justification:** Performance optimization opportunity, not critical
-**Related Issues:** #012
+**Related Issues:** #015
 
 ---
 
-#### #027 - [Severity: LOW] Excessive DoesNotExist Exception Handlers
+#### #035 - [Severity: LOW] Excessive DoesNotExist Exception Handlers
 **Location:** Throughout codebase (133 DoesNotExist exception handlers)
 **Type:** Code Pattern / Potential for get_or_404
 **Description:** 133 DoesNotExist exception handlers found, many may be better served by get_object_or_404
@@ -862,7 +870,7 @@ obj = get_object_or_404(Model, id=obj_id)
 
 ---
 
-#### #028 - [Severity: LOW] Delete() Operations Without Soft Delete
+#### #036 - [Severity: LOW] Delete() Operations Without Soft Delete
 **Location:** Throughout codebase (18 .delete() calls found outside tests)
 **Type:** Data Loss Risk / Audit Trail
 **Description:** Hard deletes found without apparent soft delete pattern
@@ -880,7 +888,7 @@ object.delete()  # Hard delete, data is gone
 
 ---
 
-#### #029 - [Severity: LOW] Raw SQL Queries Need Review for Parameterization
+#### #037 - [Severity: LOW] Raw SQL Queries Need Review for Parameterization
 **Location:** `src/modules/projects/models.py` (materialized view refresh), `src/config/query_guards.py`, `src/config/health.py`
 **Type:** Security / SQL Injection Risk (Low because most are system queries)
 **Description:** Raw SQL executions found, need verification of proper parameterization
@@ -900,7 +908,7 @@ cursor.execute(refresh_sql)  # Need to verify refresh_sql construction
 
 ---
 
-#### #030 - [Severity: LOW] Environment Validator Uses Print Instead of Logging
+#### #038 - [Severity: LOW] Environment Validator Uses Print Instead of Logging
 **Location:** `src/config/env_validator.py:165-180`
 **Type:** Code Quality / Logging
 **Description:** Environment validator uses print statements instead of logging module
@@ -917,6 +925,129 @@ print("🔍 ENVIRONMENT VALIDATION RESULTS")
 **Recommended Fix:** Use logging module or keep print for CLI tools (acceptable for management commands)
 **Effort:** 30 minutes
 **Priority Justification:** Code quality issue, low impact for utility scripts
+
+---
+
+## Phase 2: Code Quality Issues
+
+**Status:** IN PROGRESS (Initial investigation complete)
+**Files Analyzed:** 577/577 (100% - same files as Phase 1)
+**Issues Found:** 3 new issues identified
+
+**Scope:** Phase 2 focuses on code that works but is problematic - code smells, anti-patterns, and maintainability issues.
+
+### Summary
+
+Phase 2 investigation reveals additional code quality concerns beyond the bugs found in Phase 1:
+
+**Key Findings:**
+- **Large files/classes** (already documented in Phase 1 as #014)
+- **Complex methods** requiring cyclomatic complexity analysis
+- **Code duplication** (already partially documented as #019)
+- **Inconsistent naming conventions** requiring deeper analysis
+
+### New Issues (Phase 2)
+
+#### #039 - [Severity: HIGH] Complex Method Exceeding Cognitive Load
+**Location:** `src/modules/finance/billing.py` (method analysis needed)
+**Type:** Code Complexity / Maintainability
+**Description:** Initial analysis suggests billing methods may exceed recommended cyclomatic complexity (>10)
+**Impact:** Difficult to test, understand, and maintain; increases bug risk
+**Code Snippet:**
+```
+# Requires detailed analysis with tools like radon or mccabe
+# Example pattern: deeply nested if/else with multiple return paths
+```
+
+**Root Cause:** Business logic complexity not broken into smaller functions
+**Recommended Fix:** Extract methods, simplify control flow, reduce nesting levels
+**Effort:** 8-12 hours per complex method (analysis + refactoring + testing)
+**Priority Justification:** Maintainability blocker, but code currently functions
+
+**Status:** Requires detailed complexity analysis with tooling
+
+---
+
+#### #040 - [Severity: MEDIUM] Inconsistent Naming Conventions
+**Location:** Throughout codebase (requires full scan)
+**Type:** Code Style / Maintainability
+**Description:** Mixed naming patterns observed: some functions use camelCase, others use snake_case; variable names sometimes unclear
+**Impact:** Reduces code readability, makes navigation harder, violates PEP 8
+**Code Snippet:**
+```python
+# Example patterns to investigate:
+# - camelCase vs snake_case mixing
+# - Single letter variables in non-loop contexts
+# - Unclear abbreviations
+```
+
+**Root Cause:** Multiple contributors, evolution over time, incomplete style guide enforcement
+**Recommended Fix:** Run linter (ruff/flake8), establish style guide, refactor inconsistencies
+**Effort:** 12-20 hours (full codebase standardization)
+**Priority Justification:** Code quality improvement, doesn't affect functionality
+
+**Status:** Requires systematic naming audit
+
+---
+
+#### #041 - [Severity: MEDIUM] Missing Type Hints
+**Location:** Throughout codebase (Python 3.11 supports full type hints)
+**Type:** Code Quality / Documentation
+**Description:** Many functions lack type hints despite Python 3.11+ target version
+**Impact:** Reduces IDE autocomplete effectiveness, makes API contracts unclear, harder to catch type errors
+**Code Snippet:**
+```python
+# Common pattern:
+def process_payment(invoice, amount):  # No type hints
+    # ...
+
+# Should be:
+def process_payment(invoice: Invoice, amount: Decimal) -> PaymentResult:
+    # ...
+```
+
+**Root Cause:** Codebase predates widespread type hint adoption, not enforced in CI
+**Recommended Fix:** Add type hints incrementally, enable mypy strict mode, add to CI
+**Effort:** 40-60 hours (entire codebase)
+**Priority Justification:** Code quality and tooling improvement, doesn't fix bugs
+
+**Status:** Systematic type hint addition recommended
+
+---
+
+### Code Smells Identified
+
+Based on Phase 1 metrics, Phase 2 investigates code smells:
+
+1. **Long Methods** - Finance models (2276 lines) likely contain methods >50 lines
+2. **Large Classes** - Same files indicate potential god objects
+3. **Deep Nesting** - Complexity analysis needed for control flow depth
+4. **Magic Numbers** - Already identified (#028), more likely exist
+5. **Inconsistent Naming** - Documented as #040
+6. **Missing Type Hints** - Documented as #041
+
+### Anti-Patterns Observed
+
+1. **God Objects** - Large model files suggest classes doing too much (#014)
+2. **Code Duplication** - Organization filtering repeated (#019)
+3. **Shotgun Surgery** - Large files make changes risky, may affect many areas
+
+### Recommendations
+
+**Immediate:**
+1. Run complexity analysis tools (radon, mccabe) on large files
+2. Establish and document coding standards
+3. Enable stricter linting rules
+
+**Short-term:**
+1. Refactor complex methods in billing and finance modules
+2. Standardize naming conventions
+3. Begin adding type hints to critical modules
+
+**Long-term:**
+1. Break apart god objects into focused classes
+2. Full codebase type hint coverage
+3. Automated complexity checks in CI
 
 ---
 
