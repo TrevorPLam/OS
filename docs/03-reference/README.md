@@ -17,6 +17,7 @@ Reference documentation is information-oriented and designed for quick lookup of
 
 ### Platform
 - [Platform Capabilities](platform-capabilities.md) - Comprehensive inventory of implemented and planned features
+- [Portal UX Coverage](portal-ux-coverage.md) - Portal routes, backend coverage, and mobile responsiveness audit
 - [Tier System](tier-system.md) - Subscription tiers and feature availability
 - [Site & Event Tracking Architecture](site-tracking-architecture.md) - Tracking SDK, ingestion, and automation contracts
 
