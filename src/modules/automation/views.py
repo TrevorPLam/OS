@@ -78,11 +78,19 @@ class WorkflowViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet)
             )
         elif self.action == "retrieve":
             # Prefetch related objects for detail view
+            edge_prefetch = Prefetch(
+                "edges",
+                queryset=WorkflowEdge.objects.select_related("source_node", "target_node"),
+            )
+            goal_prefetch = Prefetch(
+                "goals",
+                queryset=WorkflowGoal.objects.select_related("goal_node"),
+            )
             queryset = queryset.prefetch_related(
                 "triggers",
                 "nodes",
-                "edges",
-                "goals",
+                edge_prefetch,
+                goal_prefetch,
             )
 
         return queryset

@@ -19,6 +19,29 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-141: Fix N+1 queries in automation module (REFACTOR Phase 3)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- REFACTOR_PLAN.md Phase 3 Item 3 - Fix performance issues
+- Automation views cause 10,000+ queries for large workflows
+- N+1 query pattern in workflow loading
+- FORENSIC_AUDIT.md Issue #4.3
+Acceptance Criteria:
+- [x] Refactor to single query with prefetch_related in src/modules/automation/views.py:163-166
+- [x] Add assertNumQueries tests for workflow loading
+- [x] Verify query count scales O(1) not O(n)
+- [x] Add performance tests for large workflows (1000+ nodes)
+References:
+- REFACTOR_PLAN.md:272-275
+- FORENSIC_AUDIT.md Issue #4.3
+- src/modules/automation/views.py
+- tests/automation/test_views.py
+Dependencies: None
+Effort: M
+
 ### T-140: Fix N+1 queries in calendar module (REFACTOR Phase 3)
 Priority: P2
 Type: QUALITY

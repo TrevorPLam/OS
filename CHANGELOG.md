@@ -107,6 +107,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Automation Query Optimization** (2026-01-21)
+  - **T-141**: Prefetched workflow edge/goal relations with node details and added query-budget coverage for workflow detail serialization, including large-workflow guardrails.
+
 - **Calendar Query Optimization** (2026-01-21)
   - **T-140**: Prefetched appointment type host/pool relationships, added query-budget coverage for list serialization, and enabled the Django Debug Toolbar for local query inspection.
 
