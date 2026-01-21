@@ -19,6 +19,30 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-145: Align client portal frontend API usage with /api/portal endpoints
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- T-124 audit shows Client Portal UI uses staff-facing `/api/clients/*` and `/documents/*` endpoints.
+- Portal allowlist endpoints exist under `src/api/portal/urls.py` but are not used by the UI.
+- Aligning frontend usage with portal endpoints reduces accidental scope drift.
+Acceptance Criteria:
+- [x] Update `src/frontend/src/api/clientPortal.ts` to use `/api/portal/*` endpoints.
+- [x] Update `src/frontend/src/api/documents.ts` usage (portal flows) to call `/api/portal/documents/` and `/api/portal/folders/` where applicable.
+- [x] Ensure `src/frontend/src/pages/ClientPortal.tsx` continues to load portal data with updated APIs.
+- [x] Add tests covering happy path, empty results, and error responses for portal API calls.
+- [x] Update portal UX coverage doc with completed alignment.
+References:
+- docs/03-reference/portal-ux-coverage.md
+- src/frontend/src/api/clientPortal.ts
+- src/frontend/src/api/documents.ts
+- src/frontend/src/pages/ClientPortal.tsx
+- src/api/portal/urls.py
+Dependencies: None
+Effort: M
+
 ### T-141: Fix N+1 queries in automation module (REFACTOR Phase 3)
 Priority: P2
 Type: QUALITY

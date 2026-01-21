@@ -73,3 +73,20 @@ export const documentsApi = {
     await apiClient.delete(`/documents/folders/${id}/`)
   },
 }
+
+export const portalDocumentsApi = {
+  getDocuments: async (params?: { project?: number; folder?: number }): Promise<Document[]> => {
+    const response = await apiClient.get('/api/portal/documents/', { params })
+    return response.data.results || response.data
+  },
+
+  downloadDocument: async (id: number): Promise<{ download_url: string; expires_in: number }> => {
+    const response = await apiClient.get(`/api/portal/documents/${id}/download/`)
+    return response.data
+  },
+
+  getFolders: async (params?: { project?: number }): Promise<Folder[]> => {
+    const response = await apiClient.get('/api/portal/folders/', { params })
+    return response.data.results || response.data
+  },
+}

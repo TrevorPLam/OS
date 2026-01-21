@@ -15,7 +15,7 @@ This is not a task list; tasks belong in `TODO.md`.
 - Environment: Local development (tests run with SQLite; RLS probes skip without PostgreSQL)
 - Last known “green” state (commit/tag): After completing T-026, T-060, T-123
 - Key risks: RLS enforcement requires PostgreSQL for full validation; ensure background jobs wrap DB access in `firm_db_session` before releasing.
-- Recent change: T-142 added global PostgreSQL statement timeouts, slow-query logging, and timeout runbook guidance.
+- Recent change: T-145 aligned client portal frontend API usage to `/api/portal/*` endpoints and portal document routes with coverage updates.
 
 ## Decisions (append-only)
 Use this format:
