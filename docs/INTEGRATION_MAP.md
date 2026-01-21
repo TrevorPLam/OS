@@ -12,7 +12,7 @@ Purpose: when this repo becomes a real app, list every integration here with a c
 
 ## 1) Governance integrations (always-on)
 - Git hooks: `.githooks/pre-commit`
-- CI: `githubactions/workflows (disabled by default)/governance-ci.yml`
+- CI: `.github/workflows/ci.yml`
 - Tool entrypoints:
   - `.github/copilot-instructions.md`
   - `.cursor/rules/00-governance/RULE.md`

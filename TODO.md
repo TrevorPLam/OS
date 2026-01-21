@@ -154,7 +154,7 @@ Status: READY
 Blocker: None
 Context:
 - REFACTOR_PLAN.md Phase 1 Item 1 - Enable automated quality gates
-- No CI/CD automation currently enabled (GitHub Actions disabled)
+- CI/CD automation must be enforced with branch protection and verified runs
 - Broken code can merge to main without automated checks
 - FORENSIC_AUDIT.md Issue #8.1
 Acceptance Criteria:
@@ -168,7 +168,7 @@ Acceptance Criteria:
 References:
 - REFACTOR_PLAN.md:186-215, 492-536
 - FORENSIC_AUDIT.md Issue #8.1
-- githubactions/README.md
+- .github/workflows/ci.yml
 Dependencies: None
 Effort: M
 
@@ -216,6 +216,30 @@ References:
 - REFACTOR_PLAN.md:203-206
 - FORENSIC_AUDIT.md Issue #6.2, #6.4
 Dependencies: T-131 (CI workflow)
+Effort: S
+
+### T-148: Enable GitHub Actions workflows and remove cost-control governance
+Priority: P1
+Type: CHORE
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None
+Context:
+- GitHub Actions were parked in a nonstandard directory and need to run from `.github/workflows/`.
+- Governance docs still mention disabled-by-default Actions.
+- Repo manifest and scripts should align with enabled workflows.
+Acceptance Criteria:
+- [x] Move GitHub Actions workflows into `.github/workflows/`.
+- [x] Remove cost-control governance references tied to GitHub Actions.
+- [x] Update governance docs and scripts to point to `.github/workflows/`.
+- [x] Update repo.manifest.yaml to reflect enabled Actions.
+References:
+- CODEBASECONSTITUTION.md
+- READMEAI.md
+- BESTPR.md
+- repo.manifest.yaml
+- .github/workflows/
+Dependencies: None
 Effort: S
 
 ### T-136: Sanitize error messages to prevent information disclosure (REFACTOR Phase 2)

@@ -742,7 +742,7 @@ This repository exhibits **CRITICAL PRODUCTION BLOCKERS** across multiple domain
 - **Category:** Ops / Release Risk
 - **Severity:** CRITICAL - Degradation
 - **Confidence:** Certain
-- **Location:** `.github/workflows/` directory empty; `githubactions/README.md` states "disabled by default"
+- **Location:** `.github/workflows/ci.yml` (CI pipeline configuration)
 - **Failure Mode:** No automated testing on pull requests
 - **How It Manifests:** Broken code merged to main → production deploy fails → rollback required
 - **Why Dangerous:** Manual testing unreliable; regression introduction rate high

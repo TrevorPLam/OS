@@ -9,7 +9,7 @@ This document defines what “healthy governance” means for this repo.
 - `READMEAI.md` exists and reflects reality.
 - `TODO.md` is the task truth source and includes a `Task Truth Source:` line.
 - Completed tasks live in `TODOCOMPLETED.md`.
-- GitHub Actions are **off by default** and stored under `githubactions/`.
+- GitHub Actions workflows live in `.github/workflows/`.
 
 ## Health checks (quick)
 Run (optional):

@@ -43,7 +43,7 @@ Token-optimized, repo-specific guide to ship quality, complementary code the fir
 ├── tests/                # Test suite (pytest + Django test framework)
 ├── docs/                 # Documentation, runbooks, specs
 ├── benchmarks/           # Performance benchmarking
-└── githubactions/        # GitHub Actions (OFF by default)
+└── .github/workflows/    # GitHub Actions workflows
 ```
 
 ---
@@ -993,26 +993,7 @@ def test_dashboard_view(client, firm):
 
 ---
 
-## 12. Cost Control
-
-### 12.1 GitHub Actions
-
-**GitHub Actions are OFF by default** (see `githubactions/README.md`).
-
-- Stored under `githubactions/` for safekeeping
-- Enable only with explicit owner approval
-- Prefer local scripts and manual checks
-
-### 12.2 External Services
-
-**Minimize spend on external services**:
-- Use local tools when possible
-- Cache API responses
-- Monitor usage quotas
-
----
-
-## 13. Module-Specific References
+## 12. Module-Specific References
 
 For module-specific patterns and conventions, see:
 - `src/AGENTS.md` — Backend overview
@@ -1022,7 +1003,7 @@ For module-specific patterns and conventions, see:
 
 ---
 
-## 14. Quick Reference Card
+## 13. Quick Reference Card
 
 ### Critical Patterns to Remember
 

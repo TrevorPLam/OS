@@ -40,7 +40,7 @@ copy .aider.conf.yml .aider.conf.yml
 copy CLAUDE.md CLAUDE.md
 
 # Folders
-mkdir -p "$TARGET/specs" "$TARGET/docs" "$TARGET/scripts" "$TARGET/.ai/prompts" "$TARGET/.githooks" "$TARGET/githubactions/workflows (disabled by default)" "$TARGET/docs/adr" "$TARGET/.devcontainer" "$TARGET/.cursor/rules/00-governance"
+mkdir -p "$TARGET/specs" "$TARGET/docs" "$TARGET/scripts" "$TARGET/.ai/prompts" "$TARGET/.githooks" "$TARGET/.github/workflows" "$TARGET/docs/adr" "$TARGET/.devcontainer" "$TARGET/.cursor/rules/00-governance"
 
 # Copy structured content
 for f in specs/project-spec.md specs/technical-plan.md specs/project-tasks.md (non-binding notes) (optional, non-binding); do
@@ -60,7 +60,9 @@ for f in scripts/*.sh; do
 done
 
 copy .githooks/pre-commit .githooks/pre-commit
-copy githubactions/workflows (disabled by default)/governance-ci.yml githubactions/workflows (disabled by default)/governance-ci.yml
+copy .github/workflows/ci.yml .github/workflows/ci.yml
+copy .github/workflows/docs.yml .github/workflows/docs.yml
+copy .github/workflows/docs-quality.yml .github/workflows/docs-quality.yml
 copy .github/copilot-instructions.md .github/copilot-instructions.md
 copy .cursor/rules/00-governance/RULE.md .cursor/rules/00-governance/RULE.md
 copy .devcontainer/devcontainer.json .devcontainer/devcontainer.json

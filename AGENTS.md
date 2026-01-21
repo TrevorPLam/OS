@@ -23,7 +23,3 @@ Applies To: Any coding/documentation agent operating in this repo
 - Every change must include verification (tests/lint/build or observable behavior).
 - When you create tasks, include exact file paths and acceptance criteria.
 - Follow patterns and conventions documented in `BESTPR.md` for consistency.
-
-## Cost control
-- Assume GitHub Actions are OFF by default. See `githubactions/README.md`.
-- Prefer local scripts and manual checks over paid services.

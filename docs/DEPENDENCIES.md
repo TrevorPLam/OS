@@ -56,7 +56,7 @@ If a dependency’s usage cannot be verified in code, it is marked **UNKNOWN** w
 | mypy | Static type checking. | Config in `pyproject.toml` (`[tool.mypy]`); invoked via `make typecheck` and `make verify`. | **UNKNOWN** (no alternatives evaluated in-repo). | Keep strict settings aligned with available stubs; evaluate Django/DRF stub packages if type coverage expands. |
 | django-stubs | Type hints for Django. | **UNKNOWN**: no config found via `rg -n "django-stubs" -g '*.toml' -g '*.ini'`. | **UNKNOWN** (no alternatives evaluated in-repo). | Keep aligned with Django/mypy versions; enable when type checking is enforced. |
 
-**Note:** Architectural boundary checks use `import-linter==2.0`, which is installed directly in the CI workflow (`githubactions/workflows/ci.yml`) and is not listed in `requirements-dev.txt`.
+**Note:** Architectural boundary checks use `import-linter==2.0`, which is installed directly in the CI workflow (`.github/workflows/ci.yml`) and is not listed in `requirements-dev.txt`.
 
 ## Upgrade workflow (recommended)
 1. Update the version pin in `requirements.txt` or `requirements-dev.txt`.
