@@ -52,7 +52,7 @@ class Contract(models.Model):
         help_text="The post-sale client this contract is with",
     )
     proposal = models.ForeignKey(
-        Proposal,
+        "crm.Proposal",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -146,5 +146,4 @@ class Contract(models.Model):
 
     def __str__(self) -> str:
         return f"{self.contract_number} - {self.client.company_name}"
-
 

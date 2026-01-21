@@ -46,7 +46,8 @@ class AppointmentTypeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Filter by firm context."""
-        return self.queryset.filter(firm=self.request.firm)
+        queryset = self.queryset.filter(firm=self.request.firm)
+        return self.serializer_class.setup_eager_loading(queryset)
 
     def perform_create(self, serializer):
         """Set firm and created_by on create."""
@@ -828,4 +829,3 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK,
         )
-

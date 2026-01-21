@@ -335,30 +335,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-140: Fix N+1 queries in calendar module (REFACTOR Phase 3)
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 3 Item 2 - Fix performance issues
-- Calendar serializers cause 80+ queries per API call
-- N+1 query pattern on hosts and pools
-- FORENSIC_AUDIT.md Issue #4.1
-Acceptance Criteria:
-- [ ] Add prefetch_related() for hosts and pools in src/modules/calendar/serializers.py
-- [ ] Add assertNumQueries tests to verify query count reduction
-- [ ] Enable Django Debug Toolbar in dev to monitor queries
-- [ ] Verify query count < 10 per API call
-- [ ] Document query optimization patterns
-References:
-- REFACTOR_PLAN.md:267-270, 596-611
-- FORENSIC_AUDIT.md Issue #4.1
-- src/modules/calendar/serializers.py
-Dependencies: None
-Effort: M
-
 ### T-141: Fix N+1 queries in automation module (REFACTOR Phase 3)
 Priority: P2
 Type: QUALITY

@@ -18,3 +18,4 @@ bandit==1.7.6
 # Type checking (optional)
 mypy==1.7.1
 django-stubs==4.2.7
+django-debug-toolbar==4.3.0
