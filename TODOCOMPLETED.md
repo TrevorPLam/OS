@@ -39,6 +39,24 @@ References:
 Dependencies: None
 Effort: S
 
+### T-144: Confirm core module API coverage expectations
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-21)
+Context:
+- T-122 inventory flagged the core module as missing urls.py/views.py endpoints.
+- The core module may be intentionally internal-only, but the decision was undocumented.
+Acceptance Criteria:
+- [x] Confirm whether core should expose API endpoints or remain internal-only.
+- [x] Document the rationale in docs/03-reference/api-module-coverage.md.
+- [x] Confirm no follow-up API endpoint task required for core.
+References:
+- docs/03-reference/api-module-coverage.md
+- src/modules/core/
+Dependencies: None
+Effort: S
+
 ### T-127: Fix timing attack on OTP comparison (REFACTOR Phase 0)
 Priority: P0
 Type: SECURITY

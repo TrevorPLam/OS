@@ -32,7 +32,7 @@ The script scans:
 | calendar | ✅ | ✅ | — | — | module | — |
 | clients | ✅ | ✅ | ✅ | — | module | API urls without api views (module handles views). |
 | communications | ✅ | ✅ | — | — | module | — |
-| core | — | — | — | — | missing | **T-144** (determine whether core should expose API endpoints). |
+| core | — | — | — | — | internal-only | Core is shared infrastructure utilities; no external API surface by design. |
 | crm | ✅ | ✅ | ✅ | ✅ | module | — |
 | delivery | — | — | — | — | missing | **T-113** (delivery scheduling APIs). |
 | documents | — | — | ✅ | ✅ | api | — |
@@ -58,11 +58,18 @@ The script scans:
 ## Coverage gaps
 
 Modules without module-level or `src/api/` endpoints:
-- `core` (tracked in **T-144**)
 - `delivery` (tracked in **T-113**)
 - `jobs` (tracked in **T-103**)
 - `orchestration` (tracked in **T-104**)
 - `recurrence` (tracked in **T-116**)
+
+## Core module API decision
+
+The `core` module is intentionally internal-only. It provides shared infrastructure
+(encryption, retention, logging utilities, middleware, and safety helpers) that are
+consumed by other modules and not exposed as standalone API endpoints. This keeps
+the tenant boundary and authorization logic centralized in module-specific APIs,
+while allowing `core` to remain focused on cross-cutting implementation details.
 
 If a module intentionally has no API surface, document the rationale here and
 ensure the decision is backed by a TODO task.
