@@ -108,9 +108,9 @@ Context:
 Acceptance Criteria:
 - [x] Validate amount_received is numeric before division (basic isinstance check added at lines 331-340)
 - [x] Add error handling for invalid webhook data (ValueError raised with logging)
-- [ ] Add Pydantic schema validation for webhook payload in src/api/finance/webhooks.py (deferred - basic validation sufficient for P0)
-- [ ] Add webhook replay tests (requires test infrastructure)
-- [ ] Run existing tests: pytest src/tests/ (blocked: pytest not installed in sandbox)
+- [x] Add Pydantic schema validation for webhook payload in src/api/finance/webhooks.py
+- [x] Add webhook replay tests (requires test infrastructure)
+- [ ] Run existing tests: pytest src/tests/ (blocked: pytest addopts require pytest-cov; pydantic install failed due to proxy 403)
 - [ ] Manual test: Stripe webhook with test data (requires Stripe test environment)
 References:
 - REFACTOR_PLAN.md:171-175

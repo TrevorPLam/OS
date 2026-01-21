@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **Stripe Webhook Schema Validation** (2026-01-21)
+  - **T-130**: Added Pydantic-backed Stripe webhook payload validation and replay coverage to prevent invalid data crashes.
+
 - **Portal UX Coverage Audit** (2026-01-21)
   - **T-124**: Documented portal/mobile UX coverage, API alignment gaps, and follow-up tasks.
 

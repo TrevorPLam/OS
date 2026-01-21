@@ -1,7 +1,7 @@
 # Dependencies
 
 Document Type: Reference
-Last Updated: 2026-01-08
+Last Updated: 2026-01-21
 
 ## Purpose
 This document explains why each major dependency exists, where it is used, and what to consider before upgrades.
@@ -33,6 +33,7 @@ If a dependency’s usage cannot be verified in code, it is marked **UNKNOWN** w
 | django-storages | Django storage backends (S3). | **UNKNOWN**: no direct imports found via `rg -n "storages" src/config src/modules`. | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm storage backend settings; verify S3 uploads/downloads in staging after upgrades. |
 | stripe | Stripe payments SDK. | Payments and webhooks (`src/modules/finance/services.py`, `src/api/finance/webhooks.py`, `src/modules/finance/reconciliation.py`). | **UNKNOWN** (no alternatives evaluated in-repo). | Review Stripe API version changes; re-test webhook signature verification and payment flows. |
 | python-dotenv | Load environment variables from `.env`. | Django entrypoint (`src/manage.py`). | **UNKNOWN** (no alternatives evaluated in-repo). | Ensure environment loading order stays consistent; check for deprecations in dotenv API. |
+| pydantic | Schema validation for external webhook payloads. | Stripe webhook validation (`src/api/finance/stripe_schema.py`, `src/api/finance/webhooks.py`). | **UNKNOWN** (no alternatives evaluated in-repo). | Re-test webhook payload validation and error handling when upgrading major versions. |
 | Pillow | Image processing (watermarking). | Document watermarking (`src/modules/core/access_controls.py`). | **UNKNOWN** (no alternatives evaluated in-repo). | Validate native dependencies and image output quality; consider security patches. |
 | requests | HTTP client. | CRM enrichment and DocuSign integrations (`src/modules/crm/enrichment_service.py`, `src/modules/esignature/docusign_service.py`). | **UNKNOWN** (no alternatives evaluated in-repo). | Confirm TLS/timeout defaults; handle retry behavior explicitly if upgrading. |
 | icalendar | iCal parsing/generation. | Calendar feeds (`src/modules/calendar/ical_service.py`, `src/modules/calendar/test_avail_1.py`). | **UNKNOWN** (no alternatives evaluated in-repo). | Verify timezone/DST handling; re-run calendar availability checks. |
