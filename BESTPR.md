@@ -1,7 +1,7 @@
 # BESTPR.md — Best Practices for Quality Code
 
 Document Type: Best Practices Guide
-Version: 1.0.0
+Version: 1.1.0
 Last Updated: 2026-01-21
 Status: Active
 
@@ -254,23 +254,60 @@ class MyModel(models.Model):
 **Standard Pattern**:
 ```python
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from config.query_guards import QueryTimeoutMixin
+from modules.auth.role_permissions import IsStaffUser, IsManager
 from modules.firm.utils import FirmScopedMixin
 
-class MyModelViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+class MyModelViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
     ViewSet for MyModel.
     
-    Automatically scopes queries to request.firm via FirmScopedMixin.
+    QueryTimeoutMixin: Applies statement timeout to list queries (default 3000ms)
+    FirmScopedMixin: Automatically scopes queries to request.firm
     """
     model = MyModel
     serializer_class = MyModelSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStaffUser]
     
     # get_queryset() is handled by FirmScopedMixin
     
     def perform_create(self, serializer):
         # Firm is set automatically by FirmScopedMixin
         serializer.save()
+    
+    # Custom actions
+    @action(detail=True, methods=["post"], url_path="custom-action")
+    def custom_action(self, request, pk=None):
+        """Custom action on a single object."""
+        obj = self.get_object()
+        # Perform action
+        return Response({"status": "success"})
+    
+    @action(detail=False, methods=["post"], url_path="bulk-action")
+    def bulk_action(self, request):
+        """Custom action on multiple objects."""
+        # Perform bulk action
+        return Response({"processed": 0})
+```
+
+**Permission Classes**:
+- `IsAuthenticated` — User must be logged in
+- `IsStaffUser` — Staff member (not portal user)
+- `IsManager` — Manager-level permissions
+- `IsFirmAdmin` — Firm admin role
+
+**Mixin Order Matters**:
+```python
+# CORRECT ORDER: QueryTimeoutMixin first, then FirmScopedMixin
+class MyViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    pass
+
+# WRONG: FirmScopedMixin first breaks query timeout
+class MyViewSet(FirmScopedMixin, QueryTimeoutMixin, viewsets.ModelViewSet):
+    pass  # Query timeout won't work properly
 ```
 
 ### 4.3 Serializers
@@ -299,9 +336,45 @@ class MyModelSerializer(serializers.ModelSerializer):
         return f"{obj.name} ({obj.status})"
     
     def validate_name(self, value):
+        """Field-level validation."""
         if not value.strip():
             raise serializers.ValidationError("Name cannot be empty")
         return value.strip()
+    
+    def validate(self, data):
+        """Object-level validation."""
+        if data.get("status") == "archived" and not data.get("archived_reason"):
+            raise serializers.ValidationError({
+                "archived_reason": "Required when status is archived"
+            })
+        return data
+```
+
+**Validation Patterns**:
+```python
+# Field-level validation
+def validate_<field_name>(self, value):
+    if not is_valid(value):
+        raise serializers.ValidationError("Error message")
+    return value
+
+# Object-level validation
+def validate(self, data):
+    if condition:
+        raise serializers.ValidationError({
+            "field_name": "Error message"
+        })
+    return data
+
+# Validation with multiple fields
+def validate(self, data):
+    start_date = data.get("start_date")
+    end_date = data.get("end_date")
+    if end_date and end_date < start_date:
+        raise serializers.ValidationError({
+            "end_date": "End date must be after start date"
+        })
+    return data
 ```
 
 ### 4.4 URLs
@@ -318,6 +391,174 @@ router.register(r"mymodels", MyModelViewSet, basename="mymodel")
 urlpatterns = [
     path("", include(router.urls)),
 ]
+```
+
+### 4.5 Signals
+
+**Pattern** (7 signal files in codebase):
+```python
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+from .models import MyModel
+
+@receiver(pre_save, sender=MyModel)
+def validate_before_save(sender, instance, **kwargs):
+    """Validation that runs before save."""
+    if instance.status == "published" and not instance.reviewed_by:
+        raise ValueError("Published items must be reviewed")
+
+@receiver(post_save, sender=MyModel)
+def trigger_downstream_actions(sender, instance, created, **kwargs):
+    """Actions to take after save."""
+    if created:
+        # Trigger notifications, create related objects, etc.
+        notify_team(instance)
+```
+
+**When to Use Signals**:
+- ✅ Cross-module notifications (avoid circular imports)
+- ✅ Audit logging
+- ✅ Triggering background jobs
+- ❌ Business logic (put in model methods or services)
+- ❌ Data validation (use model clean() or serializer validate())
+
+**Signal Files in Codebase**:
+- `accounting_integrations/signals.py`
+- `calendar/signals.py`
+- `projects/signals.py`
+- `crm/signals.py`
+- `clients/signals.py`
+- `finance/signals.py`
+- `webhooks/signals.py`
+
+### 4.6 Config Imports
+
+**Common config utilities** (from `src/config/`):
+
+```python
+# Query timeouts for API endpoints
+from config.query_guards import QueryTimeoutMixin, query_timeout
+
+# Custom filters
+from config.filters import BoundedSearchFilter
+
+# Error handling
+from config.sentry import capture_exception_with_context, capture_message_with_context
+
+# Pagination
+from config.pagination import StandardResultsSetPagination
+
+# Throttling
+from config.throttling import BurstRateThrottle, SustainedRateThrottle
+```
+
+**Example Usage**:
+```python
+from config.query_guards import QueryTimeoutMixin, query_timeout
+
+class MyViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    # Applies 3000ms timeout to list() queries
+    query_timeout_ms = 3000
+
+# Manual timeout
+with query_timeout(5000):
+    # Query runs with 5 second timeout
+    expensive_query()
+```
+
+### 4.7 Dynamic QuerySets & Serializers
+
+**Pattern** (common in codebase):
+
+```python
+class MyViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+    model = MyModel
+    
+    def get_queryset(self):
+        """
+        Override to add filtering, prefetching, or custom logic.
+        IMPORTANT: Always call super() to maintain firm scoping.
+        """
+        queryset = super().get_queryset()  # Gets firm-scoped queryset
+        
+        # Add prefetching for performance
+        queryset = queryset.select_related('owner', 'firm')
+        queryset = queryset.prefetch_related('tags', 'attachments')
+        
+        # Add filtering based on query params
+        status = self.request.query_params.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+        
+        return queryset
+    
+    def get_serializer_class(self):
+        """Use different serializers for different actions."""
+        if self.action == 'list':
+            return MyModelListSerializer  # Lightweight for lists
+        elif self.action == 'retrieve':
+            return MyModelDetailSerializer  # Full detail
+        return MyModelSerializer  # Default
+```
+
+**CRITICAL**: Always call `super().get_queryset()` in firm-scoped ViewSets to maintain tenant isolation.
+
+---
+
+## 4.8 Common Anti-Patterns (AVOID)
+
+**❌ WRONG: Direct Model.objects.all()**:
+```python
+# SECURITY VULNERABILITY - Cross-tenant leak
+clients = Client.objects.all()
+```
+
+**✅ CORRECT: Use firm scoping**:
+```python
+clients = Client.objects.for_firm(request.firm)
+# OR in ViewSet (automatic)
+clients = self.get_queryset()
+```
+
+**❌ WRONG: Forgetting super() in get_queryset()**:
+```python
+def get_queryset(self):
+    # BUG: Bypasses firm scoping!
+    return MyModel.objects.filter(status='active')
+```
+
+**✅ CORRECT: Always call super()**:
+```python
+def get_queryset(self):
+    queryset = super().get_queryset()  # Maintains firm scoping
+    return queryset.filter(status='active')
+```
+
+**❌ WRONG: Wrong mixin order**:
+```python
+# BUG: Query timeout doesn't work
+class MyViewSet(FirmScopedMixin, QueryTimeoutMixin, viewsets.ModelViewSet):
+    pass
+```
+
+**✅ CORRECT: QueryTimeoutMixin first**:
+```python
+class MyViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
+    pass
+```
+
+**❌ WRONG: N+1 queries**:
+```python
+# Slow - hits database for each client
+for client in clients:
+    print(client.account_manager.name)  # Extra query!
+```
+
+**✅ CORRECT: Use select_related**:
+```python
+clients = Client.objects.select_related('account_manager')
+for client in clients:
+    print(client.account_manager.name)  # No extra query
 ```
 
 ---
@@ -381,6 +622,39 @@ export const myApi = {
   delete: (id: string) => apiClient.delete(`/my-endpoint/${id}/`),
 }
 ```
+
+### 5.5 Background Jobs & Tasks
+
+**Pattern** (limited usage in codebase):
+
+Background jobs are used sparingly. When needed:
+
+```python
+# Example from ad_sync/tasks.py
+from modules.jobs.models import Job
+
+def sync_ad_users(firm_id: int):
+    """
+    Background task for syncing AD users.
+    
+    Always scope operations to firm_id parameter.
+    """
+    firm = Firm.objects.get(id=firm_id)
+    # Perform sync operations
+    ...
+    return {"synced": count}
+```
+
+**When to Use Background Jobs**:
+- Long-running operations (>5 seconds)
+- Scheduled tasks (cron-like)
+- Operations that can be retried on failure
+- Non-user-facing operations
+
+**When NOT to Use**:
+- User-facing operations requiring immediate feedback
+- Operations requiring transactional consistency
+- Simple operations (<1 second)
 
 ---
 
@@ -759,12 +1033,36 @@ firm = models.ForeignKey("firm.Firm", on_delete=models.CASCADE)
 objects = models.Manager()
 firm_scoped = FirmScopedManager()
 
-# ViewSets
-class MyViewSet(FirmScopedMixin, viewsets.ModelViewSet):
+# ViewSets (mixin order matters!)
+class MyViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     model = MyModel
+    permission_classes = [IsAuthenticated, IsStaffUser]
 
 # Queries
 MyModel.objects.for_firm(request.firm)
+
+# ALWAYS call super() in get_queryset()
+def get_queryset(self):
+    queryset = super().get_queryset()  # Maintains firm scoping
+    return queryset.filter(status='active')
+```
+
+**Custom Actions**:
+```python
+@action(detail=True, methods=["post"], url_path="custom-action")
+def custom_action(self, request, pk=None):
+    obj = self.get_object()
+    return Response({"status": "success"})
+```
+
+**Validation**:
+```python
+def validate(self, data):
+    if condition:
+        raise serializers.ValidationError({
+            "field": "Error message"
+        })
+    return data
 ```
 
 **Testing**:
