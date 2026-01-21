@@ -335,29 +335,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-141: Fix N+1 queries in automation module (REFACTOR Phase 3)
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 3 Item 3 - Fix performance issues
-- Automation views cause 10,000+ queries for large workflows
-- N+1 query pattern in workflow loading
-- FORENSIC_AUDIT.md Issue #4.3
-Acceptance Criteria:
-- [ ] Refactor to single query with prefetch_related in src/modules/automation/views.py:163-166
-- [ ] Add assertNumQueries tests for workflow loading
-- [ ] Verify query count scales O(1) not O(n)
-- [ ] Add performance tests for large workflows (1000+ nodes)
-References:
-- REFACTOR_PLAN.md:272-275
-- FORENSIC_AUDIT.md Issue #4.3
-- src/modules/automation/views.py:163-166
-Dependencies: None
-Effort: M
-
 ### T-143: Optimize invoice total calculation (REFACTOR Phase 3)
 Priority: P2
 Type: QUALITY
