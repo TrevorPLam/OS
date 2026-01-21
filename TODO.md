@@ -60,7 +60,7 @@ Acceptance Criteria:
 - [x] Add RelayState validation in SAMLACSView using hmac.compare_digest()
 - [x] Clear used state after validation to prevent replay attacks
 - [x] Add security comments explaining CSRF protection approach
-- [ ] Add security test for CSRF protection (requires test infrastructure)
+- [x] Add security test for CSRF protection (tests/auth/test_saml_views.py)
 - [ ] Run existing tests: pytest src/tests/ (blocked: pytest not installed in sandbox)
 - [ ] Manual test: SAML login flow (requires SAML IdP)
 References:
@@ -234,7 +234,7 @@ Acceptance Criteria:
 - [x] Handle missing SAML attributes gracefully using .get() with defaults
 - [x] Add security comments explaining defensive extraction
 - [ ] Add error logging for missing attributes (deferred to observability phase)
-- [ ] Add tests for missing SAML attributes (requires test infrastructure)
+- [x] Add tests for missing SAML attributes (tests/auth/test_saml_views.py)
 - [ ] Run existing tests: pytest src/tests/ (blocked: pytest not installed)
 References:
 - REFACTOR_PLAN.md:224-227
@@ -259,7 +259,7 @@ Acceptance Criteria:
 - [x] Add security comments explaining information disclosure prevention
 - [ ] Log detailed error info server-side only (deferred to observability phase)
 - [ ] Ensure no stack traces sent to clients (requires middleware review)
-- [ ] Add tests for generic error responses (requires test infrastructure)
+- [x] Add tests for generic error responses (tests/auth/test_saml_views.py)
 - [ ] Review all auth endpoints for information disclosure (separate task needed)
 References:
 - REFACTOR_PLAN.md:234-237

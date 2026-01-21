@@ -18,6 +18,9 @@ Meta-commentary:
 
 ### Added
 
+- **SAML Security Regression Coverage** (2026-01-21)
+  - Added ACS tests for RelayState CSRF validation, missing-attribute handling, and generic error responses.
+
 - **API Coverage Core Decision** (2026-01-21)
   - **T-144**: Documented the core module as internal-only with no external API surface.
 
