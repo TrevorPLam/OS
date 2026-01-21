@@ -1,9 +1,9 @@
 # Codebase Audit Report
 
-**Last Updated:** 2026-01-21 11:43
+**Last Updated:** 2026-01-21 12:05
 **Current Phase:** Phase 2 - Code Quality Issues (IN PROGRESS)
 **Files Analyzed:** 577 / 577 total files (100%)
-**Total Issues:** 41 (Critical: 5 | High: 14 | Medium: 14 | Low: 8)
+**Total Issues:** 46 (Critical: 5 | High: 15 | Medium: 18 | Low: 8)
 
 ---
 
@@ -20,8 +20,8 @@
 | Metric | Count |
 |--------|-------|
 | Critical Issues | 5 |
-| High Priority | 14 |
-| Medium Priority | 14 |
+| High Priority | 15 |
+| Medium Priority | 18 |
 | Low Priority | 8 |
 | Broad Exception Handlers | 8 |
 | DoesNotExist Handlers | 133 |
@@ -932,7 +932,7 @@ print("🔍 ENVIRONMENT VALIDATION RESULTS")
 
 **Status:** IN PROGRESS (Initial investigation complete)
 **Files Analyzed:** 577/577 (100% - same files as Phase 1)
-**Issues Found:** 3 new issues identified
+**Issues Found:** 8 new issues identified
 
 **Scope:** Phase 2 focuses on code that works but is problematic - code smells, anti-patterns, and maintainability issues.
 
@@ -1012,6 +1012,104 @@ def process_payment(invoice: Invoice, amount: Decimal) -> PaymentResult:
 **Priority Justification:** Code quality and tooling improvement, doesn't fix bugs
 
 **Status:** Systematic type hint addition recommended
+
+---
+
+#### #042 - [Severity: HIGH] Oversized Graph Builder Method With Mixed Responsibilities
+**Location:** `src/modules/crm/views.py:138-276`
+**Type:** Code Complexity / God Method
+**Description:** graph_view mixes request parsing, data fetching, graph construction, and response formatting in a 139-line method
+**Impact:** Hard to test, reason about, or reuse. Increases bug risk when modifying graph behavior or performance optimizations.
+**Code Snippet:**
+```python
+@action(detail=False, methods=["get"])
+def graph_view(self, request):
+    # request parsing, queryset building, graph node/edge assembly, response formatting
+    ...
+```
+
+**Root Cause:** Graph-building logic lives entirely inside the view action instead of a service/helper layer.
+**Recommended Fix:** Extract graph construction to a dedicated service or serializer (e.g., GraphBuilder) and split request parsing, data fetch, and transformation into smaller helpers.
+**Effort:** 4-6 hours
+**Priority Justification:** Maintainability risk in a complex endpoint with multiple query and transformation steps.
+
+---
+
+#### #043 - [Severity: MEDIUM] Milestone Invoice Creation Function Exceeds Single Responsibility
+**Location:** `src/modules/finance/billing.py:569-676`
+**Type:** Code Smell / Long Method
+**Description:** create_milestone_invoice performs validation, amount calculation, payment term parsing, persistence, and audit logging in one 108-line function.
+**Impact:** Harder to maintain and unit test; makes it easy to introduce errors when modifying invoice logic.
+**Code Snippet:**
+```python
+def create_milestone_invoice(...):
+    # validate milestone, calculate amount, parse payment terms, create invoice, log audit
+    ...
+```
+
+**Root Cause:** Accumulated business rules centralized in one function.
+**Recommended Fix:** Split into smaller helpers (validate_milestone, calculate_milestone_amount, determine_payment_terms, build_invoice_payload, log_audit).
+**Effort:** 3-5 hours
+**Priority Justification:** Code quality risk; refactor before further expanding milestone billing rules.
+
+---
+
+#### #044 - [Severity: MEDIUM] Dunning Rules Hard-Coded With Magic Numbers
+**Location:** `src/modules/finance/billing.py:716-848`
+**Type:** Code Smell / Magic Numbers
+**Description:** Dunning logic uses hard-coded day thresholds and levels (7, 14, 30, 65) embedded in conditional logic, duplicated across reminder checks and sending.
+**Impact:** Business rules are difficult to adjust without code changes; increases risk of inconsistencies if thresholds change.
+**Code Snippet:**
+```python
+if invoice.dunning_level == 0:
+    return days_overdue >= 7
+elif invoice.dunning_level == 1:
+    return days_since_last >= 14
+...
+```
+
+**Root Cause:** No central configuration or constants for dunning policy.
+**Recommended Fix:** Define dunning policy constants or a configuration table and drive behavior from data rather than inline conditionals.
+**Effort:** 2-4 hours
+**Priority Justification:** Maintainability issue in a business-critical workflow.
+
+---
+
+#### #045 - [Severity: MEDIUM] Project Template Cloning Method Does Too Much
+**Location:** `src/modules/projects/models.py:873-956`
+**Type:** Code Smell / Long Method
+**Description:** clone_to_project handles date calculation, project creation, milestone cloning, task cloning, and dependency wiring in a single 84-line method.
+**Impact:** Harder to test or reuse individual steps; increases risk when modifying template cloning behavior.
+**Code Snippet:**
+```python
+def clone_to_project(...):
+    # calculate dates, create project, clone milestones/tasks, wire dependencies
+    ...
+```
+
+**Root Cause:** Template cloning logic centralized in a single model method.
+**Recommended Fix:** Split into helpers (build_project_data, clone_milestones, clone_tasks, apply_dependencies) or move to a service layer with transaction management.
+**Effort:** 3-5 hours
+**Priority Justification:** Maintainability issue in a frequently used workflow.
+
+---
+
+#### #046 - [Severity: MEDIUM] AppointmentType Validation Method Is Overgrown
+**Location:** `src/modules/calendar/models.py:321-436`
+**Type:** Code Smell / Long Method
+**Description:** AppointmentType.clean packs multiple validation rules and nested branches into a 116-line method.
+**Impact:** Hard to understand or extend; higher risk of regression when adding new scheduling rules.
+**Code Snippet:**
+```python
+def clean(self):
+    # duration validation, routing policy checks, duration option parsing, slug validation, notice windows
+    ...
+```
+
+**Root Cause:** All validation rules consolidated in one method without helper functions.
+**Recommended Fix:** Extract validation helpers per concern (duration, routing, durations list, scheduling windows) and reuse constants for limits.
+**Effort:** 3-4 hours
+**Priority Justification:** Code quality issue that will grow with new scheduling rules.
 
 ---
 
@@ -1220,8 +1318,8 @@ Based on Phase 1 metrics, Phase 2 investigates code smells:
 **Key Metrics:**
 - **Files Analyzed:** 577/577 (100%)
 - **Critical Issues:** 5 (all require immediate attention)
-- **High Priority:** 12 (should be addressed within days)
-- **Medium Priority:** 12 (address within weeks)
+- **High Priority:** 15 (should be addressed within days)
+- **Medium Priority:** 18 (address within weeks)
 - **Low Priority:** 6 (code quality improvements)
 - **Code Quality Metrics:**
   - 215 save() calls (optimization opportunity)
