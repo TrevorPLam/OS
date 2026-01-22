@@ -46,6 +46,8 @@ Last Updated: 2026-01-21
 - `03-reference/README.md`
 - `03-reference/requirements/README.md`
 - `03-reference/portal-ux-coverage.md`
+- `03-reference/environment-variables.md`
+- `03-reference/management-commands.md`
 
 ## Policy docs
 - `AI_COST_POLICY.md`

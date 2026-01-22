@@ -25,7 +25,7 @@ Use this guide to find the right documentation quickly. We follow the Diátaxis 
 - **[Domain Model](DOMAIN_MODEL.md)** - Core entities and relationships
 - **[Platform Pillars](PILLARS.md)** - Feature areas and capabilities
 - **[Repository Map](REPO_MAP.md)** - Directory-by-directory codebase explanation
-- Tier System Reference - UNKNOWN (tracked in TODO: T-024)
+- [Tier System Reference](03-reference/tier-system.md) - Subscription tiers and feature availability
 - **[Boundary Rules](BOUNDARY_RULES.md)** - Architectural boundary enforcement
 - **[Threat Model](THREAT_MODEL.md)** - Security threat analysis
 
@@ -59,8 +59,8 @@ Use this guide to find the right documentation quickly. We follow the Diátaxis 
 ### Reference Materials
 - **[Platform Capabilities Inventory](03-reference/platform-capabilities.md)** - What exists and what's missing
 - **[Portal UX Coverage](03-reference/portal-ux-coverage.md)** - Portal routes, backend coverage, and mobile responsiveness audit
-- Environment Variables - UNKNOWN (tracked in TODO: T-022)
-- Management Commands - UNKNOWN (tracked in TODO: T-023)
+- [Environment Variables Reference](03-reference/environment-variables.md) - Required and optional configuration
+- [Management Commands Reference](03-reference/management-commands.md) - Django management commands
 - **[Hidden Assumptions](HIDDEN_ASSUMPTIONS.md)** - Key assumptions and design decisions
 - **[Glossary](GLOSSARY.md)** - Terminology definitions
 - **[Style Guide](STYLE_GUIDE.md)** - Documentation and code style standards
@@ -127,4 +127,4 @@ Documentation for each tier is organized in directories:
 - `docs/tier4/` - Billing & Monetization
 - `docs/tier5/` - Durability, Scale & Exit
 
-For a consolidated view, see Tier System Reference (UNKNOWN; tracked in TODO: T-024).
+For a consolidated view, see the [Tier System Reference](03-reference/tier-system.md).

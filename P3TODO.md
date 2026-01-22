@@ -606,44 +606,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-022: Document environment variables reference
-Priority: P3
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Documentation map flags missing environment variable reference.
-- Needed for consistent setup and deployment guidance.
-Acceptance Criteria:
-- [ ] Document all required and optional environment variables.
-- [ ] Include evidence references for each variable source.
-- [ ] Link the reference in DOCS_INDEX and relevant docs.
-References:
-- docs/README.md
-- docs/03-reference/environment-variables.md
-Dependencies: None
-Effort: S
-
-### T-023: Document management commands reference
-Priority: P3
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Documentation map flags missing management command reference.
-- Needed for operational tooling clarity.
-Acceptance Criteria:
-- [ ] Document all management commands with usage examples.
-- [ ] Include evidence references for command implementations.
-- [ ] Link the reference in DOCS_INDEX and relevant docs.
-References:
-- docs/README.md
-- docs/03-reference/management-commands.md
-Dependencies: None
-Effort: S
-
 ### T-024: Document tier system reference or remove references
 Priority: P3
 Type: DOCS
