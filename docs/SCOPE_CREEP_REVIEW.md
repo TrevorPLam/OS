@@ -9,7 +9,7 @@ This document reviews recent features against design documentation to identify s
 
 ## Review Methodology
 
-1. Compare implemented features against canonical docs (docs/1-docs/35)
+1. Compare implemented features against canonical docs (docs/03-reference/requirements/DOC-01.md through docs/03-reference/requirements/DOC-35.md)
 2. Identify features not in original design
 3. Assess whether additions are justified or represent scope creep
 4. Document change control process for future additions
@@ -20,16 +20,16 @@ This document reviews recent features against design documentation to identify s
 
 All major features implemented in December 2025 are documented in canonical design docs:
 
-1. **Pricing Engine (DOC-09.1)** - ✅ Aligned with docs/9
-2. **Delivery Templates (DOC-12.1)** - ✅ Aligned with docs/12
-3. **Recurrence Engine (DOC-10.1)** - ✅ Aligned with docs/10
-4. **Orchestration Engine (DOC-11.1)** - ✅ Aligned with docs/11
-5. **Email Ingestion (DOC-15.1)** - ✅ Aligned with docs/15
-6. **Calendar System (DOC-34.1)** - ✅ Aligned with docs/34
-7. **Knowledge System (DOC-35.1)** - ✅ Aligned with docs/35
-8. **Client Portal IA (DOC-26.1)** - ✅ Aligned with docs/26
-9. **Role-Based Views (DOC-27.1)** - ✅ Aligned with docs/27
-10. **Billing Ledger (DOC-13.1, DOC-13.2)** - ✅ Aligned with docs/13
+1. **Pricing Engine (DOC-09.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-09.md
+2. **Delivery Templates (DOC-12.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-12.md
+3. **Recurrence Engine (DOC-10.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-10.md
+4. **Orchestration Engine (DOC-11.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-11.md
+5. **Email Ingestion (DOC-15.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-15.md
+6. **Calendar System (DOC-34.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-34.md
+7. **Knowledge System (DOC-35.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-35.md
+8. **Client Portal IA (DOC-26.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-26.md
+9. **Role-Based Views (DOC-27.1)** - ✅ Aligned with docs/03-reference/requirements/DOC-27.md
+10. **Billing Ledger (DOC-13.1, DOC-13.2)** - ✅ Aligned with docs/03-reference/requirements/DOC-13.md
 
 ### ⚠️ Features Requiring Review
 
@@ -51,7 +51,7 @@ All major features implemented in December 2025 are documented in canonical desi
 
 **Assessment:**
 - These features were created in a previous session but are incomplete
-- They are NOT in canonical design docs (docs/1-35)
+- They are NOT in canonical design docs (docs/03-reference/requirements/DOC-01.md through docs/03-reference/requirements/DOC-35.md)
 - They represent potential scope creep if not aligned with product roadmap
 - **Recommendation:** Complete migrations and align with design docs, OR remove if not part of product vision
 
@@ -66,7 +66,7 @@ All major features implemented in December 2025 are documented in canonical desi
 ### For Future Feature Additions
 
 **Process:**
-1. **Design Doc First:** Create or update canonical design doc (docs/1-35) before implementation
+1. **Design Doc First:** Create or update canonical design doc (docs/03-reference/requirements/DOC-01.md through docs/03-reference/requirements/DOC-35.md) before implementation
 2. **ADR Required:** For architectural changes, create ADR in docs/05-decisions/
 3. **Tier Compliance:** Ensure feature aligns with tier system governance
 4. **Review Gate:** All new features require:
@@ -121,5 +121,5 @@ All major features implemented in December 2025 are documented in canonical desi
 
 - **ASSESS-R1.8:** Review for scope creep
 - **P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:** Missing Features Implementation section
-- **Design Docs:** docs/1 through docs/35 (canonical requirements)
+- **Design Docs:** docs/03-reference/requirements/DOC-01.md through docs/03-reference/requirements/DOC-35.md (canonical requirements)
 - **ADR Process:** docs/05-decisions/README.md

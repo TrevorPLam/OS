@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete
 **Last Updated:** December 30, 2025
-**Complies with:** docs/16 CALENDAR_SYNC_SPEC section 5
+**Complies with:** docs/03-reference/requirements/DOC-16.md CALENDAR_SYNC_SPEC section 5
 
 ---
 
@@ -350,7 +350,7 @@ curl -X POST https://api.example.com/api/calendar/admin/appointments/456/resync/
 
 ## 7. Compliance Matrix
 
-| Requirement | docs/16 Section | Status | Implementation |
+| Requirement | docs/03-reference/requirements/DOC-16.md Section | Status | Implementation |
 |-------------|-----------------|--------|----------------|
 | Admin-gated resync connection (full) | 5 | ✅ Complete | `admin_views.py::CalendarConnectionAdminViewSet.resync()` |
 | Admin-gated resync connection (bounded) | 5 | ✅ Complete | Supports start_date/end_date parameters |
@@ -363,7 +363,7 @@ curl -X POST https://api.example.com/api/calendar/admin/appointments/456/resync/
 | Audit trail for resync operations | 5 | ✅ Complete | AuditEvent created for all admin operations |
 | Audit trail for replay operations | 5 | ✅ Complete | AuditEvent created for replay request/success/failure |
 
-**Overall Compliance:** 10/10 requirements (100% with docs/16 section 5)
+**Overall Compliance:** 10/10 requirements (100% with docs/03-reference/requirements/DOC-16.md section 5)
 
 ---
 
@@ -384,7 +384,7 @@ This ensures only authorized administrators can:
 
 ## 9. Testing Requirements
 
-Per docs/16 section 7, tests must cover:
+Per docs/03-reference/requirements/DOC-16.md section 7, tests must cover:
 
 ### 9.1 Resync Tooling Tests
 - ✅ Connection resync (full and bounded)
@@ -411,9 +411,9 @@ Per docs/16 section 7, tests must cover:
 
 ## 10. Related Documentation
 
-- **docs/16**: CALENDAR_SYNC_SPEC (canonical requirements)
-- **docs/15**: EMAIL_INGESTION_SPEC (similar retry patterns)
-- **docs/21**: OBSERVABILITY (correlation IDs, metrics)
+- **docs/03-reference/requirements/DOC-16.md**: CALENDAR_SYNC_SPEC (canonical requirements)
+- **docs/03-reference/requirements/DOC-15.md**: EMAIL_INGESTION_SPEC (similar retry patterns)
+- **docs/03-reference/requirements/DOC-21.md**: OBSERVABILITY (correlation IDs, metrics)
 - **docs/EMAIL_INGESTION_RETRY_IMPLEMENTATION.md**: Similar retry implementation for email
 
 ---
@@ -439,6 +439,6 @@ DOC-16.2 implementation provides:
 ✅ **Sync status visibility**: Cursor, timestamp, and statistics
 ✅ **Failed attempt replay**: Manual replay with full audit trail
 ✅ **Retry logic**: Exponential backoff with error classification
-✅ **100% compliance** with docs/16 section 5 (10/10 requirements)
+✅ **100% compliance** with docs/03-reference/requirements/DOC-16.md section 5 (10/10 requirements)
 
 The implementation follows established patterns from email ingestion (DOC-15.2) and provides comprehensive admin tooling for calendar sync operations with full observability and audit trails.

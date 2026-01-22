@@ -1,5 +1,5 @@
 """
-Recurrence Generator Engine (DOC-10.1 per docs/10 section 6).
+Recurrence Generator Engine (DOC-10.1 per docs/03-reference/requirements/DOC-10.md section 6).
 
 Implements deterministic period generation with:
 - Timezone-aware period calculations
@@ -24,7 +24,7 @@ from modules.recurrence.models import RecurrenceGeneration, RecurrenceRule
 
 class Period:
     """
-    Period representation per docs/10 section 2.2.
+    Period representation per docs/03-reference/requirements/DOC-10.md section 2.2.
 
     A computed interval representing a single recurrence instance.
     """
@@ -56,7 +56,7 @@ class Period:
 
 class RecurrenceGenerator:
     """
-    Recurrence generation engine per docs/10 section 6.
+    Recurrence generation engine per docs/03-reference/requirements/DOC-10.md section 6.
 
     Generates recurring instances deterministically without duplicates.
     """
@@ -80,7 +80,7 @@ class RecurrenceGenerator:
         lookback_days: int = 0,
     ) -> Dict[str, Any]:
         """
-        Generate recurrence instances for a time window per docs/10 section 6.2.
+        Generate recurrence instances for a time window per docs/03-reference/requirements/DOC-10.md section 6.2.
 
         Args:
             as_of: Deterministic clock time (timezone-aware)
@@ -131,7 +131,7 @@ class RecurrenceGenerator:
         window_end: datetime,
     ) -> Dict[str, int]:
         """
-        Generate periods for a single rule per docs/10 section 6.2.
+        Generate periods for a single rule per docs/03-reference/requirements/DOC-10.md section 6.2.
 
         Args:
             rule: RecurrenceRule to generate for
@@ -164,7 +164,7 @@ class RecurrenceGenerator:
         window_end: datetime,
     ) -> List[Period]:
         """
-        Compute candidate periods for a rule per docs/10 section 4.
+        Compute candidate periods for a rule per docs/03-reference/requirements/DOC-10.md section 4.
 
         DOC-10.1: Period boundary calculations MUST be timezone-aware.
 
@@ -226,7 +226,7 @@ class RecurrenceGenerator:
         self, current: datetime, tz: ZoneInfo, interval: int
     ) -> Period:
         """
-        Compute monthly period per docs/10 section 4.2.
+        Compute monthly period per docs/03-reference/requirements/DOC-10.md section 4.2.
 
         Period boundaries:
         - starts_at = first day of month at 00:00:00 local
@@ -258,7 +258,7 @@ class RecurrenceGenerator:
         self, current: datetime, tz: ZoneInfo, interval: int
     ) -> Period:
         """
-        Compute quarterly period per docs/10 section 4.3.
+        Compute quarterly period per docs/03-reference/requirements/DOC-10.md section 4.3.
 
         Quarter boundaries:
         - Q1 = Jan–Mar, Q2 = Apr–Jun, Q3 = Jul–Sep, Q4 = Oct–Dec
@@ -296,7 +296,7 @@ class RecurrenceGenerator:
         self, current: datetime, tz: ZoneInfo, interval: int
     ) -> Period:
         """
-        Compute weekly period per docs/10 section 4.4.
+        Compute weekly period per docs/03-reference/requirements/DOC-10.md section 4.4.
 
         Using ISO week definition (Monday start).
         """
@@ -323,7 +323,7 @@ class RecurrenceGenerator:
     def _compute_daily_period(
         self, current: datetime, tz: ZoneInfo, interval: int
     ) -> Period:
-        """Compute daily period per docs/10 section 4.1."""
+        """Compute daily period per docs/03-reference/requirements/DOC-10.md section 4.1."""
         # Start at beginning of day
         start_local = current.replace(hour=0, minute=0, second=0, microsecond=0)
 
@@ -367,7 +367,7 @@ class RecurrenceGenerator:
         self, rule: RecurrenceRule, period: Period, as_of: datetime
     ) -> bool:
         """
-        Attempt to create RecurrenceGeneration record per docs/10 section 6.2.
+        Attempt to create RecurrenceGeneration record per docs/03-reference/requirements/DOC-10.md section 6.2.
 
         DOC-10.1: Uses unique constraint for dedupe.
 
@@ -403,7 +403,7 @@ class RecurrenceGenerator:
         end_date: datetime,
     ) -> Dict[str, int]:
         """
-        Backfill missed periods per docs/10 section 7.2.
+        Backfill missed periods per docs/03-reference/requirements/DOC-10.md section 7.2.
 
         This operation:
         - Is permission-gated (caller must verify)

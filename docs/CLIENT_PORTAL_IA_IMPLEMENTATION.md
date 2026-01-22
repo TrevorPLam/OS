@@ -4,17 +4,17 @@
 
 **Status:** ✅ Complete
 **Date:** December 30, 2025
-**Requirements:** docs/26 - CLIENT_PORTAL_INFORMATION_ARCHITECTURE
+**Requirements:** docs/03-reference/requirements/DOC-26.md - CLIENT_PORTAL_INFORMATION_ARCHITECTURE
 
 ---
 
 ## Overview
 
-This document details the implementation of the client portal information architecture per docs/26. The portal provides a secure, permission-gated interface for clients to access their firm data.
+This document details the implementation of the client portal information architecture per docs/03-reference/requirements/DOC-26.md. The portal provides a secure, permission-gated interface for clients to access their firm data.
 
 ## Primary Navigation
 
-All seven primary navigation items from docs/26 are implemented:
+All seven primary navigation items from docs/03-reference/requirements/DOC-26.md are implemented:
 
 ### 1. Home (Dashboard)
 **Endpoint:** `GET /api/portal/home/dashboard/`
@@ -548,7 +548,7 @@ Recommended test coverage:
 
 ## References
 
-- **docs/26** - CLIENT_PORTAL_INFORMATION_ARCHITECTURE (canonical spec)
+- **docs/03-reference/requirements/DOC-26.md** - CLIENT_PORTAL_INFORMATION_ARCHITECTURE (canonical spec)
 - **spec/portal/PORTAL_SURFACE_SPEC.md** - Portal surface spec
 - **DOC-18.1** - API endpoint authorization mapping
 - **DOC-14.2** - Document access logging (future enhancement)

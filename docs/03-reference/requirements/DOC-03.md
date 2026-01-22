@@ -29,7 +29,7 @@ The two apps are “thin” relative to the brain: UI should not become the auth
 
 Each firm (tenant) is isolated using row-level scoping. Every tenant-scoped model includes a `firm` ForeignKey, and isolation is enforced at the query layer via `FirmScopedQuerySet` and permission middleware.
 
-> **Note**: The original design considered schema-per-tenant isolation. After implementation, row-level isolation was chosen for operational simplicity and Django ecosystem fit. See ADR-0010 in docs/4 for the full decision record.
+> **Note**: The original design considered schema-per-tenant isolation. After implementation, row-level isolation was chosen for operational simplicity and Django ecosystem fit. See ADR-0010 in docs/03-reference/requirements/DOC-04.md for the full decision record.
 
 High-level consequences:
 - Single database schema with firm-scoped rows simplifies migrations, backups, and monitoring.

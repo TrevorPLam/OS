@@ -2,16 +2,16 @@
 
 **Status:** ✅ Complete
 **Last Updated:** December 30, 2025
-**Complies with:** docs/25 STAFF_APP_INFORMATION_ARCHITECTURE
+**Complies with:** docs/03-reference/requirements/DOC-25.md STAFF_APP_INFORMATION_ARCHITECTURE
 
 ---
 
 ## Overview
 
-This document maps the Staff App Information Architecture (docs/25) to actual implemented routes, modules, and permissions.
+This document maps the Staff App Information Architecture (docs/03-reference/requirements/DOC-25.md) to actual implemented routes, modules, and permissions.
 
 **Purpose:**
-1. Ensure all navigation items from docs/25 have corresponding API endpoints or are explicitly deferred
+1. Ensure all navigation items from docs/03-reference/requirements/DOC-25.md have corresponding API endpoints or are explicitly deferred
 2. Verify permissions are consistent across modules
 3. Document missing modules for future implementation
 
@@ -43,7 +43,7 @@ This document maps the Staff App Information Architecture (docs/25) to actual im
 
 ## 2. CRM Subnav Mapping
 
-Per docs/25, CRM subnav includes:
+Per docs/03-reference/requirements/DOC-25.md, CRM subnav includes:
 
 | Subnav Item | Status | API Route | Model | Permissions | Notes |
 |-------------|--------|-----------|-------|-------------|-------|
@@ -60,7 +60,7 @@ Per docs/25, CRM subnav includes:
 
 ## 3. Client 360 Pattern Mapping
 
-Per docs/25, Client 360 pattern provides tabs reachable from anywhere:
+Per docs/03-reference/requirements/DOC-25.md, Client 360 pattern provides tabs reachable from anywhere:
 
 | Tab | Status | API Route | Data Source | Permissions | Notes |
 |-----|--------|-----------|-------------|-------------|-------|
@@ -79,7 +79,7 @@ Per docs/25, Client 360 pattern provides tabs reachable from anywhere:
 
 ## 4. Key Cross-Links Mapping
 
-Per docs/25, key cross-links between objects:
+Per docs/03-reference/requirements/DOC-25.md, key cross-links between objects:
 
 | Cross-Link | Status | API Route | Implementation | Notes |
 |------------|--------|-----------|----------------|-------|
@@ -94,7 +94,7 @@ Per docs/25, key cross-links between objects:
 
 ## 5. Admin Areas Mapping
 
-Per docs/25, admin areas (restricted):
+Per docs/03-reference/requirements/DOC-25.md, admin areas (restricted):
 
 | Admin Area | Status | API Route | Permissions | Implementation | Notes |
 |------------|--------|-----------|-------------|----------------|-------|
@@ -152,7 +152,7 @@ The following modules have models but need ViewSets:
 
 ## 7. Permission Consistency Matrix
 
-Per DOC-18.1 and docs/25, verify permission consistency:
+Per DOC-18.1 and docs/03-reference/requirements/DOC-25.md, verify permission consistency:
 
 | Module | Base Permission | Admin Operations | Portal Access | Notes |
 |--------|----------------|------------------|---------------|-------|
@@ -177,7 +177,7 @@ Per DOC-18.1 and docs/25, verify permission consistency:
 
 ## 8. Deferred Modules (Explicit Documentation)
 
-The following modules from docs/25 are **explicitly deferred** for future implementation:
+The following modules from docs/03-reference/requirements/DOC-25.md are **explicitly deferred** for future implementation:
 
 ### 8.1 Dashboard (Nav Item #1)
 
@@ -278,11 +278,11 @@ The following modules from docs/25 are **explicitly deferred** for future implem
 
 ## 11. Related Documentation
 
-- **docs/25**: STAFF_APP_INFORMATION_ARCHITECTURE (canonical IA structure)
-- **docs/18**: AUTHORIZATION_AND_PERMISSIONS (permission model)
-- **docs/26**: CLIENT_PORTAL_INFORMATION_ARCHITECTURE (portal IA)
-- **docs/27**: VISIBILITY_AND_DEFAULTS (role-based visibility)
-- **docs/6**: GRAPH_AND_CANONICAL_OBJECTS (core domain model)
+- **docs/03-reference/requirements/DOC-25.md**: STAFF_APP_INFORMATION_ARCHITECTURE (canonical IA structure)
+- **docs/03-reference/requirements/DOC-18.md**: AUTHORIZATION_AND_PERMISSIONS (permission model)
+- **docs/03-reference/requirements/DOC-26.md**: CLIENT_PORTAL_INFORMATION_ARCHITECTURE (portal IA)
+- **docs/03-reference/requirements/DOC-27.md**: VISIBILITY_AND_DEFAULTS (role-based visibility)
+- **docs/03-reference/requirements/DOC-06.md**: GRAPH_AND_CANONICAL_OBJECTS (core domain model)
 
 ---
 
@@ -290,7 +290,7 @@ The following modules from docs/25 are **explicitly deferred** for future implem
 
 DOC-25.1 implementation provides:
 
-✅ **Comprehensive mapping** of docs/25 IA to implemented routes and modules
+✅ **Comprehensive mapping** of docs/03-reference/requirements/DOC-25.md IA to implemented routes and modules
 ✅ **Permission consistency** verified across all modules (IsStaff baseline, IsManager for admin)
 ✅ **Explicit documentation** of deferred modules (Dashboard, Automation, Reporting, Sequences, Lists)
 ✅ **Action items** for completing partial implementations (Communications ViewSets, missing routes)

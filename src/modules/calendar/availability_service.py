@@ -2,7 +2,7 @@
 Calendar availability services.
 
 Provides availability computation, routing, and booking logic.
-Implements docs/34 sections 2.4, 3, and 4.
+Implements docs/03-reference/requirements/DOC-34.md sections 2.4, 3, and 4.
 Enhanced with AVAIL-1: Multiple calendar support and external calendar conflict checking.
 Enhanced with AVAIL-2: Comprehensive availability rules (recurring unavailability, holidays, meeting gaps).
 """
@@ -28,7 +28,7 @@ class AvailabilityService:
     """
     Service for computing available slots.
 
-    Implements docs/34 section 4: availability computation with buffers and constraints.
+    Implements docs/03-reference/requirements/DOC-34.md section 4: availability computation with buffers and constraints.
 
     Meta-commentary:
     - **Current Status:** External conflict checks for Google/Microsoft are placeholders; only iCal and internal overlap checks enforce conflicts today.
@@ -50,7 +50,7 @@ class AvailabilityService:
 
         Returns list of (start_time, end_time) tuples in UTC.
 
-        Per docs/34 section 4:
+        Per docs/03-reference/requirements/DOC-34.md section 4:
         1. Availability computed in profile timezone
         2. Buffers enforced
         3. Min notice and max future booking enforced
@@ -60,10 +60,10 @@ class AvailabilityService:
         profile_tz = pytz.timezone(profile.timezone)
         now = timezone.now()
 
-        # Enforce min notice (per docs/34 section 4.3)
+        # Enforce min notice (per docs/03-reference/requirements/DOC-34.md section 4.3)
         earliest_start = now + timedelta(minutes=profile.min_notice_minutes)
 
-        # Enforce max future booking (per docs/34 section 4.3)
+        # Enforce max future booking (per docs/03-reference/requirements/DOC-34.md section 4.3)
         latest_start = now + timedelta(days=profile.max_future_days)
 
         slots = []
@@ -137,7 +137,7 @@ class AvailabilityService:
                     if slot_start_utc > latest_start:
                         break
 
-                    # Check for conflicts (per docs/34 section 4.4)
+                    # Check for conflicts (per docs/03-reference/requirements/DOC-34.md section 4.4)
                     if staff_user and self._has_conflict(
                         staff_user, slot_start_utc, slot_end_utc, appointment_type, profile
                     ):
@@ -367,7 +367,7 @@ class AvailabilityService:
         """
         Check for conflicts for a staff user.
 
-        Per docs/34 section 4.4: checks internal appointments and external calendars.
+        Per docs/03-reference/requirements/DOC-34.md section 4.4: checks internal appointments and external calendars.
 
         Returns True if any conflict found, False otherwise.
         """

@@ -14,7 +14,7 @@ class RoutingService:
     """
     Service for routing appointments to staff.
 
-    Implements docs/34 section 2.4: routing policies.
+    Implements docs/03-reference/requirements/DOC-34.md section 2.4: routing policies.
     """
 
     def route_appointment(
@@ -30,7 +30,7 @@ class RoutingService:
 
         Returns: (staff_user, reason)
 
-        Per docs/34 section 2.4: supports multiple routing policies.
+        Per docs/03-reference/requirements/DOC-34.md section 2.4: supports multiple routing policies.
         TEAM-2: Enhanced with advanced round robin support.
         """
         policy = appointment_type.routing_policy

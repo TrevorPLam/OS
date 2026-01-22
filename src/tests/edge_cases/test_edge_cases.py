@@ -1,5 +1,5 @@
 """
-Edge Case Tests (per docs/23 EDGE_CASES_CATALOG).
+Edge Case Tests (per docs/03-reference/requirements/DOC-23.md EDGE_CASES_CATALOG).
 
 Tests for known tricky cases that must be handled and tested:
 1) Recurrence: DST, leap year, pause/resume, backfill overlaps
@@ -30,7 +30,7 @@ User = get_user_model()
 
 class RecurrenceEdgeCasesTest(TestCase):
     """
-    Edge cases for recurrence engine (docs/23 section 1).
+    Edge cases for recurrence engine (docs/03-reference/requirements/DOC-23.md section 1).
 
     Tests:
     - DST spring forward: missing local times
@@ -254,7 +254,7 @@ class RecurrenceEdgeCasesTest(TestCase):
 
 class EmailIngestionEdgeCasesTest(TestCase):
     """
-    Edge cases for email ingestion (docs/23 section 2).
+    Edge cases for email ingestion (docs/03-reference/requirements/DOC-23.md section 2).
 
     Tests:
     - shared email address across multiple accounts
@@ -565,7 +565,7 @@ class EmailIngestionEdgeCasesTest(TestCase):
 
 class PermissionsEdgeCasesTest(TestCase):
     """
-    Edge cases for permissions (docs/23 section 3).
+    Edge cases for permissions (docs/03-reference/requirements/DOC-23.md section 3).
 
     Tests:
     - portal identity linked to multiple accounts; account switcher scope correctness
@@ -729,7 +729,7 @@ class PermissionsEdgeCasesTest(TestCase):
 
 class BillingLedgerEdgeCasesTest(TestCase):
     """
-    Edge cases for billing ledger (docs/23 section 4).
+    Edge cases for billing ledger (docs/03-reference/requirements/DOC-23.md section 4).
 
     Tests:
     - partial payments across multiple invoices
@@ -918,7 +918,7 @@ class BillingLedgerEdgeCasesTest(TestCase):
 
 class DocumentsEdgeCasesTest(TestCase):
     """
-    Edge cases for documents (docs/23 section 5).
+    Edge cases for documents (docs/03-reference/requirements/DOC-23.md section 5).
 
     Tests:
     - concurrent uploads without locks (should create versions or block)

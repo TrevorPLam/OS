@@ -14,11 +14,11 @@ from modules.projects.models import Project
 
 class DocumentLock(models.Model):
     """
-    Document locking model (DOC-14.3 per docs/14 section 5).
+    Document locking model (DOC-14.3 per docs/03-reference/requirements/DOC-14.md section 5).
 
     Implements exclusive locking for documents to prevent concurrent edits.
 
-    Rules (per docs/14):
+    Rules (per docs/03-reference/requirements/DOC-14.md):
     1. If locked, only the lock holder (or Admin override) may upload a new version.
     2. Overrides MUST be auditable.
     3. Locks expire or require explicit release.

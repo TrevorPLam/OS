@@ -179,7 +179,7 @@ class Migration(migrations.Migration):
                             ("DEPENDENCY_FAILED", "Dependency Failed"),
                             ("COMPENSATION_REQUIRED", "Compensation Required"),
                         ],
-                        help_text="Classified error type per docs/11 section 4",
+                        help_text="Classified error type per docs/03-reference/requirements/DOC-11.md section 4",
                         max_length=50,
                     ),
                 ),

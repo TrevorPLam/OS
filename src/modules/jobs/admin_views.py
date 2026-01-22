@@ -1,7 +1,7 @@
 """
 Job Queue and DLQ Admin Views.
 
-Implements DOC-20.1: Admin-gated DLQ viewing and reprocessing per docs/20 section 4.
+Implements DOC-20.1: Admin-gated DLQ viewing and reprocessing per docs/03-reference/requirements/DOC-20.md section 4.
 """
 
 from rest_framework import viewsets, status
@@ -103,7 +103,7 @@ class JobDLQAdminViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Admin ViewSet for DLQ viewing and reprocessing.
 
-    Per DOC-20.1: DLQ items must be viewable and reprocessable (admin-gated) per docs/20 section 4.
+    Per DOC-20.1: DLQ items must be viewable and reprocessable (admin-gated) per docs/03-reference/requirements/DOC-20.md section 4.
     """
 
     queryset = JobDLQ.objects.all()
@@ -154,7 +154,7 @@ class JobDLQAdminViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Retrieve single DLQ item with full payload.
 
-        Per docs/20 section 4: preserve original payload for reprocessing.
+        Per docs/03-reference/requirements/DOC-20.md section 4: preserve original payload for reprocessing.
         """
         item = self.get_object()
 
@@ -186,7 +186,7 @@ class JobDLQAdminViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Reprocess a DLQ item (admin-gated).
 
-        Per DOC-20.1: Reprocessing must be auditable and preserve original payload per docs/20 section 4.
+        Per DOC-20.1: Reprocessing must be auditable and preserve original payload per docs/03-reference/requirements/DOC-20.md section 4.
         """
         item = self.get_object()
 
@@ -204,7 +204,7 @@ class JobDLQAdminViewSet(viewsets.ReadOnlyModelViewSet):
         # Get reprocessing notes from request
         notes = request.data.get("notes", "")
 
-        # Reprocess (creates audit events per docs/20 section 4)
+        # Reprocess (creates audit events per docs/03-reference/requirements/DOC-20.md section 4)
         try:
             new_job = item.reprocess(user=request.user, notes=notes)
 

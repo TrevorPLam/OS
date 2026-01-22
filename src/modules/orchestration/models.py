@@ -1,5 +1,5 @@
 """
-Orchestration Engine Models (DOC-11.1 per docs/11 ORCHESTRATION_ENGINE_SPEC).
+Orchestration Engine Models (DOC-11.1 per docs/03-reference/requirements/DOC-11.md ORCHESTRATION_ENGINE_SPEC).
 
 Implements:
 - OrchestrationDefinition: Workflow template with steps and policies
@@ -25,7 +25,7 @@ from modules.firm.utils import FirmScopedManager
 
 class OrchestrationDefinition(models.Model):
     """
-    OrchestrationDefinition model per docs/11 section 2.1.
+    OrchestrationDefinition model per docs/03-reference/requirements/DOC-11.md section 2.1.
 
     Defines a workflow template (steps + transitions + policies).
 
@@ -157,7 +157,7 @@ class OrchestrationDefinition(models.Model):
 
 class OrchestrationExecution(models.Model):
     """
-    OrchestrationExecution model per docs/11 section 2.3.
+    OrchestrationExecution model per docs/03-reference/requirements/DOC-11.md section 2.3.
 
     Represents a single run of a definition for a specific target.
 
@@ -289,7 +289,7 @@ class OrchestrationExecution(models.Model):
         discriminator: str = "",
     ) -> str:
         """
-        Compute execution-level idempotency key per docs/11 section 6.1.
+        Compute execution-level idempotency key per docs/03-reference/requirements/DOC-11.md section 6.1.
 
         Args:
             firm_id: Firm ID
@@ -307,7 +307,7 @@ class OrchestrationExecution(models.Model):
 
 class StepExecution(models.Model):
     """
-    StepExecution model per docs/11 section 2.4.
+    StepExecution model per docs/03-reference/requirements/DOC-11.md section 2.4.
 
     Represents an attempt of a specific step within an execution.
 
@@ -378,7 +378,7 @@ class StepExecution(models.Model):
         max_length=50,
         choices=ERROR_CLASS_CHOICES,
         blank=True,
-        help_text="Classified error type per docs/11 section 4",
+        help_text="Classified error type per docs/03-reference/requirements/DOC-11.md section 4",
     )
     error_summary = models.TextField(
         blank=True,
@@ -449,7 +449,7 @@ class StepExecution(models.Model):
         step_id: str,
     ) -> str:
         """
-        Compute step-level idempotency key per docs/11 section 6.2.
+        Compute step-level idempotency key per docs/03-reference/requirements/DOC-11.md section 6.2.
 
         Args:
             firm_id: Firm ID

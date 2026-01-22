@@ -1,14 +1,14 @@
 # Data Erasure and Anonymization Implementation
 
 **Implementation Date:** December 30, 2025
-**Spec Compliance:** docs/7 (DATA_GOVERNANCE) section 6
+**Spec Compliance:** docs/03-reference/requirements/DOC-07.md (DATA_GOVERNANCE) section 6
 **Status:** ✅ Complete (DOC-07.2)
 
 ---
 
 ## Overview
 
-This document describes the implementation of data erasure and anonymization workflows per docs/7 section 6.
+This document describes the implementation of data erasure and anonymization workflows per docs/03-reference/requirements/DOC-07.md section 6.
 
 ### Key Capabilities
 
@@ -49,7 +49,7 @@ pending → evaluating → approved → executing → completed
                                 ↘ failed
 ```
 
-**Legal Basis Options (per docs/7):**
+**Legal Basis Options (per docs/03-reference/requirements/DOC-07.md):**
 - `gdpr_article_17` - GDPR Article 17 (Right to Erasure)
 - `ccpa_deletion` - CCPA Deletion Request
 - `contractual_end` - Contractual retention period ended
@@ -118,7 +118,7 @@ else:
 request.save()
 ```
 
-**Evaluation Checks (per docs/7 section 6.2):**
+**Evaluation Checks (per docs/03-reference/requirements/DOC-07.md section 6.2):**
 
 For **Contact** erasure:
 - ✅ Active leads (warning, will be anonymized)
@@ -186,7 +186,7 @@ except Exception as e:
 
 ## Anonymization Implementation
 
-### Contact Anonymization (per docs/7 section 6.4)
+### Contact Anonymization (per docs/03-reference/requirements/DOC-07.md section 6.4)
 
 **Fields Anonymized:**
 - `first_name` → "Anonymized"
@@ -204,7 +204,7 @@ except Exception as e:
 - Opportunities: Contact reference anonymized
 - Messages: Personal identifiers redacted
 
-### Account Anonymization (per docs/7 section 6.4)
+### Account Anonymization (per docs/03-reference/requirements/DOC-07.md section 6.4)
 
 **Fields Anonymized:**
 - `company_name` → "Anonymized Account {id}"
@@ -250,7 +250,7 @@ Every erasure/anonymization operation creates audit events:
 
 ---
 
-## Preservation Guarantees (per docs/7 section 6.3)
+## Preservation Guarantees (per docs/03-reference/requirements/DOC-07.md section 6.3)
 
 Even when anonymizing, the system MUST preserve:
 
@@ -370,7 +370,7 @@ Test coverage needed:
 
 ## Compliance Matrix
 
-| docs/7 Requirement | Implementation | Location |
+| docs/03-reference/requirements/DOC-07.md Requirement | Implementation | Location |
 |-------------------|----------------|----------|
 | 6.2.1: Erasure request record | ✅ ErasureRequest model | `src/modules/core/erasure.py:47` |
 | 6.2.2: Evaluate constraints | ✅ ErasureService.evaluate_* | `src/modules/core/erasure.py:288` |
@@ -401,7 +401,7 @@ Test coverage needed:
 
 ## Related Documentation
 
-- **docs/7** - DATA_GOVERNANCE (normative spec)
+- **docs/03-reference/requirements/DOC-07.md** - DATA_GOVERNANCE (normative spec)
 - **src/modules/core/purge.py** - Content purge with tombstones (Tier 3)
 - **src/modules/core/governance.py** - Data classification registry (DOC-07.1)
 - **docs/SYSTEM_SPEC_ALIGNMENT.md** - Overall compliance status
@@ -427,7 +427,7 @@ Test coverage needed:
 
 ## Summary
 
-This implementation provides a complete, auditable, and compliant data erasure/anonymization workflow per docs/7 section 6.
+This implementation provides a complete, auditable, and compliant data erasure/anonymization workflow per docs/03-reference/requirements/DOC-07.md section 6.
 
 **Key Features:**
 - ✅ Structured erasure request workflow

@@ -2,7 +2,7 @@
 Calendar Models.
 
 Implements appointment types, availability profiles, booking links, and appointments.
-Complies with docs/34 CALENDAR_SPEC.
+Complies with docs/03-reference/requirements/DOC-34.md CALENDAR_SPEC.
 """
 
 import uuid
@@ -16,7 +16,7 @@ from modules.firm.utils import FirmScopedManager
 
 class AppointmentType(models.Model):
     """
-    AppointmentType model (per docs/34 section 2.1).
+    AppointmentType model (per docs/03-reference/requirements/DOC-34.md section 2.1).
 
     Defines a bookable meeting type with duration, buffers, and routing policy.
     """
@@ -157,7 +157,7 @@ class AppointmentType(models.Model):
         ),
     )
 
-    # Duration and buffers (per docs/34 section 2.1)
+    # Duration and buffers (per docs/03-reference/requirements/DOC-34.md section 2.1)
     duration_minutes = models.IntegerField(
         help_text="Meeting duration in minutes (default if multiple options not enabled)"
     )
@@ -215,7 +215,7 @@ class AppointmentType(models.Model):
     )
     location_details = models.TextField(blank=True, help_text="Additional location info (e.g., Zoom link, address)")
 
-    # Booking channels (per docs/34 section 2.1)
+    # Booking channels (per docs/03-reference/requirements/DOC-34.md section 2.1)
     allow_portal_booking = models.BooleanField(default=True, help_text="Can portal users book this type?")
     allow_staff_booking = models.BooleanField(default=True, help_text="Can staff book this type?")
     allow_public_prospect_booking = models.BooleanField(default=False, help_text="Can public prospects book this type?")
@@ -225,7 +225,7 @@ class AppointmentType(models.Model):
         default=False, help_text="Does this appointment need approval before confirmation?"
     )
 
-    # Routing policy (per docs/34 section 2.4)
+    # Routing policy (per docs/03-reference/requirements/DOC-34.md section 2.4)
     ROUTING_POLICY_CHOICES = [
         ("fixed_staff", "Fixed Staff Member"),
         ("round_robin_pool", "Round Robin Pool"),
@@ -502,7 +502,7 @@ class AppointmentType(models.Model):
 
 class AvailabilityProfile(models.Model):
     """
-    AvailabilityProfile model (per docs/34 section 2.2).
+    AvailabilityProfile model (per docs/03-reference/requirements/DOC-34.md section 2.2).
 
     Defines availability rules for a staff user.
     """
@@ -528,7 +528,7 @@ class AvailabilityProfile(models.Model):
         help_text="Firm this profile belongs to",
     )
 
-    # Owner (per docs/34 section 2.2)
+    # Owner (per docs/03-reference/requirements/DOC-34.md section 2.2)
     owner_type = models.CharField(max_length=20, choices=OWNER_TYPE_CHOICES, default="staff", help_text="Staff or team")
     owner_staff_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -548,7 +548,7 @@ class AvailabilityProfile(models.Model):
     name = models.CharField(max_length=255, help_text="Profile name")
     timezone = models.CharField(max_length=100, default="UTC", help_text="Timezone for availability computation")
 
-    # Weekly hours (JSON: {day: [{start, end}]} per docs/34 section 2.2)
+    # Weekly hours (JSON: {day: [{start, end}]} per docs/03-reference/requirements/DOC-34.md section 2.2)
     weekly_hours = models.JSONField(
         default=dict,
         help_text="Weekly availability by day (JSON: {monday: [{start: '09:00', end: '17:00'}], ...})",
@@ -594,7 +594,7 @@ class AvailabilityProfile(models.Model):
         help_text="Different schedules per location (JSON: {location_name: {weekly_hours: {...}, timezone: '...'}})",
     )
 
-    # Booking constraints (per docs/34 section 2.2)
+    # Booking constraints (per docs/03-reference/requirements/DOC-34.md section 2.2)
     min_notice_minutes = models.IntegerField(default=60, help_text="Minimum notice required before booking (minutes)")
     max_future_days = models.IntegerField(default=60, help_text="Maximum days in advance for booking")
     slot_rounding_minutes = models.IntegerField(default=15, help_text="Round slots to nearest N minutes")
@@ -652,7 +652,7 @@ class AvailabilityProfile(models.Model):
 
 class BookingLink(models.Model):
     """
-    BookingLink model (per docs/34 section 2.3).
+    BookingLink model (per docs/03-reference/requirements/DOC-34.md section 2.3).
 
     A shareable booking surface that binds appointment type and availability.
     """
@@ -679,7 +679,7 @@ class BookingLink(models.Model):
         help_text="Firm this link belongs to",
     )
 
-    # Bindings (per docs/34 section 2.3)
+    # Bindings (per docs/03-reference/requirements/DOC-34.md section 2.3)
     appointment_type = models.ForeignKey(
         AppointmentType,
         on_delete=models.CASCADE,
@@ -713,7 +713,7 @@ class BookingLink(models.Model):
         help_text="Optional: link to specific engagement",
     )
 
-    # Visibility and access (per docs/34 section 2.3)
+    # Visibility and access (per docs/03-reference/requirements/DOC-34.md section 2.3)
     visibility = models.CharField(
         max_length=20,
         choices=VISIBILITY_CHOICES,
@@ -785,7 +785,7 @@ class Appointment(models.Model):
     """
     Appointment model.
 
-    Represents a scheduled appointment (internal authority per docs/34 section 6).
+    Represents a scheduled appointment (internal authority per docs/03-reference/requirements/DOC-34.md section 6).
     """
 
     STATUS_CHOICES = [
@@ -858,7 +858,7 @@ class Appointment(models.Model):
         help_text="Contact for this appointment (if applicable)",
     )
 
-    # Timing (internal authority per docs/34 section 6)
+    # Timing (internal authority per docs/03-reference/requirements/DOC-34.md section 6)
     start_time = models.DateTimeField(help_text="Appointment start time (UTC)")
     end_time = models.DateTimeField(help_text="Appointment end time (UTC)")
     timezone = models.CharField(max_length=100, default="UTC", help_text="Timezone for display")
@@ -938,7 +938,7 @@ class Appointment(models.Model):
         help_text="Which party didn't show up",
     )
 
-    # External sync reference (for docs/16 CALENDAR_SYNC_SPEC)
+    # External sync reference (for docs/03-reference/requirements/DOC-16.md CALENDAR_SYNC_SPEC)
     calendar_connection = models.ForeignKey(
         "CalendarConnection",
         on_delete=models.SET_NULL,
@@ -978,7 +978,7 @@ class Appointment(models.Model):
             models.Index(fields=["calendar_connection", "external_event_id"], name="calendar_cal_ext_idx"),
         ]
         constraints = [
-            # Per docs/16 section 2.2: (connection_id, external_event_id) must be unique
+            # Per docs/03-reference/requirements/DOC-16.md section 2.2: (connection_id, external_event_id) must be unique
             models.UniqueConstraint(
                 fields=["calendar_connection", "external_event_id"],
                 condition=models.Q(calendar_connection__isnull=False) & models.Q(external_event_id__gt=""),
@@ -1046,7 +1046,7 @@ class AppointmentStatusHistory(models.Model):
 
 class CalendarConnection(models.Model):
     """
-    CalendarConnection model (per docs/16 section 2.1).
+    CalendarConnection model (per docs/03-reference/requirements/DOC-16.md section 2.1).
 
     Represents an authenticated connection to an external calendar provider.
     """
@@ -1072,7 +1072,7 @@ class CalendarConnection(models.Model):
         help_text="Firm this connection belongs to",
     )
 
-    # Provider and owner (per docs/16 section 2.1)
+    # Provider and owner (per docs/03-reference/requirements/DOC-16.md section 2.1)
     provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, help_text="Calendar provider")
     owner_staff_user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -1113,7 +1113,7 @@ class CalendarConnection(models.Model):
 
 class SyncAttemptLog(models.Model):
     """
-    SyncAttemptLog model (per docs/16 section 2.3).
+    SyncAttemptLog model (per docs/03-reference/requirements/DOC-16.md section 2.3).
 
     Records each sync attempt for retry-safety and observability.
     """
@@ -1166,7 +1166,7 @@ class SyncAttemptLog(models.Model):
         help_text="Appointment being synced (nullable for list operations)",
     )
 
-    # Attempt details (per docs/16 section 2.3)
+    # Attempt details (per docs/03-reference/requirements/DOC-16.md section 2.3)
     direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES, help_text="Sync direction")
     operation = models.CharField(max_length=20, choices=OPERATION_CHOICES, help_text="Sync operation")
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, help_text="Attempt status")
@@ -1185,7 +1185,7 @@ class SyncAttemptLog(models.Model):
     )
     max_retries_reached = models.BooleanField(default=False, help_text="Whether max retry attempts have been exhausted")
 
-    # Observability (per docs/16 section 6)
+    # Observability (per docs/03-reference/requirements/DOC-16.md section 6)
     correlation_id = models.UUIDField(null=True, blank=True, help_text="Correlation ID for tracing")
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)

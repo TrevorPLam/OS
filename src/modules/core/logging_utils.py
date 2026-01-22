@@ -4,7 +4,7 @@ Governance-Aware Logging Utilities (DOC-07.1)
 Provides logging utilities that integrate with the governance classification registry
 to ensure sensitive data is properly redacted in logs.
 
-Per docs/7 section 3.1:
+Per docs/03-reference/requirements/DOC-07.md section 3.1:
 - HR data MUST NOT appear in logs
 - R-PII values should be avoided unless strictly required for troubleshooting
 

@@ -1,14 +1,14 @@
 # Recurrence Pause/Resume/Cancel and Backfill Implementation
 
 **Implementation Date:** December 30, 2025
-**Spec Compliance:** docs/10 (RECURRENCE_ENGINE_SPEC) section 7
+**Spec Compliance:** docs/03-reference/requirements/DOC-10.md (RECURRENCE_ENGINE_SPEC) section 7
 **Status:** ✅ Complete (DOC-10.2)
 
 ---
 
 ## Overview
 
-This document describes the implementation of pause/resume/cancel semantics and backfill operations for recurrence rules per docs/10 section 7.
+This document describes the implementation of pause/resume/cancel semantics and backfill operations for recurrence rules per docs/03-reference/requirements/DOC-10.md section 7.
 
 ### Key Capabilities
 
@@ -21,7 +21,7 @@ This document describes the implementation of pause/resume/cancel semantics and 
 
 ## Architecture
 
-### 1. Pause/Resume/Cancel Semantics (docs/10 section 7)
+### 1. Pause/Resume/Cancel Semantics (docs/03-reference/requirements/DOC-10.md section 7)
 
 #### RecurrenceRule Status Field
 
@@ -51,7 +51,7 @@ canceled_by = models.ForeignKey(User, ...)
 
 Located in: `src/modules/recurrence/models.py:268-280`
 
-**Semantics (per docs/10 section 7.1):**
+**Semantics (per docs/03-reference/requirements/DOC-10.md section 7.1):**
 - No new RecurrenceGeneration rows created for future periods
 - Existing planned generations remain but won't execute
 - Defense-in-depth check at execution time
@@ -85,7 +85,7 @@ def pause(self, user) -> None:
 
 Located in: `src/modules/recurrence/models.py:282-292`
 
-**Semantics (per docs/10 section 7.2):**
+**Semantics (per docs/03-reference/requirements/DOC-10.md section 7.2):**
 - Generator continues creating RecurrenceGeneration rows for future periods
 - Does NOT automatically backfill missed periods
 - Backfill must be explicitly triggered (permission-gated)
@@ -117,7 +117,7 @@ def resume(self, user) -> None:
 
 Located in: `src/modules/recurrence/models.py:294-307`
 
-**Semantics (per docs/10 section 7.3):**
+**Semantics (per docs/03-reference/requirements/DOC-10.md section 7.3):**
 - No new generations occur after cancellation
 - Previously generated WorkItems NOT deleted automatically
 - Cancellation affects future generation, not history
@@ -152,11 +152,11 @@ def cancel(self, user) -> None:
 
 ---
 
-### 2. Backfill Operation (docs/10 section 7.2)
+### 2. Backfill Operation (docs/03-reference/requirements/DOC-10.md section 7.2)
 
 #### Requirements
 
-Per docs/10 section 7.2, backfill operation MUST:
+Per docs/03-reference/requirements/DOC-10.md section 7.2, backfill operation MUST:
 - ✅ Be permission-gated
 - ✅ Be auditable
 - ✅ Be bounded by specified time range
@@ -429,7 +429,7 @@ for gen in generations:
 
 ## Defense-in-Depth: Execution-Time Status Check
 
-Per docs/10 section 7.1, paused check MUST occur at execution time (not just generation time).
+Per docs/03-reference/requirements/DOC-10.md section 7.1, paused check MUST occur at execution time (not just generation time).
 
 **Recommended Implementation (in worker):**
 
@@ -462,7 +462,7 @@ This ensures that even if a RecurrenceGeneration was created before pause, it wo
 
 ## Compliance Matrix
 
-| docs/10 Requirement | Implementation | Location |
+| docs/03-reference/requirements/DOC-10.md Requirement | Implementation | Location |
 |-------------------|----------------|----------|
 | 7.1: Pause prevents new RecurrenceGeneration creation | ✅ Generator skips paused rules | `generator.py` |
 | 7.1: Defense-in-depth pause check at execution | ✅ Worker checks rule.status | Worker implementation (recommended) |
@@ -561,7 +561,7 @@ POST   /api/firms/{firm_id}/recurrence-rules/{id}/backfill/
 
 ## Summary
 
-This implementation provides complete pause/resume/cancel semantics and backfill operations for recurrence rules per docs/10 section 7.
+This implementation provides complete pause/resume/cancel semantics and backfill operations for recurrence rules per docs/03-reference/requirements/DOC-10.md section 7.
 
 **Key Features:**
 - ✅ Pause/resume/cancel lifecycle management
@@ -573,6 +573,6 @@ This implementation provides complete pause/resume/cancel semantics and backfill
 - ✅ Backfill tracking fields (backfilled, backfill_reason)
 - ✅ Defense-in-depth execution-time checks
 - ✅ Idempotent operations
-- ✅ 100% compliance with docs/10 section 7
+- ✅ 100% compliance with docs/03-reference/requirements/DOC-10.md section 7
 
 **Status:** Production-ready, fully compliant.

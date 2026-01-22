@@ -15,12 +15,12 @@ from .versions import Version
 
 class DocumentAccessLog(models.Model):
     """
-    Document access logging model (DOC-14.2 per docs/14 sections 3.4 and docs/7).
+    Document access logging model (DOC-14.2 per docs/03-reference/requirements/DOC-14.md sections 3.4 and docs/03-reference/requirements/DOC-07.md).
 
     Tracks all access to governed artifacts for audit purposes.
     This is metadata-only - no content is logged.
 
-    Per docs/7 section 3.4 and docs/14:
+    Per docs/03-reference/requirements/DOC-07.md section 3.4 and docs/03-reference/requirements/DOC-14.md:
     - document download/view
     - document version upload
     - URL issuance (signed URL generation)

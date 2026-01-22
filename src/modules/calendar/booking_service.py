@@ -16,7 +16,7 @@ class BookingService:
     """
     Service for booking appointments.
 
-    Implements docs/34 section 3: booking flows with race condition protection.
+    Implements docs/03-reference/requirements/DOC-34.md section 3: booking flows with race condition protection.
     """
 
     @transaction.atomic
@@ -36,10 +36,10 @@ class BookingService:
         """
         Book an appointment with atomic transaction for race condition protection.
 
-        Per docs/34 section 4.5: slot selection protected against race conditions.
-        Per docs/34 section 3: creates appointment in requested or confirmed status.
+        Per docs/03-reference/requirements/DOC-34.md section 4.5: slot selection protected against race conditions.
+        Per docs/03-reference/requirements/DOC-34.md section 3: creates appointment in requested or confirmed status.
         """
-        # Check for conflicts within transaction (per docs/34 section 4.5)
+        # Check for conflicts within transaction (per docs/03-reference/requirements/DOC-34.md section 4.5)
         conflicts = Appointment.objects.select_for_update().filter(
             staff_user=staff_user,
             status__in=["requested", "confirmed"],
@@ -50,7 +50,7 @@ class BookingService:
         if conflicts:
             raise ValueError("Time slot is no longer available (conflict detected)")
 
-        # Determine initial status (per docs/34 section 3.1)
+        # Determine initial status (per docs/03-reference/requirements/DOC-34.md section 3.1)
         initial_status = "requested" if appointment_type.requires_approval else "confirmed"
 
         # Create appointment
@@ -225,7 +225,7 @@ class BookingService:
         """
         Confirm a requested appointment (approval flow).
 
-        Per docs/34 section 3.1: approval-required appointments start as requested.
+        Per docs/03-reference/requirements/DOC-34.md section 3.1: approval-required appointments start as requested.
         """
         if appointment.status != "requested":
             raise ValueError("Only requested appointments can be confirmed")

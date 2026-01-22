@@ -1,7 +1,7 @@
 """
 Job Payload Validation Utilities.
 
-Implements DOC-20.1: Payload rules per docs/20 section 2.
+Implements DOC-20.1: Payload rules per docs/03-reference/requirements/DOC-20.md section 2.
 """
 
 from typing import Dict, List, Optional
@@ -10,7 +10,7 @@ import uuid
 
 class PayloadValidator:
     """
-    Validates job payloads per docs/20 section 2.
+    Validates job payloads per docs/03-reference/requirements/DOC-20.md section 2.
 
     Payload rules (MUST):
     1. Minimal and avoid embedding sensitive content
@@ -112,7 +112,7 @@ class PayloadValidator:
     @classmethod
     def _check_sensitive_content(cls, payload: Dict) -> List[str]:
         """
-        Check for sensitive content in payload per docs/20 section 2.
+        Check for sensitive content in payload per docs/03-reference/requirements/DOC-20.md section 2.
 
         Payloads should be minimal and avoid embedding sensitive content.
         """

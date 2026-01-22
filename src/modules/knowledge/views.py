@@ -1,7 +1,7 @@
 """
 Knowledge System Views (DOC-35.1).
 
-Implements API endpoints for knowledge management per docs/35.
+Implements API endpoints for knowledge management per docs/03-reference/requirements/DOC-35.md.
 """
 
 from django.db import models
@@ -29,10 +29,10 @@ from .serializers import (
 
 class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
-    Knowledge Item management (docs/35).
+    Knowledge Item management (docs/03-reference/requirements/DOC-35.md).
 
     Provides CRUD + workflow actions: publish, deprecate, archive, create_version.
-    Access control per docs/35 section 4: role-based + item-level access_level.
+    Access control per docs/03-reference/requirements/DOC-35.md section 4: role-based + item-level access_level.
     """
 
     model = KnowledgeItem
@@ -50,7 +50,7 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
 
     def get_queryset(self):
         """
-        Filter queryset by role-based access (docs/35 section 4).
+        Filter queryset by role-based access (docs/03-reference/requirements/DOC-35.md section 4).
 
         - Admin: see all
         - Manager+: see all except admin_only
@@ -87,7 +87,7 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
 
     def perform_update(self, serializer):
         """
-        Update knowledge item with immutability check (docs/35 section 2.1).
+        Update knowledge item with immutability check (docs/03-reference/requirements/DOC-35.md section 2.1).
 
         Published items cannot be edited; must create new version.
         """
@@ -103,9 +103,9 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
     @action(detail=True, methods=["post"])
     def publish(self, request, pk=None):
         """
-        Publish knowledge item (docs/35 section 3).
+        Publish knowledge item (docs/03-reference/requirements/DOC-35.md section 3).
 
-        Requires Manager+ role or explicit permission per docs/35 section 4.
+        Requires Manager+ role or explicit permission per docs/03-reference/requirements/DOC-35.md section 4.
         Creates version snapshot and makes item visible per access policy.
         """
         item = self.get_object()
@@ -127,10 +127,10 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
     @action(detail=True, methods=["post"])
     def deprecate(self, request, pk=None):
         """
-        Deprecate knowledge item (docs/35 section 3).
+        Deprecate knowledge item (docs/03-reference/requirements/DOC-35.md section 3).
 
-        Requires Manager+ role per docs/35 section 4.
-        Reason required per docs/35 section 3.
+        Requires Manager+ role per docs/03-reference/requirements/DOC-35.md section 4.
+        Reason required per docs/03-reference/requirements/DOC-35.md section 3.
         """
         item = self.get_object()
 
@@ -144,7 +144,7 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
         reason = request.data.get("reason")
         if not reason:
             return Response(
-                {"error": "Deprecation reason is required (docs/35 section 3)"},
+                {"error": "Deprecation reason is required (docs/03-reference/requirements/DOC-35.md section 3)"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -158,9 +158,9 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
     @action(detail=True, methods=["post"])
     def archive(self, request, pk=None):
         """
-        Archive knowledge item (docs/35 section 3).
+        Archive knowledge item (docs/03-reference/requirements/DOC-35.md section 3).
 
-        Requires Admin role per docs/35 section 4.
+        Requires Admin role per docs/03-reference/requirements/DOC-35.md section 4.
         """
         item = self.get_object()
 
@@ -181,7 +181,7 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
     @action(detail=True, methods=["post"])
     def create_version(self, request, pk=None):
         """
-        Create new version of published item (docs/35 section 2.1).
+        Create new version of published item (docs/03-reference/requirements/DOC-35.md section 2.1).
 
         Published versions are immutable, so changes create new version.
         """
@@ -214,7 +214,7 @@ class KnowledgeItemViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelVie
 
 class KnowledgeVersionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnlyModelViewSet):
     """
-    Knowledge Version history (docs/35 section 2.2).
+    Knowledge Version history (docs/03-reference/requirements/DOC-35.md section 2.2).
 
     Read-only access to version snapshots.
     """
@@ -230,7 +230,7 @@ class KnowledgeVersionViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadO
 
 class KnowledgeReviewViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
-    Knowledge Review workflow (docs/35 section 3).
+    Knowledge Review workflow (docs/03-reference/requirements/DOC-35.md section 3).
 
     Allows requesting reviews and recording approval/rejection.
     """
@@ -296,7 +296,7 @@ class KnowledgeReviewViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelV
 
 class KnowledgeAttachmentViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ModelViewSet):
     """
-    Knowledge Attachments (docs/35 section 2.3).
+    Knowledge Attachments (docs/03-reference/requirements/DOC-35.md section 2.3).
 
     Links knowledge items to documents, templates, external resources.
     """

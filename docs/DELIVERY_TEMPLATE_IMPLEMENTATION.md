@@ -1,14 +1,14 @@
 # Delivery Template Immutability and Traceability Implementation
 
 **Implementation Date:** December 30, 2025
-**Spec Compliance:** docs/12 (DELIVERY_TEMPLATES_SPEC) sections 2.1, 4.2
+**Spec Compliance:** docs/03-reference/requirements/DOC-12.md (DELIVERY_TEMPLATES_SPEC) sections 2.1, 4.2
 **Status:** ✅ Complete (DOC-12.2)
 
 ---
 
 ## Overview
 
-This document describes the implementation of delivery template publishing immutability, instantiation audit trail, and node traceability per docs/12.
+This document describes the implementation of delivery template publishing immutability, instantiation audit trail, and node traceability per docs/03-reference/requirements/DOC-12.md.
 
 ### Key Capabilities
 
@@ -20,7 +20,7 @@ This document describes the implementation of delivery template publishing immut
 
 ## Architecture
 
-### 1. Template Publishing Immutability (docs/12 section 2.1)
+### 1. Template Publishing Immutability (docs/03-reference/requirements/DOC-12.md section 2.1)
 
 **Invariant:** Published templates MUST be immutable.
 
@@ -117,7 +117,7 @@ def publish(self, user=None) -> "DeliveryTemplate":
 
 Located in: `src/modules/delivery/models.py:172-256`
 
-Per docs/12 section 3, templates MUST validate:
+Per docs/03-reference/requirements/DOC-12.md section 3, templates MUST validate:
 - Graph is acyclic (DAG)
 - All edges reference existing nodes
 - Node IDs are unique
@@ -205,7 +205,7 @@ def _has_cycle(self, node_ids: Set[str], edges: List[Tuple[str, str]]) -> bool:
 
 ---
 
-### 2. Instantiation Audit Trail (docs/12 section 4.1)
+### 2. Instantiation Audit Trail (docs/03-reference/requirements/DOC-12.md section 4.1)
 
 **Requirement:** Instantiation trigger MUST be auditable.
 
@@ -335,7 +335,7 @@ class TemplateInstantiator:
 
 ---
 
-### 3. Node Traceability (docs/12 section 4.2)
+### 3. Node Traceability (docs/03-reference/requirements/DOC-12.md section 4.2)
 
 **Requirement:** Each created WorkItem MUST store template_id, template_version, template_node_id, instantiation_id.
 
@@ -556,7 +556,7 @@ else:
 
 ## Compliance Matrix
 
-| docs/12 Requirement | Implementation | Location |
+| docs/03-reference/requirements/DOC-12.md Requirement | Implementation | Location |
 |-------------------|----------------|----------|
 | 2.1: Published templates MUST be immutable | ✅ Enforced in clean() | `models.py:281-300` |
 | 2.1: Instantiation MUST reference template_id + version | ✅ Stored in TemplateInstantiation | `models.py:608-619` |
@@ -640,7 +640,7 @@ Test coverage needed:
 
 ## Summary
 
-This implementation provides complete template immutability, instantiation audit trail, and node traceability per docs/12.
+This implementation provides complete template immutability, instantiation audit trail, and node traceability per docs/03-reference/requirements/DOC-12.md.
 
 **Key Features:**
 - ✅ Published templates fully immutable via validation hash
@@ -649,6 +649,6 @@ This implementation provides complete template immutability, instantiation audit
 - ✅ Full node traceability (template_id, version, node_id, instantiation_id)
 - ✅ Deterministic instantiation via input storage
 - ✅ Template integrity verification via hash comparison
-- ✅ 100% compliance with docs/12 requirements
+- ✅ 100% compliance with docs/03-reference/requirements/DOC-12.md requirements
 
 **Status:** Production-ready, fully compliant.

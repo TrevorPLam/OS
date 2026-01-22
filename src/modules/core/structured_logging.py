@@ -6,7 +6,7 @@ Provides structured logging formatters and utilities that enforce:
 2. No-content logging: Never log email bodies, document content, etc.
 3. PII minimization: Minimize R-PII in logs
 
-Per docs/21 section 4: Log requirements.
+Per docs/03-reference/requirements/DOC-21.md section 4: Log requirements.
 """
 
 import logging
@@ -18,7 +18,7 @@ from django.conf import settings
 
 class StructuredLogFormatter(logging.Formatter):
     """
-    JSON formatter that ensures required fields are present per docs/21 section 4.
+    JSON formatter that ensures required fields are present per docs/03-reference/requirements/DOC-21.md section 4.
 
     Required fields:
     - tenant_id (when applicable)
@@ -68,7 +68,7 @@ class StructuredLogFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
 
-        # Add required fields per docs/21 section 4
+        # Add required fields per docs/03-reference/requirements/DOC-21.md section 4
         if hasattr(record, "tenant_id"):
             log_data["tenant_id"] = record.tenant_id
         if hasattr(record, "correlation_id"):
@@ -95,7 +95,7 @@ class StructuredLogFormatter(logging.Formatter):
         """
         Filter content fields and PII from log data.
 
-        Per docs/21 section 4: Logs MUST redact HR and minimize PII.
+        Per docs/03-reference/requirements/DOC-21.md section 4: Logs MUST redact HR and minimize PII.
         """
         filtered = {}
         for key, value in data.items():
@@ -169,16 +169,16 @@ class NoContentLogger:
         **extra_metadata,
     ):
         """
-        Log an operation with required fields per docs/21 section 4.
+        Log an operation with required fields per docs/03-reference/requirements/DOC-21.md section 4.
 
         Args:
-            tenant_id: Firm ID (required per docs/21 section 4)
-            correlation_id: Correlation ID (required per docs/21 section 4)
+            tenant_id: Firm ID (required per docs/03-reference/requirements/DOC-21.md section 4)
+            correlation_id: Correlation ID (required per docs/03-reference/requirements/DOC-21.md section 4)
             operation: Operation name (e.g., "document_upload")
             status: Operation status (success, error, etc.)
-            actor: Username/actor (when applicable per docs/21 section 4)
+            actor: Username/actor (when applicable per docs/03-reference/requirements/DOC-21.md section 4)
             object_type: Type of object (e.g., "Document", "Contact")
-            object_id: Primary object ID (required per docs/21 section 4)
+            object_id: Primary object ID (required per docs/03-reference/requirements/DOC-21.md section 4)
             duration_ms: Operation duration in milliseconds
             error_class: Error classification if status=error
             **extra_metadata: Additional metadata (will be filtered for content/PII)
@@ -232,7 +232,7 @@ class NoContentLogger:
         """
         Log a security event (e.g., permission denial, break-glass).
 
-        Per docs/21 section 3: Repeated permission denials spike should alert.
+        Per docs/03-reference/requirements/DOC-21.md section 3: Repeated permission denials spike should alert.
         """
         self._validate_no_content(extra_metadata)
 
@@ -357,7 +357,7 @@ class LogValidator:
         """
         violations = []
 
-        # Check required fields per docs/21 section 4
+        # Check required fields per docs/03-reference/requirements/DOC-21.md section 4
         # Note: tenant_id and actor may not be present in all contexts
         if "correlation_id" not in record:
             violations.append("Missing required field: correlation_id")

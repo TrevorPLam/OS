@@ -2,13 +2,13 @@
 
 **Status:** ✅ Complete
 **Date:** December 30, 2025
-**Requirements:** docs/27 - ROLE_BASED_VIEWS
+**Requirements:** docs/03-reference/requirements/DOC-27.md - ROLE_BASED_VIEWS
 
 ---
 
 ## Overview
 
-This document details the implementation of role-based module visibility and least privilege defaults per docs/27. The system defines 6 staff roles with granular permissions and module access controls.
+This document details the implementation of role-based module visibility and least privilege defaults per docs/03-reference/requirements/DOC-27.md. The system defines 6 staff roles with granular permissions and module access controls.
 
 ---
 
@@ -65,7 +65,7 @@ can_manage_users = False
 can_manage_clients = True
 can_manage_billing = False   # Limited: can view, not manage
 can_manage_settings = False
-can_view_reports = True      # Manager+ per docs/27
+can_view_reports = True      # Manager+ per docs/03-reference/requirements/DOC-27.md
 ```
 
 ### Staff
@@ -100,7 +100,7 @@ can_view_reports = False
 
 ## Module Visibility Rules
 
-Per docs/27, each module has specific visibility rules:
+Per docs/03-reference/requirements/DOC-27.md, each module has specific visibility rules:
 
 ### 1. Dashboard
 **Visibility:** All staff
@@ -170,7 +170,7 @@ if role == "staff" and request.method in ("GET", "HEAD", "OPTIONS"):
 if role in ("billing", "partner", "firm_admin"):
     return True
 
-# Manager can read invoices (limited billing per docs/27)
+# Manager can read invoices (limited billing per docs/03-reference/requirements/DOC-27.md)
 if role == "manager" and request.method in ("GET", "HEAD", "OPTIONS"):
     return True
 ```
@@ -203,7 +203,7 @@ if role == "manager" and request.method in ("GET", "HEAD", "OPTIONS"):
 
 ## Portal Scopes (DOC-27.1)
 
-Portal scopes map to portal navigation per docs/27. Each scope is validated via `ClientPortalUser` permission flags.
+Portal scopes map to portal navigation per docs/03-reference/requirements/DOC-27.md. Each scope is validated via `ClientPortalUser` permission flags.
 
 ### Scope Definitions
 
@@ -378,7 +378,7 @@ membership.save(update_fields=["can_manage_users"])
 | ReadOnly role | ✅ Complete | `FirmMembership.ROLE_CHOICES` |
 | **Permission Defaults** |  |  |
 | Auto-set on role change | ✅ Complete | `FirmMembership.save()` |
-| Least privilege defaults | ✅ Complete | Per docs/27 specification |
+| Least privilege defaults | ✅ Complete | Per docs/03-reference/requirements/DOC-27.md specification |
 | Legacy role mapping | ✅ Complete | owner/admin→firm_admin, contractor→staff |
 | **Module Visibility** |  |  |
 | Dashboard (all staff) | ✅ Complete | `CanAccessDashboard` |
@@ -554,7 +554,7 @@ Dynamic role assignment based on context (e.g., project-specific manager role).
 
 ## References
 
-- **docs/27** - ROLE_BASED_VIEWS (canonical spec)
+- **docs/03-reference/requirements/DOC-27.md** - ROLE_BASED_VIEWS (canonical spec)
 - **DOC-18.1** - API endpoint authorization mapping
 - **DOC-26.1** - Client portal IA (portal scope integration)
 - **spec/SYSTEM_INVARIANTS.md** - Authorization invariants

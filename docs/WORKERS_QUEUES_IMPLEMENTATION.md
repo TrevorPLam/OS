@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete
 **Last Updated:** December 30, 2025
-**Complies with:** docs/20 WORKERS_AND_QUEUES
+**Complies with:** docs/03-reference/requirements/DOC-20.md WORKERS_AND_QUEUES
 
 ---
 
@@ -20,7 +20,7 @@ The implementation provides:
 
 ## 1. Job Categories
 
-Per docs/20 section 1, supported job categories:
+Per docs/03-reference/requirements/DOC-20.md section 1, supported job categories:
 
 | Category | Purpose | Example Job Types |
 |----------|---------|-------------------|
@@ -37,7 +37,7 @@ Per docs/20 section 1, supported job categories:
 
 ## 2. Payload Rules (MUST)
 
-Per docs/20 section 2, all job payloads MUST:
+Per docs/03-reference/requirements/DOC-20.md section 2, all job payloads MUST:
 
 ### 2.1 Required Fields
 
@@ -90,7 +90,7 @@ if not is_valid:
 
 ## 3. Concurrency Model
 
-Per docs/20 section 3, workers MUST ensure **at-most-one concurrent processing** per idempotency key.
+Per docs/03-reference/requirements/DOC-20.md section 3, workers MUST ensure **at-most-one concurrent processing** per idempotency key.
 
 ### 3.1 Claim Pattern (SELECT FOR UPDATE SKIP LOCKED)
 
@@ -133,7 +133,7 @@ Attempting to create duplicate jobs with the same idempotency_key will fail, pre
 
 ## 4. DLQ Handling
 
-Per docs/20 section 4, failed jobs go to DLQ when:
+Per docs/03-reference/requirements/DOC-20.md section 4, failed jobs go to DLQ when:
 - Error class is `non_retryable`
 - Attempt count exceeds `max_attempts` (default: 5)
 
@@ -152,7 +152,7 @@ job.mark_failed(
 
 ### 4.2 DLQ Preservation
 
-Per docs/20 section 4, DLQ entries preserve:
+Per docs/03-reference/requirements/DOC-20.md section 4, DLQ entries preserve:
 - **Original payload** (for reprocessing)
 - **Attempt history** (attempt_count, error messages)
 - **Original timestamps** (original_created_at)
@@ -219,7 +219,7 @@ Per docs/20 section 4, DLQ entries preserve:
 
 ## 5. Retry Policy Alignment
 
-Per docs/20 section 5, error classes align with orchestration engine:
+Per docs/03-reference/requirements/DOC-20.md section 5, error classes align with orchestration engine:
 
 | Error Class | Retry Strategy | DLQ Behavior |
 |-------------|----------------|--------------|
@@ -366,7 +366,7 @@ curl -X POST https://api.example.com/api/jobs/admin/dlq/123/reprocess/ \
 
 ## 8. Compliance Matrix
 
-| Requirement | docs/20 Section | Status | Implementation |
+| Requirement | docs/03-reference/requirements/DOC-20.md Section | Status | Implementation |
 |-------------|-----------------|--------|----------------|
 | Minimal payloads without sensitive content | 2 | ✅ Complete | PayloadValidator checks for sensitive fields |
 | Required fields: tenant_id, correlation_id, idempotency_key | 2 | ✅ Complete | Enforced in JobQueue.clean() |
@@ -380,7 +380,7 @@ curl -X POST https://api.example.com/api/jobs/admin/dlq/123/reprocess/ \
 | Reprocessing auditable | 4 | ✅ Complete | Audit events: job_dlq_reprocess_requested/success |
 | Retry alignment with orchestration | 5 | ✅ Complete | Same error_class values (transient, retryable, non_retryable, rate_limited) |
 
-**Overall Compliance:** 11/11 requirements (100% with docs/20)
+**Overall Compliance:** 11/11 requirements (100% with docs/03-reference/requirements/DOC-20.md)
 
 ---
 
@@ -399,7 +399,7 @@ curl -X POST https://api.example.com/api/jobs/admin/dlq/123/reprocess/ \
 
 ## 10. Testing Requirements
 
-Per docs/20, tests must cover:
+Per docs/03-reference/requirements/DOC-20.md, tests must cover:
 
 ### 10.1 Payload Validation Tests
 - ✅ Required fields validation
@@ -446,6 +446,6 @@ DOC-20.1 implementation provides:
 ✅ **Concurrency locks**: SELECT FOR UPDATE SKIP LOCKED pattern for at-most-once processing
 ✅ **DLQ handling**: Automatic routing, admin-gated viewing, reprocessing with audit trail
 ✅ **Retry policy**: Aligned with orchestration error classes (transient, retryable, non_retryable, rate_limited)
-✅ **100% compliance** with docs/20 (11/11 requirements)
+✅ **100% compliance** with docs/03-reference/requirements/DOC-20.md (11/11 requirements)
 
 The implementation provides a robust foundation for background job processing with proper tenant isolation, concurrency control, and failure handling.

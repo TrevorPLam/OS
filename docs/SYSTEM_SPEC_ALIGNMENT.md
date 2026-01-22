@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0
 **Date:** December 30, 2025
-**Purpose:** Track alignment between SYSTEM_SPEC (docs/5) requirements and codebase implementation
+**Purpose:** Track alignment between SYSTEM_SPEC (docs/03-reference/requirements/DOC-05.md) requirements and codebase implementation
 
 This document maps each normative requirement from SYSTEM_SPEC to the current implementation status.
 
@@ -50,7 +50,7 @@ This document maps each normative requirement from SYSTEM_SPEC to the current im
   - `src/modules/orchestration/models.py` - OrchestrationDefinition
   - `src/modules/delivery/models.py` - DeliveryTemplate
 
-**Evidence:** ADR-0010 in docs/4 documents row-level tenancy as canonical decision.
+**Evidence:** ADR-0010 in docs/03-reference/requirements/DOC-04.md documents row-level tenancy as canonical decision.
 
 ---
 

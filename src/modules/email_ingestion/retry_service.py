@@ -4,7 +4,7 @@ Email Ingestion Retry Service.
 Implements DOC-15.2: retry-safety with exponential backoff, error classification,
 and replay tooling for failed ingestion attempts.
 
-Complies with docs/15 section 2.3.
+Complies with docs/03-reference/requirements/DOC-15.md section 2.3.
 """
 
 import time
@@ -22,7 +22,7 @@ class ErrorClassifier:
     """
     Classifies errors for retry logic.
 
-    Implements error classification similar to orchestration engine (docs/11).
+    Implements error classification similar to orchestration engine (docs/03-reference/requirements/DOC-11.md).
     """
 
     @staticmethod

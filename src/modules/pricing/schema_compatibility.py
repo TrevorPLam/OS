@@ -2,9 +2,9 @@
 Pricing Schema Version Compatibility Checker (DOC-09.3)
 
 Implements schema version validation and compatibility checking
-per docs/9 section 3 (JSON rule schema versioning).
+per docs/03-reference/requirements/DOC-09.md section 3 (JSON rule schema versioning).
 
-Per docs/9 section 3.1:
+Per docs/03-reference/requirements/DOC-09.md section 3.1:
 - Schema MUST include `schema_version`
 - Backwards-incompatible changes MUST increment major version
 - Evaluator MUST reject rulesets with unknown schema versions
@@ -67,7 +67,7 @@ class SchemaVersion:
         """
         Check if this version is compatible with another version.
 
-        Per docs/9:
+        Per docs/03-reference/requirements/DOC-09.md:
         - Major version changes are backwards-incompatible
         - Minor/patch changes are backwards-compatible
 
@@ -93,7 +93,7 @@ class SchemaCompatibilityChecker:
     """
     Schema version compatibility checker.
 
-    Per docs/9 section 3.1:
+    Per docs/03-reference/requirements/DOC-09.md section 3.1:
     - Validates schema versions in rulesets
     - Rejects unknown/incompatible versions
     - Applies compatibility layers when available
@@ -131,7 +131,7 @@ class SchemaCompatibilityChecker:
         """
         Validate that ruleset schema version is supported.
 
-        Per docs/9 section 3.1: Evaluator MUST reject rulesets
+        Per docs/03-reference/requirements/DOC-09.md section 3.1: Evaluator MUST reject rulesets
         with unknown schema versions unless an explicit compatibility
         layer exists.
 
@@ -247,7 +247,7 @@ class SchemaCompatibilityChecker:
         """
         Check if new version is backwards compatible with old version.
 
-        Per docs/9:
+        Per docs/03-reference/requirements/DOC-09.md:
         - Same major version = compatible
         - Different major version = incompatible
 

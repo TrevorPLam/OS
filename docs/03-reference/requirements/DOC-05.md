@@ -79,7 +79,7 @@ Related docs:
 2. All tenant-scoped queries MUST use `FirmScopedQuerySet` or equivalent enforcement to prevent cross-tenant data access.
 3. Global/platform data (if any) MUST NOT contain tenant PII unless explicitly justified and governed in DATA_GOVERNANCE.md.
 
-> **Note**: Schema-per-tenant was considered but row-level isolation was implemented for operational simplicity. See ADR-0010 in docs/4.
+> **Note**: Schema-per-tenant was considered but row-level isolation was implemented for operational simplicity. See ADR-0010 in docs/03-reference/requirements/DOC-04.md.
 
 ### 3.2 Tenant provisioning
 1. Tenant provisioning MUST be an explicit workflow with an auditable record.

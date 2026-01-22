@@ -305,7 +305,7 @@ class FirmMembership(models.Model):
     Defines 6 staff roles with module visibility and permission defaults.
     """
 
-    # DOC-27.1: Role definitions per docs/27
+    # DOC-27.1: Role definitions per docs/03-reference/requirements/DOC-27.md
     ROLE_CHOICES = [
         ("firm_admin", "Firm Admin"),  # Everything including Admin + Audit + Integrations + Governance
         ("partner", "Partner/Owner"),  # Most operational; limited admin depending on policy
@@ -361,7 +361,7 @@ class FirmMembership(models.Model):
         """
         Auto-set permissions based on role (DOC-27.1).
 
-        Implements least privilege defaults per docs/27.
+        Implements least privilege defaults per docs/03-reference/requirements/DOC-27.md.
         """
         # Map legacy roles to new roles
         role = self.role
@@ -391,7 +391,7 @@ class FirmMembership(models.Model):
             self.can_manage_clients = True
             self.can_manage_billing = False  # Limited: can view, not manage
             self.can_manage_settings = False
-            self.can_view_reports = True  # Manager+ per docs/27
+            self.can_view_reports = True  # Manager+ per docs/03-reference/requirements/DOC-27.md
         elif role == "staff":
             # Staff: Work/Documents/Comms/Calendar; limited CRM; no admin
             self.can_manage_users = False

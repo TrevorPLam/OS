@@ -14,7 +14,7 @@ from modules.projects.models import Project
 
 class Document(models.Model):
     """
-    Document entity (Governed Artifact per docs/14 DOCUMENTS_AND_STORAGE_SPEC).
+    Document entity (Governed Artifact per docs/03-reference/requirements/DOC-14.md DOCUMENTS_AND_STORAGE_SPEC).
 
     Represents a file stored in S3.
     Supports versioning through the Version model.
@@ -30,7 +30,7 @@ class Document(models.Model):
         ("client", "Visible to Client"),
     ]
 
-    # DOC-14.1: Document status (per docs/14 section 2.1)
+    # DOC-14.1: Document status (per docs/03-reference/requirements/DOC-14.md section 2.1)
     # Extended with approval workflow (Tracked in TODO: T-089)
     STATUS_CHOICES = [
         ("draft", "Draft"),

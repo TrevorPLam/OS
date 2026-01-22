@@ -1,7 +1,7 @@
 """
 Client Portal ViewSets (DOC-26.1).
 
-Implements client portal IA per docs/26:
+Implements client portal IA per docs/03-reference/requirements/DOC-26.md:
 - Primary navigation: Home, Messages, Documents, Appointments, Billing, Engagements, Profile
 - Account switcher for multi-account portal users
 - Core flows: message, upload, book, pay

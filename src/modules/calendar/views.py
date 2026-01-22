@@ -2,7 +2,7 @@
 Calendar Views.
 
 Provides API endpoints for appointment booking, availability, and management.
-Implements docs/34 sections 3 (booking flows) and 7 (permissions).
+Implements docs/03-reference/requirements/DOC-34.md sections 3 (booking flows) and 7 (permissions).
 """
 
 from datetime import datetime, timedelta
@@ -32,7 +32,7 @@ class AppointmentTypeViewSet(viewsets.ModelViewSet):
     """
     ViewSet for AppointmentType management.
 
-    Per docs/34 section 7: Staff can manage appointment types.
+    Per docs/03-reference/requirements/DOC-34.md section 7: Staff can manage appointment types.
     """
 
     queryset = AppointmentType.objects.all()
@@ -144,7 +144,7 @@ class AvailabilityProfileViewSet(viewsets.ModelViewSet):
     """
     ViewSet for AvailabilityProfile management.
 
-    Per docs/34 section 7: Staff can manage their availability; managers can manage team pools.
+    Per docs/03-reference/requirements/DOC-34.md section 7: Staff can manage their availability; managers can manage team pools.
     """
 
     queryset = AvailabilityProfile.objects.all()
@@ -169,7 +169,7 @@ class BookingLinkViewSet(viewsets.ModelViewSet):
     """
     ViewSet for BookingLink management.
 
-    Per docs/34 section 7: Public booking link creation restricted to Manager+.
+    Per docs/03-reference/requirements/DOC-34.md section 7: Public booking link creation restricted to Manager+.
     """
 
     queryset = BookingLink.objects.all()
@@ -194,8 +194,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Appointment management and booking.
 
-    Per docs/34 section 3: Provides booking flows for portal and staff.
-    Per docs/34 section 7: Portal can book/cancel only within granted account scope.
+    Per docs/03-reference/requirements/DOC-34.md section 3: Provides booking flows for portal and staff.
+    Per docs/03-reference/requirements/DOC-34.md section 7: Portal can book/cancel only within granted account scope.
     """
 
     queryset = Appointment.objects.all()
@@ -215,7 +215,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             "contact",
         )
 
-        # Portal users can only see their own appointments (per docs/34 section 7)
+        # Portal users can only see their own appointments (per docs/03-reference/requirements/DOC-34.md section 7)
         if hasattr(self.request, "is_portal_request") and self.request.is_portal_request:
             # Filter to appointments for accounts the portal user has access to
             # (This would need actual portal user context from middleware)
@@ -232,7 +232,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path="book")
     def book(self, request):
         """
-        Book an appointment (per docs/34 section 3.1).
+        Book an appointment (per docs/03-reference/requirements/DOC-34.md section 3.1).
 
         Creates appointment in requested or confirmed status based on requires_approval.
         """
@@ -255,7 +255,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         start_time = serializer.validated_data["start_time"]
         end_time = start_time + timedelta(minutes=appointment_type.duration_minutes)
 
-        # Route to staff user (per docs/34 section 2.4)
+        # Route to staff user (per docs/03-reference/requirements/DOC-34.md section 2.4)
         # TEAM-2: Pass start_time and end_time for advanced round robin
         routing_service = RoutingService()
         account = serializer.validated_data.get("account")
@@ -275,7 +275,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             )
 
 
-        # Book appointment (per docs/34 section 4.5: atomic transaction)
+        # Book appointment (per docs/03-reference/requirements/DOC-34.md section 4.5: atomic transaction)
         booking_service = BookingService()
         try:
             appointment = booking_service.book_appointment(
@@ -303,7 +303,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="cancel")
     def cancel(self, request, pk=None):
         """
-        Cancel an appointment (per docs/34 section 3).
+        Cancel an appointment (per docs/03-reference/requirements/DOC-34.md section 3).
 
         Creates status history entry for audit trail.
         """
@@ -335,7 +335,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"], url_path="confirm", permission_classes=[IsAuthenticated, IsStaffUser])
     def confirm(self, request, pk=None):
         """
-        Confirm a requested appointment (approval flow per docs/34 section 3.1).
+        Confirm a requested appointment (approval flow per docs/03-reference/requirements/DOC-34.md section 3.1).
 
         Staff only.
         """
@@ -360,7 +360,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], url_path="available-slots")
     def available_slots(self, request):
         """
-        Get available slots for booking (per docs/34 section 4).
+        Get available slots for booking (per docs/03-reference/requirements/DOC-34.md section 4).
 
         Computes availability with buffers and constraints.
         """

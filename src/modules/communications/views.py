@@ -3,7 +3,7 @@ Communications API Views.
 
 Implements REST API for Conversation, Message, and Participant models per DOC-33.1 and DOC-25.1.
 
-Per docs/25 Staff App IA:
+Per docs/03-reference/requirements/DOC-25.md Staff App IA:
 - Conversations appear in primary nav "Communications"
 - Messages appear in Client 360 "Messages" tab
 """

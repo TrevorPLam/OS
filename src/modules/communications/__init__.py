@@ -1,5 +1,5 @@
 """
-Communications Module (DOC-33.1 per docs/33 COMMUNICATIONS_SPEC)
+Communications Module (DOC-33.1 per docs/03-reference/requirements/DOC-33.md COMMUNICATIONS_SPEC)
 
 Provides native chat/messaging for staff↔staff and staff↔client communications.
 
@@ -10,7 +10,7 @@ This module implements:
 - MessageAttachment linking to governed Documents
 - ConversationLink for domain object associations
 
-Per docs/33:
+Per docs/03-reference/requirements/DOC-33.md:
 - Communications MUST be in-context with the canonical object graph
 - Attachments MUST be governed Documents
 - Access MUST be permission-gated and auditable

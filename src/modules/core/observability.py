@@ -1,7 +1,7 @@
 """
 Observability utilities and metrics collectors.
 
-Implements docs/21 OBSERVABILITY_AND_SRE requirements:
+Implements docs/03-reference/requirements/DOC-21.md OBSERVABILITY_AND_SRE requirements:
 - Correlation IDs
 - Required metrics for API, Workers, Integrations, Documents, Billing
 - Alert thresholds
@@ -14,7 +14,7 @@ from django.utils import timezone
 from .telemetry import log_metric, log_event
 
 
-# Correlation ID utilities (per docs/21 section 1)
+# Correlation ID utilities (per docs/03-reference/requirements/DOC-21.md section 1)
 def generate_correlation_id() -> str:
     """Generate a new correlation ID."""
     return str(uuid.uuid4())
@@ -29,7 +29,7 @@ def get_correlation_id_from_request(request) -> str:
 get_correlation_id = get_correlation_id_from_request
 
 
-# API metrics (per docs/21 section 2)
+# API metrics (per docs/03-reference/requirements/DOC-21.md section 2)
 def track_api_request(route: str, status_code: int, duration_ms: int, correlation_id: Optional[str] = None, tenant_id: Optional[int] = None):
     """Track API request metrics."""
     log_metric(
@@ -43,7 +43,7 @@ def track_api_request(route: str, status_code: int, duration_ms: int, correlatio
     )
 
 
-# Worker metrics (per docs/21 section 2)
+# Worker metrics (per docs/03-reference/requirements/DOC-21.md section 2)
 def track_job_execution(job_type: str, status: str, duration_ms: int, retry_count: int = 0, correlation_id: Optional[str] = None, tenant_id: Optional[int] = None):
     """Track worker job execution metrics."""
     log_metric(
@@ -67,7 +67,7 @@ def track_dlq_depth(job_type: str, depth: int, tenant_id: Optional[int] = None):
     )
 
 
-# Integration metrics (per docs/21 section 2)
+# Integration metrics (per docs/03-reference/requirements/DOC-21.md section 2)
 def track_email_ingest(status: str, lag_seconds: int = 0, correlation_id: Optional[str] = None, tenant_id: Optional[int] = None):
     """Track email ingestion metrics."""
     log_metric(
@@ -91,7 +91,7 @@ def track_calendar_sync(provider: str, status: str, lag_seconds: int = 0, correl
     )
 
 
-# Document metrics (per docs/21 section 2)
+# Document metrics (per docs/03-reference/requirements/DOC-21.md section 2)
 def track_document_upload(status: str, file_size_bytes: int, correlation_id: Optional[str] = None, tenant_id: Optional[int] = None):
     """Track document upload metrics."""
     log_metric(
@@ -122,7 +122,7 @@ def track_scan_pending_count(count: int, tenant_id: Optional[int] = None):
     )
 
 
-# Billing metrics (per docs/21 section 2)
+# Billing metrics (per docs/03-reference/requirements/DOC-21.md section 2)
 def track_billing_posting(status: str, correlation_id: Optional[str] = None, tenant_id: Optional[int] = None):
     """Track billing ledger posting metrics."""
     log_metric(
@@ -143,7 +143,7 @@ def track_idempotency_collision(operation: str, correlation_id: Optional[str] = 
     )
 
 
-# Alert utilities (per docs/21 section 3)
+# Alert utilities (per docs/03-reference/requirements/DOC-21.md section 3)
 def check_alert_threshold(metric_name: str, current_value: float, threshold: float, window_seconds: int = 300) -> bool:
     """
     Check if metric exceeds alert threshold.
@@ -161,7 +161,7 @@ def check_alert_threshold(metric_name: str, current_value: float, threshold: flo
     return current_value > threshold
 
 
-# Alert thresholds (per docs/21 section 3)
+# Alert thresholds (per docs/03-reference/requirements/DOC-21.md section 3)
 DEFAULT_ALERT_THRESHOLDS = {
     "job_failure_rate": 0.1,  # 10% failure rate
     "dlq_depth": 100,  # 100 items in DLQ
@@ -176,13 +176,13 @@ def get_alert_threshold(metric_name: str, tenant_id: Optional[int] = None) -> fl
     """
     Get alert threshold for a metric.
 
-    Per docs/21 section 3: Allows tenant-specific configuration.
+    Per docs/03-reference/requirements/DOC-21.md section 3: Allows tenant-specific configuration.
     """
     # STUB: In production, load tenant-specific thresholds from configuration
     return DEFAULT_ALERT_THRESHOLDS.get(metric_name, 0)
 
 
-# Structured logging with correlation (per docs/21 section 4)
+# Structured logging with correlation (per docs/03-reference/requirements/DOC-21.md section 4)
 def log_with_context(
     level: str,
     message: str,
@@ -196,7 +196,7 @@ def log_with_context(
     """
     Log with full observability context.
 
-    Per docs/21 section 4: Logs MUST include tenant_id, correlation_id, actor, primary object ids.
+    Per docs/03-reference/requirements/DOC-21.md section 4: Logs MUST include tenant_id, correlation_id, actor, primary object ids.
     """
     import logging
     logger = logging.getLogger("observability")

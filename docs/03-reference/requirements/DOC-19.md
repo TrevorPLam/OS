@@ -2,7 +2,7 @@
 
 Blueprint for database provisioning, migrations, indexes/constraints, and naming conventions.
 
-> **Current Implementation**: The platform uses **firm-scoped row-level isolation** (single schema, ForeignKey-based tenancy). See ADR-0010 in docs/4. The schema-per-tenant workflow below is retained as a future enhancement option for enterprise customers requiring physical isolation.
+> **Current Implementation**: The platform uses **firm-scoped row-level isolation** (single schema, ForeignKey-based tenancy). See ADR-0010 in docs/03-reference/requirements/DOC-04.md. The schema-per-tenant workflow below is retained as a future enhancement option for enterprise customers requiring physical isolation.
 
 ---
 

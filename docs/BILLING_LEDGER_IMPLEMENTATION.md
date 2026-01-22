@@ -2,7 +2,7 @@
 
 **Document Version:** 1.0
 **Date:** December 30, 2025
-**Purpose:** Document implementation of ledger-first billing per BILLING_LEDGER_SPEC (docs/13)
+**Purpose:** Document implementation of ledger-first billing per BILLING_LEDGER_SPEC (docs/03-reference/requirements/DOC-13.md)
 
 ---
 
@@ -26,7 +26,7 @@ This document describes the implementation of the billing ledger system that sat
 
 ### Ledger-First Principle
 
-Per docs/13 Section 1.1: **"All money-impacting actions MUST be represented as immutable ledger entries."**
+Per docs/03-reference/requirements/DOC-13.md Section 1.1: **"All money-impacting actions MUST be represented as immutable ledger entries."**
 
 The billing ledger is the **source of truth** for:
 - Accounts Receivable (AR)
@@ -46,7 +46,7 @@ Invoices and Payments are **derived views** - their status is determined by ledg
 
 **Purpose:** Immutable record of all billing events
 
-**Entry Types (docs/13 Section 3):**
+**Entry Types (docs/03-reference/requirements/DOC-13.md Section 3):**
 | Type | Amount Sign | Purpose | Required Fields |
 |------|-------------|---------|----------------|
 | `invoice_issued` | Positive | Creates AR | invoice |
@@ -89,7 +89,7 @@ class BillingLedgerEntry(models.Model):
     correlation_id = CharField(max_length=255)
 ```
 
-**Unique Constraint (docs/13 Section 5.2):**
+**Unique Constraint (docs/03-reference/requirements/DOC-13.md Section 5.2):**
 ```python
 unique_together = [['firm', 'entry_type', 'idempotency_key']]
 ```
@@ -132,7 +132,7 @@ class BillingAllocation(models.Model):
     metadata = JSONField(default=dict)
 ```
 
-**Constraints (docs/13 Section 2.2):**
+**Constraints (docs/03-reference/requirements/DOC-13.md Section 2.2):**
 1. **Unique allocation:** `unique_together = [['from_entry', 'to_entry']]`
 2. **No over-allocation:** Validated in `clean()` method
    ```python
@@ -145,7 +145,7 @@ class BillingAllocation(models.Model):
 
 ## Immutability Guarantees (DOC-13.1)
 
-Per docs/13 Section 2.1: **"LedgerEntry MUST NOT be edited after posting. Corrections MUST occur via compensating entries."**
+Per docs/03-reference/requirements/DOC-13.md Section 2.1: **"LedgerEntry MUST NOT be edited after posting. Corrections MUST occur via compensating entries."**
 
 ### Implementation
 
@@ -224,7 +224,7 @@ correct = post_invoice_issued(
 
 ## Idempotency (DOC-13.1)
 
-Per docs/13 Section 5: **"Posting endpoints MUST accept idempotency keys. The system MUST enforce uniqueness on idempotency_key scoped to tenant + entry_type."**
+Per docs/03-reference/requirements/DOC-13.md Section 5: **"Posting endpoints MUST accept idempotency keys. The system MUST enforce uniqueness on idempotency_key scoped to tenant + entry_type."**
 
 ### Implementation
 
@@ -298,7 +298,7 @@ idempotency_key = f"webhook-{event.id}"
 
 ## Allocation Constraints (DOC-13.2)
 
-Per docs/13 Section 2.2: **"Sum(allocations from an entry) MUST NOT exceed available unapplied amount."**
+Per docs/03-reference/requirements/DOC-13.md Section 2.2: **"Sum(allocations from an entry) MUST NOT exceed available unapplied amount."**
 
 ### Implementation
 
@@ -361,7 +361,7 @@ allocate_payment_to_invoice(
 
 ---
 
-## Derived Balances (docs/13 Section 4)
+## Derived Balances (docs/03-reference/requirements/DOC-13.md Section 4)
 
 **"Balances and reports MUST be explainable from ledger entries."**
 
@@ -613,7 +613,7 @@ unapplied = payment_entry.get_unapplied_amount()
 
 ---
 
-## Invoice Status Reconciliation (docs/13 Section 6)
+## Invoice Status Reconciliation (docs/03-reference/requirements/DOC-13.md Section 6)
 
 **"Invoice status MUST reconcile with allocations."**
 
@@ -809,7 +809,7 @@ retainer_balance = get_retainer_balance(firm, client)
 
 ---
 
-## Permissions and Authorization (docs/13 Section 7)
+## Permissions and Authorization (docs/03-reference/requirements/DOC-13.md Section 7)
 
 **"Only Billing/Admin roles can post payments, issue invoices, apply retainers, write off."**
 
@@ -925,7 +925,7 @@ class BillingLedgerViewSet(viewsets.ModelViewSet):
 
 ## References
 
-- **BILLING_LEDGER_SPEC:** docs/13
+- **BILLING_LEDGER_SPEC:** docs/03-reference/requirements/DOC-13.md
 - **Implementation:** src/modules/finance/billing_ledger.py
 - **Migration:** src/modules/finance/migrations/0008_billing_ledger.py
 - **Contract Tests:** src/tests/contract_tests.py:309-345

@@ -2,13 +2,13 @@
 
 **Document Version:** 1.0
 **Date:** December 30, 2025
-**Purpose:** Track compliance with SECURITY_MODEL requirements (docs/24)
+**Purpose:** Track compliance with SECURITY_MODEL requirements (docs/03-reference/requirements/DOC-24.md)
 
 ---
 
 ## Executive Summary
 
-This document tracks implementation of all security requirements from docs/24 (SECURITY_MODEL).
+This document tracks implementation of all security requirements from docs/03-reference/requirements/DOC-24.md (SECURITY_MODEL).
 
 **Overall Compliance:** 95% (20/21 requirements complete)
 
@@ -388,7 +388,7 @@ class AuditEvent(models.Model):
 - Backup: Regular backups protect against data loss
 
 **Retention:**
-- Per `docs/7` (DATA_GOVERNANCE) retention policies
+- Per `docs/03-reference/requirements/DOC-07.md` (DATA_GOVERNANCE) retention policies
 - Legal hold prevents deletion during investigations
 
 ---
@@ -885,7 +885,7 @@ DEFAULT_ALERT_THRESHOLDS = {
 
 ## Compliance Summary
 
-**SECURITY_MODEL (docs/24) Compliance:** 95%
+**SECURITY_MODEL (docs/03-reference/requirements/DOC-24.md) Compliance:** 95%
 
 **Threat Model Coverage:**
 - ✅ Portal risks mitigated
@@ -919,7 +919,7 @@ DEFAULT_ALERT_THRESHOLDS = {
 
 ## References
 
-- **SECURITY_MODEL spec:** docs/24
+- **SECURITY_MODEL spec:** docs/03-reference/requirements/DOC-24.md
 - **Input validation:** src/modules/core/input_validation.py
 - **Rate limiting:** src/config/throttling.py, src/api/portal/throttling.py
 - **Environment validation:** src/config/env_validator.py

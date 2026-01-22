@@ -1,7 +1,7 @@
 """
 Input Validation Utilities (DOC-24.1).
 
-Validates all external content to prevent injection attacks per SECURITY_MODEL (docs/24).
+Validates all external content to prevent injection attacks per SECURITY_MODEL (docs/03-reference/requirements/DOC-24.md).
 
 Requirements:
 - Input validation for email bodies, attachments, filenames
@@ -25,7 +25,7 @@ class InputValidator:
     """
     Validates external content for security.
 
-    Per docs/24: "Input validation for all external content (email bodies, attachments, filenames)."
+    Per docs/03-reference/requirements/DOC-24.md: "Input validation for all external content (email bodies, attachments, filenames)."
     """
 
     # Dangerous file extensions that should be blocked

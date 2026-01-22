@@ -1,7 +1,7 @@
 """
 Migration for DOC-27.1: Role-based views.
 
-Adds new role choices and updates existing roles to match docs/27.
+Adds new role choices and updates existing roles to match docs/03-reference/requirements/DOC-27.md.
 """
 
 from django.db import migrations, models

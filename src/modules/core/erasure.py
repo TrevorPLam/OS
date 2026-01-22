@@ -2,7 +2,7 @@
 Data Erasure and Anonymization Workflows
 
 Implements the erasure request workflow and anonymization capabilities
-as specified in docs/7 (DATA_GOVERNANCE) section 6.
+as specified in docs/03-reference/requirements/DOC-07.md (DATA_GOVERNANCE) section 6.
 
 This module provides:
 - Erasure request records
@@ -10,7 +10,7 @@ This module provides:
 - Anonymization execution service
 - Idempotent, auditable workflows
 
-Per docs/7:
+Per docs/03-reference/requirements/DOC-07.md:
 - Erasure removes data permanently
 - Anonymization removes identifying information while preserving audit integrity
 - Both workflows must be idempotent and fully auditable
@@ -31,7 +31,7 @@ class ErasureRequest(models.Model):
     """
     Erasure/Anonymization Request Record
 
-    Per docs/7 section 6.2, this model tracks requests for data erasure
+    Per docs/03-reference/requirements/DOC-07.md section 6.2, this model tracks requests for data erasure
     or anonymization with:
     - Requester identity and legal basis
     - Scope (which entities are affected)
@@ -65,7 +65,7 @@ class ErasureRequest(models.Model):
         (STATUS_FAILED, "Failed"),
     ]
 
-    # Legal basis for request (per docs/7 section 6.2)
+    # Legal basis for request (per docs/03-reference/requirements/DOC-07.md section 6.2)
     BASIS_GDPR_ARTICLE_17 = "gdpr_article_17"
     BASIS_CCPA_DELETION = "ccpa_deletion"
     BASIS_CONTRACTUAL = "contractual_end"
@@ -163,7 +163,7 @@ class ErasureRequest(models.Model):
         help_text="Reference to legal documentation (case number, request ID)",
     )
 
-    # Evaluation results (per docs/7 section 6.2)
+    # Evaluation results (per docs/03-reference/requirements/DOC-07.md section 6.2)
     evaluation_completed_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -267,7 +267,7 @@ class EvaluationResult:
     """
     Result of erasure/anonymization constraint evaluation.
 
-    Per docs/7 section 6.2, evaluation must check:
+    Per docs/03-reference/requirements/DOC-07.md section 6.2, evaluation must check:
     - Active engagements
     - Outstanding invoices/ledger obligations
     - Legal hold
@@ -285,14 +285,14 @@ class ErasureService:
     """
     Service for evaluating and executing erasure/anonymization requests.
 
-    Implements the workflow defined in docs/7 section 6.
+    Implements the workflow defined in docs/03-reference/requirements/DOC-07.md section 6.
     """
 
     def evaluate_contact_erasure(self, contact, legal_basis: str) -> EvaluationResult:
         """
         Evaluate if a Contact can be erased/anonymized.
 
-        Per docs/7 section 6.2, checks:
+        Per docs/03-reference/requirements/DOC-07.md section 6.2, checks:
         - Active engagements
         - Outstanding invoices
         - Legal hold
@@ -375,7 +375,7 @@ class ErasureService:
             },
         }
 
-        # Preservation plan (per docs/7 section 6.3)
+        # Preservation plan (per docs/03-reference/requirements/DOC-07.md section 6.3)
         preservation_plan = {
             "audit_events": "preserve_with_anonymized_actor",
             "ledger_entries": "preserve_amounts_and_dates",
@@ -503,7 +503,7 @@ class ErasureService:
         """
         Execute anonymization for a Contact.
 
-        Per docs/7 section 6.4:
+        Per docs/03-reference/requirements/DOC-07.md section 6.4:
         - Replace names with "Anonymized Contact"
         - Remove email/phone
         - Preserve internal IDs
@@ -526,7 +526,7 @@ class ErasureService:
             "phone": contact.phone if hasattr(contact, "phone") else None,
         }
 
-        # Anonymize contact fields (per docs/7 section 6.4)
+        # Anonymize contact fields (per docs/03-reference/requirements/DOC-07.md section 6.4)
         if hasattr(contact, "first_name"):
             contact.first_name = "Anonymized"
         if hasattr(contact, "last_name"):
@@ -593,7 +593,7 @@ class ErasureService:
         """
         Execute anonymization for an Account (Client).
 
-        Per docs/7 section 6.4:
+        Per docs/03-reference/requirements/DOC-07.md section 6.4:
         - Replace name if individual
         - Preserve business references if required
         - Revoke document access
@@ -632,7 +632,7 @@ class ErasureService:
             },
         )
 
-        # Revoke document access (per docs/7 section 6.4)
+        # Revoke document access (per docs/03-reference/requirements/DOC-07.md section 6.4)
         from modules.documents.models import Document
 
         documents = Document.objects.filter(firm=account.firm, client=account)

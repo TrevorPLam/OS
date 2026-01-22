@@ -653,7 +653,7 @@ Acceptance Criteria:
 - [ ] Update tests to cover approval workflow transitions and permissions.
 References:
 - src/modules/documents/models/documents.py
-- docs/14 DOCUMENTS_AND_STORAGE_SPEC
+- docs/03-reference/requirements/DOC-14.md DOCUMENTS_AND_STORAGE_SPEC
 Dependencies: None
 Effort: M
 
@@ -1086,7 +1086,7 @@ Acceptance Criteria:
 - [ ] Trevor reviews numbered files to determine if they should be archived, renamed, or deleted.
 - [ ] Decision documented.
 References:
-- docs/1 through docs/35
+- docs/03-reference/requirements/DOC-01.md through docs/03-reference/requirements/DOC-35.md
 - docs/DOCS_INDEX.md
 Dependencies: None
 Effort: S

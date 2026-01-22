@@ -1,5 +1,5 @@
 """
-Pricing Engine Evaluator (DOC-09.1 per docs/9 PRICING_ENGINE_SPEC)
+Pricing Engine Evaluator (DOC-09.1 per docs/03-reference/requirements/DOC-09.md PRICING_ENGINE_SPEC)
 
 Implements deterministic pricing evaluation with:
 - Context binding
@@ -25,7 +25,7 @@ from django.utils import timezone
 @dataclass
 class EvaluationContext:
     """
-    Evaluation context per docs/9 section 3.
+    Evaluation context per docs/03-reference/requirements/DOC-09.md section 3.
 
     Bounded context for pricing evaluation.
     MUST NOT include HR-classified data.
@@ -91,7 +91,7 @@ class EvaluationContext:
 
 @dataclass
 class TraceStep:
-    """Single step in the evaluation trace per docs/9 section 6.3."""
+    """Single step in the evaluation trace per docs/03-reference/requirements/DOC-09.md section 6.3."""
 
     step_number: int
     rule_id: str
@@ -119,7 +119,7 @@ class TraceStep:
 @dataclass
 class EvaluationResult:
     """
-    Evaluation result per docs/9 section 6.
+    Evaluation result per docs/03-reference/requirements/DOC-09.md section 6.
 
     Contains all outputs required for QuoteVersion persistence.
     """
@@ -158,7 +158,7 @@ class EvaluationResult:
 
 class PricingEvaluator:
     """
-    Deterministic pricing evaluator per docs/9 sections 4-6.
+    Deterministic pricing evaluator per docs/03-reference/requirements/DOC-09.md sections 4-6.
 
     Evaluates a ruleset against a context to produce outputs and trace.
 
@@ -213,7 +213,7 @@ class PricingEvaluator:
         """
         Evaluate the ruleset against the context.
 
-        Per docs/9 section 4: Evaluation MUST be deterministic.
+        Per docs/03-reference/requirements/DOC-09.md section 4: Evaluation MUST be deterministic.
 
         Args:
             context: The evaluation context
@@ -466,7 +466,7 @@ class PricingEvaluator:
         context: EvaluationContext,
         result: EvaluationResult,
     ) -> list:
-        """Generate assumption statements per docs/9 section 6.2."""
+        """Generate assumption statements per docs/03-reference/requirements/DOC-09.md section 6.2."""
         assumptions = []
 
         # Standard assumptions

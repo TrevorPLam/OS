@@ -563,8 +563,8 @@ python manage.py test modules.automation
 
 ## Related Documentation
 
-- **Orchestration Engine**: docs/11 ORCHESTRATION_ENGINE_SPEC.md
-- **Job Queue**: docs/20 JOB_QUEUE_SPEC.md
+- **Orchestration Engine**: docs/03-reference/requirements/DOC-11.md ORCHESTRATION_ENGINE_SPEC.md
+- **Job Queue**: docs/03-reference/requirements/DOC-20.md JOB_QUEUE_SPEC.md
 - **Webhooks**: docs/WEBHOOKS_SPEC.md
 - **API Versioning**: docs/API_VERSIONING_POLICY.md
 

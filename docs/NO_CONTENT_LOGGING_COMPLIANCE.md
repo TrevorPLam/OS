@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete
 **Last Updated:** December 30, 2025
-**Complies with:** docs/21 OBSERVABILITY_AND_SRE section 4
+**Complies with:** docs/03-reference/requirements/DOC-21.md OBSERVABILITY_AND_SRE section 4
 
 ---
 
@@ -13,15 +13,15 @@ This document describes the implementation of DOC-21.2: No-content logging guara
 The implementation enforces:
 1. **Required fields** in all logs: tenant_id, correlation_id, actor, primary object ids
 2. **No-content logging**: Never log email bodies, document content, message bodies
-3. **PII minimization**: Mask/redact R-PII and HR data per docs/7
+3. **PII minimization**: Mask/redact R-PII and HR data per docs/03-reference/requirements/DOC-07.md
 
 ---
 
-## 1. Log Requirements (docs/21 section 4)
+## 1. Log Requirements (docs/03-reference/requirements/DOC-21.md section 4)
 
 ### 1.1 Required Fields
 
-Per docs/21 section 4, logs MUST include:
+Per docs/03-reference/requirements/DOC-21.md section 4, logs MUST include:
 
 | Field | Required | When | Purpose |
 |-------|----------|------|---------|
@@ -46,7 +46,7 @@ The following fields **MUST NEVER** appear in logs:
 
 ### 1.3 PII Fields (Minimized)
 
-The following fields should be **masked/redacted** per docs/7:
+The following fields should be **masked/redacted** per docs/03-reference/requirements/DOC-07.md:
 
 **R-PII (Restricted PII):**
 - `email`, `phone`, `address`
@@ -440,7 +440,7 @@ LOGGING = {
 
 ## 8. Compliance Matrix
 
-| Requirement | docs/21 Section | Status | Implementation |
+| Requirement | docs/03-reference/requirements/DOC-21.md Section | Status | Implementation |
 |-------------|-----------------|--------|----------------|
 | Logs include tenant_id | 4 | ✅ Complete | StructuredLogFormatter, NoContentLogger |
 | Logs include correlation_id | 4 | ✅ Complete | Required parameter in log_operation() |
@@ -453,14 +453,14 @@ LOGGING = {
 | Correlation IDs flow through systems | 1 | ✅ Complete | observability.py (DOC-21.1) |
 | JSON structured logging | - | ✅ Complete | StructuredLogFormatter |
 
-**Overall Compliance:** 10/10 requirements (100% with docs/21 section 4)
+**Overall Compliance:** 10/10 requirements (100% with docs/03-reference/requirements/DOC-21.md section 4)
 
 ---
 
 ## 9. Related Documentation
 
-- **docs/21**: OBSERVABILITY_AND_SRE (canonical requirements)
-- **docs/7**: DATA_GOVERNANCE (classification levels, PII handling)
+- **docs/03-reference/requirements/DOC-21.md**: OBSERVABILITY_AND_SRE (canonical requirements)
+- **docs/03-reference/requirements/DOC-07.md**: DATA_GOVERNANCE (classification levels, PII handling)
 - **src/modules/core/logging_utils.py**: SafeLogger with governance integration (DOC-07.1)
 - **src/modules/core/observability.py**: Correlation IDs and metrics (DOC-21.1)
 - **docs/ALERT_CONFIGURATION.md**: Alert thresholds (DOC-21.1)
@@ -477,6 +477,6 @@ DOC-21.2 implementation provides:
 ✅ **Structured JSON logging**: StructuredLogFormatter for log aggregation
 ✅ **NoContentLogger**: High-level API enforcing logging guarantees
 ✅ **LogValidator**: Testing utilities for compliance verification
-✅ **100% compliance** with docs/21 section 4
+✅ **100% compliance** with docs/03-reference/requirements/DOC-21.md section 4
 
 The implementation builds on existing governance infrastructure (DOC-07.1) and observability (DOC-21.1) to provide comprehensive no-content logging guarantees with PII minimization.
