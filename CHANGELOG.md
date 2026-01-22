@@ -32,6 +32,7 @@ Meta-commentary:
 
 - **API Pagination Guardrail** (2026-01-23)
   - **T-150**: Reduced max pagination page size to 100 and documented defaults.
+  - **T-150**: Added pagination safety coverage for default, max, and invalid page sizes.
 
 - **Documentation Index + ADR Guidance** (2026-01-23)
   - **T-040**: Expanded DOCS_INDEX categories for implementation, policy, integration, and user guide references.

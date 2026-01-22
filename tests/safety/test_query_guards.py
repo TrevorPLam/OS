@@ -21,6 +21,22 @@ from api.projects.views import TaskViewSet
 User = get_user_model()
 
 
+def create_leads(firm, count):
+    """Create lead records for pagination guard tests."""
+    # Use deterministic seed data so pagination assertions stay stable across runs.
+    leads = [
+        Lead(
+            firm=firm,
+            company_name=f"Company {index}",
+            contact_name=f"Contact {index}",
+            contact_email=f"contact{index}@example.com",
+            source="website",
+        )
+        for index in range(count)
+    ]
+    return Lead.objects.bulk_create(leads)
+
+
 @pytest.fixture
 def firm_users():
     firm_a = Firm.objects.create(name="Firm A", slug="firm-a", status="active")
@@ -125,3 +141,59 @@ def test_task_list_is_firm_scoped(firm_users):
     result_ids = {item["id"] for item in response.data["results"]}
     assert task_a.id in result_ids
     assert task_b.id not in result_ids
+
+
+@pytest.mark.django_db
+def test_pagination_default_page_size_limits_results(firm_users):
+    default_page_size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 50)
+    create_leads(firm_users["firm_a"], default_page_size + 10)
+
+    factory = APIRequestFactory()
+    request = factory.get("/api/crm/leads/")
+    request.firm = firm_users["firm_a"]
+    force_authenticate(request, user=firm_users["user_a"])
+
+    view = LeadViewSet.as_view({"get": "list"})
+    response = view(request)
+
+    # Happy path: default page size should cap results while preserving total count.
+    assert response.status_code == 200
+    assert response.data["count"] == default_page_size + 10
+    assert len(response.data["results"]) == default_page_size
+
+
+@pytest.mark.django_db
+def test_pagination_allows_max_page_size(firm_users):
+    max_page_size = settings.API_PAGINATION_MAX_PAGE_SIZE
+    create_leads(firm_users["firm_a"], max_page_size + 5)
+
+    factory = APIRequestFactory()
+    request = factory.get("/api/crm/leads/", {"page_size": max_page_size})
+    request.firm = firm_users["firm_a"]
+    force_authenticate(request, user=firm_users["user_a"])
+
+    view = LeadViewSet.as_view({"get": "list"})
+    response = view(request)
+
+    # Edge case: allow the largest configured page size without error.
+    assert response.status_code == 200
+    assert response.data["count"] == max_page_size + 5
+    assert len(response.data["results"]) == max_page_size
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("page_size", [0, -1, -10])
+def test_pagination_guard_rejects_non_positive_page_size(firm_users, page_size):
+    create_leads(firm_users["firm_a"], 1)
+
+    factory = APIRequestFactory()
+    request = factory.get("/api/crm/leads/", {"page_size": page_size})
+    request.firm = firm_users["firm_a"]
+    force_authenticate(request, user=firm_users["user_a"])
+
+    view = LeadViewSet.as_view({"get": "list"})
+    response = view(request)
+
+    # Error case: non-positive page sizes must be rejected to avoid undefined pagination.
+    assert response.status_code == 400
+    assert "page_size" in response.data["error"]["details"]

@@ -1,7 +1,7 @@
 # P2TODO.md - Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-22
+Last Updated: 2026-01-24
 Task Truth Source: **P2TODO.md**
 Other Priority Files: P0TODO.md, P1TODO.md, P3TODO.md
 
@@ -88,26 +88,6 @@ References:
 - FORENSIC_AUDIT.md Issue #4.2
 Dependencies: T-150, T-151, T-152
 Effort: M
-
-### T-150: Enforce pagination defaults and bounds (Phase 1 of T-139)
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: IN-REVIEW
-Blocker: None
-Context:
-- Phase 1 of T-139 to enforce safe defaults before viewset audits.
-- Default pagination is configured via REST_FRAMEWORK settings.
-Acceptance Criteria:
-- [x] Set API_PAGINATION_MAX_PAGE_SIZE to 100 (config guardrail).
-- [x] Document where pagination defaults are configured.
-- [ ] Verify configuration change (lint/test/smoke or explain limitation).
-References:
-- src/config/settings.py
-- src/config/pagination.py
-- docs/03-reference/api/README.md
-Dependencies: None
-Effort: S
 
 ### T-151: Audit DRF ViewSets for explicit pagination (Phase 2 of T-139)
 Priority: P2
