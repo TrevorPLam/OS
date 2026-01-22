@@ -23,6 +23,9 @@ Meta-commentary:
 
 ### Changed
 
+- **API Pagination Guardrail** (2026-01-23)
+  - **T-150**: Reduced max pagination page size to 100 and documented defaults.
+
 - **Documentation Index + ADR Guidance** (2026-01-23)
   - **T-040**: Expanded DOCS_INDEX categories for implementation, policy, integration, and user guide references.
   - **T-080**: Added ADR template and decision log scaffolding in docs/05-decisions/.

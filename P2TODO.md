@@ -77,16 +77,72 @@ Context:
 - REFACTOR_PLAN.md Phase 3 Item 1 - Fix performance issues
 - List endpoints lack pagination causing memory exhaustion
 - FORENSIC_AUDIT.md Issue #4.2 - Missing pagination
+- Split into phases: T-150 (defaults + bounds), T-151 (viewset audit), T-152 (tests + docs)
 Acceptance Criteria:
 - [ ] Add pagination_class = PageNumberPagination to all DRF ViewSets
-- [ ] Set max page size to 100 items
 - [ ] Add pagination tests for all list endpoints
 - [ ] Verify pagination in API responses (count, next, previous fields)
 - [ ] Document pagination in API documentation
 References:
 - REFACTOR_PLAN.md:261-265, 859-868
 - FORENSIC_AUDIT.md Issue #4.2
+Dependencies: T-150, T-151, T-152
+Effort: M
+
+### T-150: Enforce pagination defaults and bounds (Phase 1 of T-139)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: IN-REVIEW
+Blocker: None
+Context:
+- Phase 1 of T-139 to enforce safe defaults before viewset audits.
+- Default pagination is configured via REST_FRAMEWORK settings.
+Acceptance Criteria:
+- [x] Set API_PAGINATION_MAX_PAGE_SIZE to 100 (config guardrail).
+- [x] Document where pagination defaults are configured.
+- [ ] Verify configuration change (lint/test/smoke or explain limitation).
+References:
+- src/config/settings.py
+- src/config/pagination.py
+- docs/03-reference/api/README.md
 Dependencies: None
+Effort: S
+
+### T-151: Audit DRF ViewSets for explicit pagination (Phase 2 of T-139)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- Phase 2 of T-139 to ensure all list endpoints use pagination_class explicitly.
+Acceptance Criteria:
+- [ ] Audit all ViewSets for pagination override usage.
+- [ ] Add pagination_class = PageNumberPagination where needed.
+- [ ] Record modules audited and any exceptions in docs/03-reference/api-usage.md.
+References:
+- src/modules/
+- src/api/
+Dependencies: T-150
+Effort: M
+
+### T-152: Add pagination tests and documentation (Phase 3 of T-139)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None
+Context:
+- Phase 3 of T-139 to validate pagination behavior and document it.
+Acceptance Criteria:
+- [ ] Add pagination tests for list endpoints (count/next/previous).
+- [ ] Update API docs with pagination behavior and defaults.
+- [ ] Verify tests pass (or document environment limitation).
+References:
+- tests/
+- docs/03-reference/api-usage.md
+Dependencies: T-151
 Effort: M
 
 ### T-143: Optimize invoice total calculation (REFACTOR Phase 3)
