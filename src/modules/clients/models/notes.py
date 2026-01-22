@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .clients import Client
 
 
 class ClientNote(models.Model):
@@ -21,12 +22,12 @@ class ClientNote(models.Model):
     Used for team collaboration and client history tracking.
     """
 
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .clients import Client
-
-
-class ClientNote(models.Model):
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="notes",
+        help_text="Client this note is about",
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="authored_client_notes"
     )

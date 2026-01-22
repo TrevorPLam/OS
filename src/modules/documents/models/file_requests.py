@@ -10,6 +10,8 @@ from django.utils import timezone
 from modules.core.encryption import field_encryption_service
 from modules.firm.utils import FirmScopedManager
 from modules.projects.models import Project
+from .folders import Folder
+from .shares import ExternalShare
 
 
 class FileRequest(models.Model):
@@ -67,14 +69,20 @@ class FileRequest(models.Model):
     )
 
     # Associated external share (for the upload link)
-from modules.core.encryption import field_encryption_service
-from modules.firm.utils import FirmScopedManager
-from modules.projects.models import Project
-from .folders import Folder
-from .shares import ExternalShare
+    external_share = models.OneToOneField(
+        ExternalShare,
+        on_delete=models.CASCADE,
+        related_name="file_request",
+        help_text="External share for upload link",
+    )
 
-
-class FileRequest(models.Model):
+    # Destination folder
+    folder = models.ForeignKey(
+        Folder,
+        on_delete=models.CASCADE,
+        related_name="file_requests",
+        help_text="Folder where uploaded files will be stored",
+    )
 
     # Request details
     title = models.CharField(

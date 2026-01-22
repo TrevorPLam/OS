@@ -11,6 +11,8 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .clients import Client
+from .portal_users import ClientPortalUser
 
 
 class ContactManager(models.Manager):
@@ -74,13 +76,22 @@ class Contact(models.Model):
     ]
 
     # Client relationship
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .clients import Client
-from .portal_users import ClientPortalUser
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="contacts",
+        help_text="Client organization this contact belongs to",
+    )
 
-
-class ContactManager(models.Manager):
+    # Portal user linkage
+    portal_user = models.OneToOneField(
+        ClientPortalUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="contact",
+        help_text="Associated portal user account (if any)",
+    )
 
     # Communication Preferences
     preferred_contact_method = models.CharField(

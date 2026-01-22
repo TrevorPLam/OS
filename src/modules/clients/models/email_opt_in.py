@@ -11,6 +11,8 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .contacts import Contact
+from .consents import ConsentRecord
 
 
 class EmailOptInRequest(models.Model):
@@ -20,13 +22,12 @@ class EmailOptInRequest(models.Model):
     Tracks confirmation tokens and audit details for opt-in workflows.
     """
 
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .contacts import Contact
-from .consents import ConsentRecord
-
-
-class EmailOptInRequest(models.Model):
+    contact = models.ForeignKey(
+        Contact,
+        on_delete=models.CASCADE,
+        related_name="email_opt_in_requests",
+        help_text="Contact requesting opt-in",
+    )
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     requested_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(help_text="When the confirmation link expires")

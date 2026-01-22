@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .contacts import Contact
 
 
 class ConsentRecord(models.Model):
@@ -104,12 +105,22 @@ class ConsentRecord(models.Model):
     ]
     
     # TIER 0: Firm tenancy (via contact)
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .contacts import Contact
+    firm = models.ForeignKey(
+        "firm.Firm",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="consent_records",
+        help_text="Firm this consent record belongs to (auto-populated from contact)",
+    )
 
-
-class ConsentRecord(models.Model):
+    # Contact relationship
+    contact = models.ForeignKey(
+        Contact,
+        on_delete=models.CASCADE,
+        related_name="consent_records",
+        help_text="Contact this consent record is for",
+    )
     
     # Consent details
     consent_type = models.CharField(

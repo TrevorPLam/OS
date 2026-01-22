@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .clients import Client
 
 
 class ClientPortalUser(models.Model):
@@ -26,12 +27,15 @@ class ClientPortalUser(models.Model):
         ("viewer", "View Only"),
     ]
 
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .clients import Client
+    # Relationships
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name="portal_users")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="client_portal_access",
+        help_text="User with portal access to client",
+    )
 
-
-class ClientPortalUser(models.Model):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="member")
 
     # Permissions

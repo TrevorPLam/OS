@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .clients import Client
 
 
 class ClientHealthScore(models.Model):
@@ -27,12 +28,12 @@ class ClientHealthScore(models.Model):
     """
     
     # Client relationship
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .clients import Client
-
-
-class ClientHealthScore(models.Model):
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="health_scores",
+        help_text="Client this health score is for",
+    )
     
     # Overall Health Score (0-100)
     score = models.IntegerField(
