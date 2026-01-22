@@ -39,7 +39,7 @@ Each variable includes an evidence reference to the file(s) that read or define 
 | Variable | Required | Default | Purpose | Evidence |
 | --- | --- | --- | --- | --- |
 | `CORS_ALLOWED_ORIGINS` | Yes (if frontend separate) | `http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173` | Allowed CORS origins. | `.env.example`, `src/config/settings.py` |
-| `CSRF_TRUSTED_ORIGINS` | No | `CORS_ALLOWED_ORIGINS` | Explicit CSRF trusted origins override. | `src/config/settings.py` |
+| `CSRF_TRUSTED_ORIGINS` | No | Falls back to `CORS_ALLOWED_ORIGINS` if unset | Explicit CSRF trusted origins override. | `src/config/settings.py` |
 
 ## Tracking Pipeline
 
