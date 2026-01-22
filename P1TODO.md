@@ -1,7 +1,7 @@
 # P1TODO.md - Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-22
+Last Updated: 2026-01-23
 Task Truth Source: **P1TODO.md**
 Other Priority Files: P0TODO.md, P2TODO.md, P3TODO.md
 
@@ -92,28 +92,6 @@ References:
 - .github/workflows/ci.yml
 Dependencies: None
 Effort: M
-
-### T-133: Configure dependency scanning in CI pipeline (REFACTOR Phase 1)
-Priority: P1
-Type: SECURITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 1 Item 3 - Prevent known CVEs in production
-- No automated dependency vulnerability scanning
-- FORENSIC_AUDIT.md Issue #6.2, #6.4 - CVE risks
-Acceptance Criteria:
-- [ ] Add pip-audit to CI workflow (security job)
-- [ ] Configure weekly dependency scan schedule
-- [ ] Add safety check for Python dependencies
-- [ ] Document dependency scanning process
-- [ ] Set up notifications for new vulnerabilities
-References:
-- REFACTOR_PLAN.md:203-206
-- FORENSIC_AUDIT.md Issue #6.2, #6.4
-Dependencies: T-131 (CI workflow)
-Effort: S
 
 ### T-148: Enable GitHub Actions workflows and remove cost-control governance
 Priority: P1

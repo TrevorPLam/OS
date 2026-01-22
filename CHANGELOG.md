@@ -23,6 +23,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Dependency Scanning Schedule & Alerts** (2026-01-23)
+  - **T-133**: Added pip-audit scanning, weekly scheduled checks, and issue notifications for dependency vulnerabilities.
+
 - **Pre-commit Validation Coverage** (2026-01-22)
   - **T-132**: Confirmed comprehensive pre-commit hooks for linting, typing, secret scanning, and frontend eslint.
 

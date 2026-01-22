@@ -58,6 +58,20 @@ If a dependency’s usage cannot be verified in code, it is marked **UNKNOWN** w
 
 **Note:** Architectural boundary checks use `import-linter==2.0`, which is installed directly in the CI workflow (`.github/workflows/ci.yml`) and is not listed in `requirements-dev.txt`.
 
+## Dependency scanning process
+
+**Automated checks (CI):**
+- `pip-audit` runs in the CI security job to flag known CVEs in pinned Python dependencies.
+- `safety check --file requirements.txt` runs alongside `pip-audit` for redundant CVE coverage.
+- A weekly scheduled CI run triggers dependency scans even without new commits.
+- Scheduled scan failures open a GitHub issue and trigger workflow notifications for maintainers.
+
+**Local verification:**
+```bash
+pip-audit -r requirements.txt -r requirements-dev.txt
+safety check --file requirements.txt
+```
+
 ## Upgrade workflow (recommended)
 1. Update the version pin in `requirements.txt` or `requirements-dev.txt`.
 2. Re-run `pip install -r requirements.txt -r requirements-dev.txt` in a clean virtualenv.
