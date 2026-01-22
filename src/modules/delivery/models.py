@@ -1,5 +1,5 @@
 """
-Delivery Templates Models (DOC-12.1 per docs/12 DELIVERY_TEMPLATES_SPEC).
+Delivery Templates Models (DOC-12.1 per docs/03-reference/requirements/DOC-12.md DELIVERY_TEMPLATES_SPEC).
 
 Implements:
 - DeliveryTemplate: Versioned templates for creating WorkItems
@@ -25,7 +25,7 @@ from modules.firm.utils import FirmScopedManager
 
 class DeliveryTemplate(models.Model):
     """
-    DeliveryTemplate model per docs/12 section 2.1.
+    DeliveryTemplate model per docs/03-reference/requirements/DOC-12.md section 2.1.
 
     A versioned template for creating a set of WorkItems.
 
@@ -302,7 +302,7 @@ class DeliveryTemplate(models.Model):
 
 class DeliveryNode(models.Model):
     """
-    DeliveryNode model per docs/12 section 2.2.
+    DeliveryNode model per docs/03-reference/requirements/DOC-12.md section 2.2.
 
     Represents a unit of planned work that becomes a WorkItem.
 
@@ -492,7 +492,7 @@ class DeliveryNode(models.Model):
 
 class DeliveryEdge(models.Model):
     """
-    DeliveryEdge model per docs/12 section 2.3.
+    DeliveryEdge model per docs/03-reference/requirements/DOC-12.md section 2.3.
 
     Directed edge defining dependencies between nodes.
 
@@ -582,7 +582,7 @@ class DeliveryEdge(models.Model):
 
 class TemplateInstantiation(models.Model):
     """
-    TemplateInstantiation model per docs/12 section 4.
+    TemplateInstantiation model per docs/03-reference/requirements/DOC-12.md section 4.
 
     Tracks when templates are instantiated into WorkItems.
 

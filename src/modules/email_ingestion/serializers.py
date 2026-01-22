@@ -125,7 +125,7 @@ class EmailArtifactDetailSerializer(serializers.ModelSerializer):
 
 
 class ConfirmMappingSerializer(serializers.Serializer):
-    """Serializer for confirming email mapping (per docs/15 section 5)."""
+    """Serializer for confirming email mapping (per docs/03-reference/requirements/DOC-15.md section 5)."""
 
     account_id = serializers.IntegerField(required=False, allow_null=True)
     engagement_id = serializers.IntegerField(required=False, allow_null=True)
@@ -139,7 +139,7 @@ class ConfirmMappingSerializer(serializers.Serializer):
 
 
 class MarkIgnoredSerializer(serializers.Serializer):
-    """Serializer for marking email as ignored (per docs/15 section 5)."""
+    """Serializer for marking email as ignored (per docs/03-reference/requirements/DOC-15.md section 5)."""
 
     reason = serializers.CharField(required=True, max_length=500)
 

@@ -1336,3 +1336,21 @@ References:
 - src/modules/projects/critical_path.py
 Dependencies: T-064, T-065, T-066, T-067
 Effort: M
+
+### T-039: Resolve numbered docs inventory decision
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-22)
+Context:
+- docs/ contained 35 numbered requirement files without .md extension.
+- Documentation standards require organized, discoverable references.
+Acceptance Criteria:
+- [x] Move numbered requirement docs into docs/03-reference/requirements/ with DOC-##.md filenames.
+- [x] Update references to the new requirements paths.
+- [x] Add a requirements index for navigation.
+References:
+- docs/03-reference/requirements/
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: S

@@ -1,14 +1,14 @@
 # Pricing RuleSet Immutability and Schema Compatibility
 
 **Implementation Date:** December 30, 2025
-**Spec Compliance:** docs/9 (PRICING_ENGINE_SPEC) sections 2.1, 3.1
+**Spec Compliance:** docs/03-reference/requirements/DOC-09.md (PRICING_ENGINE_SPEC) sections 2.1, 3.1
 **Status:** ✅ Complete (DOC-09.3)
 
 ---
 
 ## Overview
 
-This document describes the implementation of pricing ruleset publishing immutability, checksum enforcement, and schema version compatibility checking per docs/9.
+This document describes the implementation of pricing ruleset publishing immutability, checksum enforcement, and schema version compatibility checking per docs/03-reference/requirements/DOC-09.md.
 
 ### Key Capabilities
 
@@ -20,7 +20,7 @@ This document describes the implementation of pricing ruleset publishing immutab
 
 ## Architecture
 
-### 1. Publishing Immutability (docs/9 section 2.1)
+### 1. Publishing Immutability (docs/03-reference/requirements/DOC-09.md section 2.1)
 
 **Invariant:** Published RuleSets MUST be immutable.
 
@@ -87,7 +87,7 @@ if self.pk:
 
 ---
 
-### 2. Checksum Enforcement (docs/9 section 2.1)
+### 2. Checksum Enforcement (docs/03-reference/requirements/DOC-09.md section 2.1)
 
 **Invariant:** A QuoteVersion MUST reference the exact RuleSet (id + version + checksum).
 
@@ -153,7 +153,7 @@ Located in: `src/modules/pricing/models.py:RuleSet`
 
 ---
 
-### 3. Schema Version Compatibility (docs/9 section 3.1)
+### 3. Schema Version Compatibility (docs/03-reference/requirements/DOC-09.md section 3.1)
 
 **Requirements:**
 - Schema MUST include `schema_version`
@@ -392,7 +392,7 @@ print(ruleset.deprecated_at)  # "2025-12-30 12:00:00"
 
 ## Compliance Matrix
 
-| docs/9 Requirement | Implementation | Location |
+| docs/03-reference/requirements/DOC-09.md Requirement | Implementation | Location |
 |-------------------|----------------|----------|
 | 2.1: Published RuleSets MUST be immutable | ✅ Enforced in save() | `models.py:152` |
 | 2.1: QuoteVersion MUST reference exact RuleSet (id+version+checksum) | ✅ Stored in ruleset_checksum field | `models.py:336` |
@@ -453,7 +453,7 @@ Test coverage needed:
 
 ## Related Documentation
 
-- **docs/9** - PRICING_ENGINE_SPEC (normative spec)
+- **docs/03-reference/requirements/DOC-09.md** - PRICING_ENGINE_SPEC (normative spec)
 - **src/modules/pricing/models.py** - RuleSet, Quote, QuoteVersion models
 - **src/modules/pricing/evaluator.py** - PricingEvaluator with validation
 - **src/modules/pricing/schema_compatibility.py** - Schema version checking
@@ -462,7 +462,7 @@ Test coverage needed:
 
 ## Summary
 
-This implementation provides complete immutability, tamper detection, and schema compatibility enforcement for pricing rulesets per docs/9.
+This implementation provides complete immutability, tamper detection, and schema compatibility enforcement for pricing rulesets per docs/03-reference/requirements/DOC-09.md.
 
 **Key Features:**
 - ✅ Published rulesets are fully immutable
@@ -473,4 +473,4 @@ This implementation provides complete immutability, tamper detection, and schema
 - ✅ Support for lifecycle transitions (published → deprecated)
 - ✅ Reproducible quote evaluation via checksum reference
 
-**Status:** Production-ready, 100% compliant with docs/9 requirements.
+**Status:** Production-ready, 100% compliant with docs/03-reference/requirements/DOC-09.md requirements.

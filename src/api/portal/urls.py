@@ -5,7 +5,7 @@ This is the ONLY namespace that portal users can access.
 All endpoints here are portal-specific and client-scoped.
 
 TIER 0: Portal containment - explicit allowlist.
-DOC-26.1: Implements primary navigation and core flows per docs/26.
+DOC-26.1: Implements primary navigation and core flows per docs/03-reference/requirements/DOC-26.md.
 """
 
 from django.urls import include, path

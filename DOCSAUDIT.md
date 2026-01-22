@@ -79,3 +79,15 @@ Required outputs:
   - Are numbered docs files (docs/1-35) still needed?
   - Do you want end-user guides for firm admins and client portal users?
   - Should PROJECT_STATUS.md be populated?
+
+### 2026-01-22 — Documentation Audit
+- Agent: AGENT
+- Scope: Governance docs and document management docs
+- Findings:
+  - Organized canonical requirement specs into `docs/03-reference/requirements/` and updated references to match new paths.
+  - Added requirements index for discoverability and updated docs index.
+  - Identified open task references in governance/documentation docs and backfilled them into P2/P3 task lists.
+- Tasks created/updated:
+  - T-014, T-018, T-019, T-020, T-021, T-022, T-023, T-024, T-025, T-048, T-056, T-063, T-153, T-154, T-155, T-156, T-157, T-158, T-159, T-160
+- Questions for Trevor:
+  - Confirm priority/ownership for AD integration (AD-1 through AD-5) and event/marketplace/audit initiatives.

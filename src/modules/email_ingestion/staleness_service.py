@@ -1,7 +1,7 @@
 """
 Email Ingestion Staleness Detection Service.
 
-Implements DOC-15.2: staleness heuristics per docs/15 section 4.
+Implements DOC-15.2: staleness heuristics per docs/03-reference/requirements/DOC-15.md section 4.
 
 Staleness detection identifies emails that should go to triage due to:
 - Contact email matches multiple accounts
@@ -47,7 +47,7 @@ class StalenessDetector:
     """
     Detects staleness conditions for email mapping suggestions.
 
-    Implements docs/15 section 4: staleness heuristics and triage rules.
+    Implements docs/03-reference/requirements/DOC-15.md section 4: staleness heuristics and triage rules.
     """
 
     def __init__(self, config: StalenessConfig = None):
@@ -249,7 +249,7 @@ class StalenessDetector:
         """
         Determine if email should be forced to triage regardless of confidence.
 
-        Per docs/15 section 4: if confidence is low or ambiguity exists, place in Triage.
+        Per docs/03-reference/requirements/DOC-15.md section 4: if confidence is low or ambiguity exists, place in Triage.
 
         Returns:
             True if should go to triage

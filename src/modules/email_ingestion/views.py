@@ -2,7 +2,7 @@
 Email Ingestion Views.
 
 Provides API endpoints for email triage, mapping, and review workflows.
-Implements docs/15 section 5 (correction workflow) and section 6 (permissions).
+Implements docs/03-reference/requirements/DOC-15.md section 5 (correction workflow) and section 6 (permissions).
 """
 
 from rest_framework import viewsets, status
@@ -30,7 +30,7 @@ class EmailConnectionViewSet(viewsets.ModelViewSet):
     """
     ViewSet for EmailConnection management.
 
-    Per docs/15 section 6: Only staff can view and manage email connections.
+    Per docs/03-reference/requirements/DOC-15.md section 6: Only staff can view and manage email connections.
     """
 
     queryset = EmailConnection.objects.all()
@@ -55,14 +55,14 @@ class EmailArtifactViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for EmailArtifact triage and review.
 
-    Per docs/15 section 6: Only staff can view and triage emails.
+    Per docs/03-reference/requirements/DOC-15.md section 6: Only staff can view and triage emails.
     Portal identities cannot see raw ingested emails.
 
     Provides actions for:
     - Listing emails in triage queue
     - Viewing email details
-    - Confirming mappings (correction workflow per docs/15 section 5)
-    - Marking emails as ignored (correction workflow per docs/15 section 5)
+    - Confirming mappings (correction workflow per docs/03-reference/requirements/DOC-15.md section 5)
+    - Marking emails as ignored (correction workflow per docs/03-reference/requirements/DOC-15.md section 5)
     """
 
     queryset = EmailArtifact.objects.all()
@@ -92,7 +92,7 @@ class EmailArtifactViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["post"], url_path="confirm-mapping")
     def confirm_mapping(self, request, pk=None):
         """
-        Confirm mapping for an email artifact (per docs/15 section 5).
+        Confirm mapping for an email artifact (per docs/03-reference/requirements/DOC-15.md section 5).
 
         Creates an audit event and updates confirmed mapping fields.
         """
@@ -135,7 +135,7 @@ class EmailArtifactViewSet(viewsets.ReadOnlyModelViewSet):
                     {"error": "WorkItem not found"}, status=status.HTTP_404_NOT_FOUND
                 )
 
-        # Confirm mapping (creates audit event per docs/15 section 5)
+        # Confirm mapping (creates audit event per docs/03-reference/requirements/DOC-15.md section 5)
         email.confirm_mapping(
             account=account, engagement=engagement, work_item=work_item, user=request.user
         )
@@ -148,7 +148,7 @@ class EmailArtifactViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["post"], url_path="mark-ignored")
     def mark_ignored(self, request, pk=None):
         """
-        Mark email as ignored with a reason (per docs/15 section 5).
+        Mark email as ignored with a reason (per docs/03-reference/requirements/DOC-15.md section 5).
 
         Creates an audit event.
         """
@@ -156,7 +156,7 @@ class EmailArtifactViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = MarkIgnoredSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # Mark ignored (creates audit event per docs/15 section 5)
+        # Mark ignored (creates audit event per docs/03-reference/requirements/DOC-15.md section 5)
         email.mark_ignored(reason=serializer.validated_data["reason"], user=request.user)
 
         return Response(
@@ -169,7 +169,7 @@ class EmailArtifactViewSet(viewsets.ReadOnlyModelViewSet):
         """
         Get emails that need triage (status = triage or ingested with medium confidence).
 
-        Per docs/15 section 4: triage items must be reviewable and re-mappable.
+        Per docs/03-reference/requirements/DOC-15.md section 4: triage items must be reviewable and re-mappable.
         """
         triage_emails = self.get_queryset().filter(status__in=["triage", "ingested"]).order_by("-sent_at")
         page = self.paginate_queryset(triage_emails)
@@ -185,8 +185,8 @@ class IngestionAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     """
     ViewSet for IngestionAttempt logs.
 
-    Per docs/15 section 2.3: logs every ingestion attempt for debugging and retry-safety.
-    Staff-only access per docs/15 section 6.
+    Per docs/03-reference/requirements/DOC-15.md section 2.3: logs every ingestion attempt for debugging and retry-safety.
+    Staff-only access per docs/03-reference/requirements/DOC-15.md section 6.
     """
 
     queryset = IngestionAttempt.objects.all()

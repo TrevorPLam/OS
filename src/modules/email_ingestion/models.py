@@ -4,7 +4,7 @@ Email Ingestion Models.
 Implements email ingestion from Gmail/Outlook with governed artifact storage,
 mapping suggestions, triage workflow, and audit trail.
 
-Complies with docs/15 EMAIL_INGESTION_SPEC.
+Complies with docs/03-reference/requirements/DOC-15.md EMAIL_INGESTION_SPEC.
 """
 
 from decimal import Decimal
@@ -75,7 +75,7 @@ class EmailConnection(models.Model):
 
 class EmailArtifact(models.Model):
     """
-    EmailArtifact model (per docs/15 section 2.1).
+    EmailArtifact model (per docs/03-reference/requirements/DOC-15.md section 2.1).
 
     Represents an ingested email message with governance and mapping.
     """
@@ -109,7 +109,7 @@ class EmailArtifact(models.Model):
         help_text="Email provider (gmail, outlook, other)",
     )
 
-    # External identifiers (per docs/15 section 2.1)
+    # External identifiers (per docs/03-reference/requirements/DOC-15.md section 2.1)
     external_message_id = models.CharField(
         max_length=512, help_text="Provider's unique message ID (required; unique per connection)"
     )
@@ -120,7 +120,7 @@ class EmailArtifact(models.Model):
         help_text="Provider's thread/conversation ID (nullable)",
     )
 
-    # Email metadata (governed fields - R-PII per docs/15 section 2.1)
+    # Email metadata (governed fields - R-PII per docs/03-reference/requirements/DOC-15.md section 2.1)
     from_address = models.EmailField(help_text="Sender email address (governed: R-PII)")
     to_addresses = models.TextField(help_text="Recipient email addresses, comma-separated (governed: R-PII)")
     cc_addresses = models.TextField(
@@ -241,7 +241,7 @@ class EmailArtifact(models.Model):
             models.Index(fields=["suggested_account"], name="emailinges_sug_idx"),
             models.Index(fields=["confirmed_account"], name="emailinges_con_idx"),
         ]
-        # Uniqueness constraint per docs/15 section 2.1
+        # Uniqueness constraint per docs/03-reference/requirements/DOC-15.md section 2.1
         unique_together = [["connection", "external_message_id"]]
 
     def __str__(self):
@@ -270,7 +270,7 @@ class EmailArtifact(models.Model):
 
     def confirm_mapping(self, account=None, engagement=None, work_item=None, user=None):
         """
-        Confirm mapping for this email (per docs/15 section 5 correction workflow).
+        Confirm mapping for this email (per docs/03-reference/requirements/DOC-15.md section 5 correction workflow).
 
         Creates an audit event and updates confirmed mapping fields.
         """
@@ -288,7 +288,7 @@ class EmailArtifact(models.Model):
         self.status = "mapped" if (account or engagement or work_item) else self.status
         self.save()
 
-        # Audit event per docs/15 section 5
+        # Audit event per docs/03-reference/requirements/DOC-15.md section 5
         AuditEvent.objects.create(
             firm=self.firm,
             event_category="data",
@@ -309,7 +309,7 @@ class EmailArtifact(models.Model):
 
     def mark_ignored(self, reason, user=None):
         """
-        Mark this email as ignored with a reason (per docs/15 section 5).
+        Mark this email as ignored with a reason (per docs/03-reference/requirements/DOC-15.md section 5).
 
         Creates an audit event.
         """
@@ -340,7 +340,7 @@ class EmailAttachment(models.Model):
     """
     EmailAttachment linking table.
 
-    Links EmailArtifact to Document (per docs/15 section 2.2).
+    Links EmailArtifact to Document (per docs/03-reference/requirements/DOC-15.md section 2.2).
     Each attachment is stored as a governed Document.
     """
 
@@ -384,7 +384,7 @@ class EmailAttachment(models.Model):
 
 class IngestionAttempt(models.Model):
     """
-    IngestionAttempt / SyncAttemptLog model (per docs/15 section 2.3).
+    IngestionAttempt / SyncAttemptLog model (per docs/03-reference/requirements/DOC-15.md section 2.3).
 
     Records every ingestion attempt for retry-safety and debugging.
     Implements DOC-15.2: retry-safety with error classification.
@@ -462,7 +462,7 @@ class IngestionAttempt(models.Model):
         default=False, help_text="Whether max retry attempts have been exhausted"
     )
 
-    # Observability (per docs/21 OBSERVABILITY)
+    # Observability (per docs/03-reference/requirements/DOC-21.md OBSERVABILITY)
     correlation_id = models.UUIDField(
         null=True, blank=True, help_text="Correlation ID for tracing across systems"
     )

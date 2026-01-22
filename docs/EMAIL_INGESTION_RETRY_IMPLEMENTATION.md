@@ -2,7 +2,7 @@
 
 **Status:** ✅ Complete
 **Last Updated:** December 30, 2025
-**Complies with:** docs/15 EMAIL_INGESTION_SPEC sections 2.3, 4, 5
+**Complies with:** docs/03-reference/requirements/DOC-15.md EMAIL_INGESTION_SPEC sections 2.3, 4, 5
 
 ---
 
@@ -12,8 +12,8 @@ This document describes the implementation of DOC-15.2: IngestionAttempt logs + 
 
 The implementation provides:
 1. **Retry-safety** with exponential backoff and error classification
-2. **Staleness detection** per docs/15 section 4
-3. **Auditable correction workflows** per docs/15 section 5
+2. **Staleness detection** per docs/03-reference/requirements/DOC-15.md section 4
+3. **Auditable correction workflows** per docs/03-reference/requirements/DOC-15.md section 5
 4. **Manual retry tooling** for admin intervention
 
 ---
@@ -78,7 +78,7 @@ New fields added to `IngestionAttempt` model:
 
 ### 2.1 Staleness Heuristics
 
-Per docs/15 section 4, staleness applies when:
+Per docs/03-reference/requirements/DOC-15.md section 4, staleness applies when:
 
 | Condition | Confidence Penalty | Requires Triage |
 |-----------|-------------------|-----------------|
@@ -131,7 +131,7 @@ Already implemented in DOC-15.1:
 
 ### 3.2 Audit Trail Requirements
 
-Per docs/15 section 5:
+Per docs/03-reference/requirements/DOC-15.md section 5:
 - ✅ Corrections do NOT delete underlying artifact
 - ✅ Corrections are auditable (before/after, who, when)
 - ✅ All mappings changes create `AuditEvent` records
@@ -249,7 +249,7 @@ print(f"Requires triage: {requires_triage}")
 
 ## 5. Testing Requirements
 
-Per docs/15 section 7, tests must cover:
+Per docs/03-reference/requirements/DOC-15.md section 7, tests must cover:
 
 ### 5.1 Retry-Safety Tests
 - ✅ Error classification (transient, retryable, non_retryable, rate_limited)
@@ -278,7 +278,7 @@ Per docs/15 section 7, tests must cover:
 
 ## 6. Compliance Matrix
 
-| Requirement | docs/15 Section | Status | Implementation |
+| Requirement | docs/03-reference/requirements/DOC-15.md Section | Status | Implementation |
 |-------------|-----------------|--------|----------------|
 | IngestionAttempt logs all attempts | 2.3 | ✅ Complete | `models.py::IngestionAttempt` |
 | Retry-safety with exponential backoff | 2.3 | ✅ Complete | `retry_service.py::RetryStrategy` |
@@ -326,9 +326,9 @@ Track manual corrections to improve staleness detection:
 
 ## 8. Related Documentation
 
-- **docs/15**: EMAIL_INGESTION_SPEC (canonical requirements)
-- **docs/11**: ORCHESTRATION (similar retry/error classification patterns)
-- **docs/21**: OBSERVABILITY (correlation IDs, metrics)
+- **docs/03-reference/requirements/DOC-15.md**: EMAIL_INGESTION_SPEC (canonical requirements)
+- **docs/03-reference/requirements/DOC-11.md**: ORCHESTRATION (similar retry/error classification patterns)
+- **docs/03-reference/requirements/DOC-21.md**: OBSERVABILITY (correlation IDs, metrics)
 - **src/modules/orchestration/executor.py**: Retry pattern reference
 
 ---
@@ -354,6 +354,6 @@ DOC-15.2 implementation provides:
 ✅ **Staleness detection**: 4 heuristics with confidence penalties
 ✅ **Auditable corrections**: All remaps/ignores create audit events
 ✅ **Manual retry tooling**: Admin-gated retry with full audit trail
-✅ **100% compliance** with docs/15 sections 2.3, 4, 5
+✅ **100% compliance** with docs/03-reference/requirements/DOC-15.md sections 2.3, 4, 5
 
-The implementation follows established patterns from orchestration engine (docs/11) and observability (docs/21) for consistency across the platform.
+The implementation follows established patterns from orchestration engine (docs/03-reference/requirements/DOC-11.md) and observability (docs/03-reference/requirements/DOC-21.md) for consistency across the platform.

@@ -2,7 +2,7 @@
 Calendar Services.
 
 Aggregator for availability computation, routing, and booking logic.
-Implements docs/34 sections 2.4, 3, and 4.
+Implements docs/03-reference/requirements/DOC-34.md sections 2.4, 3, and 4.
 Enhanced with AVAIL-1: Multiple calendar support and external calendar conflict checking.
 Enhanced with AVAIL-2: Comprehensive availability rules (recurring unavailability, holidays, meeting gaps).
 """

@@ -429,12 +429,12 @@ Spec impact
 Status: Accepted  
 Date: 2025-12-29  
 Owners: Platform  
-Related: SYSTEM_SPEC.md (Tenancy); ARCHITECTURE_OVERVIEW.md; docs/1; docs/3; docs/5; docs/19; docs/24
+Related: SYSTEM_SPEC.md (Tenancy); ARCHITECTURE_OVERVIEW.md; docs/03-reference/requirements/DOC-01.md; docs/03-reference/requirements/DOC-03.md; docs/03-reference/requirements/DOC-05.md; docs/03-reference/requirements/DOC-19.md; docs/03-reference/requirements/DOC-24.md
 
 Context  
 - ADR-0001 stated "schema-per-tenant" as the tenancy model.
 - The actual codebase implementation uses **firm-scoped row-level isolation** (every model has a `firm` ForeignKey).
-- This contradiction exists across docs/1, docs/3, docs/5, docs/19, and docs/24.
+- This contradiction exists across docs/03-reference/requirements/DOC-01.md, docs/03-reference/requirements/DOC-03.md, docs/03-reference/requirements/DOC-05.md, docs/03-reference/requirements/DOC-19.md, and docs/03-reference/requirements/DOC-24.md.
 - The working code represents the actual, tested, production-ready tenancy model.
 
 Decision  
@@ -472,11 +472,11 @@ Migration path to schema-per-tenant (if needed later):
 4. Update connection routing based on request context.
 
 Spec impact  
-- docs/1: Update "Multi-tenancy" description from "schema-per-tenant" to "firm-scoped row-level isolation"
-- docs/3: Update "Tenancy model" section
-- docs/5: Update tenancy invariant statement
-- docs/19: Reframe as optional future enhancement, not current blueprint
-- docs/24: Update security model tenancy description
+- docs/03-reference/requirements/DOC-01.md: Update "Multi-tenancy" description from "schema-per-tenant" to "firm-scoped row-level isolation"
+- docs/03-reference/requirements/DOC-03.md: Update "Tenancy model" section
+- docs/03-reference/requirements/DOC-05.md: Update tenancy invariant statement
+- docs/03-reference/requirements/DOC-19.md: Reframe as optional future enhancement, not current blueprint
+- docs/03-reference/requirements/DOC-24.md: Update security model tenancy description
 - ADR-0001: Mark as superseded by ADR-0010
 
 ---

@@ -1,5 +1,5 @@
 """
-Recurrence Engine Models (DOC-10.1 per docs/10 RECURRENCE_ENGINE_SPEC).
+Recurrence Engine Models (DOC-10.1 per docs/03-reference/requirements/DOC-10.md RECURRENCE_ENGINE_SPEC).
 
 Implements:
 - RecurrenceRule: Definition of "what repeats" and "how to compute periods"
@@ -23,7 +23,7 @@ from modules.firm.utils import FirmScopedManager
 
 class RecurrenceRule(models.Model):
     """
-    RecurrenceRule model per docs/10 section 2.1.
+    RecurrenceRule model per docs/03-reference/requirements/DOC-10.md section 2.1.
 
     A definition of "what repeats" and "how to compute periods."
 
@@ -138,7 +138,7 @@ class RecurrenceRule(models.Model):
         help_text="IANA timezone (required; e.g., 'America/New_York')",
     )
 
-    # DST policy (docs/10 section 3.2)
+    # DST policy (docs/03-reference/requirements/DOC-10.md section 3.2)
     dst_ambiguous_policy = models.CharField(
         max_length=20,
         default="first",
@@ -309,7 +309,7 @@ class RecurrenceRule(models.Model):
 
 class RecurrenceGeneration(models.Model):
     """
-    RecurrenceGeneration model per docs/10 section 2.3.
+    RecurrenceGeneration model per docs/03-reference/requirements/DOC-10.md section 2.3.
 
     The dedupe ledger representing the "fact" that the system generated
     (or attempted to generate) an instance for a given period.
@@ -475,7 +475,7 @@ class RecurrenceGeneration(models.Model):
         discriminator: str = "",
     ) -> str:
         """
-        Compute idempotency key per docs/10 section 5.2.
+        Compute idempotency key per docs/03-reference/requirements/DOC-10.md section 5.2.
 
         Args:
             firm_id: Firm ID

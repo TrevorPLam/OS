@@ -2,13 +2,13 @@
 
 **Document Status:** Canonical
 **Last Updated:** December 29, 2025
-**Purpose:** Documents intentional differences between current repo structure and docs/17 blueprint
+**Purpose:** Documents intentional differences between current repo structure and docs/03-reference/requirements/DOC-17.md blueprint
 
 ---
 
 ## Executive Summary
 
-The current repository structure differs from the intended monorepo structure defined in docs/17. This document explains these differences, rationale for current organization, and migration path to the intended structure.
+The current repository structure differs from the intended monorepo structure defined in docs/03-reference/requirements/DOC-17.md. This document explains these differences, rationale for current organization, and migration path to the intended structure.
 
 **Key Finding:** Current structure is a **monolithic Django application** with frontend embedded. Intended structure is a **true monorepo** with separated apps, domain packages, and engines.
 
@@ -19,8 +19,8 @@ The current repository structure differs from the intended monorepo structure de
 ```
 /home/user/OS/
 ├── docs/                    # Documentation (matches intended)
-├── spec/                    # System specifications (not in docs/17)
-├── scripts/                 # Utility scripts (not in docs/17)
+├── spec/                    # System specifications (not in docs/03-reference/requirements/DOC-17.md)
+├── scripts/                 # Utility scripts (not in docs/03-reference/requirements/DOC-17.md)
 ├── src/                     # All application code (differs from intended)
 │   ├── api/                 # API layer (DRF ViewSets, serializers)
 │   ├── config/              # Django project settings
@@ -45,7 +45,7 @@ The current repository structure differs from the intended monorepo structure de
 
 ---
 
-## Intended Structure (per docs/17)
+## Intended Structure (per docs/03-reference/requirements/DOC-17.md)
 
 ```
 /
@@ -92,7 +92,7 @@ The current repository structure differs from the intended monorepo structure de
 | Permissions | Mixed in ViewSets + decorators | Dedicated `packages/permissions/` | Authorization scattered |
 | Documents | `src/modules/documents/` (Django app) | `packages/documents/` (pure service) | Django File/Storage dependency |
 
-### 3. Boundary Violations (per docs/17 rules)
+### 3. Boundary Violations (per docs/03-reference/requirements/DOC-17.md rules)
 
 **Rule:** domain-core MUST NOT depend on DB/ORM/network/UI
 
@@ -226,17 +226,17 @@ Follow migration path above when:
 
 ## Decision: Current Structure is Intentional
 
-**Status:** Current structure is **intentionally different** from docs/17 blueprint.
+**Status:** Current structure is **intentionally different** from docs/03-reference/requirements/DOC-17.md blueprint.
 
 **Reasoning:**
 1. Django monolith is appropriate for current team size (1-3 engineers)
 2. Refactoring to monorepo requires 4-6 months (Phases 1-4)
 3. Business value of monorepo (multi-team ownership, service extraction) not yet needed
-4. docs/17 remains aspirational blueprint for future scaling
+4. docs/03-reference/requirements/DOC-17.md remains aspirational blueprint for future scaling
 
 **Action Required:**
-- Keep docs/17 as long-term vision
-- Update docs/17 with "Current vs Intended" section pointing to this document
+- Keep docs/03-reference/requirements/DOC-17.md as long-term vision
+- Update docs/03-reference/requirements/DOC-17.md with "Current vs Intended" section pointing to this document
 - Revisit when team reaches 5+ engineers or service extraction is required
 
 ---
@@ -262,7 +262,7 @@ Frontend (src/frontend/)
 API Layer
 ```
 
-**Violations of docs/17:**
+**Violations of docs/03-reference/requirements/DOC-17.md:**
 - No clear domain-core (business logic in models)
 - No engine separation (pricing in finance module)
 - UI apps not separated (staff + portal bundled)
@@ -271,7 +271,7 @@ API Layer
 
 ## References
 
-- **docs/17**: Intended monorepo structure blueprint
+- **docs/03-reference/requirements/DOC-17.md**: Intended monorepo structure blueprint
 - **spec/SYSTEM_SPEC.md**: System invariants (takes precedence over structure)
 - **CONTRIBUTING.md**: Current development guidelines
 

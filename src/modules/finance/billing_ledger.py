@@ -1,7 +1,7 @@
 """
 Billing Ledger Models (DOC-13.1, DOC-13.2).
 
-Implements ledger-first billing per BILLING_LEDGER_SPEC (docs/13).
+Implements ledger-first billing per BILLING_LEDGER_SPEC (docs/03-reference/requirements/DOC-13.md).
 
 Key Requirements:
 - All money-impacting actions as immutable ledger entries
@@ -23,10 +23,10 @@ class BillingLedgerEntry(models.Model):
     """
     Immutable billing ledger entry (DOC-13.1).
 
-    Per docs/13 Section 2.1: "LedgerEntry MUST NOT be edited after posting.
+    Per docs/03-reference/requirements/DOC-13.md Section 2.1: "LedgerEntry MUST NOT be edited after posting.
     Corrections MUST occur via compensating entries."
 
-    Entry Types (docs/13 Section 3):
+    Entry Types (docs/03-reference/requirements/DOC-13.md Section 3):
     - invoice_issued: Creates AR for an invoice (amount positive)
     - payment_received: Reduces AR when allocated to invoices (amount positive)
     - retainer_deposit: Increases retainer balance (amount positive)
@@ -61,13 +61,13 @@ class BillingLedgerEntry(models.Model):
         help_text="Type of billing event"
     )
 
-    # Idempotency (docs/13 Section 5)
+    # Idempotency (docs/03-reference/requirements/DOC-13.md Section 5)
     idempotency_key = models.CharField(
         max_length=255,
         help_text="Unique key for idempotent posting (required)"
     )
 
-    # Associations (docs/13 Section 2.1)
+    # Associations (docs/03-reference/requirements/DOC-13.md Section 2.1)
     account = models.ForeignKey(
         'crm.Client',
         on_delete=models.PROTECT,
@@ -106,7 +106,7 @@ class BillingLedgerEntry(models.Model):
         help_text="Currency code (ISO 4217)"
     )
 
-    # Timing (docs/13 Section 2.1)
+    # Timing (docs/03-reference/requirements/DOC-13.md Section 2.1)
     occurred_at = models.DateTimeField(
         help_text="Business time when the event occurred"
     )
@@ -129,7 +129,7 @@ class BillingLedgerEntry(models.Model):
         help_text="Bounded metadata (reason codes, processor details, etc.)"
     )
 
-    # Audit trail (docs/13 Section 2.1)
+    # Audit trail (docs/03-reference/requirements/DOC-13.md Section 2.1)
     created_by_actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -154,7 +154,7 @@ class BillingLedgerEntry(models.Model):
             models.Index(fields=['firm', '-occurred_at']),
             models.Index(fields=['idempotency_key']),
         ]
-        # Per docs/13 Section 5.2: Uniqueness on idempotency_key scoped to tenant + entry_type
+        # Per docs/03-reference/requirements/DOC-13.md Section 5.2: Uniqueness on idempotency_key scoped to tenant + entry_type
         unique_together = [['firm', 'entry_type', 'idempotency_key']]
         verbose_name = 'Billing Ledger Entry'
         verbose_name_plural = 'Billing Ledger Entries'
@@ -166,7 +166,7 @@ class BillingLedgerEntry(models.Model):
         """
         Override save to enforce immutability.
 
-        Per docs/13 Section 2.1: "LedgerEntry MUST NOT be edited after posting."
+        Per docs/03-reference/requirements/DOC-13.md Section 2.1: "LedgerEntry MUST NOT be edited after posting."
         """
         if self.pk and not force_insert:
             # Entry already exists - prevent updates
@@ -185,7 +185,7 @@ class BillingLedgerEntry(models.Model):
         """
         Override delete to prevent deletion.
 
-        Per docs/13 Section 2.1: Ledger entries are immutable.
+        Per docs/03-reference/requirements/DOC-13.md Section 2.1: Ledger entries are immutable.
         """
         raise ValidationError(
             "BillingLedgerEntry cannot be deleted. "
@@ -196,7 +196,7 @@ class BillingLedgerEntry(models.Model):
         """
         Validate ledger entry before posting.
 
-        Per docs/13 Section 3: Entry type-specific validations.
+        Per docs/03-reference/requirements/DOC-13.md Section 3: Entry type-specific validations.
         """
         errors = {}
 
@@ -204,7 +204,7 @@ class BillingLedgerEntry(models.Model):
         if not self.idempotency_key:
             errors['idempotency_key'] = "Idempotency key is required"
 
-        # Validate amount based on entry type (per docs/13 Section 3)
+        # Validate amount based on entry type (per docs/03-reference/requirements/DOC-13.md Section 3)
         if self.entry_type in ['invoice_issued', 'payment_received', 'retainer_deposit']:
             if self.amount <= 0:
                 errors['amount'] = f"{self.get_entry_type_display()} amount must be positive"
@@ -216,7 +216,7 @@ class BillingLedgerEntry(models.Model):
         if self.entry_type == 'retainer_applied' and not self.invoice:
             errors['invoice'] = "retainer_applied entry must reference an invoice"
 
-        # Validate reason codes for adjustments and write-offs (docs/13 Section 3.5, 3.6)
+        # Validate reason codes for adjustments and write-offs (docs/03-reference/requirements/DOC-13.md Section 3.5, 3.6)
         if self.entry_type in ['credit_memo', 'adjustment', 'write_off']:
             if not self.metadata.get('reason_code'):
                 errors['metadata'] = f"{self.get_entry_type_display()} requires reason_code in metadata"
@@ -232,7 +232,7 @@ class BillingLedgerEntry(models.Model):
         """
         Calculate unapplied amount for this entry.
 
-        Per docs/13 Section 2.2: "Sum(allocations from an entry) MUST NOT exceed
+        Per docs/03-reference/requirements/DOC-13.md Section 2.2: "Sum(allocations from an entry) MUST NOT exceed
         available unapplied amount."
 
         Returns:
@@ -249,7 +249,7 @@ class BillingAllocation(models.Model):
     """
     Allocation mapping (DOC-13.2).
 
-    Per docs/13 Section 2.2: "Allocations map value from one entry to another
+    Per docs/03-reference/requirements/DOC-13.md Section 2.2: "Allocations map value from one entry to another
     (e.g., payment applied to invoice; retainer applied to invoice)."
 
     Examples:
@@ -266,7 +266,7 @@ class BillingAllocation(models.Model):
         help_text="Firm this allocation belongs to"
     )
 
-    # Allocation mapping (docs/13 Section 2.2)
+    # Allocation mapping (docs/03-reference/requirements/DOC-13.md Section 2.2)
     from_entry = models.ForeignKey(
         BillingLedgerEntry,
         on_delete=models.PROTECT,
@@ -281,7 +281,7 @@ class BillingAllocation(models.Model):
         help_text="Target ledger entry (typically invoice_issued)"
     )
 
-    # Allocation amount (docs/13 Section 2.2)
+    # Allocation amount (docs/03-reference/requirements/DOC-13.md Section 2.2)
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -335,7 +335,7 @@ class BillingAllocation(models.Model):
         """
         Validate allocation constraints.
 
-        Per docs/13 Section 2.2: "Sum(allocations from an entry) MUST NOT exceed
+        Per docs/03-reference/requirements/DOC-13.md Section 2.2: "Sum(allocations from an entry) MUST NOT exceed
         available unapplied amount."
         """
         errors = {}
@@ -405,7 +405,7 @@ def post_invoice_issued(
     """
     Post invoice_issued entry to ledger.
 
-    Per docs/13 Section 3.1: Creates AR for an invoice.
+    Per docs/03-reference/requirements/DOC-13.md Section 3.1: Creates AR for an invoice.
 
     Args:
         firm: Firm instance
@@ -455,7 +455,7 @@ def post_payment_received(
     """
     Post payment_received entry to ledger.
 
-    Per docs/13 Section 3.2: Reduces AR when allocated to invoices.
+    Per docs/03-reference/requirements/DOC-13.md Section 3.2: Reduces AR when allocated to invoices.
 
     Args:
         firm: Firm instance
@@ -497,7 +497,7 @@ def allocate_payment_to_invoice(
     """
     Allocate payment to invoice.
 
-    Per docs/13 Section 2.2: Creates allocation from payment to invoice.
+    Per docs/03-reference/requirements/DOC-13.md Section 2.2: Creates allocation from payment to invoice.
 
     Args:
         payment_entry: payment_received ledger entry
@@ -538,7 +538,7 @@ def post_retainer_deposit(
     """
     Post retainer_deposit entry to ledger.
 
-    Per docs/13 Section 3.3: Increases retainer balance.
+    Per docs/03-reference/requirements/DOC-13.md Section 3.3: Increases retainer balance.
 
     Args:
         firm: Firm instance
@@ -574,7 +574,7 @@ def get_ar_balance(firm, account) -> Decimal:
     """
     Calculate AR balance for an account.
 
-    Per docs/13 Section 4: AR balance must be derivable from entries + allocations.
+    Per docs/03-reference/requirements/DOC-13.md Section 4: AR balance must be derivable from entries + allocations.
 
     Args:
         firm: Firm instance
@@ -612,7 +612,7 @@ def get_retainer_balance(firm, account) -> Decimal:
     """
     Calculate retainer balance for an account.
 
-    Per docs/13 Section 4: Retainer balance must be derivable from entries.
+    Per docs/03-reference/requirements/DOC-13.md Section 4: Retainer balance must be derivable from entries.
 
     Args:
         firm: Firm instance

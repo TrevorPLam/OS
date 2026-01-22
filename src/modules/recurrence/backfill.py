@@ -3,7 +3,7 @@ Recurrence Backfill Service (DOC-10.2)
 
 Implements backfill operations for missed recurrence periods during pause.
 
-Per docs/10 section 7.2:
+Per docs/03-reference/requirements/DOC-10.md section 7.2:
 - Backfill operation MUST be permission-gated
 - MUST be auditable
 - MUST be bounded by specified time range
@@ -61,7 +61,7 @@ class BackfillService:
         """
         Backfill missed periods for a recurrence rule.
 
-        Per docs/10 section 7.2:
+        Per docs/03-reference/requirements/DOC-10.md section 7.2:
         - Permission-gated (caller must verify permissions)
         - Auditable (creates audit event)
         - Bounded by time range

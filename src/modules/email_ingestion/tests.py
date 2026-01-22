@@ -2,7 +2,7 @@
 Email Ingestion Tests.
 
 Tests idempotent ingestion, mapping suggestions, triage behavior, and audit events.
-Implements docs/15 section 7 testing requirements.
+Implements docs/03-reference/requirements/DOC-15.md section 7 testing requirements.
 """
 
 from decimal import Decimal
@@ -20,7 +20,7 @@ User = get_user_model()
 
 
 class EmailIngestionIdempotencyTest(TestCase):
-    """Test idempotent ingestion per docs/15 section 7."""
+    """Test idempotent ingestion per docs/03-reference/requirements/DOC-15.md section 7."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -76,7 +76,7 @@ class EmailIngestionIdempotencyTest(TestCase):
 
 
 class EmailMappingSuggestionTest(TestCase):
-    """Test mapping suggestion logic per docs/15 section 3."""
+    """Test mapping suggestion logic per docs/03-reference/requirements/DOC-15.md section 3."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -149,7 +149,7 @@ class EmailMappingSuggestionTest(TestCase):
 
 
 class EmailTriageBehaviorTest(TestCase):
-    """Test triage behavior for ambiguous cases per docs/15 section 4."""
+    """Test triage behavior for ambiguous cases per docs/03-reference/requirements/DOC-15.md section 4."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -184,7 +184,7 @@ class EmailTriageBehaviorTest(TestCase):
 
 
 class EmailMappingAuditTest(TestCase):
-    """Test audit event generation for mapping changes per docs/15 section 5."""
+    """Test audit event generation for mapping changes per docs/03-reference/requirements/DOC-15.md section 5."""
 
     def setUp(self):
         """Set up test fixtures."""

@@ -1,5 +1,5 @@
 """
-Contract Tests (per docs/22 TEST_STRATEGY).
+Contract Tests (per docs/03-reference/requirements/DOC-22.md TEST_STRATEGY).
 
 Tests correctness-critical invariants for:
 - Pricing: determinism
@@ -34,7 +34,7 @@ User = get_user_model()
 
 class PricingDeterminismContractTest(TestCase):
     """
-    Contract test: Pricing determinism (per docs/22 section 2).
+    Contract test: Pricing determinism (per docs/03-reference/requirements/DOC-22.md section 2).
 
     MUST: Same inputs → same outputs + trace
     """
@@ -101,7 +101,7 @@ class PricingDeterminismContractTest(TestCase):
 
 class RecurrenceDSTContractTest(TestCase):
     """
-    Contract test: Recurrence DST correctness (per docs/22 section 2).
+    Contract test: Recurrence DST correctness (per docs/03-reference/requirements/DOC-22.md section 2).
 
     MUST: DST/leap-year correctness + dedupe under concurrency
     """
@@ -197,7 +197,7 @@ class RecurrenceDSTContractTest(TestCase):
 
 class OrchestrationRetryContractTest(TestCase):
     """
-    Contract test: Orchestration retry matrix (per docs/22 section 2).
+    Contract test: Orchestration retry matrix (per docs/03-reference/requirements/DOC-22.md section 2).
 
     MUST: Retry matrix behavior and DLQ routing
     """
@@ -236,7 +236,7 @@ class OrchestrationRetryContractTest(TestCase):
 
 class DocumentVersioningContractTest(TestCase):
     """
-    Contract test: Document versioning and locking (per docs/22 section 2).
+    Contract test: Document versioning and locking (per docs/03-reference/requirements/DOC-22.md section 2).
 
     MUST: Versioning, locking, portal visibility, access logging
     """
@@ -340,7 +340,7 @@ class DocumentVersioningContractTest(TestCase):
 
 class BillingLedgerIdempotencyContractTest(TestCase):
     """
-    Contract test: Billing ledger idempotency (per docs/22 section 2).
+    Contract test: Billing ledger idempotency (per docs/03-reference/requirements/DOC-22.md section 2).
 
     MUST: Idempotent posting, allocation constraints
     """
@@ -386,7 +386,7 @@ class BillingLedgerIdempotencyContractTest(TestCase):
 
 class PermissionsContractTest(TestCase):
     """
-    Contract test: Permissions allow/deny matrix (per docs/22 section 2).
+    Contract test: Permissions allow/deny matrix (per docs/03-reference/requirements/DOC-22.md section 2).
 
     MUST: Verify allow/deny for key roles and portal scopes
     """

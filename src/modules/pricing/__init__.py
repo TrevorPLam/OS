@@ -1,5 +1,5 @@
 """
-Pricing Engine Module (DOC-09.1 per docs/9 PRICING_ENGINE_SPEC)
+Pricing Engine Module (DOC-09.1 per docs/03-reference/requirements/DOC-09.md PRICING_ENGINE_SPEC)
 
 Provides versioned pricing rules evaluation with deterministic outputs and trace.
 
@@ -10,7 +10,7 @@ This module implements:
 - Trace: Complete evaluation audit trail
 - QuoteVersion: Immutable pricing snapshots
 
-Per docs/9:
+Per docs/03-reference/requirements/DOC-09.md:
 - Pricing MUST be reproducible and explainable
 - Pricing MUST be auditable at the time of agreement
 - Pricing rules MUST be versioned and snapshot-able

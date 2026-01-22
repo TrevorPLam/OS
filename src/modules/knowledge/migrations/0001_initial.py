@@ -89,7 +89,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "deprecation_reason",
-                    models.TextField(blank=True, help_text="Required when deprecating (docs/35 section 3)"),
+                    models.TextField(blank=True, help_text="Required when deprecating (docs/03-reference/requirements/DOC-35.md section 3)"),
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),

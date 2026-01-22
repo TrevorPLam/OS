@@ -62,7 +62,7 @@ Queue for messages that failed processing after maximum retry attempts.
 
 **DOC-N (DOC-1 through DOC-35)**
 Canonical requirements specifications numbered 1-35.
-**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:188-256, files `docs/1` through `docs/35`
+**Evidence:** P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md:188-256, files `docs/03-reference/requirements/DOC-01.md` through `docs/03-reference/requirements/DOC-35.md`
 
 ---
 

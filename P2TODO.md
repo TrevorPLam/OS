@@ -372,7 +372,7 @@ Acceptance Criteria:
 - [ ] Update tests to cover approval workflow transitions and permissions.
 References:
 - src/modules/documents/models/documents.py
-- docs/14 DOCUMENTS_AND_STORAGE_SPEC
+- docs/03-reference/requirements/DOC-14.md DOCUMENTS_AND_STORAGE_SPEC
 Dependencies: None
 Effort: M
 
@@ -731,5 +731,105 @@ Acceptance Criteria:
 References:
 - F&F.md
 - src/modules/firm/
+Dependencies: None
+Effort: L
+
+### T-014: Add document lock, signed URL, and upload request endpoints
+Priority: P2
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- API endpoint authorization mapping flags missing document lock, signed URL, and upload request endpoints.
+- Document management requires explicit endpoints for auditability and permissions.
+Acceptance Criteria:
+- [ ] Add document lock/unlock endpoint with audit logging.
+- [ ] Add signed URL endpoint for controlled download access.
+- [ ] Add upload request endpoint to support pre-signed upload flow.
+- [ ] Update API authorization mapping and endpoint docs.
+- [ ] Add tests for permissions and firm scoping.
+References:
+- docs/API_ENDPOINT_AUTHORIZATION_MAPPING.md
+- src/modules/documents/
+- docs/03-reference/requirements/DOC-14.md
+Dependencies: None
+Effort: M
+
+### T-025: Add authentication flow unit tests
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pre-launch checklist calls out missing authentication flow unit tests.
+- Authentication is a Tier 0 security boundary.
+Acceptance Criteria:
+- [ ] Add unit tests covering login, token refresh, and logout flows.
+- [ ] Cover failure cases (invalid credentials, expired tokens, revoked sessions).
+- [ ] Document test coverage in testing docs if needed.
+References:
+- docs/PRE_LAUNCH_CHECKLIST.md
+- src/modules/auth/
+Dependencies: None
+Effort: M
+
+### T-048: Implement frontend unit tests
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pre-launch checklist requires frontend unit tests coverage.
+- Frontend regression risk is untracked without baseline tests.
+Acceptance Criteria:
+- [ ] Establish a frontend unit test framework for React components.
+- [ ] Add baseline unit tests for core pages/components.
+- [ ] Document how to run frontend unit tests.
+References:
+- docs/PRE_LAUNCH_CHECKLIST.md
+- src/frontend/
+Dependencies: None
+Effort: M
+
+### T-056: Establish performance benchmarks
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pre-launch checklist calls for baseline performance benchmarks.
+- Observability guidance references benchmark baselines.
+Acceptance Criteria:
+- [ ] Define benchmark scenarios and target metrics.
+- [ ] Capture baseline results and store in benchmarks/ results.
+- [ ] Document benchmark procedures.
+References:
+- docs/PRE_LAUNCH_CHECKLIST.md
+- docs/OBSERVABILITY.md
+- benchmarks/
+Dependencies: None
+Effort: M
+
+### T-153: Implement Active Directory integration foundation (AD-1 through AD-5)
+Priority: P2
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Active Directory integration research defines AD-1, AD-2, AD-3, AD-4, AD-5 as enterprise requirements.
+- Missing task coverage for provisioning, sync, group mapping, and scheduling.
+Acceptance Criteria:
+- [ ] Define system requirements and architecture for AD-1 through AD-5.
+- [ ] Implement connector, sync jobs, and role/group mapping workflows.
+- [ ] Add admin UI/CLI for configuration and monitoring.
+- [ ] Document setup and security requirements.
+References:
+- docs/research/active-directory-integration-research.md
+- src/modules/ad_sync/
 Dependencies: None
 Effort: L

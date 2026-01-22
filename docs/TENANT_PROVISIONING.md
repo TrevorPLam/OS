@@ -2,15 +2,15 @@
 
 **Document Version:** 1.0
 **Date:** December 30, 2025
-**Purpose:** Guide for provisioning new firms (tenants) per DB_SCHEMA_AND_MIGRATIONS spec (docs/19)
+**Purpose:** Guide for provisioning new firms (tenants) per DB_SCHEMA_AND_MIGRATIONS spec (docs/03-reference/requirements/DOC-19.md)
 
 ---
 
 ## Overview
 
-The platform uses **firm-scoped row-level isolation** for multi-tenancy (see ADR-0010 in docs/4). Tenant provisioning creates a new Firm record and seeds baseline configuration.
+The platform uses **firm-scoped row-level isolation** for multi-tenancy (see ADR-0010 in docs/03-reference/requirements/DOC-04.md). Tenant provisioning creates a new Firm record and seeds baseline configuration.
 
-Per docs/19 Section 1, the provisioning workflow:
+Per docs/03-reference/requirements/DOC-19.md Section 1, the provisioning workflow:
 1. Creates Firm record
 2. Creates firm admin user
 3. Seeds baseline config (roles, default stages, template stubs)
@@ -488,7 +488,7 @@ def test_provisioning_creates_audit_events():
 
 ## Migration Compliance
 
-Per docs/19 Section 2, migration runner requirements:
+Per docs/03-reference/requirements/DOC-19.md Section 2, migration runner requirements:
 
 ### Current Implementation Status
 
@@ -633,9 +633,9 @@ class TenantProvisioningService:
 
 ## References
 
-- **DB_SCHEMA_AND_MIGRATIONS spec:** docs/19
-- **SYSTEM_SPEC tenancy:** docs/5 (Section 3)
-- **ADR-0010 (row-level tenancy):** docs/4
+- **DB_SCHEMA_AND_MIGRATIONS spec:** docs/03-reference/requirements/DOC-19.md
+- **SYSTEM_SPEC tenancy:** docs/03-reference/requirements/DOC-05.md (Section 3)
+- **ADR-0010 (row-level tenancy):** docs/03-reference/requirements/DOC-04.md
 - **Provisioning service:** src/modules/firm/provisioning.py
 - **Management command:** src/modules/firm/management/commands/provision_firm.py
 - **ProvisioningLog model:** src/modules/firm/models.py (via migration 0007)

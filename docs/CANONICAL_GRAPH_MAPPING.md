@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-SYSTEM_SPEC (docs/5, Section 4) defines the canonical object graph as:
+SYSTEM_SPEC (docs/03-reference/requirements/DOC-05.md, Section 4) defines the canonical object graph as:
 - **Account** - Organization or company entity
 - **Contact** - Individual person associated with an Account
 - **Engagement** - Formal work agreement or project engagement
@@ -496,7 +496,7 @@ Gradually migrate FK field names:
 
 ## References
 
-- **SYSTEM_SPEC Section 4:** docs/5 (lines 95-115)
+- **SYSTEM_SPEC Section 4:** docs/03-reference/requirements/DOC-05.md (lines 95-115)
 - **Current Models:**
   - Client: `src/modules/crm/models.py:70-232`
   - Contract: `src/modules/crm/models.py:676-798`

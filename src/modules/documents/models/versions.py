@@ -14,7 +14,7 @@ from modules.projects.models import Project
 
 class Version(models.Model):
     """
-    Version entity (DocumentVersion per docs/14 DOCUMENTS_AND_STORAGE_SPEC).
+    Version entity (DocumentVersion per docs/03-reference/requirements/DOC-14.md DOCUMENTS_AND_STORAGE_SPEC).
 
     Tracks all versions of a document.
     Each upload creates a new Version record.
@@ -25,7 +25,7 @@ class Version(models.Model):
     DOC-14.1: DocumentVersion MUST be immutable. New uploads create new versions.
     """
 
-    # DOC-14.1: Virus scan status (per docs/14 section 2.2 and section 6)
+    # DOC-14.1: Virus scan status (per docs/03-reference/requirements/DOC-14.md section 2.2 and section 6)
     SCAN_STATUS_CHOICES = [
         ("pending", "Pending Scan"),
         ("clean", "Clean"),
@@ -58,14 +58,14 @@ class Version(models.Model):
     file_type = models.CharField(max_length=50)
     file_size_bytes = models.BigIntegerField()
 
-    # DOC-14.1: Checksum for integrity verification (per docs/14 section 2.2)
+    # DOC-14.1: Checksum for integrity verification (per docs/03-reference/requirements/DOC-14.md section 2.2)
     checksum = models.CharField(
         max_length=64,
         blank=True,
         help_text="SHA-256 checksum of file content for integrity verification",
     )
 
-    # DOC-14.1: Virus scan status (per docs/14 sections 2.2 and 6)
+    # DOC-14.1: Virus scan status (per docs/03-reference/requirements/DOC-14.md sections 2.2 and 6)
     virus_scan_status = models.CharField(
         max_length=20,
         choices=SCAN_STATUS_CHOICES,

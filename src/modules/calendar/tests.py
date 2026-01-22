@@ -2,7 +2,7 @@
 Calendar Tests.
 
 Tests slot calculation, DST handling, race conditions, permissions, and routing.
-Implements docs/34 section 8 testing requirements.
+Implements docs/03-reference/requirements/DOC-34.md section 8 testing requirements.
 """
 
 from datetime import date, datetime, timedelta
@@ -20,7 +20,7 @@ User = get_user_model()
 
 
 class SlotCalculationTest(TestCase):
-    """Test slot calculation correctness with buffers and exceptions per docs/34 section 8."""
+    """Test slot calculation correctness with buffers and exceptions per docs/03-reference/requirements/DOC-34.md section 8."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -130,7 +130,7 @@ class SlotCalculationTest(TestCase):
 
 
 class DSTBehaviorTest(TestCase):
-    """Test DST boundary behavior per docs/34 section 8."""
+    """Test DST boundary behavior per docs/03-reference/requirements/DOC-34.md section 8."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -194,7 +194,7 @@ class DSTBehaviorTest(TestCase):
 
 
 class RaceConditionTest(TestCase):
-    """Test race condition prevention per docs/34 section 8."""
+    """Test race condition prevention per docs/03-reference/requirements/DOC-34.md section 8."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -244,7 +244,7 @@ class RaceConditionTest(TestCase):
 
 
 class RoutingPolicyTest(TestCase):
-    """Test routing policy determinism per docs/34 section 8."""
+    """Test routing policy determinism per docs/03-reference/requirements/DOC-34.md section 8."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -274,7 +274,7 @@ class RoutingPolicyTest(TestCase):
 
 
 class ApprovalFlowTest(TestCase):
-    """Test approval-required flow correctness per docs/34 section 8."""
+    """Test approval-required flow correctness per docs/03-reference/requirements/DOC-34.md section 8."""
 
     def setUp(self):
         """Set up test fixtures."""

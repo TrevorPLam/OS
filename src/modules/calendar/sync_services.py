@@ -2,7 +2,7 @@
 Calendar Sync Services.
 
 Provides idempotent sync with external calendar providers (Google/Microsoft).
-Implements docs/16 CALENDAR_SYNC_SPEC sections 3 (sync behavior) and 4 (retry behavior).
+Implements docs/03-reference/requirements/DOC-16.md CALENDAR_SYNC_SPEC sections 3 (sync behavior) and 4 (retry behavior).
 Enhanced with DOC-16.2: retry logic and failed attempt replay.
 """
 
@@ -25,7 +25,7 @@ class CalendarSyncService:
     """
     Service for syncing appointments with external calendar providers.
 
-    Implements docs/16 sections 3.1 (pull) and 3.2 (push) with idempotency.
+    Implements docs/03-reference/requirements/DOC-16.md sections 3.1 (pull) and 3.2 (push) with idempotency.
     """
 
     @transaction.atomic
@@ -38,7 +38,7 @@ class CalendarSyncService:
         """
         Pull an external event and upsert as an Appointment.
 
-        Per docs/16 section 3.1: Upsert by (connection_id, external_event_id).
+        Per docs/03-reference/requirements/DOC-16.md section 3.1: Upsert by (connection_id, external_event_id).
         Returns: (appointment, created)
 
         Args:
@@ -71,7 +71,7 @@ class CalendarSyncService:
             )
             raise ValueError("External event data must include 'id'")
 
-        # Check for existing appointment (per docs/16 section 3.1: upsert by connection + external_event_id)
+        # Check for existing appointment (per docs/03-reference/requirements/DOC-16.md section 3.1: upsert by connection + external_event_id)
         existing = Appointment.objects.filter(
             calendar_connection=connection,
             external_event_id=external_event_id,
@@ -95,14 +95,14 @@ class CalendarSyncService:
 
         created = False
         if existing:
-            # Update existing appointment (per docs/16 section 3.1: apply reconciliation rules)
+            # Update existing appointment (per docs/03-reference/requirements/DOC-16.md section 3.1: apply reconciliation rules)
             old_start = existing.start_time
             old_end = existing.end_time
 
             existing.start_time = parsed_data["start_time"]
             existing.end_time = parsed_data["end_time"]
 
-            # Apply cancellation policy (per docs/16 section 3.1)
+            # Apply cancellation policy (per docs/03-reference/requirements/DOC-16.md section 3.1)
             if parsed_data["is_cancelled"]:
                 existing.status = "cancelled"
                 existing.status_reason = "Cancelled externally"
@@ -166,7 +166,7 @@ class CalendarSyncService:
         """
         Push an internal appointment to external calendar provider.
 
-        Per docs/16 section 3.2: Store returned external_event_id.
+        Per docs/03-reference/requirements/DOC-16.md section 3.2: Store returned external_event_id.
         Retries MUST not create duplicates.
 
         Returns: external_event_id
@@ -207,11 +207,11 @@ class CalendarSyncService:
         """
         Parse external event data into internal format.
 
-        Handles timezone correctness (per docs/16 section 7).
+        Handles timezone correctness (per docs/03-reference/requirements/DOC-16.md section 7).
         """
         from dateutil import parser as date_parser
 
-        # Parse start/end times (per docs/16 section 7: timezone correctness)
+        # Parse start/end times (per docs/03-reference/requirements/DOC-16.md section 7: timezone correctness)
         start_str = event_data.get("start", {}).get("dateTime") or event_data.get("start", {}).get("date")
         end_str = event_data.get("end", {}).get("dateTime") or event_data.get("end", {}).get("date")
 
@@ -262,7 +262,7 @@ class CalendarSyncService:
         error_summary: str = "",
         correlation_id: Optional[uuid.UUID] = None,
     ):
-        """Log a sync attempt (per docs/16 section 2.3)."""
+        """Log a sync attempt (per docs/03-reference/requirements/DOC-16.md section 2.3)."""
         duration_ms = int((timezone.now() - start_time).total_seconds() * 1000)
 
         SyncAttemptLog.objects.create(
@@ -284,7 +284,7 @@ class ResyncService:
     """
     Service for manual resync tooling.
 
-    Implements docs/16 section 5: manual resync with audit.
+    Implements docs/03-reference/requirements/DOC-16.md section 5: manual resync with audit.
     """
 
     def __init__(self):
@@ -299,7 +299,7 @@ class ResyncService:
         user=None,
     ) -> Dict:
         """
-        Manually resync a calendar connection (per docs/16 section 5).
+        Manually resync a calendar connection (per docs/03-reference/requirements/DOC-16.md section 5).
 
         Args:
             connection: Calendar connection to resync
@@ -359,7 +359,7 @@ class ResyncService:
         user=None,
     ) -> Dict:
         """
-        Manually resync a single appointment (per docs/16 section 5).
+        Manually resync a single appointment (per docs/03-reference/requirements/DOC-16.md section 5).
 
         Args:
             appointment: Appointment to resync

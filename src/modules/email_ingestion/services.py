@@ -2,7 +2,7 @@
 Email Ingestion Services.
 
 Provides mapping suggestion logic and ingestion workflows.
-Implements docs/15 section 3 (mapping suggestions) and section 4 (staleness heuristics).
+Implements docs/03-reference/requirements/DOC-15.md section 3 (mapping suggestions) and section 4 (staleness heuristics).
 Enhanced with DOC-15.2: staleness detection and retry-safety.
 """
 
@@ -23,11 +23,11 @@ class EmailMappingService:
     """
     Service for suggesting mappings from emails to domain objects.
 
-    Implements docs/15 section 3: mapping suggestions with confidence scoring.
-    Enhanced with DOC-15.2: staleness detection per docs/15 section 4.
+    Implements docs/03-reference/requirements/DOC-15.md section 3: mapping suggestions with confidence scoring.
+    Enhanced with DOC-15.2: staleness detection per docs/03-reference/requirements/DOC-15.md section 4.
     """
 
-    # Thresholds per docs/15 section 3
+    # Thresholds per docs/03-reference/requirements/DOC-15.md section 3
     AUTO_MAP_THRESHOLD = Decimal("0.85")  # Auto-map only if confidence >= 0.85
     TRIAGE_THRESHOLD = Decimal("0.50")  # Below this, always send to triage
 
@@ -43,10 +43,10 @@ class EmailMappingService:
         Returns:
             (account, engagement, work_item, adjusted_confidence, reasons, requires_triage)
 
-        Per docs/15 section 3: uses sender/recipient domain, subject keywords,
+        Per docs/03-reference/requirements/DOC-15.md section 3: uses sender/recipient domain, subject keywords,
         prior thread mappings, and contact matching.
 
-        Enhanced with DOC-15.2: staleness detection per docs/15 section 4.
+        Enhanced with DOC-15.2: staleness detection per docs/03-reference/requirements/DOC-15.md section 4.
         """
         reasons = []
         confidence = Decimal("0.0")
@@ -169,7 +169,7 @@ class EmailIngestionService:
     """
     Service for ingesting emails from providers.
 
-    Implements docs/15 section 2.3: IngestionAttempt logging for retry-safety.
+    Implements docs/03-reference/requirements/DOC-15.md section 2.3: IngestionAttempt logging for retry-safety.
     """
 
     def __init__(self):
@@ -193,13 +193,13 @@ class EmailIngestionService:
         """
         Ingest an email and create an EmailArtifact.
 
-        Implements docs/15 section 2: idempotent ingestion.
+        Implements docs/03-reference/requirements/DOC-15.md section 2: idempotent ingestion.
         Returns existing artifact if (connection, external_message_id) already exists.
         """
         correlation_id = correlation_id or uuid.uuid4()
         start_time = timezone.now()
 
-        # Check if already ingested (idempotency per docs/15 section 2)
+        # Check if already ingested (idempotency per docs/03-reference/requirements/DOC-15.md section 2)
         existing = EmailArtifact.objects.filter(
             connection=connection, external_message_id=external_message_id
         ).first()
@@ -232,7 +232,7 @@ class EmailIngestionService:
                 subject=subject,
                 sent_at=sent_at,
                 received_at=received_at,
-                body_preview=body_preview[:500],  # Bounded per docs/15 section 2.1
+                body_preview=body_preview[:500],  # Bounded per docs/03-reference/requirements/DOC-15.md section 2.1
                 status="ingested",
             )
 

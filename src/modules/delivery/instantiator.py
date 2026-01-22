@@ -1,5 +1,5 @@
 """
-Template Instantiation Engine (DOC-12.1 per docs/12 section 4).
+Template Instantiation Engine (DOC-12.1 per docs/03-reference/requirements/DOC-12.md section 4).
 
 Implements deterministic template instantiation into WorkItems.
 

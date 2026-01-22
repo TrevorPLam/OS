@@ -1,7 +1,7 @@
 """
 Data Governance Classifications and Registry
 
-Implements the data classification system defined in docs/7 (DATA_GOVERNANCE).
+Implements the data classification system defined in docs/03-reference/requirements/DOC-07.md (DATA_GOVERNANCE).
 This module provides:
 - Classification level enums
 - Field-level classification registry
@@ -24,7 +24,7 @@ from dataclasses import dataclass
 
 class DataClassification(str, Enum):
     """
-    Data classification levels as defined in docs/7 section 2.1.
+    Data classification levels as defined in docs/03-reference/requirements/DOC-07.md section 2.1.
 
     These levels determine how data is handled across APIs, UIs,
     background workers, integrations, and storage.
@@ -93,7 +93,7 @@ class GovernanceRegistry:
     """
     Registry for data classification mappings.
 
-    Implements the field-level classification registry as specified in docs/7 section 2.3.
+    Implements the field-level classification registry as specified in docs/03-reference/requirements/DOC-07.md section 2.3.
     This registry is used by:
     - Serialization layers (API responses)
     - Logging redaction
@@ -106,10 +106,10 @@ class GovernanceRegistry:
 
     def _initialize_baseline_classifications(self):
         """
-        Initialize baseline classifications per docs/7 section 2.2.
+        Initialize baseline classifications per docs/03-reference/requirements/DOC-07.md section 2.2.
         """
 
-        # Account (docs/7 section 2.2)
+        # Account (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="Account",
@@ -122,7 +122,7 @@ class GovernanceRegistry:
             )
         )
 
-        # Contact (docs/7 section 2.2)
+        # Contact (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="Contact",
@@ -137,7 +137,7 @@ class GovernanceRegistry:
             )
         )
 
-        # Engagement / EngagementLine / WorkItem (docs/7 section 2.2)
+        # Engagement / EngagementLine / WorkItem (docs/03-reference/requirements/DOC-07.md section 2.2)
         for entity in ["Engagement", "EngagementLine", "WorkItem"]:
             self.register_entity(
                 EntityClassification(
@@ -152,7 +152,7 @@ class GovernanceRegistry:
                 )
             )
 
-        # Documents (docs/7 section 2.2)
+        # Documents (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="Document",
@@ -165,7 +165,7 @@ class GovernanceRegistry:
             )
         )
 
-        # Communications (docs/7 section 2.2)
+        # Communications (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="Communication",
@@ -181,7 +181,7 @@ class GovernanceRegistry:
             )
         )
 
-        # Billing (docs/7 section 2.2)
+        # Billing (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="Invoice",
@@ -195,7 +195,7 @@ class GovernanceRegistry:
             )
         )
 
-        # Ledger (docs/7 section 2.2)
+        # Ledger (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="LedgerEntry",
@@ -208,7 +208,7 @@ class GovernanceRegistry:
             )
         )
 
-        # Audit logs (docs/7 section 2.2)
+        # Audit logs (docs/03-reference/requirements/DOC-07.md section 2.2)
         self.register_entity(
             EntityClassification(
                 entity="AuditEvent",
@@ -306,7 +306,7 @@ class GovernanceRegistry:
         """
         Redact sensitive fields from a data dictionary for safe logging.
 
-        Per docs/7 section 3.3:
+        Per docs/03-reference/requirements/DOC-07.md section 3.3:
         - HR values always redacted
         - R-PII values masked unless required (partial masking)
         """
@@ -353,7 +353,7 @@ class GovernanceRegistry:
         """
         Determine if access to this entity/field should be logged.
 
-        Per docs/7 section 3.4, access to governed artifacts must be logged.
+        Per docs/03-reference/requirements/DOC-07.md section 3.4, access to governed artifacts must be logged.
         """
         if field:
             classification = self.get_field_classification(entity, field)

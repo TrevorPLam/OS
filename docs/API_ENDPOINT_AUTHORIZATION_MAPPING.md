@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This document provides a comprehensive inventory of all API endpoints, their authorization requirements, and how they map to the canonical actions defined in docs/18 (API_CONTRACTS).
+This document provides a comprehensive inventory of all API endpoints, their authorization requirements, and how they map to the canonical actions defined in docs/03-reference/requirements/DOC-18.md (API_CONTRACTS).
 
 **Key Findings:**
 - All staff endpoints enforce `IsAuthenticated` + `DenyPortalAccess`
@@ -145,7 +145,7 @@ IsAuthenticated → IsFirmOwnerOrAdmin → FirmScopedQuerySet
 
 ---
 
-## Gap Analysis vs docs/18 Canonical Actions
+## Gap Analysis vs docs/03-reference/requirements/DOC-18.md Canonical Actions
 
 ### ✅ Implemented
 
@@ -215,12 +215,12 @@ IsAuthenticated → IsFirmOwnerOrAdmin → FirmScopedQuerySet
 
 1. **PaymentViewSet**: Currently only uses `IsAuthenticated`. Should add `DenyPortalAccess` or explicit portal payment handling.
 
-2. **Missing Idempotency Keys**: Per docs/18, mutations should support `X-Idempotency-Key` header. This should be implemented for:
+2. **Missing Idempotency Keys**: Per docs/03-reference/requirements/DOC-18.md, mutations should support `X-Idempotency-Key` header. This should be implemented for:
    - Invoice creation
    - Payment posting
    - Ledger entry creation
 
-3. **Missing Correlation IDs**: Per docs/18, endpoints should accept/generate `X-Correlation-Id`. This is a DOC-21.1 task.
+3. **Missing Correlation IDs**: Per docs/03-reference/requirements/DOC-18.md, endpoints should accept/generate `X-Correlation-Id`. This is a DOC-21.1 task.
 
 ---
 
@@ -239,8 +239,8 @@ IsAuthenticated → IsFirmOwnerOrAdmin → FirmScopedQuerySet
 
 ## References
 
-- **docs/18**: API_CONTRACTS (canonical endpoint groups)
-- **docs/8**: PERMISSIONS_MODEL (authorization rules)
+- **docs/03-reference/requirements/DOC-18.md**: API_CONTRACTS (canonical endpoint groups)
+- **docs/03-reference/requirements/DOC-08.md**: PERMISSIONS_MODEL (authorization rules)
 - **spec/SYSTEM_INVARIANTS.md**: Core authorization invariants
 - **CONTRIBUTING.md**: Development guidelines for adding endpoints
 

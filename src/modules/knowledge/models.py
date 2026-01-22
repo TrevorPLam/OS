@@ -1,7 +1,7 @@
 """
 Knowledge System Models (DOC-35.1).
 
-Implements docs/35: KNOWLEDGE_SYSTEM_SPEC.
+Implements docs/03-reference/requirements/DOC-35.md: KNOWLEDGE_SYSTEM_SPEC.
 
 Core models:
 - KnowledgeItem: Articles, SOPs, training, KPIs, playbooks
@@ -18,17 +18,17 @@ from modules.firm.utils import FirmScopedManager
 
 class KnowledgeItem(models.Model):
     """
-    Knowledge article/manual/SOP/KPI definition (docs/35 section 2.1).
+    Knowledge article/manual/SOP/KPI definition (docs/03-reference/requirements/DOC-35.md section 2.1).
 
     Represents a versioned, governed knowledge artifact with publishing workflow.
 
-    Invariants per docs/35:
+    Invariants per docs/03-reference/requirements/DOC-35.md:
     - Published versions SHOULD be immutable; changes create new version
     - Deprecation must retain history
     - All transitions auditable
     """
 
-    # Types per docs/35 section 2.1
+    # Types per docs/03-reference/requirements/DOC-35.md section 2.1
     TYPE_SOP = "sop"
     TYPE_TRAINING = "training"
     TYPE_KPI = "kpi"
@@ -42,7 +42,7 @@ class KnowledgeItem(models.Model):
         (TYPE_TEMPLATE, "Template/Checklist"),
     ]
 
-    # Status workflow per docs/35 section 3
+    # Status workflow per docs/03-reference/requirements/DOC-35.md section 3
     STATUS_DRAFT = "draft"
     STATUS_IN_REVIEW = "in_review"
     STATUS_PUBLISHED = "published"
@@ -56,7 +56,7 @@ class KnowledgeItem(models.Model):
         (STATUS_ARCHIVED, "Archived"),
     ]
 
-    # Content format per docs/35 section 2.1
+    # Content format per docs/03-reference/requirements/DOC-35.md section 2.1
     FORMAT_MARKDOWN = "markdown"
     FORMAT_RICH_TEXT = "rich_text"
     FORMAT_CHOICES = [
@@ -64,7 +64,7 @@ class KnowledgeItem(models.Model):
         (FORMAT_RICH_TEXT, "Rich Text"),
     ]
 
-    # Access control per docs/35 section 4
+    # Access control per docs/03-reference/requirements/DOC-35.md section 4
     ACCESS_ALL_STAFF = "all_staff"
     ACCESS_MANAGER_PLUS = "manager_plus"
     ACCESS_ADMIN_ONLY = "admin_only"
@@ -82,7 +82,7 @@ class KnowledgeItem(models.Model):
         help_text="Firm (workspace) this knowledge item belongs to",
     )
 
-    # Core fields per docs/35 section 2.1
+    # Core fields per docs/03-reference/requirements/DOC-35.md section 2.1
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     title = models.CharField(max_length=255)
     summary = models.TextField(help_text="Short summary for listings")
@@ -107,7 +107,7 @@ class KnowledgeItem(models.Model):
         help_text="Staff users who can review this item",
     )
 
-    # Tagging and categorization per docs/35 section 5
+    # Tagging and categorization per docs/03-reference/requirements/DOC-35.md section 5
     tags = models.JSONField(default=list, blank=True, help_text="Tags for search and filtering")
     category = models.CharField(
         max_length=50,
@@ -115,7 +115,7 @@ class KnowledgeItem(models.Model):
         help_text="Category (SOP Library, Training, KPI Definitions, etc.)",
     )
 
-    # Access control per docs/35 section 4
+    # Access control per docs/03-reference/requirements/DOC-35.md section 4
     access_level = models.CharField(
         max_length=20,
         choices=ACCESS_CHOICES,
@@ -123,10 +123,10 @@ class KnowledgeItem(models.Model):
         help_text="Minimum role required to view",
     )
 
-    # Publishing workflow timestamps per docs/35 section 2.1
+    # Publishing workflow timestamps per docs/03-reference/requirements/DOC-35.md section 2.1
     published_at = models.DateTimeField(null=True, blank=True, help_text="When this version was published")
     deprecated_at = models.DateTimeField(null=True, blank=True, help_text="When this item was deprecated")
-    deprecation_reason = models.TextField(blank=True, help_text="Required when deprecating (docs/35 section 3)")
+    deprecation_reason = models.TextField(blank=True, help_text="Required when deprecating (docs/03-reference/requirements/DOC-35.md section 3)")
 
     # Audit fields
     created_at = models.DateTimeField(auto_now_add=True)
@@ -164,19 +164,19 @@ class KnowledgeItem(models.Model):
         return f"{self.get_type_display()}: {self.title} (v{self.version_number})"
 
     def clean(self):
-        """Validate publishing workflow invariants (docs/35 section 2.1, 3)."""
+        """Validate publishing workflow invariants (docs/03-reference/requirements/DOC-35.md section 2.1, 3)."""
         super().clean()
 
         # Deprecation must have reason
         if self.status == self.STATUS_DEPRECATED and not self.deprecation_reason:
             raise ValidationError("Deprecation reason is required when deprecating a knowledge item.")
 
-        # Cannot unpublish (docs/35: published versions immutable)
+        # Cannot unpublish (docs/03-reference/requirements/DOC-35.md: published versions immutable)
         if self.pk:
             old_instance = KnowledgeItem.objects.get(pk=self.pk)
             if old_instance.status == self.STATUS_PUBLISHED and self.status == self.STATUS_DRAFT:
                 raise ValidationError(
-                    "Cannot revert published item to draft. Create a new version instead (docs/35 section 2.1)."
+                    "Cannot revert published item to draft. Create a new version instead (docs/03-reference/requirements/DOC-35.md section 2.1)."
                 )
 
     def save(self, *args, **kwargs):
@@ -185,10 +185,10 @@ class KnowledgeItem(models.Model):
 
     def publish(self, published_by):
         """
-        Publish this knowledge item (docs/35 section 3).
+        Publish this knowledge item (docs/03-reference/requirements/DOC-35.md section 3).
 
         Creates a version snapshot and makes item visible per access policy.
-        Published versions are immutable per docs/35 section 2.1.
+        Published versions are immutable per docs/03-reference/requirements/DOC-35.md section 2.1.
         """
         from datetime import datetime
 
@@ -230,7 +230,7 @@ class KnowledgeItem(models.Model):
 
     def deprecate(self, deprecated_by, reason):
         """
-        Deprecate this knowledge item (docs/35 section 3).
+        Deprecate this knowledge item (docs/03-reference/requirements/DOC-35.md section 3).
 
         Item remains searchable but marked deprecated.
         Deprecation reason required.
@@ -241,7 +241,7 @@ class KnowledgeItem(models.Model):
             raise ValidationError("Only published items can be deprecated")
 
         if not reason:
-            raise ValidationError("Deprecation reason is required (docs/35 section 3)")
+            raise ValidationError("Deprecation reason is required (docs/03-reference/requirements/DOC-35.md section 3)")
 
         self.status = self.STATUS_DEPRECATED
         self.deprecated_at = datetime.now()
@@ -266,7 +266,7 @@ class KnowledgeItem(models.Model):
 
     def archive(self, archived_by):
         """
-        Archive this knowledge item (docs/35 section 3).
+        Archive this knowledge item (docs/03-reference/requirements/DOC-35.md section 3).
 
         Hidden from default views but retained for history.
         """
@@ -288,7 +288,7 @@ class KnowledgeItem(models.Model):
 
     def create_new_version(self, updated_by, change_notes=""):
         """
-        Create a new version of this knowledge item (docs/35 section 2.1).
+        Create a new version of this knowledge item (docs/03-reference/requirements/DOC-35.md section 2.1).
 
         Published versions are immutable, so changes create new version.
         """
@@ -334,7 +334,7 @@ class KnowledgeItem(models.Model):
 
 class KnowledgeVersion(models.Model):
     """
-    Version history for knowledge items (docs/35 section 2.2).
+    Version history for knowledge items (docs/03-reference/requirements/DOC-35.md section 2.2).
 
     Explicit version records for audit and rollback.
     Each publish creates a version snapshot.
@@ -375,7 +375,7 @@ class KnowledgeVersion(models.Model):
 
 class KnowledgeReview(models.Model):
     """
-    Review approval records (docs/35 section 3).
+    Review approval records (docs/03-reference/requirements/DOC-35.md section 3).
 
     Tracks reviewer approval in publishing workflow.
     """
@@ -481,7 +481,7 @@ class KnowledgeReview(models.Model):
 
 class KnowledgeAttachment(models.Model):
     """
-    Links knowledge items to governed documents (docs/35 section 2.3).
+    Links knowledge items to governed documents (docs/03-reference/requirements/DOC-35.md section 2.3).
 
     Attachments should be Documents in the governed document system.
     Can also reference templates, metrics, external links.

@@ -1,5 +1,5 @@
 """
-Orchestration Execution Engine (DOC-11.1 per docs/11 section 3-6).
+Orchestration Execution Engine (DOC-11.1 per docs/03-reference/requirements/DOC-11.md section 3-6).
 
 Implements:
 - Idempotent execution creation
@@ -29,7 +29,7 @@ from modules.orchestration.models import (
 
 class OrchestrationExecutor:
     """
-    Orchestration execution engine per docs/11.
+    Orchestration execution engine per docs/03-reference/requirements/DOC-11.md.
 
     Handles execution lifecycle, step execution, retries, and DLQ routing.
     """
@@ -56,7 +56,7 @@ class OrchestrationExecutor:
         idempotency_key: Optional[str] = None,
     ) -> OrchestrationExecution:
         """
-        Create an orchestration execution (idempotent) per docs/11 section 6.1.
+        Create an orchestration execution (idempotent) per docs/03-reference/requirements/DOC-11.md section 6.1.
 
         Args:
             definition: OrchestrationDefinition to execute
@@ -117,7 +117,7 @@ class OrchestrationExecutor:
         step_def: Dict[str, Any],
     ) -> StepExecution:
         """
-        Execute a single step per docs/11 section 2.2.
+        Execute a single step per docs/03-reference/requirements/DOC-11.md section 2.2.
 
         Args:
             execution: OrchestrationExecution instance
@@ -158,7 +158,7 @@ class OrchestrationExecutor:
             return step_execution
 
         except Exception as e:
-            # Classify error per docs/11 section 4
+            # Classify error per docs/03-reference/requirements/DOC-11.md section 4
             error_class = self._classify_error(e, step_def)
             error_summary = self._redact_error(str(e))
 
@@ -199,7 +199,7 @@ class OrchestrationExecutor:
         self, execution: OrchestrationExecution, step_id: str, step_name: str
     ) -> StepExecution:
         """
-        Get or create step execution (idempotent) per docs/11 section 6.2.
+        Get or create step execution (idempotent) per docs/03-reference/requirements/DOC-11.md section 6.2.
 
         Args:
             execution: OrchestrationExecution instance
@@ -240,7 +240,7 @@ class OrchestrationExecutor:
         step_execution: StepExecution,
     ) -> Dict[str, Any]:
         """
-        Execute the actual step handler logic per docs/11 section 2.2.
+        Execute the actual step handler logic per docs/03-reference/requirements/DOC-11.md section 2.2.
 
         Dispatches to appropriate handler based on step type.
 
@@ -464,7 +464,7 @@ class OrchestrationExecutor:
         self, error: Exception, step_def: Dict[str, Any]
     ) -> str:
         """
-        Classify error per docs/11 section 4.
+        Classify error per docs/03-reference/requirements/DOC-11.md section 4.
 
         Args:
             error: The exception that occurred
@@ -511,7 +511,7 @@ class OrchestrationExecutor:
 
     def _redact_error(self, error_message: str) -> str:
         """
-        Redact sensitive information from error message per docs/21 section 4.
+        Redact sensitive information from error message per docs/03-reference/requirements/DOC-21.md section 4.
 
         Redacts common PII patterns:
         - Email addresses
@@ -585,7 +585,7 @@ class OrchestrationExecutor:
         error_class: str,
     ) -> bool:
         """
-        Determine if step should be retried per docs/11 section 5.
+        Determine if step should be retried per docs/03-reference/requirements/DOC-11.md section 5.
 
         Args:
             step_execution: StepExecution instance
@@ -602,7 +602,7 @@ class OrchestrationExecutor:
         if step_execution.attempt_number >= max_attempts:
             return False
 
-        # Check error class retry policy per docs/11 section 5.2
+        # Check error class retry policy per docs/03-reference/requirements/DOC-11.md section 5.2
         retry_on_classes = step_def.get("retry_on_classes", [
             "TRANSIENT",
             "RETRYABLE",
@@ -616,7 +616,7 @@ class OrchestrationExecutor:
         self, step_execution: StepExecution, step_def: Dict[str, Any]
     ) -> timedelta:
         """
-        Calculate retry delay per docs/11 section 5.1.
+        Calculate retry delay per docs/03-reference/requirements/DOC-11.md section 5.1.
 
         Args:
             step_execution: StepExecution instance
@@ -669,7 +669,7 @@ class OrchestrationExecutor:
         error_class: str,
     ) -> None:
         """
-        Route failed step to DLQ per docs/11 section 5.2.
+        Route failed step to DLQ per docs/03-reference/requirements/DOC-11.md section 5.2.
 
         Args:
             execution: OrchestrationExecution instance
@@ -702,7 +702,7 @@ class OrchestrationExecutor:
         self, execution: OrchestrationExecution
     ) -> None:
         """
-        Audit execution start per docs/11 section 10.
+        Audit execution start per docs/03-reference/requirements/DOC-11.md section 10.
 
         Args:
             execution: OrchestrationExecution instance

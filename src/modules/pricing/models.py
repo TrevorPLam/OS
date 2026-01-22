@@ -1,5 +1,5 @@
 """
-Pricing Engine Models (DOC-09.1 per docs/9 PRICING_ENGINE_SPEC)
+Pricing Engine Models (DOC-09.1 per docs/03-reference/requirements/DOC-09.md PRICING_ENGINE_SPEC)
 
 Implements:
 - RuleSet: Versioned pricing rule collections
@@ -24,7 +24,7 @@ from modules.firm.utils import FirmScopedManager
 
 class RuleSet(models.Model):
     """
-    RuleSet model per docs/9 section 2.1.
+    RuleSet model per docs/03-reference/requirements/DOC-09.md section 2.1.
 
     A RuleSet is a named collection of pricing rules under a specific schema version.
 
@@ -242,7 +242,7 @@ class RuleSet(models.Model):
 
 class Quote(models.Model):
     """
-    Quote model (mutable working draft) per docs/9 section 2.2.
+    Quote model (mutable working draft) per docs/03-reference/requirements/DOC-09.md section 2.2.
 
     A Quote is the mutable working draft before snapshotting into QuoteVersion.
     """
@@ -329,7 +329,7 @@ class Quote(models.Model):
 
 class QuoteVersion(models.Model):
     """
-    QuoteVersion model (immutable snapshot) per docs/9 section 2.2 and 7.
+    QuoteVersion model (immutable snapshot) per docs/03-reference/requirements/DOC-09.md section 2.2 and 7.
 
     The immutable snapshot used for issuance/acceptance/audit.
 
@@ -533,7 +533,7 @@ class QuoteVersion(models.Model):
 
 class QuoteLineItem(models.Model):
     """
-    QuoteLineItem model per docs/9 section 6.1.
+    QuoteLineItem model per docs/03-reference/requirements/DOC-09.md section 6.1.
 
     Stores individual line items for a quote version.
     Each line item SHOULD map to an EngagementLine candidate.

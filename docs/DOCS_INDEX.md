@@ -44,6 +44,7 @@ Last Updated: 2026-01-21
 
 ## Reference docs
 - `03-reference/README.md`
+- `03-reference/requirements/README.md`
 - `03-reference/portal-ux-coverage.md`
 
 ## Policy docs

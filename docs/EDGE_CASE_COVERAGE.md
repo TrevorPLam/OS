@@ -2,24 +2,24 @@
 
 **Status:** ✅ Complete
 **Last Updated:** December 30, 2025
-**Complies with:** docs/23 EDGE_CASES_CATALOG
+**Complies with:** docs/03-reference/requirements/DOC-23.md EDGE_CASES_CATALOG
 
 ---
 
 ## Overview
 
-This document describes the implementation of DOC-23.1: Comprehensive edge case coverage from the EDGE_CASES_CATALOG (docs/23).
+This document describes the implementation of DOC-23.1: Comprehensive edge case coverage from the EDGE_CASES_CATALOG (docs/03-reference/requirements/DOC-23.md).
 
 The implementation provides:
-1. **Test coverage** for all edge cases listed in docs/23
+1. **Test coverage** for all edge cases listed in docs/03-reference/requirements/DOC-23.md
 2. **Implementation verification** that edge cases are handled correctly
 3. **Regression prevention** through automated test suite
 
 ---
 
-## 1. Edge Case Categories (docs/23)
+## 1. Edge Case Categories (docs/03-reference/requirements/DOC-23.md)
 
-### 1.1 Recurrence (docs/23 section 1)
+### 1.1 Recurrence (docs/03-reference/requirements/DOC-23.md section 1)
 
 | Edge Case | Status | Test Location | Implementation |
 |-----------|--------|---------------|----------------|
@@ -35,7 +35,7 @@ The implementation provides:
 - Pause/resume uses RecurrenceGeneration dedupe ledger to prevent duplicates
 - Backfill service checks existing generations before creating new ones
 
-### 1.2 Email Ingestion (docs/23 section 2)
+### 1.2 Email Ingestion (docs/03-reference/requirements/DOC-23.md section 2)
 
 | Edge Case | Status | Test Location | Implementation |
 |-----------|--------|---------------|----------------|
@@ -50,7 +50,7 @@ The implementation provides:
 - Attachments are tracked separately even if renamed; each creates its own EmailAttachment record
 - Idempotency is enforced by unique constraint on (connection, external_message_id)
 
-### 1.3 Permissions (docs/23 section 3)
+### 1.3 Permissions (docs/03-reference/requirements/DOC-23.md section 3)
 
 | Edge Case | Status | Test Location | Implementation |
 |-----------|--------|---------------|----------------|
@@ -63,7 +63,7 @@ The implementation provides:
 - Document visibility field controls portal access; "internal" docs are filtered out
 - Role changes require token refresh to update cached permissions
 
-### 1.4 Billing Ledger (docs/23 section 4)
+### 1.4 Billing Ledger (docs/03-reference/requirements/DOC-23.md section 4)
 
 | Edge Case | Status | Test Location | Implementation |
 |-----------|--------|---------------|----------------|
@@ -78,7 +78,7 @@ The implementation provides:
 - Idempotency enforced by unique constraint on (firm, entry_type, idempotency_key)
 - Decimal field type ensures currency precision without rounding errors
 
-### 1.5 Documents (docs/23 section 5)
+### 1.5 Documents (docs/03-reference/requirements/DOC-23.md section 5)
 
 | Edge Case | Status | Test Location | Implementation |
 |-----------|--------|---------------|----------------|
@@ -280,14 +280,14 @@ doc.save()
 | Documents | 4 | 4 | ✅ | 100% |
 | **Total** | **21** | **21** | **21/21** | **100%** |
 
-**Overall Compliance:** 21/21 edge cases (100% coverage per docs/23)
+**Overall Compliance:** 21/21 edge cases (100% coverage per docs/03-reference/requirements/DOC-23.md)
 
 ---
 
 ## 6. Related Documentation
 
-- **docs/23**: EDGE_CASES_CATALOG (canonical edge case list)
-- **docs/22**: TEST_STRATEGY (contract tests framework)
+- **docs/03-reference/requirements/DOC-23.md**: EDGE_CASES_CATALOG (canonical edge case list)
+- **docs/03-reference/requirements/DOC-22.md**: TEST_STRATEGY (contract tests framework)
 - **src/tests/contract_tests.py**: Contract tests (DOC-22.1)
 - **src/tests/edge_cases/test_edge_cases.py**: Edge case tests (this implementation)
 
@@ -330,14 +330,14 @@ doc.save()
 
 DOC-23.1 implementation provides:
 
-✅ **21 edge case tests** covering all scenarios from docs/23
+✅ **21 edge case tests** covering all scenarios from docs/03-reference/requirements/DOC-23.md
 ✅ **5 test categories**: Recurrence, Email Ingestion, Permissions, Billing Ledger, Documents
 ✅ **Implementation verification**: All edge cases are handled correctly in existing code
 ✅ **Regression prevention**: Automated test suite prevents future breakage
-✅ **100% compliance** with docs/23 EDGE_CASES_CATALOG
+✅ **100% compliance** with docs/03-reference/requirements/DOC-23.md EDGE_CASES_CATALOG
 
 The implementation ensures that tricky edge cases are:
-1. **Documented** in docs/23
+1. **Documented** in docs/03-reference/requirements/DOC-23.md
 2. **Tested** in src/tests/edge_cases/test_edge_cases.py
 3. **Implemented** correctly in respective modules
 4. **Verified** through CI/CD test runs

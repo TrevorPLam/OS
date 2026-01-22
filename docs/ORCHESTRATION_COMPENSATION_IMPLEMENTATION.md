@@ -1,14 +1,14 @@
 # Orchestration Compensation Boundaries and Error Classification Implementation
 
 **Implementation Date:** December 30, 2025
-**Spec Compliance:** docs/11 (ORCHESTRATION_ENGINE_SPEC) sections 4, 5, 7
+**Spec Compliance:** docs/03-reference/requirements/DOC-11.md (ORCHESTRATION_ENGINE_SPEC) sections 4, 5, 7
 **Status:** ✅ Complete (DOC-11.2)
 
 ---
 
 ## Overview
 
-This document describes the existing implementation of error classification, retry matrix, and compensation boundaries for orchestration workflows per docs/11.
+This document describes the existing implementation of error classification, retry matrix, and compensation boundaries for orchestration workflows per docs/03-reference/requirements/DOC-11.md.
 
 ### Key Capabilities
 
@@ -21,7 +21,7 @@ This document describes the existing implementation of error classification, ret
 
 ## Architecture
 
-### 1. Error Classification (docs/11 section 4)
+### 1. Error Classification (docs/03-reference/requirements/DOC-11.md section 4)
 
 **Requirement:** Errors MUST be classified to determine retry behavior and DLQ routing.
 
@@ -49,7 +49,7 @@ Located in: `src/modules/orchestration/executor.py:270-316`
 ```python
 def _classify_error(self, error: Exception, step_def: Dict[str, Any]) -> str:
     """
-    Classify error per docs/11 section 4.
+    Classify error per docs/03-reference/requirements/DOC-11.md section 4.
 
     Classification is deterministic from error type/codes.
     """
@@ -93,7 +93,7 @@ def _classify_error(self, error: Exception, step_def: Dict[str, Any]) -> str:
 
 ---
 
-### 2. Retry Matrix (docs/11 section 5)
+### 2. Retry Matrix (docs/03-reference/requirements/DOC-11.md section 5)
 
 **Requirement:** Retry policy MUST be determined by error classification.
 
@@ -126,7 +126,7 @@ def _should_retry(
     error_class: str,
 ) -> bool:
     """
-    Determine if step should be retried per docs/11 section 5.
+    Determine if step should be retried per docs/03-reference/requirements/DOC-11.md section 5.
 
     Retry matrix determines retry behavior.
     """
@@ -187,7 +187,7 @@ Prevents thundering herd when multiple workers retry simultaneously.
 
 ---
 
-### 3. DLQ Routing (docs/11 section 5.2)
+### 3. DLQ Routing (docs/03-reference/requirements/DOC-11.md section 5.2)
 
 **Requirement:** Steps that exceed max attempts or hit NON_RETRYABLE/COMPENSATION_REQUIRED MUST be routed to DLQ.
 
@@ -203,7 +203,7 @@ def _route_to_dlq(
     error_class: str,
 ) -> None:
     """
-    Route failed step to DLQ per docs/11 section 5.2.
+    Route failed step to DLQ per docs/03-reference/requirements/DOC-11.md section 5.2.
 
     DLQ captures:
     - Max attempts exceeded
@@ -285,7 +285,7 @@ class OrchestrationDLQ(models.Model):
 
 ---
 
-### 4. Compensation Boundaries (docs/11 section 7)
+### 4. Compensation Boundaries (docs/03-reference/requirements/DOC-11.md section 7)
 
 **Requirement:** Steps with non-retryable side effects MUST support compensation handlers.
 
@@ -502,7 +502,7 @@ except DatabaseError as e:
 
 ## Compliance Matrix
 
-| docs/11 Requirement | Implementation | Location |
+| docs/03-reference/requirements/DOC-11.md Requirement | Implementation | Location |
 |-------------------|----------------|----------|
 | 4: Error classification MUST be deterministic | ✅ Implemented | `executor.py:270-316` |
 | 4: Minimum error classes defined | ✅ All 6 classes | `models.py:330-337` |
@@ -641,7 +641,7 @@ Test coverage needed:
 
 ## Summary
 
-This implementation provides complete error classification, retry matrix, and compensation boundary support for orchestration workflows per docs/11.
+This implementation provides complete error classification, retry matrix, and compensation boundary support for orchestration workflows per docs/03-reference/requirements/DOC-11.md.
 
 **Key Features:**
 - ✅ Six error classes with deterministic classification
@@ -651,6 +651,6 @@ This implementation provides complete error classification, retry matrix, and co
 - ✅ Compensation handler framework
 - ✅ Manual review queue (OrchestrationDLQ)
 - ✅ Reprocessing tracking
-- ✅ 100% compliance with docs/11 sections 4, 5, 7
+- ✅ 100% compliance with docs/03-reference/requirements/DOC-11.md sections 4, 5, 7
 
 **Status:** Production-ready, fully compliant.

@@ -1,5 +1,5 @@
 """
-Communications Models (DOC-33.1 per docs/33 COMMUNICATIONS_SPEC)
+Communications Models (DOC-33.1 per docs/03-reference/requirements/DOC-33.md COMMUNICATIONS_SPEC)
 
 Implements the communications domain with:
 - Conversation: Thread model with visibility rules (internal_only | client_visible)
@@ -23,7 +23,7 @@ from modules.firm.utils import FirmScopedManager
 
 class Conversation(models.Model):
     """
-    Conversation (thread) model per docs/33 section 2.1.
+    Conversation (thread) model per docs/03-reference/requirements/DOC-33.md section 2.1.
 
     A Conversation is a thread of messages that can be:
     - internal_only: staff participants only
@@ -139,7 +139,7 @@ class Conversation(models.Model):
 
 class Participant(models.Model):
     """
-    Participant model per docs/33 section 2.2.
+    Participant model per docs/03-reference/requirements/DOC-33.md section 2.2.
 
     Participants can be:
     - StaffUser (participant_type='staff')
@@ -272,7 +272,7 @@ class Participant(models.Model):
 
 class Message(models.Model):
     """
-    Message model per docs/33 section 2.3.
+    Message model per docs/03-reference/requirements/DOC-33.md section 2.3.
 
     Messages are append-only by default. Edits/deletes preserve history.
 
@@ -425,7 +425,7 @@ class Message(models.Model):
 
 class MessageAttachment(models.Model):
     """
-    Message attachment model per docs/33 section 2.4.
+    Message attachment model per docs/03-reference/requirements/DOC-33.md section 2.4.
 
     Attachments MUST be governed Documents.
     Links messages to Documents with attachment role.
@@ -499,7 +499,7 @@ class MessageAttachment(models.Model):
 
 class MessageRevision(models.Model):
     """
-    Message revision history per docs/33 section 7.2.
+    Message revision history per docs/03-reference/requirements/DOC-33.md section 7.2.
 
     Preserves edit history for messages when edits are allowed.
     """
@@ -549,7 +549,7 @@ class MessageRevision(models.Model):
 
 class ConversationLink(models.Model):
     """
-    Conversation link model per docs/33 section 4.
+    Conversation link model per docs/03-reference/requirements/DOC-33.md section 4.
 
     Links conversations to domain objects (Account, Engagement, etc.).
     A conversation MAY have multiple links but SHOULD have one primary anchor.

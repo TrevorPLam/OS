@@ -1,7 +1,7 @@
 """
 Role-Based Module Visibility Permissions (DOC-27.1).
 
-Implements least privilege defaults per docs/27.
+Implements least privilege defaults per docs/03-reference/requirements/DOC-27.md.
 Defines which roles can access which modules.
 
 Module visibility rules:
@@ -201,7 +201,7 @@ class CanAccessBilling(BasePermission):
         if role in ("billing", "partner", "firm_admin"):
             return True
 
-        # Manager can read invoices (limited billing per docs/27)
+        # Manager can read invoices (limited billing per docs/03-reference/requirements/DOC-27.md)
         if role == "manager" and request.method in ("GET", "HEAD", "OPTIONS"):
             return True
 
@@ -322,7 +322,7 @@ class HasPortalScope(BasePermission):
     """
     Base class for portal scope validation.
 
-    Portal scopes map to portal nav per docs/27:
+    Portal scopes map to portal nav per docs/03-reference/requirements/DOC-27.md:
     - portal:message:* for Messages
     - portal:document:* for Documents
     - portal:appointment:* for Appointments

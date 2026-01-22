@@ -1,7 +1,7 @@
 """
 Tenant Provisioning Service (DOC-19.1).
 
-Implements idempotent firm provisioning workflow per DB_SCHEMA_AND_MIGRATIONS spec (docs/19).
+Implements idempotent firm provisioning workflow per DB_SCHEMA_AND_MIGRATIONS spec (docs/03-reference/requirements/DOC-19.md).
 
 Workflow:
 1. Create Firm record
@@ -35,7 +35,7 @@ class ProvisioningLog(models.Model):
     """
     Records provisioning attempts for auditability.
 
-    Per docs/19 section 2: Migration runner records:
+    Per docs/03-reference/requirements/DOC-19.md section 2: Migration runner records:
     - start/end time
     - success/failure
     - correlation id
@@ -148,7 +148,7 @@ class TenantProvisioningService:
     """
     Idempotent tenant provisioning service.
 
-    Implements docs/19 section 1: Row-level tenant provisioning workflow.
+    Implements docs/03-reference/requirements/DOC-19.md section 1: Row-level tenant provisioning workflow.
     """
 
     def __init__(self, correlation_id: Optional[str] = None, initiated_by: Optional[User] = None):
@@ -185,7 +185,7 @@ class TenantProvisioningService:
         - If admin user with email already exists, reuses that user
         - Baseline config seeding is idempotent (creates only if not exists)
 
-        Per docs/19 section 1:
+        Per docs/03-reference/requirements/DOC-19.md section 1:
         1. Create Firm record
         2. Create firm admin user
         3. Seed baseline config (roles, default stages, template stubs)
@@ -440,7 +440,7 @@ class TenantProvisioningService:
         """
         Seed baseline configuration for new firm (idempotent).
 
-        Per docs/19 section 1:
+        Per docs/03-reference/requirements/DOC-19.md section 1:
         - Roles (handled via FirmMembership)
         - Default stages (CRM pipeline stages)
         - Template stubs (project templates, email templates, etc.)
@@ -632,7 +632,7 @@ class TenantProvisioningService:
         """
         Record audit events for provisioning.
 
-        Per docs/19 section 1: Record audit events and provisioning logs.
+        Per docs/03-reference/requirements/DOC-19.md section 1: Record audit events and provisioning logs.
         """
         action = 'firm_provisioned' if created else 'firm_provisioning_verified'
 

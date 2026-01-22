@@ -1,6 +1,6 @@
 # Alert Configuration
 
-Per docs/21 OBSERVABILITY_AND_SRE section 3: Alert thresholds for operational monitoring.
+Per docs/03-reference/requirements/DOC-21.md OBSERVABILITY_AND_SRE section 3: Alert thresholds for operational monitoring.
 
 ## Default Alert Thresholds
 
@@ -136,7 +136,7 @@ All metrics are collected via `modules.core.observability` utilities:
 
 ## Correlation IDs
 
-All metrics and logs include `correlation_id` for end-to-end tracing (per docs/21 section 1).
+All metrics and logs include `correlation_id` for end-to-end tracing (per docs/03-reference/requirements/DOC-21.md section 1).
 
 Correlation IDs:
 - Generated per API request (middleware)
@@ -146,10 +146,10 @@ Correlation IDs:
 
 ## Log Requirements
 
-All operational logs include (per docs/21 section 4):
+All operational logs include (per docs/03-reference/requirements/DOC-21.md section 4):
 - `tenant_id`: Firm/tenant identifier
 - `correlation_id`: Request/job correlation ID
 - `actor`: User or system performing action (when applicable)
 - `object_type` and `object_id`: Primary resource being operated on
 
-Logs automatically redact HR-classified data and minimize PII (per docs/7 DATA_GOVERNANCE).
+Logs automatically redact HR-classified data and minimize PII (per docs/03-reference/requirements/DOC-07.md DATA_GOVERNANCE).

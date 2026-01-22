@@ -2,7 +2,7 @@
 Job Queue and DLQ Models.
 
 Implements DOC-20.1: Workers/queues payload rules, concurrency locks, DLQ reprocessing.
-Complies with docs/20 WORKERS_AND_QUEUES.
+Complies with docs/03-reference/requirements/DOC-20.md WORKERS_AND_QUEUES.
 """
 
 import uuid
@@ -19,10 +19,10 @@ class JobQueue(models.Model):
     """
     JobQueue model for background job execution tracking.
 
-    Implements docs/20 section 2 (payload rules) and section 3 (concurrency model).
+    Implements docs/03-reference/requirements/DOC-20.md section 2 (payload rules) and section 3 (concurrency model).
     """
 
-    # Job categories per docs/20 section 1
+    # Job categories per docs/03-reference/requirements/DOC-20.md section 1
     CATEGORY_CHOICES = [
         ("ingestion", "Ingestion"),  # email fetch/parse/store/map
         ("sync", "Sync"),  # calendar pull/push
@@ -52,7 +52,7 @@ class JobQueue(models.Model):
     # Identity
     job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    # Tenancy (per docs/20 section 2: payload MUST include tenant_id)
+    # Tenancy (per docs/03-reference/requirements/DOC-20.md section 2: payload MUST include tenant_id)
     firm = models.ForeignKey(
         "firm.Firm",
         on_delete=models.CASCADE,
@@ -64,14 +64,14 @@ class JobQueue(models.Model):
     category = models.CharField(
         max_length=20,
         choices=CATEGORY_CHOICES,
-        help_text="Job category per docs/20 section 1",
+        help_text="Job category per docs/03-reference/requirements/DOC-20.md section 1",
     )
     job_type = models.CharField(
         max_length=100,
         help_text="Specific job type (e.g., 'email_ingestion_fetch', 'calendar_sync_pull')",
     )
 
-    # Payload (per docs/20 section 2: minimal, versioned, with required fields)
+    # Payload (per docs/03-reference/requirements/DOC-20.md section 2: minimal, versioned, with required fields)
     payload_version = models.CharField(
         max_length=10,
         default="1.0",
@@ -81,13 +81,13 @@ class JobQueue(models.Model):
         help_text="Job payload: MUST include tenant_id, correlation_id, idempotency_key, object refs"
     )
 
-    # Idempotency (per docs/20 section 2 and section 3)
+    # Idempotency (per docs/03-reference/requirements/DOC-20.md section 2 and section 3)
     idempotency_key = models.CharField(
         max_length=255,
-        help_text="Unique key for at-most-once processing per docs/20 section 3",
+        help_text="Unique key for at-most-once processing per docs/03-reference/requirements/DOC-20.md section 3",
     )
     correlation_id = models.UUIDField(
-        help_text="Correlation ID for tracing across systems per docs/20 section 2"
+        help_text="Correlation ID for tracing across systems per docs/03-reference/requirements/DOC-20.md section 2"
     )
 
     # Status and priority
@@ -121,7 +121,7 @@ class JobQueue(models.Model):
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    # Retry tracking (aligned with orchestration error classes per docs/20 section 5)
+    # Retry tracking (aligned with orchestration error classes per docs/03-reference/requirements/DOC-20.md section 5)
     attempt_count = models.IntegerField(
         default=0,
         help_text="Number of execution attempts",
@@ -172,7 +172,7 @@ class JobQueue(models.Model):
             models.Index(fields=["category", "status"], name="jobs_que_cat_sta_idx"),
             models.Index(fields=["claimed_at"], name="jobs_cla_idx"),
         ]
-        # Uniqueness constraint for idempotency per docs/20 section 3
+        # Uniqueness constraint for idempotency per docs/03-reference/requirements/DOC-20.md section 3
         constraints = [
             models.UniqueConstraint(
                 fields=["firm", "idempotency_key"],
@@ -184,7 +184,7 @@ class JobQueue(models.Model):
         return f"{self.category}:{self.job_type} [{self.status}]"
 
     def clean(self):
-        """Validate payload structure per docs/20 section 2."""
+        """Validate payload structure per docs/03-reference/requirements/DOC-20.md section 2."""
         errors = {}
 
         # Validate payload has required fields
@@ -209,7 +209,7 @@ class JobQueue(models.Model):
         """
         Claim this job for processing using advisory lock pattern.
 
-        Implements docs/20 section 3: at-most-one concurrent processing.
+        Implements docs/03-reference/requirements/DOC-20.md section 3: at-most-one concurrent processing.
 
         Returns:
             True if successfully claimed, False if already claimed
@@ -254,7 +254,7 @@ class JobQueue(models.Model):
         """
         Mark job as failed with error classification.
 
-        Implements docs/20 section 4: DLQ handling for non-retryable or exhausted retries.
+        Implements docs/03-reference/requirements/DOC-20.md section 4: DLQ handling for non-retryable or exhausted retries.
 
         Args:
             error_class: Error classification (transient, retryable, non_retryable, rate_limited)
@@ -264,7 +264,7 @@ class JobQueue(models.Model):
         self.error_class = error_class
         self.last_error = error_message
 
-        # Check if should move to DLQ per docs/20 section 4
+        # Check if should move to DLQ per docs/03-reference/requirements/DOC-20.md section 4
         if not should_retry or self.attempt_count >= self.max_attempts or error_class == "non_retryable":
             self.status = "dlq"
             # Create DLQ entry
@@ -301,7 +301,7 @@ class JobDLQ(models.Model):
     """
     Dead Letter Queue for failed jobs.
 
-    Implements docs/20 section 4: DLQ with viewable/reprocessable items and audit trail.
+    Implements docs/03-reference/requirements/DOC-20.md section 4: DLQ with viewable/reprocessable items and audit trail.
     """
 
     STATUS_CHOICES = [
@@ -332,7 +332,7 @@ class JobDLQ(models.Model):
         help_text="Firm this DLQ entry belongs to",
     )
 
-    # Job metadata (preserved from original per docs/20 section 4)
+    # Job metadata (preserved from original per docs/03-reference/requirements/DOC-20.md section 4)
     category = models.CharField(max_length=20)
     job_type = models.CharField(max_length=100)
     payload_version = models.CharField(max_length=10)
@@ -360,7 +360,7 @@ class JobDLQ(models.Model):
         help_text="DLQ processing status",
     )
 
-    # Reprocessing tracking (per docs/20 section 4: reprocessing must be auditable)
+    # Reprocessing tracking (per docs/03-reference/requirements/DOC-20.md section 4: reprocessing must be auditable)
     reprocessed_at = models.DateTimeField(
         null=True,
         blank=True,
@@ -416,7 +416,7 @@ class JobDLQ(models.Model):
         """
         Reprocess this DLQ item by creating a new job.
 
-        Implements docs/20 section 4: reprocessable with audit trail.
+        Implements docs/03-reference/requirements/DOC-20.md section 4: reprocessable with audit trail.
 
         Args:
             user: Admin user initiating reprocessing
@@ -427,7 +427,7 @@ class JobDLQ(models.Model):
         """
         from modules.firm.audit import AuditEvent
 
-        # Create audit event per docs/20 section 4
+        # Create audit event per docs/03-reference/requirements/DOC-20.md section 4
         AuditEvent.objects.create(
             firm=self.firm,
             event_category="admin",

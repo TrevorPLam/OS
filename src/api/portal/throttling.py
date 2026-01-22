@@ -1,7 +1,7 @@
 """
 Portal Rate Limiting (DOC-24.1).
 
-Per SECURITY_MODEL docs/24: "Rate limiting and abuse detection for portal endpoints."
+Per SECURITY_MODEL docs/03-reference/requirements/DOC-24.md: "Rate limiting and abuse detection for portal endpoints."
 
 Portal endpoints have stricter rate limits than staff endpoints to prevent abuse.
 """

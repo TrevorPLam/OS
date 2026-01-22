@@ -598,7 +598,7 @@ Product → Configure → Validate → Quote → Accept → Invoice → Payment
 - [System Invariants](../../spec/SYSTEM_INVARIANTS.md)
 - [Architecture Overview](../04-explanation/architecture-overview.md)
 - [API Usage Guide](./api-usage.md)
-- [Pricing Engine Specification](../../docs/9)
+- [Pricing Engine Specification](../../docs/03-reference/requirements/DOC-09.md)
 - [CRM Module Documentation](./crm-module.md)
 
 ---

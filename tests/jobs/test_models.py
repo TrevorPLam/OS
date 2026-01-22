@@ -17,7 +17,7 @@ def firm(db):
 
 @pytest.fixture
 def job_payload(firm):
-    """Standard job payload following docs/20 spec"""
+    """Standard job payload following docs/03-reference/requirements/DOC-20.md spec"""
     return {
         "tenant_id": firm.id,
         "correlation_id": str(uuid.uuid4()),

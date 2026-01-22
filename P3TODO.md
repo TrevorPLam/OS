@@ -121,25 +121,6 @@ References:
 Dependencies: None
 Effort: S
 
-### T-039: Resolve numbered docs inventory decision
-Priority: P3
-Type: DOCS
-Owner: Trevor
-Status: BLOCKED
-Blocker: Trevor review of numbered docs.
-Context:
-- docs/ contains 35 numbered files without .md extension.
-- Not referenced in DOCS_INDEX.md or other navigation.
-- Appears to be alternative/legacy spec format.
-Acceptance Criteria:
-- [ ] Trevor reviews numbered files to determine if they should be archived, renamed, or deleted.
-- [ ] Decision documented.
-References:
-- docs/1 through docs/35
-- docs/DOCS_INDEX.md
-Dependencies: None
-Effort: S
-
 ### T-041: Create missing user guides or clean up dead references
 Priority: P3
 Type: DOCS
@@ -515,3 +496,315 @@ References:
 Dependencies: None
 Effort: M
 
+### T-008: Implement action integrations for automation workflows
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Automation workflow system notes missing action integrations (T-008).
+- Integrations are required for workflows to trigger external systems.
+Acceptance Criteria:
+- [ ] Implement baseline action integration framework.
+- [ ] Add at least one external action integration with audit logging.
+- [ ] Document action integration configuration.
+References:
+- docs/AUTOMATION_WORKFLOW_SYSTEM.md
+- src/modules/automation/
+Dependencies: None
+Effort: M
+
+### T-013: Build shared component library for frontend UI
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Architecture doc references a missing component library (T-013).
+- Shared UI components reduce UI drift across staff and portal apps.
+Acceptance Criteria:
+- [ ] Define component library scope and design tokens.
+- [ ] Implement initial shared components with documentation.
+- [ ] Add usage guidance for staff and portal UI.
+References:
+- docs/ARCHITECTURE.md
+- src/frontend/
+Dependencies: None
+Effort: L
+
+### T-018: Implement pipeline visualization UI (DEAL-3)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pipeline deal management identifies missing visualization UI (DEAL-3).
+Acceptance Criteria:
+- [ ] Implement pipeline visualization UI for deals.
+- [ ] Ensure firm-scoped access and permissions.
+- [ ] Document pipeline UI behavior.
+References:
+- docs/PIPELINE_DEAL_MANAGEMENT.md
+- src/modules/crm/
+Dependencies: None
+Effort: M
+
+### T-019: Expand forecasting and analytics for deals (DEAL-4)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pipeline deal management identifies missing forecasting and analytics (DEAL-4).
+Acceptance Criteria:
+- [ ] Add forecasting metrics and analytics endpoints.
+- [ ] Provide UI/reporting hooks for deal forecasts.
+- [ ] Document analytics definitions.
+References:
+- docs/PIPELINE_DEAL_MANAGEMENT.md
+- src/modules/crm/
+Dependencies: None
+Effort: M
+
+### T-020: Implement assignment automation for deals (DEAL-5)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pipeline deal management identifies missing assignment automation (DEAL-5).
+Acceptance Criteria:
+- [ ] Implement assignment automation rules.
+- [ ] Add audit logging for automated assignments.
+- [ ] Document assignment policies.
+References:
+- docs/PIPELINE_DEAL_MANAGEMENT.md
+- src/modules/crm/
+Dependencies: None
+Effort: M
+
+### T-021: Add deal splitting and stale-deal alert automation (DEAL-6)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pipeline deal management identifies missing deal splitting and stale deal automation (DEAL-6).
+Acceptance Criteria:
+- [ ] Implement deal splitting support and tracking.
+- [ ] Add stale deal detection with alerts.
+- [ ] Document automation behaviors.
+References:
+- docs/PIPELINE_DEAL_MANAGEMENT.md
+- src/modules/crm/
+Dependencies: None
+Effort: M
+
+### T-022: Document environment variables reference
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Documentation map flags missing environment variable reference.
+- Needed for consistent setup and deployment guidance.
+Acceptance Criteria:
+- [ ] Document all required and optional environment variables.
+- [ ] Include evidence references for each variable source.
+- [ ] Link the reference in DOCS_INDEX and relevant docs.
+References:
+- docs/README.md
+- docs/03-reference/environment-variables.md
+Dependencies: None
+Effort: S
+
+### T-023: Document management commands reference
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Documentation map flags missing management command reference.
+- Needed for operational tooling clarity.
+Acceptance Criteria:
+- [ ] Document all management commands with usage examples.
+- [ ] Include evidence references for command implementations.
+- [ ] Link the reference in DOCS_INDEX and relevant docs.
+References:
+- docs/README.md
+- docs/03-reference/management-commands.md
+Dependencies: None
+Effort: S
+
+### T-024: Document tier system reference or remove references
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Documentation map references tier system but marks it UNKNOWN.
+- Tier system reference must be documented or removed to avoid drift.
+Acceptance Criteria:
+- [ ] Document tier system or remove references if not implemented.
+- [ ] Add evidence citations or mark UNKNOWN appropriately.
+- [ ] Update docs/README.md and DOCS_INDEX.md accordingly.
+References:
+- docs/README.md
+- docs/03-reference/tier-system.md
+Dependencies: None
+Effort: S
+
+### T-063: Operate automated diamond standard dashboard
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Pre-launch checklist calls for automated diamond standard dashboard.
+- Dashboard is needed for governance visibility.
+Acceptance Criteria:
+- [ ] Define diamond standard metrics and data sources.
+- [ ] Implement dashboard or report generation.
+- [ ] Document how to access and interpret the dashboard.
+References:
+- docs/PRE_LAUNCH_CHECKLIST.md
+- docs/DIAMOND_STANDARD_PLAN.md
+Dependencies: None
+Effort: M
+
+### T-154: Deliver audit review dashboard (AUDIT-1 through AUDIT-4)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Audit review dashboard doc defines AUDIT-1, AUDIT-2, AUDIT-3, AUDIT-4 scope.
+- Missing task coverage in TODOs for implementation.
+Acceptance Criteria:
+- [ ] Implement dashboard wireframes and backend support for AUDIT-1 through AUDIT-4.
+- [ ] Add firm-scoped permissions and audit logging.
+- [ ] Document dashboard behavior and acceptance criteria.
+References:
+- docs/04-explanation/audit-review-dashboard.md
+Dependencies: None
+Effort: L
+
+### T-155: Implement event bus architecture backlog (EVENT-1 through EVENT-5)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Event bus architecture doc defines EVENT-1, EVENT-2, EVENT-3, EVENT-4, EVENT-5.
+- Missing task coverage in TODOs for implementation.
+Acceptance Criteria:
+- [ ] Implement EVENT-1 contract and supporting infrastructure.
+- [ ] Define EVENT-2 through EVENT-5 integration points and tasks.
+- [ ] Document event bus standards and publishing/subscribing rules.
+References:
+- docs/03-reference/event-bus-architecture.md
+Dependencies: None
+Effort: L
+
+### T-156: Implement integration marketplace architecture backlog (MARKET-1 through MARKET-6)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Integration marketplace architecture doc defines MARKET-1, MARKET-2, MARKET-3, MARKET-4, MARKET-5, MARKET-6.
+- Missing task coverage in TODOs for implementation.
+Acceptance Criteria:
+- [ ] Implement MARKET-1 contract and supporting infrastructure.
+- [ ] Define MARKET-2 through MARKET-6 integration points and tasks.
+- [ ] Document marketplace governance and extensibility rules.
+References:
+- docs/03-reference/integration-marketplace-architecture.md
+Dependencies: None
+Effort: L
+
+### T-157: Implement document intelligence features (DOC-INT-1 through DOC-INT-4)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Document AI research defines DOC-INT-1, DOC-INT-2, DOC-INT-3, DOC-INT-4.
+- Missing task coverage in TODOs for implementation.
+Acceptance Criteria:
+- [ ] Define implementation plan for DOC-INT-1 through DOC-INT-4.
+- [ ] Add prototype workflows or backlog tasks for document intelligence.
+- [ ] Document assumptions and dependencies.
+References:
+- docs/research/document-ai-research.md
+Dependencies: None
+Effort: L
+
+### T-158: Implement scheduling intelligence features (SCHED-INT-1 through SCHED-INT-4)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- ML research defines scheduling intelligence features SCHED-INT-1 through SCHED-INT-4.
+- Missing task coverage in TODOs for implementation.
+Acceptance Criteria:
+- [ ] Define implementation plan for SCHED-INT-1 through SCHED-INT-4.
+- [ ] Add prototype workflows or backlog tasks.
+- [ ] Document data requirements and privacy constraints.
+References:
+- docs/research/ml-framework-research.md
+Dependencies: None
+Effort: L
+
+### T-159: Implement CRM intelligence client health score (CRM-INT-2)
+Priority: P3
+Type: FEATURE
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- ML research identifies CRM-INT-2 (dynamic client health score).
+- Missing task coverage in TODOs for implementation.
+Acceptance Criteria:
+- [ ] Define data inputs and scoring model for CRM-INT-2.
+- [ ] Add prototype workflow or backlog tasks.
+- [ ] Document validation and monitoring strategy.
+References:
+- docs/research/ml-framework-research.md
+Dependencies: None
+Effort: M
+
+### T-160: Audit inline TODO markers and convert to tracked tasks
+Priority: P3
+Type: QUALITY
+Owner: AGENT
+Status: READY
+Blocker: None.
+Context:
+- Inline TODOs should be tracked in task truth source.
+- This task satisfies the requirement to review inline TODO markers.
+- Threat-model identifiers (T-1, T-2, T-3, T-4, T-5, T-6, T-7, T-8, T-9, T-10, T-11, T-12, T-13, T-14, T-15, T-16, T-17, T-18, T-19, T-20, T-21, T-22, T-23) need triage to confirm whether they should map to tasks or remain threat IDs.
+Acceptance Criteria:
+- [ ] Inventory TODO/FIXME markers in docs and code.
+- [ ] Convert actionable items into P0TODO/P1TODO/P2TODO/P3TODO entries.
+- [ ] Mark any unverifiable items as UNKNOWN with citations.
+References:
+- docs/DEFINITION_OF_DONE.md
+Dependencies: None
+Effort: S
