@@ -19,6 +19,57 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-040: Expand DOCS_INDEX.md to include all major doc categories
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-23)
+Context:
+- Current DOCS_INDEX.md covers governance but omits implementation docs, policies, integration guides.
+Acceptance Criteria:
+- [x] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
+- [x] List major documents from each category.
+References:
+- docs/DOCS_INDEX.md
+Dependencies: None
+Effort: S
+
+### T-080: Add ADR template and decision log scaffolding
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-23)
+Blocker: None.
+Context:
+- No ADRs for major architectural decisions.
+- Historical context lost, decisions re-litigated.
+Acceptance Criteria:
+- [x] Create docs/05-decisions/ directory.
+- [x] Add ADR template (MADR format).
+References:
+- docs/DOCS_INDEX.md
+- CONTRIBUTING.md
+- Diamond Standard Plan Phase 6
+Dependencies: None
+Effort: S
+
+### T-082: Document ADR process in CONTRIBUTING and DOCS_INDEX
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-23)
+Blocker: None.
+Context:
+- Contributors need to know when and how to add ADRs.
+Acceptance Criteria:
+- [x] Add ADR process to CONTRIBUTING.md.
+- [x] Link ADR directory from DOCS_INDEX.md.
+References:
+- CONTRIBUTING.md
+- docs/DOCS_INDEX.md
+Dependencies: T-080
+Effort: S
+
 ### T-132: Update pre-commit hooks for comprehensive validation (REFACTOR Phase 1)
 Priority: P1
 Type: QUALITY

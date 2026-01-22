@@ -1,7 +1,7 @@
 # P2TODO.md - Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-21
+Last Updated: 2026-01-23
 Task Truth Source: **P2TODO.md**
 Other Priority Files: P0TODO.md, P1TODO.md, P3TODO.md
 
@@ -193,21 +193,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-040: Expand DOCS_INDEX.md to include all major doc categories
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: IN-REVIEW
-Blocker: None.
-Context:
-- Current DOCS_INDEX.md covers governance but omits implementation docs, policies, integration guides.
-Acceptance Criteria:
-- [x] Add sections for: Implementation Docs, Policy Docs, Integration Guides, User Guides.
-- [x] List major documents from each category.
-References:
-- docs/DOCS_INDEX.md
-Dependencies: None
-Effort: S
 
 ### T-047: Add frontend build output verification to CI/CD
 Priority: P2
@@ -250,41 +235,7 @@ References:
 Dependencies: None
 Effort: M
 
-### T-080: Add ADR template and decision log scaffolding
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: IN-REVIEW
-Blocker: None.
-Context:
-- No ADRs for major architectural decisions.
-- Historical context lost, decisions re-litigated.
-Acceptance Criteria:
-- [x] Create docs/05-decisions/ directory.
-- [x] Add ADR template (MADR format).
-References:
-- docs/DOCS_INDEX.md
-- CONTRIBUTING.md
-- Diamond Standard Plan Phase 6
-Dependencies: None
-Effort: S
 
-### T-082: Document ADR process in CONTRIBUTING and DOCS_INDEX
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: IN-REVIEW
-Blocker: None.
-Context:
-- Contributors need to know when and how to add ADRs.
-Acceptance Criteria:
-- [x] Add ADR process to CONTRIBUTING.md.
-- [x] Link ADR directory from DOCS_INDEX.md.
-References:
-- CONTRIBUTING.md
-- docs/DOCS_INDEX.md
-Dependencies: T-080
-Effort: S
 
 ### T-084: Add Lighthouse CI for frontend performance
 Priority: P2
