@@ -89,7 +89,7 @@ API list responses use DRF pagination defaults configured in settings:
 - `DEFAULT_PAGINATION_CLASS` points to `config.pagination.BoundedPageNumberPagination`.
 - `API_PAGINATION_MAX_PAGE_SIZE` caps `page_size` requests (guardrail set to 100).
 
-**Evidence:** `src/config/settings.py:225-260`, `src/config/pagination.py:1-24`
+**Evidence:** `src/config/settings.py:239, 261`, `src/config/pagination.py:10-29`
 
 ### Constitution Compliance
 
