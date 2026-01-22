@@ -99,11 +99,11 @@ Each variable includes an evidence reference to the file(s) that read or define 
 
 | Variable | Required | Default | Purpose | Evidence |
 | --- | --- | --- | --- | --- |
-| `SAML_ENABLED` | No | `False` | Enable SAML auth flow. | `src/config/settings.py` |
-| `SAML_IDP_METADATA_URL` | No | None | IdP metadata URL. | `src/config/settings.py` |
-| `SAML_SP_ENTITY_ID` | No | None | Service provider entity ID. | `src/config/settings.py` |
-| `SAML_SP_PUBLIC_CERT` | No | None | SP public certificate. | `src/config/settings.py` |
-| `SAML_SP_PRIVATE_KEY` | No | None | SP private key. | `src/config/settings.py` |
+| `SAML_ENABLED` | No | `False` | Enable SAML auth flow. | `.env.example`, `src/config/settings.py` |
+| `SAML_IDP_METADATA_URL` | No | None | IdP metadata URL. | `.env.example`, `src/config/settings.py` |
+| `SAML_SP_ENTITY_ID` | No | None | Service provider entity ID. | `.env.example`, `src/config/settings.py` |
+| `SAML_SP_PUBLIC_CERT` | No | None | SP public certificate. | `.env.example`, `src/config/settings.py` |
+| `SAML_SP_PRIVATE_KEY` | No | None | SP private key. | `.env.example`, `src/config/settings.py` |
 
 ## DocuSign E-Signature Integration
 
