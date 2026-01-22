@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-23
+Last Updated: 2026-01-22
 Source: Completed tasks moved from `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 
 <!--
@@ -1354,3 +1354,22 @@ References:
 - docs/DOCS_INDEX.md
 Dependencies: None
 Effort: S
+
+### T-025: Add authentication flow unit tests
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-22)
+Blocker: None.
+Context:
+- Pre-launch checklist calls out missing authentication flow unit tests.
+- Authentication is a Tier 0 security boundary.
+Acceptance Criteria:
+- [x] Add unit tests covering login, token refresh, and logout flows.
+- [x] Cover failure cases (invalid credentials, expired tokens, revoked sessions).
+- [x] Document test coverage in testing docs if needed.
+References:
+- docs/PRE_LAUNCH_CHECKLIST.md
+- src/modules/auth/
+Dependencies: None
+Effort: M

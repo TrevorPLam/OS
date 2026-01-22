@@ -1,7 +1,7 @@
 # P2TODO.md - Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-23
+Last Updated: 2026-01-22
 Task Truth Source: **P2TODO.md**
 Other Priority Files: P0TODO.md, P1TODO.md, P3TODO.md
 
@@ -753,25 +753,6 @@ References:
 - docs/API_ENDPOINT_AUTHORIZATION_MAPPING.md
 - src/modules/documents/
 - docs/03-reference/requirements/DOC-14.md
-Dependencies: None
-Effort: M
-
-### T-025: Add authentication flow unit tests
-Priority: P2
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Pre-launch checklist calls out missing authentication flow unit tests.
-- Authentication is a Tier 0 security boundary.
-Acceptance Criteria:
-- [ ] Add unit tests covering login, token refresh, and logout flows.
-- [ ] Cover failure cases (invalid credentials, expired tokens, revoked sessions).
-- [ ] Document test coverage in testing docs if needed.
-References:
-- docs/PRE_LAUNCH_CHECKLIST.md
-- src/modules/auth/
 Dependencies: None
 Effort: M
 

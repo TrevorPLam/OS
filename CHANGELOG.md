@@ -23,6 +23,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Authentication Flow Unit Tests** (2026-01-22)
+  - **T-025**: Added login, refresh, and logout tests covering happy paths and error handling.
+
 - **API Pagination Guardrail** (2026-01-23)
   - **T-150**: Reduced max pagination page size to 100 and documented defaults.
 
