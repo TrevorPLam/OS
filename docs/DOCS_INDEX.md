@@ -1,6 +1,6 @@
 # docs/DOCS_INDEX.md — Documentation Index
 
-Last Updated: 2026-01-21
+Last Updated: 2026-01-24
 
 ## Read order (agents)
 1) `../CODEBASECONSTITUTION.md`
@@ -46,6 +46,7 @@ Last Updated: 2026-01-21
 - `03-reference/README.md`
 - `03-reference/requirements/README.md`
 - `03-reference/portal-ux-coverage.md`
+- `03-reference/tier-system.md`
 - `03-reference/environment-variables.md`
 - `03-reference/management-commands.md`
 
