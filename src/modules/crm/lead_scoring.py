@@ -3,6 +3,12 @@ Lead scoring automation models.
 
 Automated lead scoring based on behavioral triggers, demographics,
 and engagement metrics.
+
+Meta-commentary:
+- **Current Status:** Rules create ScoreAdjustment records and Lead scores are recalculated from non-decayed points.
+- **Design Rationale:** Separate rule definitions from adjustments to preserve an audit trail (WHY: explainable scoring).
+- **Assumption:** Behavioral event payloads use `event.*` keys to match trigger conditions.
+- **Limitation:** Condition matching supports exact, list, and min/max range comparisons only.
 """
 
 from django.db import models

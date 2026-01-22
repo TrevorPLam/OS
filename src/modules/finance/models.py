@@ -7,6 +7,13 @@ Implements basic accounting for management consulting:
 - LedgerEntry: Double-entry bookkeeping for P&L
 
 TIER 0: All financial records MUST belong to exactly one Firm for tenant isolation.
+
+Meta-commentary:
+- **Current Status:** Models define core billing entities plus dunning/autopay metadata; workflow enforcement lives in
+  service layers rather than model-level guards.
+- **Design Rationale:** Keep firm and client/engagement links on invoices for efficient tenant-scoped reporting
+  (WHY: predictable isolation and query performance).
+- **Limitation:** Invoice numbers are enforced unique per firm at the database level; global cross-firm uniqueness is not enforced.
 """
 
 from decimal import Decimal

@@ -13,6 +13,12 @@ Implements executable actions within workflows:
 
 Each action executor follows standard interface:
 - execute(execution, node, config) -> result
+
+Meta-commentary:
+- **Current Status:** Actions execute synchronously and return status payloads to the workflow engine.
+- **Design Rationale:** Action classes isolate side effects behind a shared interface (WHY: predictable node execution).
+- **Assumption:** External integrations (email/SMS) are configured and contacts have required fields.
+- **Limitation:** Executors do not implement retry/backoff; callers must decide whether to re-run actions.
 """
 
 from datetime import timedelta
