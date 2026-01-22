@@ -46,9 +46,9 @@ Each variable includes an evidence reference to the file(s) that read or define 
 | Variable | Required | Default | Purpose | Evidence |
 | --- | --- | --- | --- | --- |
 | `TRACKING_PUBLIC_KEY` | No | None | Shared key for backend ingestion and frontend snippet. | `src/config/settings.py`, `README.md` |
-| `TRACKING_INGEST_ENABLED` | No | `True` | Enable/disable tracking ingest endpoint. | `src/config/settings.py` |
-| `TRACKING_INGEST_RATE_LIMIT_PER_MINUTE` | No | `300` | Tracking ingest rate limit per minute. | `src/config/settings.py` |
-| `TRACKING_MAX_PROPERTIES_BYTES` | No | `16384` | Max JSON properties size for tracking payloads. | `src/config/settings.py` |
+| `TRACKING_INGEST_ENABLED` | No | `True` | Enable/disable tracking ingest endpoint. | `src/config/settings.py`, `README.md` |
+| `TRACKING_INGEST_RATE_LIMIT_PER_MINUTE` | No | `300` | Tracking ingest rate limit per minute. | `src/config/settings.py`, `README.md` |
+| `TRACKING_MAX_PROPERTIES_BYTES` | No | `16384` | Max JSON properties size for tracking payloads. | `src/config/settings.py`, `README.md` |
 
 ## Auth Cookie Settings
 
