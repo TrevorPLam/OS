@@ -1214,3 +1214,28 @@ References:
 - .pre-commit-config.yaml
 Dependencies: None
 Effort: S
+
+### T-086: Add Meta-commentary for billing, CRM, and automation modules
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-22)
+Context:
+- Supporting modules (billing, CRM, automation actions) have medium complexity.
+- State machines, scoring algorithms, routing rules need context documentation.
+Acceptance Criteria:
+- [x] Add Meta-commentary to src/modules/finance/models.py.
+- [x] Add Meta-commentary to src/modules/crm/assignment_automation.py.
+- [x] Add Meta-commentary to src/modules/crm/lead_scoring.py.
+- [x] Add Meta-commentary to src/modules/automation/triggers.py.
+- [x] Add Meta-commentary to src/modules/automation/actions.py.
+- [x] All Meta-commentary follows STYLE_GUIDE.md template.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/finance/models.py
+- src/modules/crm/assignment_automation.py
+- src/modules/crm/lead_scoring.py
+- src/modules/automation/triggers.py
+- src/modules/automation/actions.py
+Dependencies: T-064, T-065, T-066, T-067
+Effort: M

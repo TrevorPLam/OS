@@ -326,28 +326,6 @@ References:
 Dependencies: T-042 (deployment platform)
 Effort: M
 
-### T-086: Add Meta-commentary for billing, CRM, and automation modules
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Supporting modules (billing, CRM, automation actions) have medium complexity.
-- State machines, scoring algorithms, routing rules need context documentation.
-Acceptance Criteria:
-- [ ] Add Meta-commentary to billing/models.py.
-- [ ] Add Meta-commentary to crm/lead_routing.py.
-- [ ] Add Meta-commentary to crm/scoring.py.
-- [ ] Add Meta-commentary to automation/triggers.py.
-- [ ] Add Meta-commentary to automation/actions.py.
-- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
-References:
-- docs/STYLE_GUIDE.md
-- src/modules/ (files listed in Acceptance Criteria)
-Dependencies: T-064, T-065, T-066, T-067
-Effort: M
-
 ### T-087: Add Meta-commentary for webhooks, calendar, and projects modules
 Priority: P2
 Type: DOCS
@@ -770,4 +748,3 @@ References:
 - src/modules/firm/
 Dependencies: None
 Effort: L
-

@@ -10,6 +10,12 @@ Implements trigger detection and workflow initiation:
 - Date-based triggers
 
 Integrates with Django signals and event system.
+
+Meta-commentary:
+- **Current Status:** TriggerDetector handles generic trigger evaluation; only contact create/update signals are wired here.
+- **Design Rationale:** Idempotency keys prevent duplicate executions (WHY: avoid double-triggered workflows).
+- **Assumption:** Event payloads include `contact_id` or `email` to resolve a firm-scoped contact.
+- **Missing:** Additional signal hooks (deals, tracking events, form submits) must call TriggerDetector elsewhere.
 """
 
 from typing import Any, Dict, List

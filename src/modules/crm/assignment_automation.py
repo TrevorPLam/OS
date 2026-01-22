@@ -5,6 +5,11 @@ This module provides automated deal assignment logic including:
 - Round-robin assignment
 - Territory-based routing
 - Deal stage automation triggers
+
+Meta-commentary:
+- **Current Status:** Round-robin assignment is implemented; territory/value/source rules fall back to round robin.
+- **Design Rationale:** Rules apply in priority order with pipeline/stage filters (WHY: deterministic routing).
+- **Missing:** Territory/value/source-specific routing logic beyond placeholders.
 """
 
 from django.db import models
