@@ -23,19 +23,18 @@ User = get_user_model()
 
 def create_leads(firm, count):
     """Create lead records for pagination guard tests."""
-    leads = []
-    for index in range(count):
-        # Use deterministic seed data so pagination assertions stay stable across runs.
-        leads.append(
-            Lead.objects.create(
-                firm=firm,
-                company_name=f"Company {index}",
-                contact_name=f"Contact {index}",
-                contact_email=f"contact{index}@example.com",
-                source="website",
-            )
+    # Use deterministic seed data so pagination assertions stay stable across runs.
+    leads = [
+        Lead(
+            firm=firm,
+            company_name=f"Company {index}",
+            contact_name=f"Contact {index}",
+            contact_email=f"contact{index}@example.com",
+            source="website",
         )
-    return leads
+        for index in range(count)
+    ]
+    return Lead.objects.bulk_create(leads)
 
 
 @pytest.fixture
