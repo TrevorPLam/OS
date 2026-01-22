@@ -257,7 +257,8 @@ REST_FRAMEWORK = {
 }
 
 # API guardrails
-API_PAGINATION_MAX_PAGE_SIZE = 200
+# WHY: cap page sizes to reduce memory pressure and align with T-150 guardrails.
+API_PAGINATION_MAX_PAGE_SIZE = 100
 API_SEARCH_MAX_LENGTH = 100
 API_QUERY_TIMEOUT_MS = 3000
 
