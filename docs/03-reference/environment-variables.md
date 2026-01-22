@@ -90,10 +90,10 @@ Each variable includes an evidence reference to the file(s) that read or define 
 
 | Variable | Required | Default | Purpose | Evidence |
 | --- | --- | --- | --- | --- |
-| `GOOGLE_OAUTH_CLIENT_ID` | No | None | Google OAuth client ID. | `src/config/settings.py` |
-| `GOOGLE_OAUTH_CLIENT_SECRET` | No | None | Google OAuth client secret. | `src/config/settings.py` |
-| `MICROSOFT_OAUTH_CLIENT_ID` | No | None | Microsoft OAuth client ID. | `src/config/settings.py` |
-| `MICROSOFT_OAUTH_CLIENT_SECRET` | No | None | Microsoft OAuth client secret. | `src/config/settings.py` |
+| `GOOGLE_OAUTH_CLIENT_ID` | No | None | Google OAuth client ID. | `.env.example`, `src/config/settings.py` |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | No | None | Google OAuth client secret. | `.env.example`, `src/config/settings.py` |
+| `MICROSOFT_OAUTH_CLIENT_ID` | No | None | Microsoft OAuth client ID. | `.env.example`, `src/config/settings.py` |
+| `MICROSOFT_OAUTH_CLIENT_SECRET` | No | None | Microsoft OAuth client secret. | `.env.example`, `src/config/settings.py` |
 
 ## SAML Configuration
 
