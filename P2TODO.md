@@ -326,28 +326,6 @@ References:
 Dependencies: T-042 (deployment platform)
 Effort: M
 
-### T-087: Add Meta-commentary for webhooks, calendar, and projects modules
-Priority: P2
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Supporting modules (webhooks, calendar, projects) have medium complexity.
-- State machines and routing rules need context documentation.
-Acceptance Criteria:
-- [ ] Add Meta-commentary to webhooks/delivery.py.
-- [ ] Add Meta-commentary to sms/webhooks.py.
-- [ ] Add Meta-commentary to calendar/availability.py.
-- [ ] Add Meta-commentary to calendar/recurrence.py.
-- [ ] Add Meta-commentary to projects/pricing.py.
-- [ ] All Meta-commentary follows STYLE_GUIDE.md template.
-References:
-- docs/STYLE_GUIDE.md
-- src/modules/ (files listed in Acceptance Criteria)
-Dependencies: T-064, T-065, T-066, T-067
-Effort: M
-
 ### T-088: Add Meta-commentary for onboarding, documents, and finance modules
 Priority: P2
 Type: DOCS

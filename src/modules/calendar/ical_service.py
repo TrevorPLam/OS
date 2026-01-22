@@ -3,6 +3,12 @@ iCal/vCal Calendar Integration Service.
 
 Provides support for iCloud Calendar and generic iCal/vCal feed integration.
 Implements AVAIL-1: Expand calendar integrations.
+
+Meta-commentary:
+- **Current Status:** Recurrence rules are parsed and stored as strings without expansion into individual occurrences.
+- **Design Rationale:** The service normalizes `webcal://` URLs to HTTPS to reuse standard HTTP tooling.
+- **Assumption:** Feed URLs are reachable without interactive authentication and return RFC-compliant iCal payloads.
+- **Limitation:** Fetching uses a fixed timeout and no caching (ETag/If-Modified-Since), so repeated calls may be slow.
 """
 
 import logging
