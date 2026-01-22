@@ -1,32 +1,111 @@
-# ConsultantPro - Multi-Firm SaaS Platform
+# ConsultantPro — Multi-Firm SaaS Platform
 
-**Privacy-first architecture with tiered governance for multi-tenant service based firms.**
+**Privacy-first, multi-tenant platform for management consulting firms.**
+
+ConsultantPro is a Django + React SaaS platform built around strict tenant isolation, modular domain boundaries, and auditable governance.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Scope & Principles](#scope--principles)
+- [Platform Pillars](#platform-pillars)
+- [Feature Status Snapshot](#feature-status-snapshot)
+- [Architecture & Tech Stack](#architecture--tech-stack)
+- [Documentation Map](#documentation-map)
+- [🚀 Quickstart (Local Development)](#-quickstart-local-development)
+- [🐳 Quickstart (Docker)](#-quickstart-docker)
+- [🧰 VS Code Workspace](#-vs-code-workspace)
+- [✅ Verification & Testing](#-verification--testing)
+- [📌 Project Status](#-project-status)
+- [🤝 Contributing](#-contributing)
+- [🔐 Security](#-security)
+- [License](#license)
 
 ---
 
 ## Overview
 
-ConsultantPro is a multi-tenant SaaS platform designed for service based firms. The platform emphasizes strict tenant isolation and privacy.
-
-**Core goals:**
-- Firm-level tenant isolation and privacy by default
-- Audited break-glass access with strict oversight
-- Transparent, honest CI and schema management
+ConsultantPro is a multi-tenant SaaS platform designed for service-based firms. The system emphasizes firm-level isolation, privacy-by-default access controls, and an audited break-glass path for rare emergency access.
 
 ---
 
-## Documentation
+## Scope & Principles
 
-- **Getting Started:** [`docs/01-tutorials/getting-started.md`](docs/01-tutorials/getting-started.md) - Complete setup tutorial
-- **Architecture:** [`docs/04-explanation/architecture-overview.md`](docs/04-explanation/architecture-overview.md) - System design and concepts
-- **Platform Capabilities:** [`docs/03-reference/platform-capabilities.md`](docs/03-reference/platform-capabilities.md) - Feature inventory (what exists and what's missing)
-- **Documentation Index:** [`docs/README.md`](docs/README.md) - Organized by type (tutorials, how-to, reference, explanation)
-- **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md) - Complete API documentation
-- **Dependency Reference:** [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md) - Major dependency purposes and upgrade considerations
-- **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md) - Production deployment
-- **Changelog:** [`CHANGELOG.md`](CHANGELOG.md) - Release history and changes
-- **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) - Development workflow
-- **Security:** [`SECURITY.md`](SECURITY.md) - Security policy and reporting
+The platform’s core architecture principles are:
+
+1. **Multi-tenant isolation** — firm boundaries are enforced at both application and database layers.
+2. **Privacy by default** — platform staff cannot access customer content without audited break-glass workflows.
+3. **Modular monolith** — bounded domain modules remain independent and testable.
+4. **API-first design** — REST APIs with OpenAPI docs.
+5. **Secure defaults** — security controls are designed-in, not bolted on.
+
+---
+
+## Platform Pillars
+
+ConsultantPro is organized around these functional pillars:
+
+- **CRM & Sales** — lead to proposal lifecycle management.
+- **Client Management** — client portal, onboarding, and collaboration.
+- **Project & Task Management** — delivery workflows, tasks, and time tracking.
+- **Finance & Billing** — invoicing, payments, and revenue operations.
+- **Calendar & Scheduling** — booking links, availability, and sync.
+- **Marketing Automation** — campaigns, workflows, and segmentation.
+- **Communications** — email, SMS, portal messaging, and templates.
+- **Documents & Knowledge** — versioned documents and knowledge base.
+- **Support & Ticketing** — ticketing with SLA and routing.
+- **Integrations** — webhook platform plus external providers.
+
+See [docs/PILLARS.md](docs/PILLARS.md) for module-to-pillar mapping.
+
+---
+
+## Feature Status Snapshot
+
+High-level inventory from the platform capabilities audit:
+
+- **Fully implemented:** 150+ features ✅
+- **Partially implemented:** 1 feature ⚠️
+- **Coming soon:** 18 features 🔜
+- **Not planned:** mobile native apps, blockchain integration, cryptocurrency payments, social media management
+
+For the authoritative inventory, see [docs/03-reference/platform-capabilities.md](docs/03-reference/platform-capabilities.md).
+
+---
+
+## Architecture & Tech Stack
+
+**Backend:** Django 4.2 LTS + Django REST Framework, modular monolith with firm-scoped data access.
+
+**Frontend:** React 18 + TypeScript + Vite.
+
+**Database:** PostgreSQL 15 with Row-Level Security (RLS) for tenant isolation.
+
+**Observability:** OpenAPI docs, structured logging, and Sentry integration.
+
+For the full architecture details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## Documentation Map
+
+- **Getting Started Tutorial:** [`docs/01-tutorials/getting-started.md`](docs/01-tutorials/getting-started.md)
+- **Documentation Index:** [`docs/README.md`](docs/README.md)
+- **Architecture Overview:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+- **Security Baseline:** [`docs/SECURITY_BASELINE.md`](docs/SECURITY_BASELINE.md)
+- **Platform Capabilities:** [`docs/03-reference/platform-capabilities.md`](docs/03-reference/platform-capabilities.md)
+- **Repo Map:** [`docs/REPO_MAP.md`](docs/REPO_MAP.md)
+- **Testing Strategy:** [`docs/TESTING_STRATEGY.md`](docs/TESTING_STRATEGY.md)
+- **Environment Reference:** [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)
+- **Operations Guide:** [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
+- **API Reference:** [`docs/03-reference/api-usage.md`](docs/03-reference/api-usage.md)
+- **Dependency Reference:** [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md)
+- **Deployment Guide:** [`docs/02-how-to/production-deployment.md`](docs/02-how-to/production-deployment.md)
+- **Changelog:** [`CHANGELOG.md`](CHANGELOG.md)
+- **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- **Security Policy:** [`SECURITY.md`](SECURITY.md)
 
 ---
 
@@ -76,7 +155,7 @@ If `VITE_SENTRY_DSN` is omitted, Sentry is disabled in the frontend.
 
 ### Site & Event Tracking Configuration
 
-Enable the new tracking pipeline with the following environment variables:
+Enable the tracking pipeline with the following environment variables:
 
 ```bash
 # Backend ingestion
@@ -140,50 +219,48 @@ The Django server will be available at http://localhost:8000.
 
 ---
 
-## 🧰 VS Code workspace
+## 🧰 VS Code Workspace
 
 The repository ships a shared VS Code workspace configuration to make formatting, linting, and debugging consistent across contributors:
 
-- **Workspace settings:** `.vscode/settings.json` sets Black + Ruff for Python and ESLint/Prettier for JS/TS formatting.  
-- **Recommended extensions:** `.vscode/extensions.json` lists the editor extensions that match the repo tooling.  
-- **Debug configs:** `.vscode/launch.json` includes launch profiles for the Django runserver and Vite dev server.  
+- **Workspace settings:** `.vscode/settings.json` sets Black + Ruff for Python and ESLint/Prettier for JS/TS formatting.
+- **Recommended extensions:** `.vscode/extensions.json` lists the editor extensions that match the repo tooling.
+- **Debug configs:** `.vscode/launch.json` includes launch profiles for the Django runserver and Vite dev server.
 
 Open the repo in VS Code to pick up the defaults, then run the debug profiles as needed.
 
 ---
 
-## 🔒 Platform Architecture
+## ✅ Verification & Testing
 
-### Multi-Tenant Model
+Recommended repo-level verification commands:
 
-- **Firm-level tenant isolation** - Hard boundaries between firms
-- **Platform privacy enforcement** - Platform staff cannot read customer content by default
-- **Break-glass access** - Audited emergency access with time limits and reason tracking
-- **Client portal containment** - Default-deny for portal users
-- **End-to-end encryption** - Coming Soon (E2EE infrastructure dependency)
-- **Immutable audit logs** - All critical actions tracked with metadata only
+```bash
+make lint
+make test
+```
 
-### Roles
+Additional recommended checks (see `repo.manifest.yaml`):
 
-**Platform:**
-- Platform Operator: metadata-only access
-- Break-Glass Operator: rare, audited content access
+```bash
+./docs/scripts/ai-audit.sh
+./docs/scripts/check.sh
+./docs/scripts/security-scan.sh
+```
 
-**Firm:**
-- Firm Master Admin (Owner): full control, overrides
-- Firm Admin: granular permissions
-- Staff: least privilege, permissions enabled explicitly
-
-**Client:**
-- Portal Users: client-scoped access only
+**Local environment note:** tests default to SQLite locally, and RLS checks skip without PostgreSQL.
 
 ---
 
-## ✅ Testing
+## 📌 Project Status
 
-```bash
-pytest
-```
+Current project snapshot:
+
+- **Phase:** Backend hardening and test backfill
+- **Environment:** Local development (tests run with SQLite; RLS probes skip without PostgreSQL)
+- **Key risks:** Background jobs must wrap DB access in `firm_db_session` for RLS enforcement
+
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the canonical status and decisions.
 
 ---
 
