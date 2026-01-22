@@ -23,6 +23,11 @@ Meta-commentary:
 
 ### Changed
 
+- **Documentation Index + ADR Guidance** (2026-01-23)
+  - **T-040**: Expanded DOCS_INDEX categories for implementation, policy, integration, and user guide references.
+  - **T-080**: Added ADR template and decision log scaffolding in docs/05-decisions/.
+  - **T-082**: Documented the ADR workflow in CONTRIBUTING and linked it from DOCS_INDEX.
+
 - **Dependency Scanning Schedule & Alerts** (2026-01-23)
   - **T-133**: Added pip-audit scanning, weekly scheduled checks, and issue notifications for dependency vulnerabilities.
 
