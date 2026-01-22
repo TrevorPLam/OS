@@ -1,7 +1,7 @@
 # P1TODO.md - Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-21
+Last Updated: 2026-01-22
 Task Truth Source: **P1TODO.md**
 Other Priority Files: P0TODO.md, P2TODO.md, P3TODO.md
 
@@ -93,29 +93,6 @@ References:
 Dependencies: None
 Effort: M
 
-### T-132: Update pre-commit hooks for comprehensive validation (REFACTOR Phase 1)
-Priority: P1
-Type: QUALITY
-Owner: AGENT
-Status: READY
-Blocker: None
-Context:
-- REFACTOR_PLAN.md Phase 1 Item 2 - Prevent style drift and secret commits
-- Existing .pre-commit-config.yaml needs enhancement
-- FORENSIC_AUDIT.md Issue #8.4 - No SAST in pipeline
-Acceptance Criteria:
-- [ ] Update .pre-commit-config.yaml with: black, ruff, mypy, git-secrets, eslint
-- [ ] Configure mypy to run on src/ with pass_filenames: false
-- [ ] Add git-secrets hook to prevent secret commits
-- [ ] Add eslint for frontend files in src/frontend/
-- [ ] Test pre-commit hooks: try committing with lint error, verify blocked
-- [ ] Document pre-commit setup in CONTRIBUTING.md
-References:
-- REFACTOR_PLAN.md:197-201, 441-478
-- FORENSIC_AUDIT.md Issue #8.4
-- .pre-commit-config.yaml
-Dependencies: None
-Effort: S
 ### T-133: Configure dependency scanning in CI pipeline (REFACTOR Phase 1)
 Priority: P1
 Type: SECURITY
@@ -229,4 +206,3 @@ References:
 - Diamond Standard Plan Phase 4
 Dependencies: T-042 (deployment platform)
 Effort: M
-

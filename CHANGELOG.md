@@ -23,6 +23,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Pre-commit Validation Coverage** (2026-01-22)
+  - **T-132**: Confirmed comprehensive pre-commit hooks for linting, typing, secret scanning, and frontend eslint.
+
 - **Task Truth Source Split** (2026-01-21)
   - Split TODO into `P0TODO.md`–`P3TODO.md`, archived the original TODO, and updated references/scripts.
 
