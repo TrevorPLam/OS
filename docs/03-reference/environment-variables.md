@@ -1,269 +1,184 @@
 # Environment Variables Reference
 
 Document Type: Reference
-Last Updated: 2026-01-06
+Last Updated: 2026-01-24
 
 This document lists all environment variables used by ConsultantPro, their purpose, and configuration requirements.
 
+**Why this structure:** Variables are grouped by subsystem so operators can quickly locate what a change impacts. Evidence references point to the exact code or templates that consume each variable for auditability.
+
+## Evidence policy
+
+Each variable includes an evidence reference to the file(s) that read or define it. If you add a new variable, update `.env.example` and the relevant config module, then extend this list.
+
 ## Core Django Settings
 
-### DJANGO_SECRET_KEY
-- **Required**: Yes (production)
-- **Type**: String
-- **Purpose**: Cryptographic signing key for Django sessions, CSRF tokens, and password reset tokens
-- **Production Requirements**: 
-  - Must be at least 50 characters
-  - Must be randomly generated and kept secret
-  - Never commit to version control
-- **Example**: `DJANGO_SECRET_KEY=your-very-long-random-secret-key-here`
-
-### DJANGO_DEBUG
-- **Required**: No
-- **Type**: Boolean (`True`/`False`)
-- **Default**: `False`
-- **Purpose**: Enables Django debug mode with detailed error pages
-- **Production Requirements**: Must be `False` in production
-- **Example**: `DJANGO_DEBUG=False`
-
-### DJANGO_ALLOWED_HOSTS
-- **Required**: Yes (production)
-- **Type**: Comma-separated list of hostnames
-- **Purpose**: Hostnames that Django will serve
-- **Production Requirements**: Must include all production domain names
-- **Example**: `DJANGO_ALLOWED_HOSTS=consultantpro.com,www.consultantpro.com`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `DJANGO_SECRET_KEY` | Yes | None | Django cryptographic signing key. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `DJANGO_DEBUG` | No | `False` | Enables Django debug mode. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `DJANGO_ALLOWED_HOSTS` | Yes (production) | `localhost,127.0.0.1` | Allowed hostnames for Django. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `E2E_PROVISION_TOKEN` | No | None | Enables debug-only provisioning endpoint for E2E tests. | `src/config/settings.py` |
+| `CI` | No | None | Skips environment validation when set to `true`. | `src/config/env_validator.py` |
+| `USE_SQLITE_FOR_TESTS` | No | None | Forces SQLite for tests/local dev when set to `True`. | `src/config/settings.py` |
 
 ## Database Configuration
 
-### POSTGRES_DB
-- **Required**: Yes
-- **Type**: String
-- **Purpose**: PostgreSQL database name
-- **Example**: `POSTGRES_DB=consultantpro`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `POSTGRES_DB` | Yes | `consultantpro` | PostgreSQL database name. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `POSTGRES_USER` | Yes | `postgres` | PostgreSQL username. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `POSTGRES_PASSWORD` | Yes | `postgres` | PostgreSQL password. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `POSTGRES_HOST` | Yes | `db` | PostgreSQL host. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `POSTGRES_PORT` | No | `5432` | PostgreSQL port. | `.env.example`, `src/config/settings.py` |
+| `DB_STATEMENT_TIMEOUT_MS` | No | `5000` | PostgreSQL statement timeout in milliseconds. | `src/config/database.py` |
+| `DB_SLOW_QUERY_THRESHOLD_MS` | No | `100` | Threshold (ms) for slow query logging. | `src/config/database.py` |
 
-### POSTGRES_USER
-- **Required**: Yes
-- **Type**: String
-- **Purpose**: PostgreSQL database username
-- **Example**: `POSTGRES_USER=postgres`
+## CORS & CSRF Configuration
 
-### POSTGRES_PASSWORD
-- **Required**: Yes
-- **Type**: String
-- **Purpose**: PostgreSQL database password
-- **Production Requirements**: Strong password, never commit to version control
-- **Example**: `POSTGRES_PASSWORD=secure-random-password`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `CORS_ALLOWED_ORIGINS` | Yes (if frontend separate) | Localhost defaults | Allowed CORS origins. | `.env.example`, `src/config/settings.py` |
+| `CSRF_TRUSTED_ORIGINS` | No | `CORS_ALLOWED_ORIGINS` | Explicit CSRF trusted origins override. | `src/config/settings.py` |
 
-### POSTGRES_HOST
-- **Required**: Yes
-- **Type**: String (hostname or IP)
-- **Purpose**: PostgreSQL server hostname
-- **Example**: `POSTGRES_HOST=db` (Docker Compose) or `POSTGRES_HOST=localhost` (local dev)
+## Tracking Pipeline
 
-### POSTGRES_PORT
-- **Required**: No
-- **Type**: Integer
-- **Default**: `5432`
-- **Purpose**: PostgreSQL server port
-- **Example**: `POSTGRES_PORT=5432`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `TRACKING_PUBLIC_KEY` | No | None | Shared key for backend ingestion and frontend snippet. | `src/config/settings.py`, `README.md` |
+| `TRACKING_INGEST_ENABLED` | No | `True` | Enable/disable tracking ingest endpoint. | `src/config/settings.py` |
+| `TRACKING_INGEST_RATE_LIMIT_PER_MINUTE` | No | `300` | Tracking ingest rate limit per minute. | `src/config/settings.py` |
+| `TRACKING_MAX_PROPERTIES_BYTES` | No | `16384` | Max JSON properties size for tracking payloads. | `src/config/settings.py` |
 
-## CORS Configuration
+## Auth Cookie Settings
 
-### CORS_ALLOWED_ORIGINS
-- **Required**: Yes (if frontend is separate domain)
-- **Type**: Comma-separated list of URLs
-- **Purpose**: Origins allowed to make cross-origin requests to the API
-- **Production Requirements**: Only include trusted frontend domains
-- **Example**: `CORS_ALLOWED_ORIGINS=https://app.consultantpro.com,https://portal.consultantpro.com`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `AUTH_COOKIE_SAMESITE` | No | `Lax` | SameSite value for auth cookies. | `src/config/settings.py` |
+| `AUTH_COOKIE_DOMAIN` | No | None | Domain for auth cookies. | `src/config/settings.py` |
+| `AUTH_COOKIE_PATH` | No | `/api/` | Path for auth cookies. | `src/config/settings.py` |
+| `ACCESS_TOKEN_COOKIE_NAME` | No | `cp_access_token` | Cookie name for access token. | `src/config/settings.py` |
+| `REFRESH_TOKEN_COOKIE_NAME` | No | `cp_refresh_token` | Cookie name for refresh token. | `src/config/settings.py` |
+| `SESSION_COOKIE_SAMESITE` | No | `AUTH_COOKIE_SAMESITE` | SameSite for session cookies. | `src/config/settings.py` |
+| `CSRF_COOKIE_SAMESITE` | No | `AUTH_COOKIE_SAMESITE` | SameSite for CSRF cookies. | `src/config/settings.py` |
 
 ## AWS S3 Storage
 
-### AWS_ACCESS_KEY_ID
-- **Required**: Yes (if using S3 for document storage)
-- **Type**: String
-- **Purpose**: AWS IAM access key for S3 operations
-- **Production Requirements**: Use IAM role if running in AWS, otherwise use restricted IAM user
-- **Example**: `AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `AWS_ACCESS_KEY_ID` | Yes (when using S3) | None | AWS access key for S3. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `AWS_SECRET_ACCESS_KEY` | Yes (when using S3) | None | AWS secret key for S3. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `AWS_STORAGE_BUCKET_NAME` | Yes (when using S3) | None | S3 bucket for documents. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `AWS_S3_REGION_NAME` | No | `us-east-1` | AWS region for S3 bucket. | `.env.example`, `src/config/settings.py` |
 
-### AWS_SECRET_ACCESS_KEY
-- **Required**: Yes (if using S3)
-- **Type**: String
-- **Purpose**: AWS IAM secret key for S3 operations
-- **Production Requirements**: Never commit to version control
-- **Example**: `AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`
+## KMS / Encryption
 
-### AWS_STORAGE_BUCKET_NAME
-- **Required**: Yes (if using S3)
-- **Type**: String
-- **Purpose**: S3 bucket name for document storage
-- **Example**: `AWS_STORAGE_BUCKET_NAME=consultantpro-documents-prod`
-
-### AWS_S3_REGION_NAME
-- **Required**: Yes (if using S3)
-- **Type**: String (AWS region code)
-- **Purpose**: AWS region where S3 bucket is located
-- **Example**: `AWS_S3_REGION_NAME=us-east-1`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `DEFAULT_FIRM_KMS_KEY_ID` | No | None | Default KMS key ID for firm encryption. | `src/config/settings.py` |
+| `KMS_BACKEND` | No | None | KMS backend selector (e.g., AWS). | `src/config/settings.py` |
 
 ## Payment Processing (Stripe)
 
-### STRIPE_SECRET_KEY
-- **Required**: Yes (if using Stripe)
-- **Type**: String
-- **Purpose**: Stripe API secret key for payment processing
-- **Production Requirements**: Use live key in production, never commit to version control
-- **Example**: `STRIPE_SECRET_KEY=sk_live_...` or `sk_test_...`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `STRIPE_SECRET_KEY` | Yes (when Stripe enabled) | None | Stripe API secret key. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `STRIPE_PUBLISHABLE_KEY` | Yes (when Stripe enabled) | None | Stripe publishable key for frontend. | `.env.example`, `src/config/settings.py` |
+| `STRIPE_WEBHOOK_SECRET` | Yes (when Stripe webhooks enabled) | None | Webhook signature secret. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
 
-### STRIPE_PUBLISHABLE_KEY
-- **Required**: Yes (if using Stripe)
-- **Type**: String
-- **Purpose**: Stripe publishable key for frontend payment forms
-- **Example**: `STRIPE_PUBLISHABLE_KEY=pk_live_...` or `pk_test_...`
+## OAuth Providers
 
-### STRIPE_WEBHOOK_SECRET
-- **Required**: Yes (if using Stripe webhooks)
-- **Type**: String
-- **Purpose**: Secret for verifying Stripe webhook signatures
-- **Production Requirements**: Required for webhook signature verification (SEC-6)
-- **Example**: `STRIPE_WEBHOOK_SECRET=whsec_...`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `GOOGLE_OAUTH_CLIENT_ID` | No | None | Google OAuth client ID. | `src/config/settings.py` |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | No | None | Google OAuth client secret. | `src/config/settings.py` |
+| `MICROSOFT_OAUTH_CLIENT_ID` | No | None | Microsoft OAuth client ID. | `src/config/settings.py` |
+| `MICROSOFT_OAUTH_CLIENT_SECRET` | No | None | Microsoft OAuth client secret. | `src/config/settings.py` |
+
+## SAML Configuration
+
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `SAML_ENABLED` | No | `False` | Enable SAML auth flow. | `src/config/settings.py` |
+| `SAML_IDP_METADATA_URL` | No | None | IdP metadata URL. | `src/config/settings.py` |
+| `SAML_SP_ENTITY_ID` | No | None | Service provider entity ID. | `src/config/settings.py` |
+| `SAML_SP_PUBLIC_CERT` | No | None | SP public certificate. | `src/config/settings.py` |
+| `SAML_SP_PRIVATE_KEY` | No | None | SP private key. | `src/config/settings.py` |
 
 ## DocuSign E-Signature Integration
 
-### DOCUSIGN_CLIENT_ID
-- **Required**: Yes (if using DocuSign)
-- **Type**: String
-- **Purpose**: DocuSign OAuth client ID
-- **Example**: `DOCUSIGN_CLIENT_ID=abc123-def456-...`
-
-### DOCUSIGN_CLIENT_SECRET
-- **Required**: Yes (if using DocuSign)
-- **Type**: String
-- **Purpose**: DocuSign OAuth client secret
-- **Production Requirements**: Never commit to version control
-- **Example**: `DOCUSIGN_CLIENT_SECRET=your-client-secret`
-
-### DOCUSIGN_REDIRECT_URI
-- **Required**: Yes (if using DocuSign)
-- **Type**: String (URL)
-- **Purpose**: OAuth callback URL after DocuSign authorization
-- **Example**: `DOCUSIGN_REDIRECT_URI=https://api.consultantpro.com/api/v1/esignature/docusign/callback/`
-
-### DOCUSIGN_WEBHOOK_SECRET
-- **Required**: Yes (production, if using DocuSign webhooks)
-- **Type**: String
-- **Purpose**: Secret for verifying DocuSign webhook signatures
-- **Production Requirements**: Required for webhook signature verification (SEC-6)
-- **Example**: `DOCUSIGN_WEBHOOK_SECRET=your-webhook-secret`
-
-### DOCUSIGN_ENVIRONMENT
-- **Required**: Yes (if using DocuSign)
-- **Type**: String (`sandbox` or `production`)
-- **Purpose**: DocuSign API environment
-- **Example**: `DOCUSIGN_ENVIRONMENT=production`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `DOCUSIGN_CLIENT_ID` | Yes (when DocuSign enabled) | None | DocuSign OAuth client ID. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `DOCUSIGN_CLIENT_SECRET` | Yes (when DocuSign enabled) | None | DocuSign OAuth client secret. | `.env.example`, `src/config/settings.py` |
+| `DOCUSIGN_REDIRECT_URI` | Yes (when DocuSign enabled) | None | OAuth callback URL. | `.env.example`, `src/config/settings.py` |
+| `DOCUSIGN_WEBHOOK_SECRET` | Yes (when DocuSign webhooks enabled) | None | Webhook signature secret. | `.env.example`, `src/config/settings.py`, `src/config/env_validator.py` |
+| `DOCUSIGN_ENVIRONMENT` | No | `production` | DocuSign API environment. | `.env.example`, `src/config/settings.py` |
 
 ## Twilio SMS Integration
 
-### TWILIO_ACCOUNT_SID
-- **Required**: Yes (if using Twilio)
-- **Type**: String
-- **Purpose**: Twilio account identifier
-- **Example**: `TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
-### TWILIO_AUTH_TOKEN
-- **Required**: Yes (if using Twilio)
-- **Type**: String
-- **Purpose**: Twilio authentication token
-- **Production Requirements**: Required for webhook signature verification (SEC-6), never commit to version control
-- **Example**: `TWILIO_AUTH_TOKEN=your-auth-token`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `TWILIO_ACCOUNT_SID` | Yes (when Twilio enabled) | None | Twilio account SID. | `.env.example`, `src/config/env_validator.py` |
+| `TWILIO_AUTH_TOKEN` | Yes (when Twilio enabled) | None | Twilio auth token. | `.env.example`, `src/config/env_validator.py` |
 
 ## Sentry Error Tracking
 
-### SENTRY_DSN
-- **Required**: No (recommended for production)
-- **Type**: String (URL)
-- **Purpose**: Sentry Data Source Name for error reporting
-- **Example**: `SENTRY_DSN=https://public@sentry.io/project-id`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `SENTRY_DSN` | No | None | Sentry DSN for error reporting. | `.env.example`, `src/config/sentry.py` |
+| `SENTRY_ENVIRONMENT` | No | `production` | Sentry environment name. | `.env.example`, `src/config/sentry.py` |
+| `SENTRY_TRACES_SAMPLE_RATE` | No | `0.1` | Sentry tracing sample rate. | `.env.example`, `src/config/sentry.py` |
+| `SENTRY_PROFILES_SAMPLE_RATE` | No | `0.1` | Sentry profiling sample rate. | `.env.example`, `src/config/sentry.py` |
+| `SENTRY_DEBUG` | No | `False` | Enable Sentry debug logging. | `.env.example`, `src/config/sentry.py` |
+| `GIT_COMMIT_SHA` | No | None | Release identifier for Sentry. | `.env.example`, `src/config/sentry.py` |
 
-### SENTRY_ENVIRONMENT
-- **Required**: No
-- **Type**: String
-- **Default**: `production`
-- **Purpose**: Environment name for Sentry error grouping
-- **Example**: `SENTRY_ENVIRONMENT=production`
+## Webhook Rate Limiting
 
-### SENTRY_TRACES_SAMPLE_RATE
-- **Required**: No
-- **Type**: Float (0.0 to 1.0)
-- **Default**: `0.1`
-- **Purpose**: Percentage of transactions to send to Sentry for performance monitoring
-- **Example**: `SENTRY_TRACES_SAMPLE_RATE=0.1`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `WEBHOOK_RATE_LIMIT` | No | `100/m` | Default webhook rate limit. | `.env.example`, `src/config/settings.py` |
+| `STRIPE_WEBHOOK_RATE_LIMIT` | No | `WEBHOOK_RATE_LIMIT` | Stripe webhook rate limit override. | `src/config/settings.py` |
+| `SQUARE_WEBHOOK_RATE_LIMIT` | No | `WEBHOOK_RATE_LIMIT` | Square webhook rate limit override. | `src/config/settings.py` |
+| `DOCUSIGN_WEBHOOK_RATE_LIMIT` | No | `WEBHOOK_RATE_LIMIT` | DocuSign webhook rate limit override. | `src/config/settings.py` |
+| `TWILIO_STATUS_WEBHOOK_RATE_LIMIT` | No | `WEBHOOK_RATE_LIMIT` | Twilio status webhook rate limit override. | `src/config/settings.py` |
+| `TWILIO_INBOUND_WEBHOOK_RATE_LIMIT` | No | `WEBHOOK_RATE_LIMIT` | Twilio inbound webhook rate limit override. | `src/config/settings.py` |
 
-### SENTRY_PROFILES_SAMPLE_RATE
-- **Required**: No
-- **Type**: Float (0.0 to 1.0)
-- **Default**: `0.1`
-- **Purpose**: Percentage of transactions to profile for performance insights
-- **Example**: `SENTRY_PROFILES_SAMPLE_RATE=0.1`
+## Data Retention
 
-### SENTRY_DEBUG
-- **Required**: No
-- **Type**: Boolean
-- **Default**: `False`
-- **Purpose**: Enable Sentry SDK debug logging
-- **Example**: `SENTRY_DEBUG=False`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `WEBHOOK_RETENTION_DAYS` | No | `180` | Webhook event retention window (days). | `.env.example`, `src/config/settings.py` |
+| `LOG_RETENTION_DAYS` | No | `90` | Application log retention window (days). | `.env.example`, `src/config/settings.py` |
+| `AUDIT_LOG_ARCHIVE_DAYS` | No | `365` | Audit log archive threshold (days). | `.env.example`, `src/config/settings.py` |
+| `ENABLE_AUTOMATED_CLEANUP` | No | `true` | Toggle automated cleanup jobs. | `.env.example`, `src/config/settings.py` |
 
-### GIT_COMMIT_SHA
-- **Required**: No (recommended for production)
-- **Type**: String
-- **Purpose**: Git commit SHA for release tracking in Sentry
-- **Example**: `GIT_COMMIT_SHA=abc123def456`
+## Content Security Policy
 
-## Security Configuration
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `CSP_REPORT_URI` | No | `/api/security/csp-report/` | Endpoint for CSP violation reports. | `.env.example`, `src/config/settings.py` |
 
-### WEBHOOK_RATE_LIMIT
-- **Required**: No
-- **Type**: String (rate limit expression)
-- **Default**: `100/m` (100 requests per minute)
-- **Purpose**: Rate limit for webhook endpoints to prevent abuse (SEC-2)
-- **Example**: `WEBHOOK_RATE_LIMIT=100/m`
+## Fixture Seeding (Local Dev)
 
-### WEBHOOK_RETENTION_DAYS
-- **Required**: No
-- **Type**: Integer
-- **Default**: `180`
-- **Purpose**: Number of days to retain webhook event records (SEC-3)
-- **Example**: `WEBHOOK_RETENTION_DAYS=180`
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `FIXTURE_USER_PASSWORD` | No | `fixture-password` | Overrides default password for `load_fixtures`. | `src/modules/core/management/commands/load_fixtures.py` |
 
-### LOG_RETENTION_DAYS
-- **Required**: No
-- **Type**: Integer
-- **Default**: `90`
-- **Purpose**: Number of days to retain application logs (SEC-3)
-- **Example**: `LOG_RETENTION_DAYS=90`
+## Frontend (Vite)
 
-### AUDIT_LOG_ARCHIVE_DAYS
-- **Required**: No
-- **Type**: Integer
-- **Default**: `365`
-- **Purpose**: Number of days before audit logs are moved to cold storage (SEC-3)
-- **Example**: `AUDIT_LOG_ARCHIVE_DAYS=365`
-
-### ENABLE_AUTOMATED_CLEANUP
-- **Required**: No
-- **Type**: Boolean
-- **Default**: `true` (in production)
-- **Purpose**: Enable automated cleanup jobs for data retention (SEC-3)
-- **Example**: `ENABLE_AUTOMATED_CLEANUP=true`
-
-### CSP_REPORT_URI
-- **Required**: No
-- **Type**: String (URL)
-- **Purpose**: Endpoint for Content Security Policy violation reports (SEC-4)
-- **Example**: `CSP_REPORT_URI=https://your-csp-reporting-endpoint.com/report`
-
-## Environment Variable Validation
-
-The application validates required environment variables at startup. See [src/config/env_validator.py](../../src/config/env_validator.py) for validation logic.
+| Variable | Required | Default | Purpose | Evidence |
+| --- | --- | --- | --- | --- |
+| `VITE_API_URL` | No | `http://localhost:8000/api` | Base API URL for frontend requests. | `src/frontend/src/api/client.ts` |
+| `VITE_API_BASE_URL` | No | `http://localhost:8000/api/v1` | Base API URL for automation API client. | `src/frontend/src/api/automation.ts` |
+| `VITE_SENTRY_DSN` | No | None | Enable Sentry in the frontend. | `src/frontend/src/main.tsx`, `README.md` |
+| `VITE_SENTRY_TRACES_SAMPLE_RATE` | No | `0` | Frontend Sentry tracing sample rate. | `src/frontend/src/main.tsx`, `README.md` |
+| `VITE_TRACKING_KEY` | No | None | Tracking snippet public key. | `src/frontend/src/main.tsx`, `README.md` |
+| `VITE_TRACKING_FIRM_SLUG` | No | None | Firm slug for tracking events. | `src/frontend/src/main.tsx`, `README.md` |
+| `VITE_TRACKING_ENDPOINT` | No | `/api/v1/tracking/collect/` | Tracking endpoint override. | `src/frontend/src/main.tsx`, `README.md` |
 
 ## See Also
-- [.env.example](../../.env.example) - Example environment file
-- [DEPLOYMENT.md](../DEPLOYMENT.md) - Production deployment guide
-- [SECURITY.md](../../SECURITY.md) - Security configuration details
+- `.env.example` - Example environment file
+- `src/config/env_validator.py` - Startup validation rules
+- `src/config/settings.py` - Django settings
+- `docs/03-reference/management-commands.md` - Management commands reference

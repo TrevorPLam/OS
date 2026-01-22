@@ -23,6 +23,10 @@ Meta-commentary:
 
 ### Changed
 
+- **Environment Variable & Command References** (2026-01-24)
+  - **T-022**: Expanded environment variable reference with evidence-backed entries for backend and frontend configuration.
+  - **T-023**: Corrected management command reference to reflect implemented options and added missing commands.
+
 - **Authentication Flow Unit Tests** (2026-01-22)
   - **T-025**: Added login, refresh, and logout tests covering happy paths and error handling.
 

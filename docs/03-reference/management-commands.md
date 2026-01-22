@@ -1,18 +1,20 @@
 # Management Commands Reference
 
 Document Type: Reference
-Last Updated: 2026-01-06
+Last Updated: 2026-01-24
 
-This document lists all Django management commands available in ConsultantPro.
+This document lists all Django management commands available in ConsultantPro with verified options.
 
-## Overview
+**Why this structure:** Commands are grouped by module so operators can map CLI operations back to domain ownership. Evidence references link to the command implementation to avoid drift.
 
-Management commands are run using:
+## Usage
+
+Run locally:
 ```bash
 python manage.py <command_name> [options]
 ```
 
-Or using Docker Compose:
+Run via Docker Compose:
 ```bash
 docker-compose exec web python manage.py <command_name> [options]
 ```
@@ -20,285 +22,259 @@ docker-compose exec web python manage.py <command_name> [options]
 ## Finance Module Commands
 
 ### reconcile_stripe
-Reconciles Invoice records with Stripe API to detect mismatches.
+Reconciles invoice records with Stripe API and reports mismatches.
 
-**Purpose**: Daily cron job to cross-check local invoice status vs Stripe API (ASSESS-G18.5).
-
-**Usage**:
+**Usage:**
 ```bash
 python manage.py reconcile_stripe [--firm-id FIRM_ID]
 ```
 
-**Options**:
-- `--firm-id`: Reconcile invoices for a specific firm only (optional)
+**Options:**
+- `--firm-id`: Reconcile invoices for a specific firm (optional).
 
-**Example**:
-```bash
-# Reconcile all firms
-python manage.py reconcile_stripe
-
-# Reconcile specific firm
-python manage.py reconcile_stripe --firm-id 123
-```
+**Evidence:** `src/modules/finance/management/commands/reconcile_stripe.py`
 
 ### refresh_materialized_views
-Refreshes materialized views for billing ledger and financial analytics.
+Refreshes reporting materialized views (revenue/utilization).
 
-**Purpose**: Maintains up-to-date financial reporting views.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py refresh_materialized_views
+python manage.py refresh_materialized_views [--view VIEW] [--firm-id FIRM_ID] [--no-concurrent]
 ```
+
+**Options:**
+- `--view`: `all` (default), `revenue`, `utilization_user`, `utilization_project`.
+- `--firm-id`: Accepted but refreshes all data (Postgres MV limitation).
+- `--no-concurrent`: Disable concurrent refresh (blocks reads).
+
+**Evidence:** `src/modules/finance/management/commands/refresh_materialized_views.py`
 
 ### process_recurring_charges
-Processes recurring charges for active subscriptions.
+Charges invoices due for autopay.
 
-**Purpose**: Generates invoices for recurring billing cycles.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py process_recurring_charges
+python manage.py process_recurring_charges [--dry-run] [--firm-id FIRM_ID]
 ```
+
+**Options:**
+- `--dry-run`: List invoices that would be charged.
+- `--firm-id`: Process invoices for a specific firm.
+
+**Evidence:** `src/modules/finance/management/commands/process_recurring_charges.py`
 
 ### generate_package_invoices
-Generates package-based invoices for clients with pre-purchased service packages.
+Generates package-based invoices for engagements.
 
-**Purpose**: Creates invoices from package allocations.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py generate_package_invoices
+python manage.py generate_package_invoices [--dry-run] [--firm-id FIRM_ID]
 ```
+
+**Options:**
+- `--dry-run`: Show what would be generated without creating invoices.
+- `--firm-id`: Generate invoices for a specific firm.
+
+**Evidence:** `src/modules/finance/management/commands/generate_package_invoices.py`
 
 ## Firm Management Commands
 
 ### provision_firm
-Provisions a new firm with baseline configuration (DOC-19.1).
+Provisions a new firm with baseline configuration.
 
-**Purpose**: Initial firm setup with admin user, default settings, and permissions.
-
-**Usage**:
+**Usage:**
 ```bash
 python manage.py provision_firm \
-    --name "Acme Consulting" \
-    --slug acme-consulting \
-    --admin-email admin@acme.com \
-    --admin-password secure123 \
-    --timezone "America/Los_Angeles" \
-    --currency USD \
-    --tier professional
+  --name "Acme Consulting" \
+  --slug acme-consulting \
+  --admin-email admin@acme.com \
+  --admin-password secure123 \
+  [--admin-first-name FIRST] \
+  [--admin-last-name LAST] \
+  [--timezone "America/New_York"] \
+  [--currency USD] \
+  [--tier starter|professional|enterprise] \
+  [--max-users 5] \
+  [--max-clients 25] \
+  [--max-storage-gb 10]
 ```
 
-**Required Options**:
-- `--name`: Firm name
-- `--slug`: URL-safe slug for the firm
-- `--admin-email`: Admin user email address
-- `--admin-password`: Admin user password
-
-**Optional Options**:
-- `--timezone`: Default timezone (default: UTC)
-- `--currency`: Default currency code (default: USD)
-- `--tier`: Subscription tier (default: professional)
+**Evidence:** `src/modules/firm/management/commands/provision_firm.py`
 
 ## Data Management & Compliance Commands
 
 ### execute_retention_policies
-Executes data retention policies for all active firms (ASSESS-L19.4).
+Executes data retention policies for active firms.
 
-**Purpose**: Automates data cleanup according to configured retention schedules.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py execute_retention_policies [options]
+python manage.py execute_retention_policies [--firm-id FIRM_ID] [--data-type TYPE] [--dry-run]
 ```
 
-**Options**:
-- `--firm-id FIRM_ID`: Execute policies for a specific firm only
-- `--data-type TYPE`: Execute policies for a specific data type only
-  - Choices: `emails`, `documents`, `audit_logs`, `webhooks`, `sessions`
-- `--dry-run`: Show what would be processed without modifying data
+**Options:**
+- `--firm-id`: Execute policies for a specific firm.
+- `--data-type`: Filter by retention data type.
+- `--dry-run`: Show what would be processed without changes.
 
-**Examples**:
-```bash
-# Execute all retention policies
-python manage.py execute_retention_policies
-
-# Dry run for specific firm
-python manage.py execute_retention_policies --firm-id 123 --dry-run
-
-# Process only webhook event cleanup
-python manage.py execute_retention_policies --data-type webhooks
-```
+**Evidence:** `src/modules/core/management/commands/execute_retention_policies.py`
 
 ### export_user_data
-Exports user data for GDPR/CCPA compliance (right to data portability).
+Exports user/client data for GDPR access requests.
 
-**Purpose**: Generates comprehensive data export for a specific user.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py export_user_data --user-id USER_ID [--output-dir PATH]
+python manage.py export_user_data --client-id CLIENT_ID [--format json|csv|both] [--output-dir PATH]
+python manage.py export_user_data --email user@example.com [--format json|csv|both] [--output-dir PATH]
 ```
 
-**Options**:
-- `--user-id`: User ID to export data for (required)
-- `--output-dir`: Directory for export files (default: current directory)
+**Options:**
+- `--client-id`: Client ID to export (required unless `--email` is provided).
+- `--email`: Email to export (required unless `--client-id` is provided).
+- `--format`: Export format (`json`, `csv`, `both`).
+- `--output-dir`: Output directory (default `./exports`).
 
-**Example**:
-```bash
-python manage.py export_user_data --user-id 456 --output-dir /exports/
-```
+**Evidence:** `src/modules/core/management/commands/export_user_data.py`
 
 ### execute_erasure_request
-Executes a user data erasure request (GDPR right to be forgotten).
+Executes an approved erasure/anonymization request.
 
-**Purpose**: Permanently removes or anonymizes user data per erasure request.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py execute_erasure_request --request-id REQUEST_ID [--dry-run]
+python manage.py execute_erasure_request REQUEST_ID [--dry-run]
 ```
 
-**Options**:
-- `--request-id`: Erasure request ID (required)
-- `--dry-run`: Preview what would be erased without making changes
+**Options:**
+- `REQUEST_ID`: Erasure request ID (positional argument).
+- `--dry-run`: Preview anonymization without executing.
 
-**Example**:
-```bash
-# Preview erasure
-python manage.py execute_erasure_request --request-id 789 --dry-run
+**Note:** Command requires interactive confirmation (`ANONYMIZE`) when not running in dry-run mode.
 
-# Execute erasure
-python manage.py execute_erasure_request --request-id 789
-```
+**Evidence:** `src/modules/core/management/commands/execute_erasure_request.py`
 
 ### cleanup_webhook_events
 Cleans up old webhook event records based on retention policy.
 
-**Purpose**: Removes webhook events older than configured retention period (SEC-3).
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py cleanup_webhook_events [--days DAYS] [--dry-run]
+python manage.py cleanup_webhook_events [--retention-days DAYS] [--provider stripe|square|docusign|sms] [--dry-run]
 ```
 
-**Options**:
-- `--days`: Number of days to retain (default: from WEBHOOK_RETENTION_DAYS env var)
-- `--dry-run`: Show what would be deleted without making changes
+**Options:**
+- `--retention-days`: Days to retain (default from settings).
+- `--provider`: Limit cleanup to a specific provider.
+- `--dry-run`: Show what would be deleted without changes.
 
-**Example**:
-```bash
-# Use default retention period
-python manage.py cleanup_webhook_events
-
-# Custom retention period
-python manage.py cleanup_webhook_events --days 90
-```
+**Evidence:** `src/modules/core/management/commands/cleanup_webhook_events.py`
 
 ## Document Management Commands
 
 ### send_file_request_reminders
-Sends reminder notifications for pending file requests.
+Sends scheduled reminders for pending file requests.
 
-**Purpose**: Reminds clients to upload requested documents.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py send_file_request_reminders [--firm-id FIRM_ID]
+python manage.py send_file_request_reminders [--dry-run]
 ```
 
-**Options**:
-- `--firm-id`: Process reminders for specific firm only (optional)
+**Options:**
+- `--dry-run`: Show reminders without sending.
+
+**Evidence:** `src/modules/documents/management/commands/send_file_request_reminders.py`
 
 ### reconcile_s3
-Reconciles document records with S3 storage.
+Reconciles document versions with S3 storage.
 
-**Purpose**: Detects and reports mismatches between database records and S3 objects.
-
-**Usage**:
+**Usage:**
 ```bash
 python manage.py reconcile_s3 [--firm-id FIRM_ID]
 ```
 
-**Options**:
-- `--firm-id`: Reconcile documents for specific firm only (optional)
+**Options:**
+- `--firm-id`: Reconcile documents for a specific firm.
+
+**Evidence:** `src/modules/documents/management/commands/reconcile_s3.py`
 
 ## Calendar & Workflow Commands
 
 ### execute_pending_workflows
-Executes pending calendar workflow actions (meeting prep, follow-ups).
+Executes pending calendar workflow actions.
 
-**Purpose**: Processes scheduled workflow tasks from calendar events.
-
-**Usage**:
+**Usage:**
 ```bash
 python manage.py execute_pending_workflows
 ```
 
+**Evidence:** `src/modules/calendar/management/commands/execute_pending_workflows.py`
+
 ## CRM Commands
 
 ### check_stale_deals
-Checks for stale deals based on configured thresholds.
+Checks for stale deals and creates alerts.
 
-**Purpose**: Identifies deals with no activity for extended periods.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py check_stale_deals [--firm-id FIRM_ID]
+python manage.py check_stale_deals [--firm-id FIRM_ID] [--send-notifications] [--days DAYS]
 ```
 
-**Options**:
-- `--firm-id`: Check deals for specific firm only (optional)
+**Options:**
+- `--firm-id`: Process deals for a specific firm.
+- `--send-notifications`: Send notifications for created alerts.
+- `--days`: Override stale threshold in days.
+
+**Evidence:** `src/modules/crm/management/commands/check_stale_deals.py`
 
 ### send_stale_deal_reminders
-Sends reminder notifications for stale deals.
+Sends reminder emails for stale deals.
 
-**Purpose**: Alerts deal owners about deals requiring attention.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py send_stale_deal_reminders [--firm-id FIRM_ID]
+python manage.py send_stale_deal_reminders [--dry-run] [--firm-id FIRM_ID]
 ```
 
-**Options**:
-- `--firm-id`: Send reminders for specific firm only (optional)
+**Options:**
+- `--dry-run`: Run without sending emails.
+- `--firm-id`: Process deals for a specific firm.
+
+**Evidence:** `src/modules/crm/management/commands/send_stale_deal_reminders.py`
 
 ## Active Directory Integration Commands
 
 ### sync_ad
-Synchronizes users from Active Directory (LDAP).
+Synchronizes users from Active Directory.
 
-**Purpose**: Imports and updates user accounts from Active Directory.
-
-**Usage**:
+**Usage:**
 ```bash
-python manage.py sync_ad --firm-id FIRM_ID [options]
+python manage.py sync_ad [--firm-id FIRM_ID] [--full] [--delta] [--dry-run]
 ```
 
-**Required Options**:
-- `--firm-id`: Firm ID with Active Directory integration enabled
+**Options:**
+- `--firm-id`: Sync a specific firm (otherwise sync all).
+- `--full`: Perform a full sync.
+- `--delta`: Perform a delta sync.
+- `--dry-run`: Preview sync without applying changes (not implemented).
 
-**Optional Options**:
-- `--dry-run`: Preview sync without making changes
-- `--full-sync`: Perform full sync instead of incremental
+**Evidence:** `src/modules/ad_sync/management/commands/sync_ad.py`
 
-**Examples**:
+## Core / Development Commands
+
+### load_fixtures
+Seeds deterministic fixture data for local development.
+
+**Usage:**
 ```bash
-# Preview sync
-python manage.py sync_ad --firm-id 123 --dry-run
-
-# Full synchronization
-python manage.py sync_ad --firm-id 123 --full-sync
+python manage.py load_fixtures
 ```
 
-## Scheduling Commands
+**Notes:**
+- `FIXTURE_USER_PASSWORD` can override the default fixture user password.
+
+**Evidence:** `src/modules/core/management/commands/load_fixtures.py`
+
+## Scheduling Guidance
 
 Most management commands should be scheduled as cron jobs or Celery periodic tasks in production.
 
-### Recommended Schedule
-
-**Daily**:
+**Daily (suggested):**
 - `reconcile_stripe` - 2:00 AM
 - `reconcile_s3` - 3:00 AM
 - `cleanup_webhook_events` - 4:00 AM
@@ -306,20 +282,21 @@ Most management commands should be scheduled as cron jobs or Celery periodic tas
 - `check_stale_deals` - 10:00 AM
 - `send_stale_deal_reminders` - 10:30 AM
 
-**Weekly**:
+**Weekly (suggested):**
 - `execute_retention_policies` - Sunday 1:00 AM
 
-**Hourly**:
+**Hourly (suggested):**
 - `process_recurring_charges` - Top of each hour
 - `execute_pending_workflows` - Every 15 minutes
 
-**As Needed**:
+**As needed:**
 - `provision_firm` - Manual or API-triggered
 - `export_user_data` - On user request
 - `execute_erasure_request` - On user request
 - `generate_package_invoices` - Based on billing cycles
+- `load_fixtures` - Local/dev only
 
 ## See Also
 - [Django Management Commands Documentation](https://docs.djangoproject.com/en/4.2/howto/custom-management-commands/)
-- [OPERATIONS.md](../OPERATIONS.md) - Operational procedures
-- [docs/03-reference/environment-variables.md](environment-variables.md) - Environment configuration
+- [Operations Guide](../OPERATIONS.md)
+- [Environment Variables Reference](environment-variables.md)
