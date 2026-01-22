@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-22
+Last Updated: 2026-01-24
 Source: Completed tasks moved from `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 
 <!--
@@ -203,6 +203,26 @@ References:
 - src/api/portal/urls.py
 Dependencies: None
 Effort: M
+
+### T-150: Enforce pagination defaults and bounds (Phase 1 of T-139)
+Priority: P2
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-24)
+Blocker: None
+Context:
+- Phase 1 of T-139 to enforce safe defaults before viewset audits.
+- Default pagination is configured via REST_FRAMEWORK settings.
+Acceptance Criteria:
+- [x] Set API_PAGINATION_MAX_PAGE_SIZE to 100 (config guardrail).
+- [x] Document where pagination defaults are configured.
+- [x] Verify configuration change (pytest blocked by missing pytest-cov; verified settings values by inspection).
+References:
+- src/config/settings.py
+- src/config/pagination.py
+- docs/03-reference/api/README.md
+Dependencies: None
+Effort: S
 
 ### T-141: Fix N+1 queries in automation module (REFACTOR Phase 3)
 Priority: P2
