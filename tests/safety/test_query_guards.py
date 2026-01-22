@@ -182,11 +182,12 @@ def test_pagination_allows_max_page_size(firm_users):
 
 
 @pytest.mark.django_db
-def test_pagination_guard_rejects_non_positive_page_size(firm_users):
+@pytest.mark.parametrize("page_size", [0, -1, -10])
+def test_pagination_guard_rejects_non_positive_page_size(firm_users, page_size):
     create_leads(firm_users["firm_a"], 1)
 
     factory = APIRequestFactory()
-    request = factory.get("/api/crm/leads/", {"page_size": 0})
+    request = factory.get("/api/crm/leads/", {"page_size": page_size})
     request.firm = firm_users["firm_a"]
     force_authenticate(request, user=firm_users["user_a"])
 
