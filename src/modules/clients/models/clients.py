@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .organizations import Organization
 
 
 class Client(models.Model):
@@ -38,14 +39,14 @@ class Client(models.Model):
     )
 
     # TIER 2.6: Organization grouping (OPTIONAL)
-from django.utils import timezone
-
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .organizations import Organization
-
-
-class Client(models.Model):
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="clients",
+        help_text="Optional organization for cross-client collaboration",
+    )
 
     # Origin Tracking (from CRM)
     source_prospect = models.ForeignKey(

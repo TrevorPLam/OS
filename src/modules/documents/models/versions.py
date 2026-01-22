@@ -10,6 +10,7 @@ from django.utils import timezone
 from modules.core.encryption import field_encryption_service
 from modules.firm.utils import FirmScopedManager
 from modules.projects.models import Project
+from .documents import Document
 
 
 class Version(models.Model):
@@ -42,13 +43,20 @@ class Version(models.Model):
     )
 
     # Relationships
-from modules.core.encryption import field_encryption_service
-from modules.firm.utils import FirmScopedManager
-from modules.projects.models import Project
-from .documents import Document
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="versions",
+        help_text="Document this version belongs to",
+    )
 
-
-class Version(models.Model):
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="uploaded_document_versions",
+        help_text="User who uploaded this version",
+    )
 
     # Version Details
     version_number = models.IntegerField()

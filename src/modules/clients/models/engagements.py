@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .clients import Client
 
 
 class ClientEngagement(models.Model):
@@ -45,12 +46,23 @@ class ClientEngagement(models.Model):
         help_text="Firm this engagement belongs to (auto-populated from client)",
     )
 
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .clients import Client
+    # Client relationship
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="engagements",
+        help_text="Client this engagement belongs to",
+    )
 
-
-class ClientEngagement(models.Model):
+    # Contract reference
+    contract = models.ForeignKey(
+        "crm.Contract",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="engagements",
+        help_text="Contract this engagement is based on",
+    )
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="current")
 

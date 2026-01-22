@@ -10,6 +10,7 @@ from django.utils import timezone
 from modules.core.encryption import field_encryption_service
 from modules.firm.utils import FirmScopedManager
 from modules.projects.models import Project
+from .documents import Document
 
 
 class DocumentLock(models.Model):
@@ -35,13 +36,12 @@ class DocumentLock(models.Model):
     )
 
     # Document being locked (one active lock per document)
-from modules.core.encryption import field_encryption_service
-from modules.firm.utils import FirmScopedManager
-from modules.projects.models import Project
-from .documents import Document
-
-
-class DocumentLock(models.Model):
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="locks",
+        help_text="Document being locked",
+    )
 
     # Lock holder
     locked_by = models.ForeignKey(

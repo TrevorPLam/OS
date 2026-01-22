@@ -116,7 +116,7 @@ class TestDocumentSerializer:
         assert serializer.is_valid(), serializer.errors
 
     def test_document_metadata_fields(self, client_obj, folder, user):
-        """Test document includes all metadata fields."""
+        """Test document includes all metadata fields with correct values."""
         document = Document.objects.create(
             firm=client_obj.firm,
             folder=folder,
@@ -129,10 +129,16 @@ class TestDocumentSerializer:
             uploaded_by=user
         )
         serializer = DocumentSerializer(document)
+        
+        # Verify exact values, not just presence
         assert serializer.data['file_size_bytes'] == 2048
         assert serializer.data['current_version'] == 1
         assert 'folder_name' in serializer.data
+        assert serializer.data['folder_name'] == folder.name, \
+            f"Expected folder_name='{folder.name}', got '{serializer.data.get('folder_name')}'"
         assert 'client_name' in serializer.data
+        assert serializer.data['client_name'] == client_obj.company_name, \
+            f"Expected client_name='{client_obj.company_name}', got '{serializer.data.get('client_name')}'"
 
 
 @pytest.mark.integration

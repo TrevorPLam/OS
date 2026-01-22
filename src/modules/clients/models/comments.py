@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from modules.core.validators import validate_safe_url
 from modules.firm.utils import FirmScopedManager
+from .clients import Client
 
 
 class ClientComment(models.Model):
@@ -21,12 +22,6 @@ class ClientComment(models.Model):
     Visible to both firm team and client.
     """
 
-from modules.core.validators import validate_safe_url
-from modules.firm.utils import FirmScopedManager
-from .clients import Client
-
-
-class ClientComment(models.Model):
     task = models.ForeignKey(
         "projects.Task", on_delete=models.CASCADE, related_name="client_comments", help_text="Task being commented on"
     )

@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 
@@ -63,7 +64,7 @@ def test_auto_assign_deal_round_robin(firm, pipeline, stage, users):
         pipeline=pipeline,
         stage=stage,
         name="Second Deal",
-        value="200.00",
+        value=Decimal("200.00"),
         probability=30,
         expected_close_date=date.today(),
         created_by=user_a,
