@@ -171,11 +171,11 @@ Each variable includes an evidence reference to the file(s) that read or define 
 | --- | --- | --- | --- | --- |
 | `VITE_API_URL` | No | `http://localhost:8000/api` | Base API URL for frontend requests. | `src/frontend/src/api/client.ts` |
 | `VITE_API_BASE_URL` | No | `http://localhost:8000/api/v1` | Base API URL for automation API client. | `src/frontend/src/api/automation.ts` |
-| `VITE_SENTRY_DSN` | No | None | Enable Sentry in the frontend. | `src/frontend/src/main.tsx`, `README.md` |
-| `VITE_SENTRY_TRACES_SAMPLE_RATE` | No | `0` | Frontend Sentry tracing sample rate. | `src/frontend/src/main.tsx`, `README.md` |
-| `VITE_TRACKING_KEY` | No | None | Tracking snippet public key. | `src/frontend/src/main.tsx`, `README.md` |
-| `VITE_TRACKING_FIRM_SLUG` | No | None | Firm slug for tracking events. | `src/frontend/src/main.tsx`, `README.md` |
-| `VITE_TRACKING_ENDPOINT` | No | `/api/v1/tracking/collect/` | Tracking endpoint override. | `src/frontend/src/main.tsx`, `README.md` |
+| `VITE_SENTRY_DSN` | No | None | Enable Sentry in the frontend. | `src/frontend/src/main.tsx` |
+| `VITE_SENTRY_TRACES_SAMPLE_RATE` | No | `0` | Frontend Sentry tracing sample rate. | `src/frontend/src/main.tsx` |
+| `VITE_TRACKING_KEY` | No | None | Tracking snippet public key. | `src/frontend/src/main.tsx` |
+| `VITE_TRACKING_FIRM_SLUG` | No | None | Firm slug for tracking events. | `src/frontend/src/main.tsx` |
+| `VITE_TRACKING_ENDPOINT` | No | `/api/v1/tracking/collect/` | Tracking endpoint override. | `src/frontend/src/main.tsx` |
 
 ## See Also
 - `.env.example` - Example environment file
