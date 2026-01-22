@@ -1431,3 +1431,21 @@ References:
 - docs/03-reference/management-commands.md
 Dependencies: None
 Effort: S
+
+### T-024: Document tier system reference or remove references
+Priority: P3
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-24)
+Context:
+- Documentation map references tier system but marks it UNKNOWN.
+- Tier system reference must be documented or removed to avoid drift.
+Acceptance Criteria:
+- [x] Document tier system or remove references if not implemented.
+- [x] Add evidence citations or mark UNKNOWN appropriately.
+- [x] Update docs/README.md and DOCS_INDEX.md accordingly.
+References:
+- docs/README.md
+- docs/03-reference/tier-system.md
+Dependencies: None
+Effort: S

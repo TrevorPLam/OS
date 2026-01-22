@@ -1,7 +1,7 @@
 # P3TODO.md - Repository Task List
 
 Document Type: Workflow
-Last Updated: 2026-01-21
+Last Updated: 2026-01-24
 Task Truth Source: **P3TODO.md**
 Other Priority Files: P0TODO.md, P1TODO.md, P2TODO.md
 
@@ -605,25 +605,6 @@ References:
 - src/modules/crm/
 Dependencies: None
 Effort: M
-
-### T-024: Document tier system reference or remove references
-Priority: P3
-Type: DOCS
-Owner: AGENT
-Status: READY
-Blocker: None.
-Context:
-- Documentation map references tier system but marks it UNKNOWN.
-- Tier system reference must be documented or removed to avoid drift.
-Acceptance Criteria:
-- [ ] Document tier system or remove references if not implemented.
-- [ ] Add evidence citations or mark UNKNOWN appropriately.
-- [ ] Update docs/README.md and DOCS_INDEX.md accordingly.
-References:
-- docs/README.md
-- docs/03-reference/tier-system.md
-Dependencies: None
-Effort: S
 
 ### T-063: Operate automated diamond standard dashboard
 Priority: P3

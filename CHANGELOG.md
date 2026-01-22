@@ -23,6 +23,9 @@ Meta-commentary:
 
 ### Changed
 
+- **Tier System Reference Evidence Alignment** (2026-01-24)
+  - **T-024**: Rewrote tier system reference to reflect verified tier fields, enforcement points, and UNKNOWNs.
+
 - **Environment Variable & Command References** (2026-01-24)
   - **T-022**: Expanded environment variable reference with evidence-backed entries for backend and frontend configuration.
   - **T-023**: Corrected management command reference to reflect implemented options and added missing commands.

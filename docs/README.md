@@ -25,7 +25,7 @@ Use this guide to find the right documentation quickly. We follow the Diátaxis 
 - **[Domain Model](DOMAIN_MODEL.md)** - Core entities and relationships
 - **[Platform Pillars](PILLARS.md)** - Feature areas and capabilities
 - **[Repository Map](REPO_MAP.md)** - Directory-by-directory codebase explanation
-- [Tier System Reference](03-reference/tier-system.md) - Subscription tiers and feature availability
+- [Tier System Reference](03-reference/tier-system.md) - Verified tier fields with UNKNOWN feature/limit gaps noted
 - **[Boundary Rules](BOUNDARY_RULES.md)** - Architectural boundary enforcement
 - **[Threat Model](THREAT_MODEL.md)** - Security threat analysis
 
