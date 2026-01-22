@@ -75,8 +75,8 @@ Each variable includes an evidence reference to the file(s) that read or define 
 
 | Variable | Required | Default | Purpose | Evidence |
 | --- | --- | --- | --- | --- |
-| `DEFAULT_FIRM_KMS_KEY_ID` | No | None | Default KMS key ID for firm encryption. | `src/config/settings.py` |
-| `KMS_BACKEND` | No | None | KMS backend selector (e.g., AWS). | `src/config/settings.py` |
+| `DEFAULT_FIRM_KMS_KEY_ID` | No | None | Default KMS key ID for firm encryption. | `.env.example`, `src/config/settings.py` |
+| `KMS_BACKEND` | No | None | KMS backend selector (e.g., AWS). | `.env.example`, `src/config/settings.py` |
 
 ## Payment Processing (Stripe)
 
