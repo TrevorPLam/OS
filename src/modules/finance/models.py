@@ -13,7 +13,7 @@ Meta-commentary:
   service layers rather than model-level guards.
 - **Design Rationale:** Keep firm and client/engagement links on invoices to keep tenant-scoped reporting efficient
   (WHY: predictable isolation and query performance).
-- **Limitation:** Invoice numbers are not enforced unique at the database level, so service logic must prevent duplicates.
+- **Limitation:** Invoice numbers are enforced unique per firm at the database level; global cross-firm uniqueness is not enforced.
 """
 
 from decimal import Decimal
