@@ -25,17 +25,16 @@ repos:
         args: [src]
         pass_filenames: false
 
-  # Git secrets - Prevent accidental secret commits
-  # WHY: Block common secret patterns before they reach git history.
-  - repo: https://github.com/awslabs/git-secrets
-    rev: v1.3.0
-    hooks:
-      - id: git-secrets
-        args: ["--scan"]
-
   # TIER 0: Custom firm scoping linter
   - repo: local
     hooks:
+      # Git secrets - Prevent accidental secret commits
+      # WHY: git-secrets ships as a system binary, so we invoke it directly to avoid wrapper drift.
+      - id: git-secrets
+        name: git-secrets
+        entry: git-secrets --scan
+        language: system
+        pass_filenames: false
       - id: lint-firm-scoping
         name: TIER 0 Firm Scoping Linter
         entry: python scripts/lint_firm_scoping.py

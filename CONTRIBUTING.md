@@ -38,6 +38,7 @@ pre-commit run --all-files
 
 Notes:
 - The frontend ESLint hook relies on `npm run lint`, so run `npm install` in `src/frontend` before the first lint run.
+- The git-secrets hook runs the system `git-secrets` binary; install it with your package manager before running pre-commit.
 - If you skip pre-commit locally, the same checks are expected to pass in CI.
 
 ## Running Tests

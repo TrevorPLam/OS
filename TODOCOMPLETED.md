@@ -19,6 +19,29 @@ Move tasks here when Acceptance Criteria are met.
 ## Completed tasks
 <!-- Append completed tasks below. Preserve the original record for auditability. -->
 
+### T-132: Update pre-commit hooks for comprehensive validation (REFACTOR Phase 1)
+Priority: P1
+Type: QUALITY
+Owner: AGENT
+Status: COMPLETED (2026-01-22)
+Context:
+- REFACTOR_PLAN.md Phase 1 Item 2 - Prevent style drift and secret commits
+- Existing .pre-commit-config.yaml needs enhancement
+- FORENSIC_AUDIT.md Issue #8.4 - No SAST in pipeline
+Acceptance Criteria:
+- [x] Update .pre-commit-config.yaml with: black, ruff, mypy, git-secrets, eslint
+- [x] Configure mypy to run on src/ with pass_filenames: false
+- [x] Add git-secrets hook to prevent secret commits
+- [x] Add eslint for frontend files in src/frontend/
+- [x] Test pre-commit hooks: try committing with lint error, verify blocked
+- [x] Document pre-commit setup in CONTRIBUTING.md
+References:
+- REFACTOR_PLAN.md:197-201, 441-478
+- FORENSIC_AUDIT.md Issue #8.4
+- .pre-commit-config.yaml
+Dependencies: None
+Effort: S
+
 ### T-134: Fix SAML null checks with defensive extraction (REFACTOR Phase 2)
 Priority: P1
 Type: SECURITY
