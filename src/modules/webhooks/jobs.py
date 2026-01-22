@@ -1,5 +1,11 @@
 """
 Webhook delivery background job handlers.
+
+Meta-commentary:
+- **Current Status:** Processes queued deliveries, updates delivery records, and records endpoint success/failure stats per attempt.
+- **Design Rationale:** Response bodies are truncated to 5,000 characters to bound storage and avoid oversized payload persistence.
+- **Assumption:** `WebhookDelivery.should_retry()` and `calculate_next_retry_time()` define retry policy and are authoritative for scheduling.
+- **Limitation:** Only HTTP 2xx responses are treated as success; all other status codes and request exceptions mark a delivery as failed or retrying.
 """
 
 from __future__ import annotations

@@ -1239,3 +1239,28 @@ References:
 - src/modules/automation/actions.py
 Dependencies: T-064, T-065, T-066, T-067
 Effort: M
+
+### T-087: Add Meta-commentary for webhooks, calendar, and projects modules
+Priority: P2
+Type: DOCS
+Owner: AGENT
+Status: COMPLETED (2026-01-22)
+Context:
+- Supporting modules (webhooks, calendar, projects) have medium complexity.
+- State machines and routing rules need context documentation.
+Acceptance Criteria:
+- [x] Add Meta-commentary to src/modules/webhooks/jobs.py.
+- [x] Add Meta-commentary to src/modules/sms/webhooks.py.
+- [x] Add Meta-commentary to src/modules/calendar/availability_service.py.
+- [x] Add Meta-commentary to src/modules/calendar/ical_service.py.
+- [x] Add Meta-commentary to src/modules/projects/critical_path.py.
+- [x] All Meta-commentary follows STYLE_GUIDE.md template.
+References:
+- docs/STYLE_GUIDE.md
+- src/modules/webhooks/jobs.py
+- src/modules/sms/webhooks.py
+- src/modules/calendar/availability_service.py
+- src/modules/calendar/ical_service.py
+- src/modules/projects/critical_path.py
+Dependencies: T-064, T-065, T-066, T-067
+Effort: M

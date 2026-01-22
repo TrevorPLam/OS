@@ -2,6 +2,12 @@
 SMS Webhook Handlers.
 
 Processes Twilio webhooks for delivery status updates and inbound SMS messages.
+
+Meta-commentary:
+- **Current Status:** Status callbacks are idempotent via `SMSWebhookEvent`, and invalid signatures return 403 to block spoofed requests.
+- **Design Rationale:** Webhook verification uses the Twilio signature header to keep the shared secret out of request bodies.
+- **Assumption:** `TWILIO_AUTH_TOKEN` is configured and the Twilio SDK is installed so signature validation can run.
+- **Limitation:** Signature verification fails closed when the SDK is missing, rejecting webhooks even in local/dev environments.
 """
 
 import logging

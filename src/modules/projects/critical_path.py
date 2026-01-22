@@ -4,6 +4,12 @@ Critical path calculation utilities for project timelines.
 Implements CPM-style scheduling for TaskSchedule using TaskDependency edges.
 Supports finish-to-start, start-to-start, finish-to-finish, start-to-finish
 dependency types with lag offsets (in days).
+
+Meta-commentary:
+- **Current Status:** Calculates early/late schedules in-memory and raises on cyclic dependency graphs.
+- **Design Rationale:** Durations are clamped to at least one day to avoid zero-length tasks collapsing schedule bounds.
+- **Assumption:** Input dependencies are complete and internally consistent (no missing task IDs).
+- **Limitation:** Scheduling is purely date-based (no working-day calendars, timezones, or resource constraints).
 """
 
 from __future__ import annotations
