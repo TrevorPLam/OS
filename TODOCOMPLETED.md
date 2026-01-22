@@ -1,7 +1,7 @@
 # TODOCOMPLETED.md — Completed Tasks Archive
 
 Document Type: Workflow
-Last Updated: 2026-01-22
+Last Updated: 2026-01-23
 Source: Completed tasks moved from `P0TODO.md`, `P1TODO.md`, `P2TODO.md`, `P3TODO.md`
 
 <!--
@@ -40,6 +40,27 @@ References:
 - FORENSIC_AUDIT.md Issue #8.4
 - .pre-commit-config.yaml
 Dependencies: None
+Effort: S
+
+### T-133: Configure dependency scanning in CI pipeline (REFACTOR Phase 1)
+Priority: P1
+Type: SECURITY
+Owner: AGENT
+Status: COMPLETED (2026-01-23)
+Context:
+- REFACTOR_PLAN.md Phase 1 Item 3 - Prevent known CVEs in production
+- No automated dependency vulnerability scanning
+- FORENSIC_AUDIT.md Issue #6.2, #6.4 - CVE risks
+Acceptance Criteria:
+- [x] Add pip-audit to CI workflow (security job)
+- [x] Configure weekly dependency scan schedule
+- [x] Add safety check for Python dependencies
+- [x] Document dependency scanning process
+- [x] Set up notifications for new vulnerabilities
+References:
+- REFACTOR_PLAN.md:203-206
+- FORENSIC_AUDIT.md Issue #6.2, #6.4
+Dependencies: T-131 (CI workflow)
 Effort: S
 
 ### T-134: Fix SAML null checks with defensive extraction (REFACTOR Phase 2)

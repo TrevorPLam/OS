@@ -14,6 +14,7 @@ locust==2.26.0
 # Security
 safety==3.0.1
 bandit==1.7.6
+pip-audit==2.7.3
 
 # Type checking (optional)
 mypy==1.7.1
