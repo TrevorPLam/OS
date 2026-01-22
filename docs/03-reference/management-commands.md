@@ -113,7 +113,7 @@ python manage.py execute_retention_policies [--firm-id FIRM_ID] [--data-type TYP
 
 **Options:**
 - `--firm-id`: Execute policies for a specific firm.
-- `--data-type`: Filter by retention data type.
+- `--data-type`: Filter by retention data type (choices: `emails`, `documents`, `audit_logs`, `webhooks`, `sessions`).
 - `--dry-run`: Show what would be processed without changes.
 
 **Evidence:** `src/modules/core/management/commands/execute_retention_policies.py`
