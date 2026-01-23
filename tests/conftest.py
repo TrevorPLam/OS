@@ -7,13 +7,12 @@ import pytest
 from django.test.runner import DiscoverRunner
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-SRC_DIR = ROOT_DIR / "src"
-if str(SRC_DIR) not in sys.path:
-    sys.path.insert(0, str(SRC_DIR))
+BACKEND_DIR = ROOT_DIR / "backend"
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings_auth_test")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 os.environ.setdefault("DJANGO_SECRET_KEY", "test-secret-key")
-os.environ.setdefault("USE_SQLITE_FOR_TESTS", "True")
 os.environ.setdefault("KMS_BACKEND", "local")
 os.environ.setdefault("LOCAL_KMS_MASTER_KEY", "test-master-key-32-bytes-long!!")
 os.environ.setdefault("DEFAULT_FIRM_KMS_KEY_ID", "test-default-firm-key")

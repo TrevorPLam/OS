@@ -1,29 +1,21 @@
 # repo.manifest.yaml — How to run/verify this repository
 version: 3
-last_updated: "2026-01-05"
+last_updated: "2026-01-22"
 
-governance:
-  authority_order:
-    - CODEBASECONSTITUTION.md
-    - READMEAI.md
-    - AGENTS.md
-    - BESTPR.md
-    - P0TODO.md
-    - P1TODO.md
-    - P2TODO.md
-    - P3TODO.md
-  task_truth_source: P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
-  completed_tasks: TODOCOMPLETED.md
-  best_practices: BESTPR.md
-  github_actions:
-    status: enabled
-    storage_path: .github/workflows/
+structure:
+  backend: backend/
+  frontend: frontend/
+  scripts: scripts/
+  tests: tests/
 
 verification:
   notes: >
-    Commands are repo-specific. If a command is missing, record UNKNOWN and create a task
-    to add it. Prefer cost-free local verification.
+    Commands are repo-specific. Prefer cost-free local verification.
   recommended:
-    - docs/scripts/ai-audit.sh
-    - docs/scripts/check.sh
-    - docs/scripts/security-scan.sh
+    - make setup
+    - make lint
+    - make test
+    - make typecheck
+    - make e2e
+    - make dev
+    - docker-compose up

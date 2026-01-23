@@ -7,8 +7,8 @@
   // ESLint/Prettier for JS/TS) so editors behave like CI and local make targets.
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.ruff": true,
-    "source.fixAll.eslint": true
+    "source.fixAll.ruff": "explicit",
+    "source.fixAll.eslint": "explicit"
   },
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
@@ -34,5 +34,7 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
-  ]
+  ],
+  "cursorpyright.analysis.autoImportCompletions": true,
+  "cursorpyright.analysis.typeCheckingMode": "basic"
 }

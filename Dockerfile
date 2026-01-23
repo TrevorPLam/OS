@@ -25,16 +25,16 @@ RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
 # Copy project files
-COPY src/ /app/src/
+COPY backend/ /app/backend/
 
 # Create directories for static and media files
-RUN mkdir -p /app/src/staticfiles /app/src/media
+RUN mkdir -p /app/backend/staticfiles /app/backend/media
 
 # Expose port 8000
 EXPOSE 8000
 
-# Set working directory to src
-WORKDIR /app/src
+# Set working directory to backend
+WORKDIR /app/backend
 
 # Run production server with gunicorn
 # SECURITY: Do not use Django's development server in production

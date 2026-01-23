@@ -65,7 +65,7 @@ DJANGO_SETTINGS_MODULE = "config.settings"
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-testpaths = ["src/modules", "src/api"]
+testpaths = ["backend/modules", "backend/api", "tests"]
 
 [tool.mypy]
 python_version = "3.11"

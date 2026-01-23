@@ -1,5 +1,5 @@
 # Meta-commentary:
-# - Current Status: Orchestrates backend/frontend/docs workflows with summary reporting.
+# - Current Status: Orchestrates backend/frontend workflows with summary reporting.
 # - Mapping: `test-performance` calls the backend performance target for query-efficiency checks.
 # - Reasoning: Keep verification steps explicit and centralized for deterministic local runs.
 # - Assumption: Backend performance tests run in environments with Django test settings configured.
@@ -14,28 +14,21 @@ else
 Q :=
 endif
 
-LOCUST_HOST ?= http://localhost:8000
-LOCUST_ARGS ?= --headless -u 5 -r 1 -t 1m
-
-.PHONY: setup lint test test-performance typecheck dev openapi docs-validate docs-check verify e2e frontend-build fixtures benchmark
+.PHONY: setup lint test test-performance typecheck dev openapi verify e2e frontend-build fixtures
 
 setup:
 	$(Q)set +e
 	backend_status=0
 	frontend_status=0
-	docs_status=0
 	$(Q)echo "=== BACKEND SETUP ==="
-	$(Q)$(MAKE) -C src setup V=$(V)
+	$(Q)$(MAKE) -C backend setup V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== FRONTEND SETUP ==="
-	$(Q)$(MAKE) -C src/frontend setup V=$(V)
+	$(Q)$(MAKE) -C frontend setup V=$(V)
 	frontend_status=$$?
-	$(Q)echo "=== DOCS SETUP ==="
-	$(Q)echo "DOCS setup: SKIP"
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND SETUP: PASS"; else echo "BACKEND SETUP: FAIL"; fi
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND SETUP: PASS"; else echo "FRONTEND SETUP: FAIL"; fi
-	$(Q)echo "DOCS SETUP: SKIP"
 	$(Q)summary=0
 	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
@@ -44,41 +37,32 @@ lint:
 	$(Q)set +e
 	backend_status=0
 	frontend_status=0
-	docs_status=0
 	$(Q)echo "=== BACKEND LINT ==="
-	$(Q)$(MAKE) -C src lint V=$(V)
+	$(Q)$(MAKE) -C backend lint V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== FRONTEND LINT ==="
-	$(Q)$(MAKE) -C src/frontend lint V=$(V)
+	$(Q)$(MAKE) -C frontend lint V=$(V)
 	frontend_status=$$?
-	$(Q)echo "=== DOCS QUALITY CHECK ==="
-	$(Q)$(MAKE) -C docs docs-check V=$(V)
-	docs_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND LINT: PASS"; else echo "BACKEND LINT: FAIL"; fi
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND LINT: PASS"; else echo "FRONTEND LINT: FAIL"; fi
-	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS QUALITY: PASS"; else echo "DOCS QUALITY: FAIL"; fi
 	$(Q)summary=0
-	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ] || [ $$docs_status -ne 0 ]; then summary=1; fi
+	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
 
 test:
 	$(Q)set +e
 	backend_status=0
 	frontend_status=0
-	docs_status=0
 	$(Q)echo "=== BACKEND TEST ==="
-	$(Q)$(MAKE) -C src test V=$(V)
+	$(Q)$(MAKE) -C backend test V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== FRONTEND TEST ==="
-	$(Q)$(MAKE) -C src/frontend test V=$(V)
+	$(Q)$(MAKE) -C frontend test V=$(V)
 	frontend_status=$$?
-	$(Q)echo "=== DOCS TEST ==="
-	$(Q)echo "DOCS test: SKIP"
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND TEST: PASS"; else echo "BACKEND TEST: FAIL"; fi
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND TEST: PASS"; else echo "FRONTEND TEST: FAIL"; fi
-	$(Q)echo "DOCS TEST: SKIP"
 	$(Q)summary=0
 	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
@@ -87,7 +71,7 @@ test-performance:
 	$(Q)set +e
 	backend_status=0
 	$(Q)echo "=== BACKEND PERFORMANCE TESTS ==="
-	$(Q)$(MAKE) -C src test-performance V=$(V)
+	$(Q)$(MAKE) -C backend test-performance V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND PERFORMANCE TESTS: PASS"; else echo "BACKEND PERFORMANCE TESTS: FAIL"; fi
@@ -97,7 +81,7 @@ typecheck:
 	$(Q)set +e
 	backend_status=0
 	$(Q)echo "=== BACKEND TYPECHECK ==="
-	$(Q)$(MAKE) -C src typecheck V=$(V)
+	$(Q)$(MAKE) -C backend typecheck V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND TYPECHECK: PASS"; else echo "BACKEND TYPECHECK: FAIL"; fi
@@ -107,20 +91,17 @@ e2e:
 	$(Q)set +e
 	frontend_status=0
 	$(Q)echo "=== FRONTEND E2E ==="
-	$(Q)$(MAKE) -C src/frontend e2e V=$(V)
+	$(Q)$(MAKE) -C frontend e2e V=$(V)
 	frontend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND E2E: PASS"; else echo "FRONTEND E2E: FAIL"; fi
 	$(Q)exit $$frontend_status
 
-benchmark:
-	$(Q)locust -f benchmarks/locustfile.py --host $(LOCUST_HOST) $(LOCUST_ARGS)
-
 frontend-build:
 	$(Q)set +e
 	frontend_status=0
 	$(Q)echo "=== FRONTEND BUILD ==="
-	$(Q)$(MAKE) -C src/frontend build-check V=$(V)
+	$(Q)$(MAKE) -C frontend build-check V=$(V)
 	frontend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND BUILD: PASS"; else echo "FRONTEND BUILD: FAIL"; fi
@@ -130,19 +111,15 @@ dev:
 	$(Q)set +e
 	backend_status=0
 	frontend_status=0
-	docs_status=0
 	$(Q)echo "=== BACKEND DEV ==="
-	$(Q)$(MAKE) -C src dev V=$(V)
+	$(Q)$(MAKE) -C backend dev V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== FRONTEND DEV ==="
-	$(Q)$(MAKE) -C src/frontend dev V=$(V)
+	$(Q)$(MAKE) -C frontend dev V=$(V)
 	frontend_status=$$?
-	$(Q)echo "=== DOCS DEV ==="
-	$(Q)echo "DOCS dev: SKIP"
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND DEV: PASS"; else echo "BACKEND DEV: FAIL"; fi
 	$(Q)if [ $$frontend_status -eq 0 ]; then echo "FRONTEND DEV: PASS"; else echo "FRONTEND DEV: FAIL"; fi
-	$(Q)echo "DOCS DEV: SKIP"
 	$(Q)summary=0
 	$(Q)if [ $$backend_status -ne 0 ] || [ $$frontend_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
@@ -151,7 +128,7 @@ fixtures:
 	$(Q)set +e
 	backend_status=0
 	$(Q)echo "=== BACKEND FIXTURES ==="
-	$(Q)$(MAKE) -C src fixtures V=$(V)
+	$(Q)$(MAKE) -C backend fixtures V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND FIXTURES: PASS"; else echo "BACKEND FIXTURES: FAIL"; fi
@@ -161,24 +138,11 @@ openapi:
 	$(Q)set +e
 	backend_status=0
 	$(Q)echo "=== BACKEND OPENAPI ==="
-	$(Q)$(MAKE) -C src openapi V=$(V)
+	$(Q)$(MAKE) -C backend openapi V=$(V)
 	backend_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_status -eq 0 ]; then echo "BACKEND OPENAPI: PASS"; else echo "BACKEND OPENAPI: FAIL"; fi
 	$(Q)exit $$backend_status
-
-docs-validate:
-	$(Q)set +e
-	docs_status=0
-	$(Q)echo "=== DOCS QUALITY CHECK ==="
-	$(Q)$(MAKE) -C docs docs-check V=$(V)
-	docs_status=$$?
-	$(Q)echo "=== SUMMARY ==="
-	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS QUALITY: PASS"; else echo "DOCS QUALITY: FAIL"; fi
-	$(Q)exit $$docs_status
-
-docs-check:
-	$(Q)$(MAKE) docs-validate V=$(V)
 
 verify:
 	$(Q)set +e
@@ -186,47 +150,42 @@ verify:
 	backend_typecheck_status=0
 	backend_performance_status=0
 	frontend_lint_status=0
-	docs_status=0
 	backend_test_status=0
 	frontend_test_status=0
 	frontend_build_status=0
 	openapi_status=0
 	openapi_diff_status=0
 	$(Q)echo "=== BACKEND LINT ==="
-	$(Q)$(MAKE) -C src lint V=$(V)
+	$(Q)$(MAKE) -C backend lint V=$(V)
 	backend_lint_status=$$?
 	$(Q)echo "=== BACKEND TYPECHECK ==="
-	$(Q)$(MAKE) -C src typecheck V=$(V)
+	$(Q)$(MAKE) -C backend typecheck V=$(V)
 	backend_typecheck_status=$$?
 	$(Q)echo "=== FRONTEND LINT ==="
-	$(Q)$(MAKE) -C src/frontend lint V=$(V)
+	$(Q)$(MAKE) -C frontend lint V=$(V)
 	frontend_lint_status=$$?
-	$(Q)echo "=== DOCS VALIDATE ==="
-	$(Q)$(MAKE) -C docs validate V=$(V)
-	docs_status=$$?
 	$(Q)echo "=== BACKEND TEST ==="
-	$(Q)$(MAKE) -C src test V=$(V)
+	$(Q)$(MAKE) -C backend test V=$(V)
 	backend_test_status=$$?
 	$(Q)echo "=== BACKEND PERFORMANCE TESTS ==="
-	$(Q)$(MAKE) -C src test-performance V=$(V)
+	$(Q)$(MAKE) -C backend test-performance V=$(V)
 	backend_performance_status=$$?
 	$(Q)echo "=== FRONTEND TEST ==="
-	$(Q)$(MAKE) -C src/frontend test V=$(V)
+	$(Q)$(MAKE) -C frontend test V=$(V)
 	frontend_test_status=$$?
 	$(Q)echo "=== FRONTEND BUILD ==="
-	$(Q)$(MAKE) -C src/frontend build-check V=$(V)
+	$(Q)$(MAKE) -C frontend build-check V=$(V)
 	frontend_build_status=$$?
 	$(Q)echo "=== BACKEND OPENAPI ==="
-	$(Q)$(MAKE) -C src openapi V=$(V)
+	$(Q)$(MAKE) -C backend openapi V=$(V)
 	openapi_status=$$?
-	$(Q)git diff --exit-code docs/03-reference/api/openapi.yaml
+	$(Q)git diff --exit-code backend/openapi.yaml
 	openapi_diff_status=$$?
 	$(Q)echo "=== SUMMARY ==="
 	$(Q)if [ $$backend_lint_status -eq 0 ]; then echo "BACKEND LINT: PASS"; else echo "BACKEND LINT: FAIL"; fi
 	$(Q)if [ $$backend_typecheck_status -eq 0 ]; then echo "BACKEND TYPECHECK: PASS"; else echo "BACKEND TYPECHECK: FAIL"; fi
 	$(Q)if [ $$backend_performance_status -eq 0 ]; then echo "BACKEND PERFORMANCE TESTS: PASS"; else echo "BACKEND PERFORMANCE TESTS: FAIL"; fi
 	$(Q)if [ $$frontend_lint_status -eq 0 ]; then echo "FRONTEND LINT: PASS"; else echo "FRONTEND LINT: FAIL"; fi
-	$(Q)if [ $$docs_status -eq 0 ]; then echo "DOCS VALIDATE: PASS"; else echo "DOCS VALIDATE: FAIL"; fi
 	$(Q)if [ $$backend_test_status -eq 0 ]; then echo "BACKEND TEST: PASS"; else echo "BACKEND TEST: FAIL"; fi
 	$(Q)if [ $$frontend_test_status -eq 0 ]; then echo "FRONTEND TEST: PASS"; else echo "FRONTEND TEST: FAIL"; fi
 	$(Q)if [ $$frontend_build_status -eq 0 ]; then echo "FRONTEND BUILD: PASS"; else echo "FRONTEND BUILD: FAIL"; fi
@@ -234,7 +193,7 @@ verify:
 	$(Q)if [ $$openapi_diff_status -eq 0 ]; then echo "OPENAPI DRIFT: PASS"; else echo "OPENAPI DRIFT: FAIL"; fi
 	$(Q)summary=0
 	$(Q)if [ $$backend_lint_status -ne 0 ] || [ $$backend_typecheck_status -ne 0 ] || [ $$backend_performance_status -ne 0 ] || \
-		[ $$frontend_lint_status -ne 0 ] || [ $$docs_status -ne 0 ] || [ $$backend_test_status -ne 0 ] || \
+		[ $$frontend_lint_status -ne 0 ] || [ $$backend_test_status -ne 0 ] || \
 		[ $$frontend_test_status -ne 0 ] || [ $$frontend_build_status -ne 0 ] || [ $$openapi_status -ne 0 ] || \
 		[ $$openapi_diff_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
