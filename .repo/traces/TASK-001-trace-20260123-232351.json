@@ -1,0 +1,23 @@
+{
+  "intent": "Refine AGENTS.md guidance",
+  "task_id": "TASK-001",
+  "timestamp": "2026-01-23T23:23:51Z",
+  "files": [
+    "AGENTS.md",
+    ".repo/tasks/TODO.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/ARCHIVE.md",
+    ".repo/logs/TASK-001-log-20260123-232357.json",
+    ".repo/traces/TASK-001-trace-20260123-232351.json"
+  ],
+  "commands": [
+    "make lint",
+    "bash scripts/generate-trace-log.sh TASK-001 \"Refine AGENTS.md guidance\"",
+    "bash scripts/generate-agent-log.sh TASK-001 \"Refine AGENTS.md guidance\""
+  ],
+  "evidence": [
+    "make lint failed: backend lint missing .venv/Scripts/ruff; frontend lint passed."
+  ],
+  "hitl": [],
+  "unknowns": []
+}
