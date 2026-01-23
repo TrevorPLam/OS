@@ -38,7 +38,7 @@ class SAMLConfigurationAdmin(admin.ModelAdmin):
             "Service Provider (SP) Settings",
             {
                 "fields": ["sp_entity_id", "sp_public_cert", "sp_private_key"],
-                "description": "ConsultantPro acts as the Service Provider"
+                "description": "UBOS acts as the Service Provider"
             }
         ),
         (

@@ -1,5 +1,5 @@
 """
-URL Configuration for ConsultantPro.
+URL Configuration for UBOS.
 
 Organized by business domain modules.
 """

@@ -1,8 +1,8 @@
 {
-  "name": "consultantpro-frontend",
+  "name": "ubos-frontend",
   "version": "0.1.0",
   "private": true,
-  "description": "ConsultantPro React Frontend - Phase 1 of USP",
+  "description": "UBOS React Frontend - Phase 1 of USP",
   "dependencies": {
     "@sentry/react": "10.32.1",
     "@tanstack/react-query": "5.90.12",

@@ -3,7 +3,7 @@ Firm Context Resolution Middleware (TIER 0).
 
 Ensures every request has a firm context attached.
 Firm context can be resolved from:
-1. Subdomain (e.g., acme.consultantpro.com → Firm slug = "acme")
+1. Subdomain (e.g., acme.ubos.com → Firm slug = "acme")
 2. Session (for logged-in users via FirmMembership)
 3. JWT Token (for API requests with firm_id claim)
 
@@ -156,13 +156,13 @@ class FirmContextMiddleware(MiddlewareMixin):
         """
         Resolve firm from subdomain.
 
-        Example: acme.consultantpro.com → Firm with slug='acme'
+        Example: acme.ubos.com → Firm with slug='acme'
         """
         host = request.get_host().split(":")[0]  # Remove port if present
         parts = host.split(".")
 
         # Check if this looks like a firm subdomain
-        # Example: acme.consultantpro.com has 3+ parts
+        # Example: acme.ubos.com has 3+ parts
         if len(parts) < 3:
             return None
 

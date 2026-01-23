@@ -1,7 +1,7 @@
 """
 Accounting Sync Service.
 
-Handles bidirectional synchronization between ConsultantPro and
+Handles bidirectional synchronization between UBOS and
 accounting systems (QuickBooks Online, Xero).
 """
 

@@ -4,9 +4,9 @@ services:
   # PostgreSQL Database
   db:
     image: postgres:15-alpine
-    container_name: consultantpro_db
+    container_name: ubos_db
     environment:
-      POSTGRES_DB: consultantpro
+      POSTGRES_DB: ubos
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -24,7 +24,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: consultantpro_web
+    container_name: ubos_web
     command: >
       sh -c "python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
@@ -32,7 +32,7 @@ services:
       - DJANGO_DEBUG=True
       - DJANGO_SECRET_KEY=dev-secret-key-change-in-production
       - DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
-      - POSTGRES_DB=consultantpro
+      - POSTGRES_DB=ubos
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_HOST=db

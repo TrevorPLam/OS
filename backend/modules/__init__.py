@@ -1,5 +1,5 @@
 """
-Business Domain Modules for ConsultantPro.
+Business Domain Modules for UBOS.
 
 Organized by domain logic following the Modular Monolith pattern:
 - crm: Customer Relationship Management

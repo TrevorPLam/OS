@@ -1,5 +1,5 @@
 """
-Assets Module for ConsultantPro.
+Assets Module for UBOS.
 
 Handles asset and equipment tracking:
 - Asset: Company-owned equipment and resources

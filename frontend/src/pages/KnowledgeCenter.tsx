@@ -76,7 +76,7 @@ export const KnowledgeCenter: React.FC = () => {
       name: 'Robert Chen',
       role: 'Managing Partner',
       department: 'Executive',
-      email: 'robert.chen@consultantpro.com',
+      email: 'robert.chen@ubos.com',
       phone: '+1-555-0101',
       reportsTo: null,
       avatar: '👨‍💼'
@@ -86,7 +86,7 @@ export const KnowledgeCenter: React.FC = () => {
       name: 'Sarah Johnson',
       role: 'Senior Consultant',
       department: 'Consulting',
-      email: 'sarah.johnson@consultantpro.com',
+      email: 'sarah.johnson@ubos.com',
       phone: '+1-555-0102',
       reportsTo: 1,
       avatar: '👩‍💼'
@@ -96,7 +96,7 @@ export const KnowledgeCenter: React.FC = () => {
       name: 'Michael Torres',
       role: 'Project Manager',
       department: 'Delivery',
-      email: 'michael.torres@consultantpro.com',
+      email: 'michael.torres@ubos.com',
       phone: '+1-555-0103',
       reportsTo: 1,
       avatar: '👨‍💻'
@@ -106,7 +106,7 @@ export const KnowledgeCenter: React.FC = () => {
       name: 'Emily Davis',
       role: 'Business Analyst',
       department: 'Consulting',
-      email: 'emily.davis@consultantpro.com',
+      email: 'emily.davis@ubos.com',
       phone: '+1-555-0104',
       reportsTo: 2,
       avatar: '👩‍💻'

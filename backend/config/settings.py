@@ -1,5 +1,5 @@
 """
-Django settings for ConsultantPro (USP Phase 1).
+Django settings for UBOS (USP Phase 1).
 
 This is the Core Skeleton targeting the management consulting vertical.
 Built as a Modular Monolith following the "Fork-and-Ship" strategy.
@@ -155,7 +155,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "consultantpro"),
+        "NAME": os.environ.get("POSTGRES_DB", "ubos"),
         "USER": os.environ.get("POSTGRES_USER", "postgres"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "postgres"),
         "HOST": os.environ.get("POSTGRES_HOST", "db"),
@@ -384,7 +384,7 @@ SAML_SP_PUBLIC_CERT = os.environ.get("SAML_SP_PUBLIC_CERT", "")
 SAML_SP_PRIVATE_KEY = os.environ.get("SAML_SP_PRIVATE_KEY", "")
 
 # MFA/OTP Configuration
-OTP_TOTP_ISSUER = "ConsultantPro"
+OTP_TOTP_ISSUER = "UBOS"
 OTP_LOGIN_URL = "/api/auth/mfa/verify/"
 
 # SMS OTP settings (integrates with existing SMS module)
@@ -394,7 +394,7 @@ SMS_OTP_VALIDITY_MINUTES = 10
 
 # API Documentation with drf-spectacular
 SPECTACULAR_SETTINGS = {
-    "TITLE": "ConsultantPro API",
+    "TITLE": "UBOS API",
     "DESCRIPTION": "Quote-to-Cash Management Platform for Management Consulting Firms",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,

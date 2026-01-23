@@ -118,17 +118,17 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
             {
                 "domain": branding.custom_domain,
                 "verification_token": branding.dns_verification_token,
-                "cname_target": branding.dns_cname_target or f"{request.firm.slug}.consultantpro.app",
+                "cname_target": branding.dns_cname_target or f"{request.firm.slug}.ubos.app",
                 "instructions": {
                     "txt_record": {
-                        "name": f"_consultantpro-verify.{branding.custom_domain}",
+                        "name": f"_ubos-verify.{branding.custom_domain}",
                         "type": "TXT",
                         "value": branding.dns_verification_token,
                     },
                     "cname_record": {
                         "name": branding.custom_domain,
                         "type": "CNAME",
-                        "value": branding.dns_cname_target or f"{request.firm.slug}.consultantpro.app",
+                        "value": branding.dns_cname_target or f"{request.firm.slug}.ubos.app",
                     },
                 },
                 "verified": branding.custom_domain_verified,
@@ -150,8 +150,8 @@ class PortalBrandingViewSet(FirmScopedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        txt_record_name = f"_consultantpro-verify.{branding.custom_domain}"
-        cname_target = branding.dns_cname_target or f"{request.firm.slug}.consultantpro.app"
+        txt_record_name = f"_ubos-verify.{branding.custom_domain}"
+        cname_target = branding.dns_cname_target or f"{request.firm.slug}.ubos.app"
 
         txt_verified = False
         cname_verified = False

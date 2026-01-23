@@ -186,7 +186,7 @@ class PortalBranding(models.Model):
     )
     remove_platform_branding = models.BooleanField(
         default=False,
-        help_text="Remove 'Powered by ConsultantPro' branding from portal",
+        help_text="Remove 'Powered by UBOS' branding from portal",
     )
     custom_login_url_slug = models.SlugField(
         max_length=100,
@@ -300,7 +300,7 @@ class PortalBranding(models.Model):
             self.custom_domain = self.custom_domain.lower().strip()
 
             # Cannot use platform domain
-            if "consultantpro" in self.custom_domain:
+            if "ubos" in self.custom_domain:
                 errors["custom_domain"] = "Cannot use platform domain"
 
             # Cannot set as verified without verification

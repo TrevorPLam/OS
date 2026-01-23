@@ -1,11 +1,11 @@
 #!/bin/bash
-# Database Migration Script for ConsultantPro
+# Database Migration Script for UBOS
 # Run this after Phase 1 architectural refactor
 
 set -e
 
 echo "=========================================="
-echo "ConsultantPro - Database Migration Setup"
+echo "UBOS - Database Migration Setup"
 echo "=========================================="
 echo ""
 echo "This script creates and applies migrations for:"

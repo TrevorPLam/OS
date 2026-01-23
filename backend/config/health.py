@@ -38,7 +38,7 @@ def health_check(request):
     """
     return JsonResponse({
         "status": "healthy",
-        "service": "consultantpro",
+        "service": "ubos",
         "timestamp": timezone.now().isoformat(),
     }, status=200)
 
@@ -109,7 +109,7 @@ def readiness_check(request):
     
     return JsonResponse({
         "status": overall_status,
-        "service": "consultantpro",
+        "service": "ubos",
         "checks": checks,
         "timestamp": timezone.now().isoformat(),
     }, status=status_code)

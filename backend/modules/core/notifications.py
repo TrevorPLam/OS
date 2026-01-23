@@ -1,5 +1,5 @@
 """
-Notification Service for ConsultantPro.
+Notification Service for UBOS.
 
 Provides utilities for sending notifications via:
 - Email (Django's email backend)
@@ -47,7 +47,7 @@ def _format_from_email(from_email: str, from_name: str | None) -> str:
 
 def _build_compliance_footer(compliance: EmailComplianceDetails) -> tuple[str, str]:
     footer_lines = []
-    company_name = compliance.company_name or "ConsultantPro"
+    company_name = compliance.company_name or "UBOS"
 
     if compliance.compliance_reason:
         footer_lines.append(compliance.compliance_reason)
@@ -141,7 +141,7 @@ class EmailNotification:
             with track_duration("notification_email_send", channel="email"):
                 # Use default from_email if not provided
                 if not from_email:
-                    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@consultantpro.com")
+                    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ubos.com")
 
                 if compliance and compliance.sender_email:
                     from_email = compliance.sender_email
@@ -267,7 +267,7 @@ class EmailNotification:
                 <p>The client conversion process has been initiated automatically.</p>
                 <hr>
                 <p style="color: #666; font-size: 12px;">
-                    This is an automated notification from ConsultantPro CRM.
+                    This is an automated notification from UBOS CRM.
                 </p>
             """,
         )
@@ -318,7 +318,7 @@ class EmailNotification:
                 <p>The proposal has been sent to the client for review.</p>
                 <hr>
                 <p style="color: #666; font-size: 12px;">
-                    This is an automated notification from ConsultantPro CRM.
+                    This is an automated notification from UBOS CRM.
                 </p>
             """,
         )
@@ -373,7 +373,7 @@ class EmailNotification:
                 <p>Please proceed with project setup and resource allocation.</p>
                 <hr>
                 <p style="color: #666; font-size: 12px;">
-                    This is an automated notification from ConsultantPro CRM.
+                    This is an automated notification from UBOS CRM.
                 </p>
             """,
         )
@@ -418,7 +418,7 @@ class EmailNotification:
                 <p>{context['task_description']}</p>
                 <hr>
                 <p style="color: #666; font-size: 12px;">
-                    This is an automated notification from ConsultantPro Project Management.
+                    This is an automated notification from UBOS Project Management.
                 </p>
             """,
         )
@@ -487,7 +487,7 @@ class EmailNotification:
                 </ul>
                 <hr>
                 <p style="color: #666; font-size: 12px;">
-                    This is an automated notification from ConsultantPro Project Management.
+                    This is an automated notification from UBOS Project Management.
                 </p>
             """,
         )

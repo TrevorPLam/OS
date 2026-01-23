@@ -67,7 +67,7 @@ def send_sms_otp(user, otp_code):
             return False, "No phone number configured for user"
 
         # Send SMS
-        message = f"Your ConsultantPro verification code is: {otp_code}. Valid for {settings.SMS_OTP_VALIDITY_MINUTES} minutes."
+        message = f"Your UBOS verification code is: {otp_code}. Valid for {settings.SMS_OTP_VALIDITY_MINUTES} minutes."
 
         # Use existing SMS service
         success = send_sms(

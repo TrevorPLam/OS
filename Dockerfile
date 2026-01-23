@@ -1,4 +1,4 @@
-# Dockerfile for ConsultantPro Django Application
+# Dockerfile for UBOS Django Application
 # Python 3.11+ on Debian-based image
 
 FROM python:3.11-slim

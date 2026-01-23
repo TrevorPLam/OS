@@ -1,5 +1,5 @@
 """
-Documents Module for ConsultantPro.
+Documents Module for UBOS.
 
 Handles secure document storage and client portal:
 - Folder: Hierarchical folder structure

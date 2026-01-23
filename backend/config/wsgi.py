@@ -1,5 +1,5 @@
 """
-WSGI config for ConsultantPro.
+WSGI config for UBOS.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

@@ -1,8 +1,8 @@
-# ConsultantPro Project Dictionary
+# UBOS Project Dictionary
 # Add project-specific terms here (one per line, lowercase preferred)
 
 # Project Names
-consultantpro
+ubos
 diataxis
 lychee
 markdownlint
@@ -122,6 +122,8 @@ readonly
 readonly
 
 # Company/Tool Names
+codecov
+coveralls
 github
 docusign
 hellosign

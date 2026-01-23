@@ -1,5 +1,5 @@
 """
-ASGI config for ConsultantPro.
+ASGI config for UBOS.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

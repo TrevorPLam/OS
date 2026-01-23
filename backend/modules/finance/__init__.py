@@ -1,5 +1,5 @@
 """
-Finance Module for ConsultantPro.
+Finance Module for UBOS.
 
 Handles the financial operations:
 - Invoice: Accounts Receivable (AR) - money clients owe us

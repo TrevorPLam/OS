@@ -7,7 +7,7 @@
 set -e
 
 echo "========================================="
-echo "ConsultantPro - Database Migrations Setup"
+echo "UBOS - Database Migrations Setup"
 echo "========================================="
 echo ""
 

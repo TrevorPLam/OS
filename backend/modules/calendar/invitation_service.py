@@ -49,7 +49,7 @@ class CalendarInvitationService:
 
         # Create calendar
         cal = Calendar()
-        cal.add('prodid', '-//ConsultantPro//Calendar Invitation//EN')
+        cal.add('prodid', '-//UBOS//Calendar Invitation//EN')
         cal.add('version', '2.0')
         cal.add('method', method)
 
@@ -57,7 +57,7 @@ class CalendarInvitationService:
         event = Event()
 
         # Add basic event details
-        event.add('uid', f'appointment-{appointment.appointment_id}@consultantpro.app')
+        event.add('uid', f'appointment-{appointment.appointment_id}@ubos.app')
         event.add('summary', f"Meeting: {appointment.appointment_type.name}")
 
         # Add description

@@ -537,7 +537,7 @@ class SIEMExporter:
         for event in audit_events:
             events.append({
                 'time': event.timestamp.timestamp(),
-                'source': 'consultantpro',
+                'source': 'ubos',
                 'sourcetype': 'audit_event',
                 'event': {
                     'firm_id': event.firm_id,
@@ -600,9 +600,9 @@ class SIEMExporter:
         logs = []
         for event in audit_events:
             logs.append({
-                'ddsource': 'consultantpro',
+                'ddsource': 'ubos',
                 'ddtags': f'firm:{event.firm_id},category:{event.category},severity:{event.severity}',
-                'hostname': 'consultantpro-app',
+                'hostname': 'ubos-app',
                 'message': f'{event.action} by {event.actor_email or "System"}',
                 'timestamp': event.timestamp.isoformat(),
                 'attributes': {
@@ -657,7 +657,7 @@ class SIEMExporter:
         
         headers = {
             'Content-Type': 'application/json',
-            'User-Agent': 'ConsultantPro-Audit-Export/1.0'
+            'User-Agent': 'UBOS-Audit-Export/1.0'
         }
         
         # Add HMAC signature if secret provided

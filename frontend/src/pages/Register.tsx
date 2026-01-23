@@ -45,7 +45,7 @@ const Register: React.FC = () => {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h1>ConsultantPro</h1>
+          <h1>UBOS</h1>
           <p>Create your account</p>
         </div>
 

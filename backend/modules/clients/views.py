@@ -1176,7 +1176,7 @@ class ConsentRecordViewSet(QueryTimeoutMixin, FirmScopedMixin, viewsets.ReadOnly
         sender_email = (
             branding.email_from_address
             if branding and branding.email_from_address
-            else getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@consultantpro.com")
+            else getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@ubos.com")
         )
         reply_to = [branding.email_reply_to] if branding and branding.email_reply_to else None
         physical_address = branding.email_physical_address if branding else ""

@@ -1,3 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install backend deps
+        run: make -C backend setup
+
+      - name: Install frontend deps
+        run: make -C frontend setup
+
+      - name: Run CI
+        run: make ci
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/coverage.xml
+          fail_ci_if_error: false
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          format: cobertura
+          file: backend/coverage.xml
+          fail-on-error: false
 name: CI/CD Pipeline
 
 on:
@@ -314,7 +360,7 @@ jobs:
           echo "❌ OpenAPI schema not found. Run 'make openapi' and commit docs/03-reference/api/openapi.yaml"
           exit 1
         fi
-        
+
         # Compare schemas
         if ! diff -q docs/03-reference/api/openapi.yaml docs/03-reference/api/openapi-generated.yaml; then
           echo "❌ OpenAPI schema has drifted from committed version"
@@ -322,7 +368,7 @@ jobs:
           diff docs/03-reference/api/openapi.yaml docs/03-reference/api/openapi-generated.yaml || true
           exit 1
         fi
-        
+
         echo "✅ OpenAPI schema is up to date"
 
   # Job 7: Deploy to Staging (only on main branch)

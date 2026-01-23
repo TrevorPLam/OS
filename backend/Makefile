@@ -30,7 +30,7 @@ lint:
 	$(Q)black --check . --line-length=120
 
 test:
-	$(Q)pytest --cov=modules --cov=api --cov-report=term -v
+	$(Q)pytest --cov=modules --cov=api --cov-report=term --cov-report=xml -v
 
 test-performance:
 	$(Q)pytest -m performance -v -o addopts= ../tests

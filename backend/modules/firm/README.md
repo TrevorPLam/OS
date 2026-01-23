@@ -2,11 +2,11 @@
 
 **Status**: ✅ TIER 0.1-0.2 Complete
 
-This module implements the foundational multi-tenant architecture for ConsultantPro.
+This module implements the foundational multi-tenant architecture for UBOS.
 
 ## Overview
 
-Every piece of customer data in ConsultantPro belongs to exactly one **Firm** (workspace/tenant). This module provides:
+Every piece of customer data in UBOS belongs to exactly one **Firm** (workspace/tenant). This module provides:
 
 1. **Firm Model**: Top-level tenant boundary
 2. **FirmMembership Model**: Links Users to Firms with roles
@@ -20,7 +20,7 @@ Every piece of customer data in ConsultantPro belongs to exactly one **Firm** (w
 Every incoming request must have a firm context. The `FirmContextMiddleware` resolves firm context from:
 
 1. **Subdomain** (highest priority)
-   - Example: `acme.consultantpro.com` → Firm with slug='acme'
+   - Example: `acme.ubos.com` → Firm with slug='acme'
 
 2. **JWT Token** (API requests)
    - Token must include `firm_id` claim in payload

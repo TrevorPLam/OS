@@ -19,7 +19,7 @@ const Layout: React.FC = () => {
       <header className="app-header">
         <div className="header-content">
           <div>
-            <h1>ConsultantPro</h1>
+            <h1>UBOS</h1>
             <p className="tagline">Quote-to-Cash Management for Consulting Firms</p>
           </div>
           <div className="user-menu">
@@ -85,7 +85,7 @@ const Layout: React.FC = () => {
       </div>
 
       <footer className="app-footer">
-        <p>ConsultantPro - Phase 1 | USP Fork-and-Ship Strategy</p>
+        <p>UBOS - Phase 1 | USP Fork-and-Ship Strategy</p>
       </footer>
     </div>
   )

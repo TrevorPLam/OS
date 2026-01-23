@@ -1,4 +1,4 @@
-# ConsultantPro - Python Dependencies
+# UBOS - Python Dependencies
 # Phase 1: Core Skeleton
 
 # Django Core (4.2 LTS)

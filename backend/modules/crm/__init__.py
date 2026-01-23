@@ -1,5 +1,5 @@
 """
-CRM Module for ConsultantPro.
+CRM Module for UBOS.
 
 Handles the Quote-to-Cash workflow:
 - Leads: Prospective clients

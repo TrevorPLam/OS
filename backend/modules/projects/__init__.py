@@ -1,5 +1,5 @@
 """
-Projects Module for ConsultantPro.
+Projects Module for UBOS.
 
 Handles project execution and time tracking:
 - Projects: Delivery vehicles linked to contracts

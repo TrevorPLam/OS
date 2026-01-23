@@ -14,7 +14,7 @@ else
 Q :=
 endif
 
-.PHONY: setup lint test test-performance typecheck dev openapi verify e2e frontend-build fixtures
+.PHONY: setup lint test test-performance typecheck dev openapi verify ci e2e frontend-build fixtures
 
 setup:
 	$(Q)set +e
@@ -197,3 +197,5 @@ verify:
 		[ $$frontend_test_status -ne 0 ] || [ $$frontend_build_status -ne 0 ] || [ $$openapi_status -ne 0 ] || \
 		[ $$openapi_diff_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
+
+ci: verify

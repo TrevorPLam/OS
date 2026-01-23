@@ -109,7 +109,7 @@ class TestDocumentSerializer:
             'file_type': 'application/pdf',
             'file_size_bytes': 1024,
             's3_key': 'client-1/documents/test.pdf',
-            's3_bucket': 'consultantpro-docs',
+            's3_bucket': 'ubos-docs',
             'uploaded_by': user.id
         }
         serializer = DocumentSerializer(data=data)
