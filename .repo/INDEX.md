@@ -10,6 +10,14 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 - `GOVERNANCE.md` - Framework entry point and overview
 - `repo.manifest.yaml` - Command definitions (source of truth for executable commands)
 - `AGENT.md` - Folder-level agent guide
+- `DOCUMENT_MAP.md` - Token-optimized document reference system
+- `CHANGELOG.md` - Framework change history
+- `TOKEN_OPTIMIZATION_STRATEGY.md` - Token optimization strategy reference
+- `INDEX.md` - This file
+
+### Entry Points (Root Level)
+- `AGENTS.json` - **Primary entry point** (structured JSON for model parsing)
+- `AGENTS.md` - Entry point (human-readable fallback)
 
 ### `policy/` - Authoritative Governance Rules
 - `CONSTITUTION.md` - 8 fundamental articles (immutable)
@@ -21,8 +29,19 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 - `BESTPR.md` - Repository-specific best practices
 
 ### `agents/` - AI Agent Framework
-- `AGENTS.md` - Core agent rules (UNKNOWN workflow, 3-pass generation)
+- `rules.json` - **Primary rules source** (machine-readable, all rules)
+- `QUICK_REFERENCE.md` - Human-readable rules cheat sheet
+- `AGENTS.md` - Framework documentation (UNKNOWN workflow, 3-pass generation)
+- `rules-compact.md` - Compact format (~200 tokens)
 - `capabilities.md` - List of all agent capabilities
+- `FORMATS.md` - Available format documentation
+- `checklists/` - Agent checklists
+  - `change-plan.md` - Change planning checklist
+  - `pr-review.md` - PR review checklist
+  - `incident.md` - Incident response checklist
+- `prompts/` - Prompt templates
+  - `pr_template.md` - PR prompt template
+  - `task_packet.md` - Task packet template
 - `roles/` - Agent role definitions
   - `primary.md` - Primary agent role
   - `secondary.md` - Secondary agent role
@@ -32,14 +51,45 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 ### `templates/` - Document Templates
 - `AGENT_LOG_TEMPLATE.md` - Agent log structure template
 - `AGENT_TRACE_SCHEMA.json` - Agent trace log JSON schema
+- `PR_TEMPLATE.md` - Pull request template
+- `ADR_TEMPLATE.md` - Architecture decision record template
+- `WAIVER_TEMPLATE.md` - Policy waiver template
+- `RFC_TEMPLATE.md` - Request for comments template
+- `RUNBOOK_TEMPLATE.md` - Runbook template
+- `examples/` - Example files
+  - `example_trace_log.json` - Example trace log
+  - `example_hitl_item.md` - Example HITL item
+  - `example_waiver.md` - Example waiver
+  - `example_task_packet.json` - Example task packet
+  - `README.md` - Examples documentation
 
-### `docs/` - Documentation Standards
-- `standards/` - Documentation standards
-  - `manifest.md` - Manifest command resolution guide
+### `tasks/` - Task Management
+- `TODO.md` - Current active task (ONE only)
+- `BACKLOG.md` - Prioritized task queue (P0→P3)
+- `ARCHIVE.md` - Completed tasks
+- `README.md` - Task management workflow
+
+**Note:** Documentation has been moved to root `docs/` directory. See [`docs/README.md`](../docs/README.md) for documentation structure.
+
+### `automation/` - Automation Infrastructure
+- `ci/` - CI automation
+  - `governance-verify.yml` - Governance verification workflow
+- `scripts/` - Automation scripts
+  - `governance-verify.js` - Governance verification script
+  - `validate-agent-trace.js` - Trace log validation script
 
 ### `hitl/` - HITL Item Files
 - `README.md` - HITL items directory documentation
 - Individual HITL item files: `HITL-XXXX.md`
+
+### `logs/` - Agent Logs
+- Agent logs stored here (see `templates/AGENT_LOG_TEMPLATE.md`)
+
+### `traces/` - Trace Logs
+- Trace logs stored here (see `templates/AGENT_TRACE_SCHEMA.json`)
+
+### `waivers/` - Policy Waivers
+- Active policy waivers stored here
 
 ## Navigation
 
@@ -47,8 +97,22 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 - [`backend/INDEX.md`](../backend/INDEX.md) - Backend directory index
 - [`frontend/INDEX.md`](../frontend/INDEX.md) - Frontend directory index
 
+## Entry Point Usage
+
+**For AI Agents:**
+1. Read `AGENTS.json` (root) - Primary structured entry point
+2. Or read `AGENTS.md` (root) - Human-readable entry point
+3. Follow instructions to read required files
+
+**For Humans:**
+- Start with `GOVERNANCE.md` for framework overview
+- Use `DOCUMENT_MAP.md` to navigate documents
+- See `CHANGELOG.md` for recent changes
+
 ## See Also
 
 - `.repo/GOVERNANCE.md` - Framework entry point
 - `.repo/AGENT.md` - What agents may do in this directory
 - `.repo/repo.manifest.yaml` - Command definitions
+- `AGENTS.json` - Primary agent entry point (root)
+- `AGENTS.md` - Agent entry point (root, human-readable)

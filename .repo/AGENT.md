@@ -1,29 +1,20 @@
-# AGENT.md (Folder-Level Guide)
+# .repo/AGENT.md
 
-## Purpose of this folder
+**All agent rules are in:** `.repo/agents/rules.json`
 
-This folder (`.repo/`) contains the governance framework for the repository. It includes policy files, agent framework, HITL tracking, and documentation standards.
+**Read that file for complete rules, workflows, and policies.**
 
-## What agents may do here
+---
 
-- Read all policy files and documentation
-- Reference governance rules when making decisions
-- Create HITL items when uncertain (see `.repo/policy/HITL.md`)
-- Update manifest commands when build/test processes change (with verification)
-- Create task packets and trace logs
+## Quick Start
 
-## What agents may NOT do
+1. Read `.repo/agents/rules.json` - Complete machine-readable rules
+2. Read `agents/tasks/TODO.md` - Current task
+3. Read `.repo/repo.manifest.yaml` - Commands
+4. Follow three-pass workflow from `rules.json`
 
-- Modify policy files without explicit approval (CONSTITUTION.md is immutable)
-- Create waivers without reviewer approval
-- Skip HITL process when required
-- Guess commands - must use manifest or create HITL
-- Modify governance structure without approval
+---
 
-## Required links
+**For human-readable format:** See `.repo/agents/QUICK_REFERENCE.md`
 
-- Refer to higher-level policy: `.repo/policy/CONSTITUTION.md`
-- See `.repo/policy/PRINCIPLES.md` for operating principles
-- See `.repo/policy/BOUNDARIES.md` for architectural rules
-- See `.repo/GOVERNANCE.md` for framework overview
-- See `.repo/repo.manifest.yaml` for command definitions
+**For full policy context:** See `.repo/policy/CONSTITUTION.md` and `.repo/policy/PRINCIPLES.md`

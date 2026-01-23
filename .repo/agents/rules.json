@@ -1,0 +1,239 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "metadata": {
+    "description": "Machine-readable agent rules and policies",
+    "source": "Extracted from CONSTITUTION.md, PRINCIPLES.md, and agent framework",
+    "last_updated": "2026-01-23"
+  },
+  "required_files": {
+    "startup": [
+      ".repo/tasks/TODO.md",
+      ".repo/repo.manifest.yaml",
+      ".repo/agents/QUICK_REFERENCE.md"
+    ],
+    "conditional": {
+      "security": [".repo/policy/SECURITY_BASELINE.md", ".repo/policy/HITL.md"],
+      "boundaries": [".repo/policy/BOUNDARIES.md"],
+      "pr": [".repo/policy/QUALITY_GATES.md", ".repo/templates/PR_TEMPLATE.md"],
+      "unknown": [".repo/policy/HITL.md"]
+    }
+  },
+  "constitution": {
+    "articles": [
+      {
+        "id": 1,
+        "title": "Final Authority",
+        "rule": "Solo founder has final say on ambiguity/conflicts"
+      },
+      {
+        "id": 2,
+        "title": "Verifiable over Persuasive",
+        "rule": "Work needs verification evidence. Proof beats persuasion."
+      },
+      {
+        "id": 3,
+        "title": "No Guessing",
+        "rule": "If unknown: Mark <UNKNOWN> → Create HITL → Stop work",
+        "workflow": ["mark_unknown", "create_hitl", "stop_work"]
+      },
+      {
+        "id": 4,
+        "title": "Incremental Delivery",
+        "rule": "Ship small, reviewable, testable increments. No mega-PRs."
+      },
+      {
+        "id": 5,
+        "title": "Strict Traceability",
+        "rule": "Every change must link to task in .repo/tasks/TODO.md. Archive completed tasks.",
+        "requirements": ["link_to_task", "archive_completed"]
+      },
+      {
+        "id": 6,
+        "title": "Safety Before Speed",
+        "rule": "Risky changes: STOP → ASK (HITL) → VERIFY → THEN PROCEED",
+        "workflow": ["stop", "ask_hitl", "verify", "proceed"]
+      },
+      {
+        "id": 7,
+        "title": "Per-Repo Variation",
+        "rule": "Workflow may vary per repo (via manifest)"
+      },
+      {
+        "id": 8,
+        "title": "HITL for External Systems",
+        "rule": "Credentials, billing, production, external services = always HITL",
+        "triggers": ["credentials", "billing", "production", "external_services"]
+      }
+    ]
+  },
+  "principles": {
+    "global_rule": "Filepaths required everywhere (PRs, logs, ADRs, waivers, comments)",
+    "principles": [
+      {"id": 3, "rule": "One Change Type Per PR"},
+      {"id": 4, "rule": "Make It Shippable"},
+      {"id": 5, "rule": "Don't Break Surprises"},
+      {"id": 6, "rule": "Evidence Over Vibes"},
+      {"id": 7, "rule": "UNKNOWN Is First-Class"},
+      {"id": 8, "rule": "Read Repo First"},
+      {"id": 9, "rule": "Assumptions Must Be Declared"},
+      {"id": 10, "rule": "Risk Triggers a Stop"},
+      {"id": 11, "rule": "Prefer Guardrails Over Heroics"},
+      {"id": 12, "rule": "Rollback Thinking"},
+      {"id": 13, "rule": "Respect Boundaries"},
+      {"id": 14, "rule": "Localize Complexity"},
+      {"id": 15, "rule": "Consistency Beats Novelty"},
+      {"id": 16, "rule": "Decisions Written Down"},
+      {"id": 17, "rule": "PR Narration"},
+      {"id": 18, "rule": "No Silent Scope Creep"},
+      {"id": 19, "rule": "Docs Age With Code"},
+      {"id": 20, "rule": "Examples Are Contracts"},
+      {"id": 21, "rule": "Naming Matters"},
+      {"id": 22, "rule": "Waivers Rare + Temporary"},
+      {"id": 23, "rule": "ADR Required When Triggered"},
+      {"id": 24, "rule": "Logs Required for Non-Docs"},
+      {"id": 25, "rule": "Token-Optimized TODO"}
+    ]
+  },
+  "workflows": {
+    "three_pass": {
+      "pass1": {
+        "name": "Plan",
+        "steps": ["list_actions", "identify_risks", "list_files", "mark_unknowns", "get_approval"]
+      },
+      "pass2": {
+        "name": "Change",
+        "steps": ["apply_edits", "follow_patterns", "include_filepaths"],
+        "blockers": ["pass1_blockers"]
+      },
+      "pass3": {
+        "name": "Verify",
+        "steps": ["run_tests", "provide_evidence", "update_logs", "check_quality_gates", "document_in_pr"]
+      }
+    },
+    "unknown": {
+      "steps": ["mark_unknown", "create_hitl", "stop_work", "wait_resolution"]
+    },
+    "hitl_decision": {
+      "triggers": ["risky", "unknown", "cross_boundaries"],
+      "risky": {
+        "conditions": ["security", "money", "production", "external_systems"],
+        "action": "create_hitl"
+      },
+      "unknown": {
+        "conditions": ["not_in_docs", "not_in_manifest", "not_in_code"],
+        "action": "mark_unknown_create_hitl"
+      },
+      "cross_boundaries": {
+        "action": "requires_adr"
+      }
+    }
+  },
+  "security": {
+    "triggers": [
+      {"id": 1, "type": "auth_login_behavior_change"},
+      {"id": 2, "type": "money_payment_flow_change"},
+      {"id": 3, "type": "external_service_integration"},
+      {"id": 4, "type": "sensitive_data_handling"},
+      {"id": 5, "type": "production_config_keys"},
+      {"id": 6, "type": "cryptography_security_controls"},
+      {"id": 7, "type": "dependency_vulnerabilities"}
+    ],
+    "absolute_prohibitions": [
+      "commit_secrets",
+      "commit_env_files"
+    ]
+  },
+  "rules": {
+    "always": [
+      {"rule": "Include filepaths in all changes", "source": "global_rule"},
+      {"rule": "Link changes to task in .repo/tasks/TODO.md", "source": "article_5"},
+      {"rule": "Mark UNKNOWN → Create HITL", "source": "article_3"},
+      {"rule": "Follow three-pass workflow", "source": "workflow"},
+      {"rule": "Run make lint before PR", "source": "best_practice"},
+      {"rule": "Archive completed tasks", "source": "article_5"},
+      {"rule": "Show verification evidence", "source": "article_2_p6"},
+      {"rule": "Explain what/why/filepaths/verification/risks/rollback in PR", "source": "p17"},
+      {"rule": "Update docs when code behavior changes", "source": "p19"},
+      {"rule": "Update examples when code changes", "source": "p20"},
+      {"rule": "Declare assumptions explicitly", "source": "p9"},
+      {"rule": "Think about rollback for risky changes", "source": "p12"}
+    ],
+    "never": [
+      {"rule": "Guess commands", "source": "article_3", "alternative": "use_manifest_or_hitl"},
+      {"rule": "Skip filepaths", "source": "global_rule"},
+      {"rule": "Modify policy files without approval", "source": "governance"},
+      {"rule": "Commit secrets or .env files", "source": "absolute_prohibition"},
+      {"rule": "Cross boundaries without ADR", "source": "p23"},
+      {"rule": "Proceed with UNKNOWN items", "source": "article_3"},
+      {"rule": "Make risky changes without HITL", "source": "article_6_8"},
+      {"rule": "Create mega-PRs", "source": "article_4"},
+      {"rule": "Skip verification evidence", "source": "article_2"},
+      {"rule": "Expand scope silently", "source": "p18"},
+      {"rule": "Make assumptions without declaring them", "source": "p9"}
+    ]
+  },
+  "artifacts": {
+    "feature": ["task_packet", "trace_log", "tests"],
+    "api_change": ["task_packet", "adr", "trace_log", "openapi_update"],
+    "security": ["hitl", "trace_log", "security_tests"],
+    "cross_module": ["adr", "task_packet", "trace_log"],
+    "non_doc_change": ["agent_log", "trace_log", "reasoning_summary"]
+  },
+  "commands": {
+    "source": ".repo/repo.manifest.yaml",
+    "common": {
+      "setup": "make setup",
+      "lint": "make lint",
+      "test": "make test",
+      "verify": "make verify",
+      "verify_full": "make verify SKIP_HEAVY=0",
+      "ci": "make ci"
+    },
+    "backend": {
+      "migrate": "make -C backend migrate",
+      "openapi": "make -C backend openapi"
+    },
+    "frontend": {
+      "test": "make -C frontend test",
+      "e2e": "make -C frontend e2e"
+    }
+  },
+  "tech_stack": {
+    "backend": {
+      "framework": "Django 4.2",
+      "language": "Python 3.11",
+      "database": "PostgreSQL 15"
+    },
+    "frontend": {
+      "framework": "React 18.3",
+      "language": "TypeScript 5.9",
+      "build": "Vite 5.4",
+      "data_fetching": "TanStack React Query",
+      "forms": "React Hook Form"
+    }
+  },
+  "project_structure": {
+    "backend": {
+      "modules": "Domain modules (firm-scoped multi-tenancy)",
+      "api": "API endpoints",
+      "config": "Django settings, middleware"
+    },
+    "frontend": {
+      "src": "React components, pages, hooks"
+    },
+    "tasks": ".repo/tasks/ (TODO/BACKLOG/ARCHIVE)"
+  },
+  "code_style": {
+    "backend": {
+      "pattern": "Django REST Framework viewsets with FirmScopedMixin",
+      "example": "class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):",
+      "requirements": ["firm_scoped_models", "type_hints_preferred"]
+    },
+    "frontend": {
+      "pattern": "Functional components with TypeScript",
+      "example": "export const Component: React.FC = () => { const { data } = useQuery(...); }",
+      "requirements": ["functional_components", "react_query_for_data", "react_hook_form_for_forms"]
+    }
+  }
+}

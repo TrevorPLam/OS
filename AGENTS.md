@@ -1,121 +1,153 @@
-# AI Contribution Guide
+# Agent Entry Point
 
-**File**: `AGENTS.md`
+**Role:** AI coding agent. Complete tasks safely following all rules.
 
-> **Governance**: All agents must follow `.repo/policy/CONSTITUTION.md` - immutable rules for this repository.
-> **Principles**: See `.repo/policy/PRINCIPLES.md` for operating principles that guide daily development.
-> **Quality Gates**: See `.repo/policy/QUALITY_GATES.md` for merge rules and verification requirements.
-> **Security**: See `.repo/policy/SECURITY_BASELINE.md` for security rules and HITL triggers.
-> **HITL**: See `.repo/policy/HITL.md` for Human-In-The-Loop process and item management.
-> **Boundaries**: See `.repo/policy/BOUNDARIES.md` for module boundary enforcement.
-> **Best Practices**: See `.repo/policy/BESTPR.md` for repo-specific coding practices, structure, and delivery workflow.
+**Command received:** Start/Work/Task/Review/Security/Help
 
-## Commands
+---
 
-Run from repo root:
-- `make setup` - Install backend/frontend dependencies
-- `make lint` - Run linters (ruff + black for backend, eslint for frontend)
-- `make test` - Run test suites (pytest + vitest)
-- `make verify` - Local CI suite (light checks by default)
-- `make verify SKIP_HEAVY=0` - Full suite (tests/build/OpenAPI)
-- `make ci` - Alias for `make verify` (used by CI)
+## Command Routing
 
-Backend-specific:
-- `make -C backend migrate` - Run Django migrations
-- `make -C backend openapi` - Generate OpenAPI schema
+- `Start`/`Work`/`Task` → Follow workflow below
+- `Review` → Skip to "Creating a PR" section
+- `Security` → Read `.repo/policy/SECURITY_BASELINE.md` first, then workflow
+- `Help` → See "Next Steps" section
 
-Frontend-specific:
-- `make -C frontend test` - Run Vitest unit tests
-- `make -C frontend e2e` - Run Playwright E2E tests
+---
 
-## Tech Stack
+## Step 1: Read These Files (In Order)
 
-- **Backend**: Django 4.2, Python 3.11, PostgreSQL 15
-- **Frontend**: React 18.3, TypeScript 5.9, Vite 5.4
-- **Testing**: pytest (backend), Vitest + Playwright (frontend)
-- **Linting**: ruff + black + mypy (backend), ESLint + tsc (frontend)
+1. `.repo/tasks/TODO.md` - Current task
+2. `.repo/repo.manifest.yaml` - Commands (source of truth)
+3. `.repo/agents/rules.json` - All rules (or `QUICK_REFERENCE.md` for human-readable)
 
-## Project Structure
+---
 
-See `.repo/policy/BESTPR.md` for detailed repository map. Quick reference:
+## Step 2: Determine Context
 
-```
-backend/          # Django API and services
-  modules/        # Domain modules (firm-scoped multi-tenancy)
-  api/            # API endpoints
-  config/         # Django settings, middleware
-frontend/         # Vite/React client
-  src/            # React components, pages, hooks
-tests/            # Cross-cutting and integration tests
-docs/             # Architecture, onboarding, runbooks
-agents/tasks/     # Task management (TODO/BACKLOG/ARCHIVE)
-```
+**If security/auth/money/external:**
+→ Read `.repo/policy/SECURITY_BASELINE.md` → Create HITL → Stop work
 
-## Code Style
+**If cross-module boundaries:**
+→ Read `.repo/policy/BOUNDARIES.md` → Create ADR
 
-### Backend (Django)
-- Use Django REST Framework viewsets for CRUD operations
-- All models are firm-scoped (inherit from FirmScopedMixin)
-- Use type hints where practical (mypy is relaxed but preferred)
+**If backend/frontend:**
+→ Read `.repo/policy/BESTPR.md` + folder guide (`backend/BACKEND.md` or `frontend/FRONTEND.md`)
 
-Example:
-```python
-class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):
-    queryset = Client.objects.all()
-    serializer_class = ClientSerializer
-```
+**If UNKNOWN:**
+→ Mark `<UNKNOWN>` → Read `.repo/policy/HITL.md` → Create HITL → Stop work
 
-### Frontend (React)
-- Use functional components with TypeScript
-- Use React Query for data fetching
-- Follow React Hook Form patterns for forms
+---
 
-Example:
-```typescript
-export const KnowledgeCenter: React.FC = () => {
-  const { data } = useQuery({ queryKey: ['knowledge'] });
-  return <div>...</div>;
-};
-```
+## Step 3: Three-Pass Workflow
 
-## Testing
+### Pass 1: Plan
+1. List actions
+2. Identify risks
+3. List files to modify (include filepaths)
+4. Mark UNKNOWN items
+5. Check if HITL needed
 
-- Backend: Add tests in `tests/` or module-specific test files
-- Frontend: Unit tests with Vitest, E2E with Playwright
-- Always add/update tests for behavioral changes
-- Ensure `make ci` passes before submitting
+**If HITL needed:** Create HITL → Stop → Wait
+**If ADR needed:** Create ADR → Document decision
 
-## Git Workflow
+**Output:** Plan with actions, risks, files, UNKNOWNs, HITL items
 
-- Create branch for changes
-- Keep changes minimal and focused (Article 4: incremental delivery, Principle 3: one change type per PR)
-- Link changes to task in `agents/tasks/TODO.md` or `BACKLOG.md` (Article 5: traceability, Principle 25)
-- Run `make verify` before opening PR (Article 2: verification evidence, Principle 6: evidence over vibes)
-- Include filepaths in PR descriptions (Principle: global rule)
-- Explain what, why, filepaths, verification, risks, rollback in PR (Principle 17: PR narration)
-- Never commit secrets or `.env` files
-- Archive completed tasks after PR merge (Article 5: strict traceability)
+### Pass 2: Change
+1. Apply edits from plan
+2. Follow existing patterns
+3. Include filepaths (global rule)
+4. Respect boundaries
 
-## Boundaries
+**Do not proceed if:** Blockers exist, UNKNOWN unresolved, risky without HITL approval
 
-See `.repo/policy/BOUNDARIES.md` for module boundary rules and `.repo/policy/SECURITY_BASELINE.md` for security prohibitions.
+**Output:** Code changes with filepaths
 
-**NEVER:**
-- Modify files in `migrations/` (auto-generated)
-- Change public APIs without updating tests and docs (see Article 2: verification required)
-- Refactor unrelated code (see Article 4: incremental delivery)
-- Commit secrets, `.env`, or sensitive data (SECURITY_BASELINE.md: absolute prohibition)
-- Skip running `make lint` before proposing changes
-- Proceed with uncertain changes (see Article 3: mark UNKNOWN, route to HITL per `.repo/policy/HITL.md`)
-- Make risky changes without HITL approval (see Article 6 & 8: safety first, `.repo/policy/HITL.md` for process)
-- Cross module boundaries without justification (see BOUNDARIES.md, Principle 13)
+### Pass 3: Verify
+1. Run tests (use manifest commands: `make lint`, `make test`, `make verify`)
+2. Provide evidence (outputs, results, filepaths)
+3. Update logs (trace log, agent log)
+4. Check quality gates
+5. Document in PR
 
-**ALWAYS:**
-- Run `make lint` before submitting
-- Update tests for behavioral changes (Article 2: verification evidence, Principle 6)
-- Keep changes focused on the task at hand (Article 4: incremental, Principle 3)
-- Reference `docs/ARCHITECTURE.md` for system design (Principle 8: read repo first)
-- Link changes to explicit tasks in `agents/tasks/` (Article 5: traceability, Principle 25)
-- Archive completed tasks to `agents/tasks/ARCHIVE.md` (Article 5)
-- Update docs when code behavior changes (Principle 19: docs age with code)
-- Update examples when code changes (Principle 20: examples are contracts)
+**Output:** Evidence, updated logs, passing tests
+
+---
+
+## Step 4: Complete Task
+
+1. Mark criteria `[x]` in `.repo/tasks/TODO.md`
+2. Add `Completed: YYYY-MM-DD`
+3. Move to `.repo/tasks/ARCHIVE.md` (prepend)
+4. Promote next task from `.repo/tasks/BACKLOG.md` to `.repo/tasks/TODO.md`
+
+---
+
+## Creating a PR
+
+**Read:**
+- `.repo/agents/checklists/pr-review.md`
+- `.repo/templates/PR_TEMPLATE.md`
+- `.repo/policy/QUALITY_GATES.md`
+- `.repo/policy/HITL.md`
+
+**PR must include:**
+- What changed
+- Why changed
+- Filepaths (all files)
+- Verification evidence
+- Risks (if any)
+- Rollback (if risky)
+
+---
+
+## Rules
+
+**Always:**
+- Include filepaths (global rule)
+- Link to task in `.repo/tasks/TODO.md`
+- Mark UNKNOWN → Create HITL
+- Show verification evidence
+
+**Never:**
+- Guess commands (use manifest or HITL)
+- Skip filepaths
+- Commit secrets/.env files
+- Cross boundaries without ADR
+- Proceed with UNKNOWN items
+- Make risky changes without HITL
+
+---
+
+## Decision Tree: HITL Needed?
+
+- Risky? (security/money/prod/external) → **YES** → Create HITL → Stop
+- UNKNOWN? (not in docs/manifest/code) → **YES** → Mark `<UNKNOWN>` → Create HITL → Stop
+- Cross boundaries? → **YES** → Requires ADR
+
+**Full tree:** See `.repo/agents/rules.json` or `QUICK_REFERENCE.md`
+
+---
+
+## Troubleshooting
+
+**TODO.md empty:** Check `.repo/tasks/BACKLOG.md` → Promote highest priority task
+
+**manifest.yaml missing:** Mark `<UNKNOWN>` → Create HITL → Stop
+
+**rules.json missing:** Use `QUICK_REFERENCE.md` or read `CONSTITUTION.md` + `PRINCIPLES.md`
+
+---
+
+## Next Steps
+
+1. Read `.repo/tasks/TODO.md`
+2. Read `.repo/repo.manifest.yaml`
+3. Read `.repo/agents/rules.json` (or `QUICK_REFERENCE.md`)
+4. Follow three-pass workflow above
+
+**For context:** See `.repo/DOCUMENT_MAP.md`
+
+---
+
+**Note:** For structured/machine-readable format, see `AGENTS.json`

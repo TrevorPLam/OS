@@ -20,15 +20,15 @@ OUTPUT_FORMAT="${1:-markdown}"
 TODAY=$(date +%Y-%m-%d)
 
 # Task metrics
-TODO_COUNT=$(grep -c "^### \[TASK-" "agents/tasks/TODO.md" 2>/dev/null || echo "0")
-BACKLOG_COUNT=$(grep -c "^### \[TASK-" "agents/tasks/BACKLOG.md" 2>/dev/null || echo "0")
-ARCHIVE_COUNT=$(grep -c "^### \[TASK-" "agents/tasks/ARCHIVE.md" 2>/dev/null || echo "0")
+TODO_COUNT=$(grep -c "^### \[TASK-" ".repo/tasks/TODO.md" 2>/dev/null || echo "0")
+BACKLOG_COUNT=$(grep -c "^### \[TASK-" ".repo/tasks/BACKLOG.md" 2>/dev/null || echo "0")
+ARCHIVE_COUNT=$(grep -c "^### \[TASK-" ".repo/tasks/ARCHIVE.md" 2>/dev/null || echo "0")
 
 # Count by priority
-P0_BACKLOG=$(grep -A 5 "^### \[TASK-" "agents/tasks/BACKLOG.md" 2>/dev/null | grep -c "P0" || echo "0")
-P1_BACKLOG=$(grep -A 5 "^### \[TASK-" "agents/tasks/BACKLOG.md" 2>/dev/null | grep -c "P1" || echo "0")
-P2_BACKLOG=$(grep -A 5 "^### \[TASK-" "agents/tasks/BACKLOG.md" 2>/dev/null | grep -c "P2" || echo "0")
-P3_BACKLOG=$(grep -A 5 "^### \[TASK-" "agents/tasks/BACKLOG.md" 2>/dev/null | grep -c "P3" || echo "0")
+P0_BACKLOG=$(grep -A 5 "^### \[TASK-" ".repo/tasks/BACKLOG.md" 2>/dev/null | grep -c "P0" || echo "0")
+P1_BACKLOG=$(grep -A 5 "^### \[TASK-" ".repo/tasks/BACKLOG.md" 2>/dev/null | grep -c "P1" || echo "0")
+P2_BACKLOG=$(grep -A 5 "^### \[TASK-" ".repo/tasks/BACKLOG.md" 2>/dev/null | grep -c "P2" || echo "0")
+P3_BACKLOG=$(grep -A 5 "^### \[TASK-" ".repo/tasks/BACKLOG.md" 2>/dev/null | grep -c "P3" || echo "0")
 
 # HITL metrics
 HITL_ACTIVE=$(grep -c "^|HITL-" ".repo/policy/HITL.md" 2>/dev/null || echo "0")

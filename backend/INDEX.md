@@ -97,6 +97,6 @@ Domain modules with firm-scoped multi-tenancy. Each module contains models, view
 
 ## See Also
 
-- `backend/AGENT.md` - What agents may do in this directory
+- `backend/BACKEND.md` - What agents may do in this directory
 - [`.repo/policy/BESTPR.md`](../.repo/policy/BESTPR.md) - Backend best practices
 - [`.repo/policy/BOUNDARIES.md`](../.repo/policy/BOUNDARIES.md) - Module boundary rules

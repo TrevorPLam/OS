@@ -3,9 +3,9 @@
 Archive completed task from TODO.md to ARCHIVE.md.
 
 This script:
-1. Reads the current task from agents/tasks/TODO.md
+1. Reads the current task from .repo/tasks/TODO.md
 2. Checks if all acceptance criteria are marked complete
-3. Moves task to agents/tasks/ARCHIVE.md (prepends)
+3. Moves task to .repo/tasks/ARCHIVE.md (prepends)
 4. Promotes next task from BACKLOG.md to TODO.md
 
 Usage:
@@ -21,9 +21,9 @@ from typing import Dict, List, Optional
 from datetime import datetime
 
 REPO_ROOT = Path(__file__).parent.parent
-TODO_FILE = REPO_ROOT / "agents" / "tasks" / "TODO.md"
-BACKLOG_FILE = REPO_ROOT / "agents" / "tasks" / "BACKLOG.md"
-ARCHIVE_FILE = REPO_ROOT / "agents" / "tasks" / "ARCHIVE.md"
+TODO_FILE = REPO_ROOT / ".repo" / "tasks" / "TODO.md"
+BACKLOG_FILE = REPO_ROOT / ".repo" / "tasks" / "BACKLOG.md"
+ARCHIVE_FILE = REPO_ROOT / ".repo" / "tasks" / "ARCHIVE.md"
 
 
 def parse_task(content: str) -> Optional[Dict]:

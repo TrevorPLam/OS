@@ -12,7 +12,7 @@ prerequisites:
   runtime_pinned: true
   platform_tools_required_for_release: true
 
-# Canonical commands (names are fixed). Fill values by following /.repo/docs/standards/manifest.md
+# Canonical commands (names are fixed). Fill values by following docs/development/standards/manifest.md
 # Commands resolved from: Makefile, CI workflow (.github/workflows/ci.yml), package.json scripts
 commands:
   install: "make setup"

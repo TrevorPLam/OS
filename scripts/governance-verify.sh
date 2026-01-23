@@ -249,7 +249,7 @@ fi
 log_info "Checking task format..."
 TASK_VALIDATOR="scripts/validate-task-format.sh"
 if [[ -f "$TASK_VALIDATOR" ]] && [[ -x "$TASK_VALIDATOR" ]]; then
-    for task_file in "agents/tasks/TODO.md" "agents/tasks/BACKLOG.md"; do
+    for task_file in ".repo/tasks/TODO.md" ".repo/tasks/BACKLOG.md"; do
         if [[ -f "$task_file" ]]; then
             if "$TASK_VALIDATOR" "$task_file" > /dev/null 2>&1; then
                 log_success "Task format valid: $task_file"

@@ -67,6 +67,6 @@ Tests organized by backend module (mirrors `backend/modules/` structure):
 
 ## See Also
 
-- `tests/AGENT.md` - What agents may do in this directory
+- `tests/TESTS.md` - What agents may do in this directory
 - `pytest.ini` - Pytest configuration
 - [`.repo/policy/QUALITY_GATES.md`](../.repo/policy/QUALITY_GATES.md) - Test requirements

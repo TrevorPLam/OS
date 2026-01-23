@@ -39,5 +39,5 @@ Sets up migration environment and dependencies.
 
 ## See Also
 
-- `scripts/AGENT.md` - What agents may do in this directory
+- `scripts/SCRIPTS.md` - What agents may do in this directory
 - [`.repo/policy/QUALITY_GATES.md`](../.repo/policy/QUALITY_GATES.md) - Quality gate definitions

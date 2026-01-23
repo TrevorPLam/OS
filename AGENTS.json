@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "type": "agent_entry_point",
+  "role": "AI coding agent operating in a governed repository. Complete tasks safely, following all rules and workflows.",
+
+  "command_routing": {
+    "Start": "follow_workflow",
+    "Work": "follow_workflow",
+    "Task": "follow_workflow",
+    "Review": "skip_to_pr_section",
+    "Security": ["read_security_baseline", "then_follow_workflow"],
+    "Help": "show_help_section"
+  },
+
+  "required_reading": {
+    "order": [
+      ".repo/tasks/TODO.md",
+      ".repo/repo.manifest.yaml",
+      ".repo/agents/rules.json"
+    ],
+    "alternatives": {
+      "rules": ".repo/agents/QUICK_REFERENCE.md"
+    }
+  },
+
+  "context_determination": {
+    "security": {
+      "triggers": ["auth", "money", "external_systems", "payment_flows"],
+      "action": ["read", ".repo/policy/SECURITY_BASELINE.md", "create_hitl", "stop_work"]
+    },
+    "boundaries": {
+      "triggers": ["cross_module_imports"],
+      "action": ["read", ".repo/policy/BOUNDARIES.md", "create_adr"]
+    },
+    "backend_frontend": {
+      "triggers": ["backend_code", "frontend_code"],
+      "action": ["read", ".repo/policy/BESTPR.md", "read_folder_guide"]
+    },
+    "unknown": {
+      "triggers": ["not_in_docs", "not_in_manifest", "not_in_code"],
+      "action": ["mark_unknown", "read", ".repo/policy/HITL.md", "create_hitl", "stop_work"]
+    }
+  },
+
+  "workflow": {
+    "three_pass": {
+      "pass1_plan": {
+        "steps": [
+          "list_all_actions",
+          "identify_risks",
+          "list_all_files_to_modify",
+          "mark_unknown_items",
+          "check_hitl_needed"
+        ],
+        "output": "plan_with_actions_risks_files_unknowns_hitl",
+        "blockers": {
+          "hitl": ["create_hitl", "stop_work", "wait_completion"],
+          "adr": ["create_adr", "document_decision"]
+        }
+      },
+      "pass2_change": {
+        "steps": [
+          "apply_edits_from_plan",
+          "follow_existing_patterns",
+          "include_filepaths_global_rule",
+          "respect_boundaries"
+        ],
+        "output": "code_changes_with_filepaths",
+        "do_not_proceed_if": [
+          "pass1_blockers_exist",
+          "unknown_items_unresolved",
+          "security_risky_without_hitl_approval"
+        ]
+      },
+      "pass3_verify": {
+        "steps": [
+          "run_tests_from_manifest",
+          "provide_evidence",
+          "update_logs",
+          "check_quality_gates",
+          "document_in_pr"
+        ],
+        "output": "evidence_updated_logs_passing_tests"
+      }
+    }
+  },
+
+  "task_completion": {
+    "steps": [
+      "mark_acceptance_criteria_complete",
+      "add_completion_date",
+      "move_to_archive",
+      "promote_next_task"
+    ],
+    "files": {
+      "todo": ".repo/tasks/TODO.md",
+      "archive": ".repo/tasks/ARCHIVE.md",
+      "backlog": ".repo/tasks/BACKLOG.md"
+    }
+  },
+
+  "pr_creation": {
+    "required_reading": [
+      ".repo/agents/checklists/pr-review.md",
+      ".repo/templates/PR_TEMPLATE.md",
+      ".repo/policy/QUALITY_GATES.md",
+      ".repo/policy/HITL.md"
+    ],
+    "required_sections": [
+      "what_changed",
+      "why_changed",
+      "filepaths_all_files",
+      "verification_evidence",
+      "risks_if_any",
+      "rollback_if_risky"
+    ]
+  },
+
+  "rules": {
+    "always": [
+      "include_filepaths_in_all_changes",
+      "link_changes_to_task_in_todo",
+      "mark_unknown_create_hitl",
+      "show_verification_evidence"
+    ],
+    "never": [
+      "guess_commands_use_manifest_or_hitl",
+      "skip_filepaths_required_everywhere",
+      "commit_secrets_or_env_files",
+      "cross_boundaries_without_adr",
+      "proceed_with_unknown_items",
+      "make_risky_changes_without_hitl"
+    ]
+  },
+
+  "decision_trees": {
+    "hitl_needed": {
+      "risky": {
+        "triggers": ["security", "money", "production", "external"],
+        "action": "create_hitl_stop"
+      },
+      "unknown": {
+        "triggers": ["not_in_docs", "not_in_manifest", "not_in_code"],
+        "action": "mark_unknown_create_hitl_stop"
+      },
+      "cross_boundaries": {
+        "triggers": true,
+        "action": "requires_adr"
+      }
+    }
+  },
+
+  "troubleshooting": {
+    "todo_empty": ["check_backlog", "promote_highest_priority_task"],
+    "manifest_missing": ["mark_unknown", "create_hitl", "stop_work"],
+    "rules_json_missing": ["use_quick_reference", "or_read_constitution_principles"]
+  },
+
+  "next_steps": {
+    "after_reading_this": [
+      "read_agents_tasks_todo_md",
+      "read_repo_manifest_yaml",
+      "read_agents_rules_json",
+      "follow_three_pass_workflow"
+    ]
+  }
+}

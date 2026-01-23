@@ -16,8 +16,8 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-TODO_FILE="agents/tasks/TODO.md"
-BACKLOG_FILE="agents/tasks/BACKLOG.md"
+TODO_FILE=".repo/tasks/TODO.md"
+BACKLOG_FILE=".repo/tasks/BACKLOG.md"
 
 # Check if TODO.md already has a task
 if grep -q "^### \[TASK-" "$TODO_FILE" 2>/dev/null; then

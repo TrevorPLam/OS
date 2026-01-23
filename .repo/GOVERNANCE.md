@@ -53,7 +53,8 @@ This governance system provides:
 │   ├── BOUNDARIES.md       ← Architectural boundaries
 │   └── HITL.md            ← Human-in-the-loop tracking
 ├── agents/                 ← AI agent framework
-│   ├── AGENTS.md          ← Core agent rules
+│   ├── rules.json         ← Core agent rules (machine-readable)
+│   ├── QUICK_REFERENCE.md  ← Human-readable rules
 │   ├── QUICK_REFERENCE.md ← One-page cheat sheet
 │   ├── capabilities.md    ← Agent capabilities list
 │   └── roles/             ← Agent role definitions

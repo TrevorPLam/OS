@@ -19,7 +19,7 @@ NC='\033[0m'
 if [[ $# -lt 1 ]]; then
     echo -e "${RED}Error:${NC} Missing task file"
     echo "Usage: $0 [task-file]"
-    echo "  task-file: agents/tasks/TODO.md, BACKLOG.md, or ARCHIVE.md"
+    echo "  task-file: .repo/tasks/TODO.md, BACKLOG.md, or ARCHIVE.md"
     exit 1
 fi
 

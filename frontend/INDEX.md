@@ -84,5 +84,5 @@ Vitest unit tests (see individual test files)
 
 ## See Also
 
-- `frontend/AGENT.md` - What agents may do in this directory
+- `frontend/FRONTEND.md` - What agents may do in this directory
 - [`.repo/policy/BESTPR.md`](../.repo/policy/BESTPR.md) - Frontend best practices

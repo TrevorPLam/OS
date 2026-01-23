@@ -13,8 +13,8 @@ This is the master index of all directories in the repository. Each major direct
 | `frontend/`     | React/TypeScript frontend application        | [`frontend/INDEX.md`](frontend/INDEX.md) |
 | `tests/`        | Cross-cutting and integration tests          | [`tests/INDEX.md`](tests/INDEX.md) |
 | `scripts/`      | Automation and utility scripts               | [`scripts/INDEX.md`](scripts/INDEX.md) |
-| `docs/`         | Documentation (architecture, onboarding, runbooks) | See `docs/` directory |
-| `agents/tasks/` | Task management (TODO, BACKLOG, ARCHIVE)     | See `agents/tasks/` directory |
+| `docs/`          | Documentation (comprehensive docs structure) | See [`docs/README.md`](docs/README.md) |
+| `.repo/tasks/`   | Task management (TODO, BACKLOG, ARCHIVE)     | See `.repo/tasks/` directory |
 
 ## Quick Navigation
 
@@ -27,7 +27,7 @@ This is the master index of all directories in the repository. Each major direct
 
 - **Tests**: [`tests/INDEX.md`](tests/INDEX.md) - Test suites organized by module
 - **Scripts**: [`scripts/INDEX.md`](scripts/INDEX.md) - Automation scripts
-- **Docs**: See `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT.md`, etc.
+- **Docs**: See [`docs/README.md`](docs/README.md) - Comprehensive documentation
 
 ### Governance
 
@@ -55,7 +55,9 @@ This is the master index of all directories in the repository. Each major direct
 │   └── INDEX.md        ← Tests index
 ├── scripts/              ← Automation scripts
 │   └── INDEX.md        ← Scripts index
-└── docs/                 ← Documentation
+└── .repo/                ← Governance & documentation
+    ├── tasks/            ← Task management
+    └── docs/             ← Documentation
 ```
 
 ## See Also

@@ -115,10 +115,10 @@ Add product screenshots to `docs/assets/` and link them here.
 
 ## Documentation
 
-- `docs/ONBOARDING.md`
-- `docs/DEVELOPMENT.md`
-- `docs/ARCHITECTURE.md`
-- `docs/RUNBOOK.md`
+- [`docs/getting-started/onboarding.md`](docs/getting-started/onboarding.md)
+- [`docs/development/README.md`](docs/development/README.md)
+- [`docs/architecture/README.md`](docs/architecture/README.md)
+- [`docs/operations/README.md`](docs/operations/README.md)
 
 ## Roadmap
 

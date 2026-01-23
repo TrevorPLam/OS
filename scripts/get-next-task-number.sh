@@ -9,7 +9,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-TASKS_DIR="agents/tasks"
+TASKS_DIR=".repo/tasks"
 TODO_FILE="$TASKS_DIR/TODO.md"
 BACKLOG_FILE="$TASKS_DIR/BACKLOG.md"
 ARCHIVE_FILE="$TASKS_DIR/ARCHIVE.md"
