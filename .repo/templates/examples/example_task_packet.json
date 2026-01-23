@@ -1,0 +1,42 @@
+{
+  "goal": "Add JWT-based authentication endpoint to API",
+  "non_goals": [
+    "Password reset flow (separate task)",
+    "OAuth integration (future work)",
+    "Multi-factor authentication (future work)"
+  ],
+  "acceptance_criteria": [
+    "POST /api/auth/login returns JWT access and refresh tokens",
+    "POST /api/auth/refresh accepts refresh token and returns new access token",
+    "JWT tokens expire after 15 minutes (access) and 7 days (refresh)",
+    "All endpoints require authentication via JWT in Authorization header",
+    "Test coverage >= 80% for auth module",
+    "OpenAPI schema updated with new endpoints"
+  ],
+  "approach": "Use djangorestframework-simplejwt library. Create auth views, serializers, and URL routing. Add JWT authentication class to DRF settings. Write comprehensive tests.",
+  "files_touched": [
+    "backend/api/auth/views.py",
+    "backend/api/auth/serializers.py",
+    "backend/api/auth/urls.py",
+    "backend/config/settings.py",
+    "tests/api/auth/test_auth.py",
+    "backend/openapi.yaml"
+  ],
+  "verification_plan": [
+    "Run unit tests: pytest tests/api/auth/",
+    "Run integration tests: pytest tests/integration/test_auth_flow.py",
+    "Check linting: make lint",
+    "Verify OpenAPI schema: make -C backend openapi",
+    "Manual test: Use Postman/curl to test login and token refresh endpoints"
+  ],
+  "risks": [
+    "Security: JWT implementation must follow best practices (HITL required)",
+    "Breaking change: Existing API clients may need updates",
+    "Token storage: Refresh tokens must be stored securely"
+  ],
+  "rollback_plan": "Revert commits. Remove JWT settings from config. Restore previous authentication method. Update OpenAPI schema.",
+  "hitl_requirements": [
+    "HITL-0001: Security review for JWT implementation (Category: Risk)"
+  ],
+  "notes": "This task implements authentication as part of TASK-045. Related to security baseline triggers 1 (auth/login) and 9 (cryptography)."
+}

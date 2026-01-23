@@ -64,3 +64,23 @@ All agents must reference:
 See:
 - `.repo/agents/capabilities.md` - List of all capabilities
 - `.repo/agents/roles/` - Role definitions (primary, secondary, reviewer, release)
+
+## Quick Reference
+
+For a one-page cheat sheet, see `.repo/agents/QUICK_REFERENCE.md`.
+
+## Trace Logs
+
+Trace logs must be stored in `.repo/traces/` directory. Use `scripts/generate-trace-log.sh` to create a new trace log, and `scripts/validate-trace-log.sh` to validate it against the schema.
+
+## Agent Logs
+
+Agent logs must be stored in `.repo/logs/` directory. Use `scripts/generate-agent-log.sh` to create a new agent log.
+
+## Examples
+
+See `.repo/templates/examples/` for example files:
+- `example_trace_log.json` - Trace log format
+- `example_hitl_item.md` - HITL item format
+- `example_waiver.md` - Waiver format
+- `example_task_packet.json` - Task packet format

@@ -75,3 +75,14 @@ repos:
       - id: check-json
       - id: check-added-large-files
         args: ['--maxkb=1000']
+
+  # Governance checks
+  - repo: local
+    hooks:
+      - id: governance-verify
+        name: Governance Verification
+        entry: bash -c 'chmod +x scripts/governance-verify.sh && ./scripts/governance-verify.sh || true'
+        language: system
+        pass_filenames: false
+        always_run: false
+        files: '\.(md|yaml|yml|json)$|^\.repo/|^agents/|^scripts/'

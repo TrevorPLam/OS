@@ -54,13 +54,18 @@ This governance system provides:
 │   └── HITL.md            ← Human-in-the-loop tracking
 ├── agents/                 ← AI agent framework
 │   ├── AGENTS.md          ← Core agent rules
+│   ├── QUICK_REFERENCE.md ← One-page cheat sheet
 │   ├── capabilities.md    ← Agent capabilities list
 │   └── roles/             ← Agent role definitions
 ├── templates/             ← Document templates
 │   ├── AGENT_LOG_TEMPLATE.md
-│   └── AGENT_TRACE_SCHEMA.json
+│   ├── AGENT_TRACE_SCHEMA.json
+│   └── examples/         ← Example files (trace logs, HITL items, etc.)
 ├── docs/                  ← Documentation standards
-│   └── standards/         ← Documentation standards
+│   ├── standards/         ← Documentation standards
+│   ├── boundary_checker.md ← Boundary checker docs
+│   ├── ci_integration.md  ← CI integration guide
+│   └── automation_scripts.md ← Automation scripts docs
 └── hitl/                  ← HITL item files
 ```
 

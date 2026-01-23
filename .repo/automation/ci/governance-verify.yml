@@ -1,0 +1,11 @@
+# /.repo/automation/ci/governance-verify.yml
+# Template CI job calling manifest-defined command.
+jobs:
+  governance_verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install deps
+        run: <FILL_FROM_REPO_INSTALL>
+      - name: Governance Verify
+        run: <FILL_FROM_REPO_GOVERNANCE>

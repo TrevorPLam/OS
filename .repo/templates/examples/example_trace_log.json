@@ -1,0 +1,24 @@
+{
+  "intent": "Add user authentication endpoint with JWT tokens",
+  "files": [
+    "backend/api/auth/views.py",
+    "backend/api/auth/serializers.py",
+    "backend/api/auth/urls.py",
+    "tests/api/auth/test_auth.py"
+  ],
+  "commands": [
+    "make lint",
+    "make test",
+    "make -C backend openapi"
+  ],
+  "evidence": [
+    "All tests pass: tests/api/auth/test_auth.py (12 tests, 0 failures)",
+    "Linting passes: ruff check backend/api/auth/",
+    "OpenAPI schema updated: backend/openapi.yaml",
+    "Type checking passes: mypy backend/api/auth/"
+  ],
+  "hitl": [
+    "HITL-0001: Security review for JWT implementation (Category: Risk, Status: Completed)"
+  ],
+  "unknowns": []
+}

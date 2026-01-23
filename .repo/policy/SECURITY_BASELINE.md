@@ -31,9 +31,18 @@ Default meanings (editable only by human in this file if needed):
 10) Dependency / supply-chain risk change
 
 ## Forbidden patterns
-Forbidden patterns list: ["A","B","C","D","E","F","G","H"]
-These are placeholders for repo-specific patterns (strings/regex rules) enforced by `check:security`.
-If a pattern is unknown, mark UNKNOWN and create HITL (see Article 3: No Guessing, Principle 7: UNKNOWN Is a First-Class State).
+Forbidden patterns list (regex patterns enforced by `check:security`):
+- **A**: Hardcoded API keys: `(api[_-]?key|apikey)\s*[=:]\s*['"][a-zA-Z0-9]{20,}['"]`
+- **B**: Hardcoded secrets: `(secret|password|pwd|passwd)\s*[=:]\s*['"][^'"]{8,}['"]`
+- **C**: AWS credentials: `(aws[_-]?access[_-]?key[_-]?id|aws[_-]?secret[_-]?access[_-]?key)\s*[=:]\s*['"][^'"]+['"]`
+- **D**: Private keys: `-----BEGIN\s+(RSA\s+)?PRIVATE\s+KEY-----`
+- **E**: OAuth tokens: `(oauth[_-]?token|access[_-]?token)\s*[=:]\s*['"][a-zA-Z0-9_-]{20,}['"]`
+- **F**: Database connection strings with passwords: `(postgres|mysql|mongodb)://[^:]+:[^@]+@`
+- **G**: JWT secrets: `(jwt[_-]?secret|jwt[_-]?key)\s*[=:]\s*['"][^'"]{16,}['"]`
+- **H**: Stripe keys: `(sk_live|pk_live|sk_test|pk_test)[a-zA-Z0-9]{24,}`
+
+These patterns are enforced by `check:security` command. Patterns may be refined based on false positives.
+If a pattern is unknown or needs adjustment, mark UNKNOWN and create HITL (see Article 3: No Guessing, Principle 7: UNKNOWN Is a First-Class State).
 
 ## Mandatory HITL actions
 Mandatory HITL action IDs: [1,2,3,4,5,6,7,8]

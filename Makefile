@@ -16,7 +16,7 @@ endif
 
 SKIP_HEAVY ?= 1
 
-.PHONY: setup lint test test-performance typecheck dev openapi verify ci e2e frontend-build fixtures
+.PHONY: setup lint test test-performance typecheck dev openapi verify ci e2e frontend-build fixtures check-governance
 
 setup:
 	$(Q)set +e
@@ -196,5 +196,16 @@ verify:
 		[ $$frontend_test_status -ne 0 ] || [ $$frontend_build_status -ne 0 ] || [ $$openapi_status -ne 0 ] || \
 		[ $$openapi_diff_status -ne 0 ]; then summary=1; fi
 	$(Q)exit $$summary
+
+check-governance:
+	$(Q)set +e
+	governance_status=0
+	$(Q)echo "=== GOVERNANCE VERIFICATION ==="
+	$(Q)chmod +x scripts/governance-verify.sh
+	$(Q)./scripts/governance-verify.sh
+	governance_status=$$?
+	$(Q)echo "=== SUMMARY ==="
+	$(Q)if [ $$governance_status -eq 0 ]; then echo "GOVERNANCE VERIFICATION: PASS"; else echo "GOVERNANCE VERIFICATION: FAIL"; fi
+	$(Q)exit $$governance_status
 
 ci: verify
