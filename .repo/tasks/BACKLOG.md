@@ -47,6 +47,96 @@
 
 ## P0 — Critical
 
+### [TASK-012] Fix TypeScript Duplicate Properties in frontend/src/api/crm.ts
+- **Priority:** P0
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Critical TypeScript errors found in ANALYSIS.md Section 0.1. Duplicate properties in PipelineStage, Pipeline, and Deal interfaces indicate copy-paste errors and potential runtime bugs. Blocks type safety.
+
+#### Acceptance Criteria
+- [ ] Remove duplicate `display_order` and `probability` in PipelineStage interface (lines 148-149)
+- [ ] Remove duplicate `stages`, `created_at`, `updated_at` in Pipeline interface (lines 165-167)
+- [ ] Consolidate 15+ duplicate properties in Deal interface (lines 195-223)
+- [ ] Resolve optional/required inconsistencies (e.g., `expected_close_date` vs `expected_close_date?`)
+- [ ] Verify TypeScript compilation passes with no errors
+- [ ] Update any code that depends on these interfaces
+
+#### Notes
+- Per ANALYSIS.md Section 0.1: 15+ duplicate properties across 3 interfaces
+- Quick win - estimated 30 minutes
+- Reference: ANALYSIS.md lines 55-129 for detailed breakdown
+
+---
+
+### [TASK-013] Convert API Layer to React Query Hooks (Phase 1: Core APIs)
+- **Priority:** P0
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** CRITICAL pattern violation per ANALYSIS.md. All API files export plain async functions instead of React Query hooks, contradicting documented patterns in PATTERNS.md. This blocks caching, background refetching, and proper error handling.
+
+#### Acceptance Criteria
+- [ ] Convert `frontend/src/api/clients.ts` - all 13 functions to React Query hooks
+- [ ] Convert `frontend/src/api/auth.ts` - all 6 functions to React Query hooks
+- [ ] Export hooks: `useClients()`, `useClient(id)`, `useCreateClient()`, `useUpdateClient()`, `useDeleteClient()`, `useLogin()`, `useRegister()`, etc.
+- [ ] Implement proper query invalidation on mutations
+- [ ] Add TypeScript return types to all hooks
+- [ ] Update PATTERNS.md if patterns need adjustment
+- [ ] Verify hooks follow pattern in `frontend/src/api/PATTERNS.md`
+
+#### Notes
+- Per ANALYSIS.md Section 0.2, 1.1.1: Pattern violation affects all API files
+- Reference implementation: `frontend/src/pages/WorkflowBuilder.tsx` (correct pattern)
+- Estimated: 4-6 hours for core APIs
+- Files: `frontend/src/api/clients.ts`, `frontend/src/api/auth.ts`
+
+---
+
+### [TASK-014] Convert CRM API to React Query Hooks
+- **Priority:** P0
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Largest API file (636 lines, 30+ functions) needs conversion to React Query hooks. Per ANALYSIS.md Section 0.1, this is the most complex API file.
+
+#### Acceptance Criteria
+- [ ] Convert all 30+ functions in `frontend/src/api/crm.ts` to React Query hooks
+- [ ] Export hooks: `useLeads()`, `useDeals()`, `usePipelines()`, `usePipelineStages()`, etc.
+- [ ] Replace `any` types with proper interfaces (lines 147, 454, 527, 571)
+- [ ] Implement proper query invalidation on mutations
+- [ ] Add TypeScript return types (fix `Promise<any>` issues)
+- [ ] Verify all hooks follow documented patterns
+
+#### Notes
+- Per ANALYSIS.md Section 0.1: 30+ functions need conversion
+- Must fix duplicate properties (TASK-012) first
+- Estimated: 6-8 hours
+- File: `frontend/src/api/crm.ts`
+
+---
+
+### [TASK-015] Refactor Page Components to Use React Query Hooks (Phase 1: Core Pages)
+- **Priority:** P0
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 0.3-0.4, all page components use anti-pattern (useState + useEffect + direct API calls). Only 2 pages use React Query correctly. This blocks production readiness.
+
+#### Acceptance Criteria
+- [ ] Refactor `frontend/src/pages/Clients.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/Login.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/Register.tsx` to use React Query hooks
+- [ ] Remove all `useState` + `useEffect` + direct API call patterns
+- [ ] Remove manual loading states (use React Query `isLoading`)
+- [ ] Replace `console.error` with proper error handling
+- [ ] Verify pages work correctly with new hooks
+
+#### Notes
+- Per ANALYSIS.md Section 0.3: Clients.tsx has 4 direct API calls, 5 useState hooks
+- Per ANALYSIS.md Section 0.10: Login.tsx needs React Hook Form (separate task)
+- Reference: `frontend/src/pages/WorkflowBuilder.tsx` for correct pattern
+- Estimated: 8-10 hours for core pages
+- Files: `frontend/src/pages/Clients.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/pages/Register.tsx`
+
+---
+
 ### [TASK-002] Create .env.example File
 - **Priority:** P0
 - **Status:** Pending
@@ -83,6 +173,119 @@
 ---
 
 ## P1 — High
+
+### [TASK-016] Implement React Hook Form in All Forms
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
+
+#### Acceptance Criteria
+- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
+- [ ] Implement React Hook Form in all remaining forms (10+ pages)
+- [ ] Add proper validation rules to all forms
+- [ ] Remove manual form state management (useState patterns)
+- [ ] Verify all forms work correctly
+
+#### Notes
+- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
+- Would eliminate ~300-450 lines of duplicate code
+- Estimated: 12-16 hours for all forms
+- Files: All page components with forms
+
+---
+
+### [TASK-017] Refactor CRM Pages to Use React Query Hooks
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 0.4, all CRM pages use anti-pattern. Deals.tsx has 10+ direct API calls and 7 useState hooks. This is the most complex refactoring.
+
+#### Acceptance Criteria
+- [ ] Refactor `frontend/src/pages/crm/Deals.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/crm/Prospects.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/crm/PipelineKanban.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/crm/PipelineAnalytics.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/crm/Leads.tsx` to use React Query hooks
+- [ ] Remove all manual state management and direct API calls
+- [ ] Implement proper error handling
+
+#### Notes
+- Per ANALYSIS.md Section 0.4: Deals.tsx is 482 lines, most complex
+- Depends on TASK-014 (CRM API hooks)
+- Estimated: 10-12 hours for all CRM pages
+- Files: All `frontend/src/pages/crm/*.tsx` files
+
+---
+
+### [TASK-018] Re-enable ESLint Rules and Fix Violations
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 0.8, 4 critical ESLint rules are disabled, compromising type safety and code quality. Per Section 11.4, 57 instances of `any` type exist.
+
+#### Acceptance Criteria
+- [ ] Re-enable `@typescript-eslint/no-explicit-any` (start with "warn")
+- [ ] Re-enable `@typescript-eslint/no-unused-vars` (start with "warn")
+- [ ] Re-enable `react-hooks/exhaustive-deps` (start with "warn")
+- [ ] Fix all violations across codebase (57 `any` types, unused vars, etc.)
+- [ ] Gradually increase rules to "error" level
+- [ ] Verify `make -C frontend lint` passes
+
+#### Notes
+- Per ANALYSIS.md Section 0.8: Lines 35-38 need rule re-enabling
+- Per Section 11.4: 57 `any` types need replacement
+- Estimated: 8-10 hours to fix all violations
+- File: `frontend/.eslintrc.cjs` + all source files
+
+---
+
+### [TASK-019] Create Shared Error and Loading Components
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 11.2, 88 console.error calls exist with 0 user-facing error components. Per Section 11.12, loading states are duplicated in 20+ files.
+
+#### Acceptance Criteria
+- [ ] Create `frontend/src/components/ErrorDisplay.tsx` component
+- [ ] Create `frontend/src/components/ConfirmDialog.tsx` component (replace window.confirm)
+- [ ] Enhance `frontend/src/components/LoadingSpinner.tsx` if needed
+- [ ] Replace all `console.error` calls with ErrorDisplay component (88 instances)
+- [ ] Replace all `window.confirm` calls with ConfirmDialog (19 instances)
+- [ ] Replace manual loading states with shared component
+- [ ] Add proper accessibility (ARIA labels, keyboard navigation)
+
+#### Notes
+- Per ANALYSIS.md Section 11.2: 88 console.error, 0 error components
+- Per Section 11.5: 19 window.confirm calls need replacement
+- Per Section 11.12: ~800-1000 lines of duplicate code
+- Estimated: 6-8 hours
+- Files: New components + all page components
+
+---
+
+### [TASK-020] Fix Vite Build Configuration Mismatch
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 0.9, vite.config.ts uses `outDir: 'build'` but Makefile checks for `dist` directory. This breaks build verification.
+
+#### Acceptance Criteria
+- [ ] Change `frontend/vite.config.ts` line 18: `outDir: 'build'` to `outDir: 'dist'` OR
+- [ ] Update `frontend/Makefile` line 33 to check for `build` directory
+- [ ] Verify `make -C frontend build-check` passes
+- [ ] Update any CI/CD scripts that reference build directory
+- [ ] Document the decision
+
+#### Notes
+- Per ANALYSIS.md Section 0.9: Build directory mismatch
+- Quick fix - estimated 15 minutes
+- Files: `frontend/vite.config.ts`, `frontend/Makefile`
+
+---
 
 ### [TASK-004] Create .github/copilot-instructions.md
 - **Priority:** P1
@@ -137,6 +340,74 @@
 
 ## P2 — Medium
 
+### [TASK-021] Increase Frontend Test Coverage to 60%
+- **Priority:** P2
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 1.4, 11.9, test coverage is <15% but vite.config.ts sets 60% thresholds. Only 8 test files exist for ~96 source files.
+
+#### Acceptance Criteria
+- [ ] Add tests for all API functions in `frontend/src/api/` (currently 0% coverage)
+- [ ] Add tests for all page components (currently <15% coverage)
+- [ ] Add tests for React Query hooks
+- [ ] Add integration tests for data fetching flows
+- [ ] Achieve 60%+ coverage (lines, functions, branches, statements)
+- [ ] Add coverage reporting to CI
+- [ ] Update coverage thresholds in vite.config.ts if needed
+
+#### Notes
+- Per ANALYSIS.md Section 1.4: 8 test files for 96 source files
+- Per Section 11.9: API layer 0% coverage, pages <15%
+- Critical paths not tested: Client CRUD, Deal pipeline, Proposal workflow
+- Estimated: 20-30 hours
+- Files: New test files in `frontend/src/**/__tests__/`
+
+---
+
+### [TASK-022] Refactor Remaining Pages to Use React Query Hooks
+- **Priority:** P2
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 0, remaining page components (Projects, Documents, Contracts, etc.) still use anti-pattern. Complete the migration started in TASK-015 and TASK-017.
+
+#### Acceptance Criteria
+- [ ] Refactor all remaining page components to use React Query hooks
+- [ ] Remove all `useState` + `useEffect` + direct API call patterns
+- [ ] Implement proper error handling with ErrorDisplay component
+- [ ] Verify all pages work correctly
+- [ ] Update any remaining API files to export hooks
+
+#### Notes
+- Per ANALYSIS.md: Only 2/17 pages use React Query correctly (12% adherence)
+- Depends on TASK-013, TASK-014 (API hooks must exist first)
+- Estimated: 12-16 hours
+- Files: All remaining `frontend/src/pages/*.tsx` files
+
+---
+
+### [TASK-023] Standardize Error Handling Across Application
+- **Priority:** P2
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 11.2, error handling is inconsistent with 88 different approaches. ErrorBoundary exists but only catches render errors, not async errors.
+
+#### Acceptance Criteria
+- [ ] Create error handling pattern documentation
+- [ ] Implement error states in all React Query hooks
+- [ ] Add toast notifications for mutations
+- [ ] Enhance ErrorBoundary to handle async errors
+- [ ] Replace all `console.error` with proper error handling (88 instances)
+- [ ] Add error logging to Sentry where appropriate
+- [ ] Verify error handling works in production scenarios
+
+#### Notes
+- Per ANALYSIS.md Section 11.2: 88 console.error calls, inconsistent patterns
+- Depends on TASK-019 (ErrorDisplay component)
+- Estimated: 8-10 hours
+- Files: All page components, API hooks, ErrorBoundary
+
+---
+
 ### [TASK-007] Create docs/adr/ Folder with ADR Template
 - **Priority:** P2
 - **Status:** Pending
@@ -190,6 +461,215 @@
 ---
 
 ## P3 — Low
+
+### [TASK-024] Optimize Bundle Size and Performance
+- **Priority:** P3
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 11.7, react-hook-form (15KB) is unused, reactflow (200KB) should be code-split. Per Section 11.11, missing memoization and potential re-render issues.
+
+#### Acceptance Criteria
+- [ ] Implement code splitting for WorkflowBuilder (lazy load reactflow)
+- [ ] Add React.lazy() for large page components
+- [ ] Add useMemo() for expensive calculations (e.g., Deals.tsx calculateMetrics)
+- [ ] Remove or use react-hook-form (currently unused, wasting 15KB)
+- [ ] Run bundle analysis and document findings
+- [ ] Verify performance improvements with Lighthouse
+
+#### Notes
+- Per ANALYSIS.md Section 11.7: Bundle size optimizations needed
+- Per Section 11.11: Performance bottlenecks identified
+- Estimated: 4-6 hours
+- Files: `frontend/src/pages/WorkflowBuilder.tsx`, `frontend/src/pages/crm/Deals.tsx`, etc.
+
+---
+
+### [TASK-025] Improve Accessibility (A11y)
+- **Priority:** P3
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 11.10, accessibility needs verification. Native window.confirm dialogs have poor accessibility, ARIA attributes need audit.
+
+#### Acceptance Criteria
+- [ ] Run Lighthouse accessibility audit
+- [ ] Add ARIA labels to all custom components
+- [ ] Verify keyboard navigation works on all interactive elements
+- [ ] Test with screen readers
+- [ ] Add ARIA live regions for dynamic content
+- [ ] Verify WCAG compliance (color contrast, etc.)
+- [ ] Document accessibility patterns
+
+#### Notes
+- Per ANALYSIS.md Section 11.10: Accessibility needs verification
+- Depends on TASK-019 (ConfirmDialog component)
+- Estimated: 6-8 hours
+- Files: All components, especially custom dialogs
+
+---
+
+### [TASK-026] Document API Contracts (OpenAPI/Swagger)
+- **Priority:** P3
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per ANALYSIS.md Section 5.1, no API contract documentation found. Frontend-backend alignment would benefit from OpenAPI spec.
+
+#### Acceptance Criteria
+- [ ] Generate OpenAPI/Swagger spec from backend
+- [ ] Document all API endpoints used by frontend
+- [ ] Add request/response schemas
+- [ ] Include authentication requirements
+- [ ] Add examples for each endpoint
+- [ ] Host spec in accessible location
+- [ ] Update frontend API clients to reference spec
+
+#### Notes
+- Per ANALYSIS.md Section 5.1: No API contract documentation
+- Would improve frontend-backend alignment
+- Estimated: 8-10 hours
+- Files: New OpenAPI spec file, update API client docs
+
+---
+
+### [TASK-027] Verify CI Integration for Governance Checks
+- **Priority:** P0
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify that governance-verify.sh actually runs in CI. Script exists but integration may be missing.
+
+#### Acceptance Criteria
+- [ ] Verify `.github/workflows/ci.yml` includes governance-verify step
+- [ ] Ensure governance-verify runs on all PRs
+- [ ] Verify governance-verify runs on main branch commits
+- [ ] Test that governance failures block CI
+- [ ] Document CI integration in CONTRIBUTING.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 262: Immediate priority
+- File: `.github/workflows/ci.yml`
+- Impact: High - ensures quality gates are enforced
+
+---
+
+### [TASK-028] Add Automatic Task Lifecycle Triggering to CI
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, archive-task.py and promote-task.sh exist but require manual execution. Should be auto-triggered in CI.
+
+#### Acceptance Criteria
+- [ ] Add GitHub Actions workflow to trigger archive-task.py on task completion
+- [ ] Add webhook or scheduled job to auto-promote tasks
+- [ ] Ensure task lifecycle runs automatically after PR merge
+- [ ] Add error handling and notifications for lifecycle failures
+- [ ] Document auto-triggering in CONTRIBUTING.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 283: High priority enhancement
+- Scripts exist: `scripts/archive-task.py`, `scripts/promote-task.sh`
+- Impact: Medium - improves automation
+- Files: `.github/workflows/`, `scripts/archive-task.py`
+
+---
+
+### [TASK-029] Verify Agent Logger Integration
+- **Priority:** P1
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify if agents actually call agent-logger.js. Logging SDK exists but usage may not be integrated.
+
+#### Acceptance Criteria
+- [ ] Audit codebase for agent-logger.js usage
+- [ ] Verify agents call logging SDK in workflow
+- [ ] Add integration hooks if missing
+- [ ] Add logging examples to AGENTS.md
+- [ ] Document logging patterns in QUICK_REFERENCE.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 271: Medium impact
+- File: Check for `agent-logger.js` or logging SDK usage
+- Impact: Medium - ensures proper logging
+
+---
+
+### [TASK-030] Implement Learning from Failures System
+- **Priority:** P2
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, system lacks ability to learn from failures. Should analyze logs and suggest improvements.
+
+#### Acceptance Criteria
+- [ ] Create `scripts/analyze-failures.js` or Python equivalent
+- [ ] Analyze trace logs and agent logs for failure patterns
+- [ ] Generate improvement suggestions
+- [ ] Add failure categorization
+- [ ] Document failure analysis in CONTRIBUTING.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 288: High impact, high effort
+- Impact: High - enables self-improvement
+- Estimated: 8-12 hours
+
+---
+
+### [TASK-031] Add Self-Healing Capabilities
+- **Priority:** P2
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, system lacks self-healing. Should add retry logic, failure analysis, and task decomposition.
+
+#### Acceptance Criteria
+- [ ] Add retry logic for failed operations
+- [ ] Implement failure analysis and categorization
+- [ ] Add automatic task decomposition for complex failures
+- [ ] Create self-healing workflow documentation
+- [ ] Add monitoring for self-healing actions
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 293: High impact, high effort
+- Impact: High - improves resilience
+- Estimated: 12-16 hours
+
+---
+
+### [TASK-032] Create Monitoring Dashboard for Agent Metrics
+- **Priority:** P3
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, system tracks metrics but lacks dashboard visualization.
+
+#### Acceptance Criteria
+- [ ] Create dashboard for agent metrics (HTML or web-based)
+- [ ] Display task completion rates
+- [ ] Show error rates and patterns
+- [ ] Visualize trace log data
+- [ ] Add real-time updates capability
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 300: Low impact, medium effort
+- Impact: Low - nice to have
+- Estimated: 6-8 hours
+
+---
+
+### [TASK-033] Add Trend Analysis for Metrics
+- **Priority:** P3
+- **Status:** Pending
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, system tracks metrics but doesn't analyze trends or detect regressions.
+
+#### Acceptance Criteria
+- [ ] Add time-series analysis for metrics
+- [ ] Detect regressions in task completion rates
+- [ ] Track error rate trends
+- [ ] Generate trend reports
+- [ ] Add alerts for significant regressions
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 305: Low impact, medium effort
+- Impact: Low - nice to have
+- Estimated: 6-8 hours
+
+---
 
 ### [TASK-010] Add Observability Stack (OpenTelemetry/Prometheus)
 - **Priority:** P3

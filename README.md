@@ -662,10 +662,10 @@ describe('ContactForm', () => {
   it('validates email format', async () => {
     const user = userEvent.setup()
     render(<ContactForm />)
-    
+
     const emailInput = screen.getByLabelText(/email/i)
     await user.type(emailInput, 'invalid-email')
-    
+
     await waitFor(() => {
       expect(screen.getByText(/invalid email/i)).toBeInTheDocument()
     })
@@ -687,7 +687,7 @@ test('contact form submission', async ({ page }) => {
   await page.fill('[name="email"]', 'test@example.com')
   await page.fill('[name="message"]', 'Test message')
   await page.click('button[type="submit"]')
-  
+
   await expect(page.locator('.success-message')).toBeVisible()
 })
 ```
@@ -986,9 +986,9 @@ This software is proprietary and confidential. Unauthorized copying, modificatio
 
 <div align="center">
 
-**Last Updated:** 2026-01-23  
-**Version:** 0.1.0  
-**Status:** 🟢 Active Development  
+**Last Updated:** 2026-01-23
+**Version:** 0.1.0
+**Status:** 🟢 Active Development
 **Repository:** [TrevorPLam/OS](https://github.com/TrevorPLam/OS)
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/TrevorPLam/OS)
