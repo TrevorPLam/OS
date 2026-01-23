@@ -18,9 +18,24 @@ class EventsConfig(AppConfig):
         
         Handlers are registered via @subscribe_to decorator when modules are imported.
         """
+        import logging
+        logger = logging.getLogger(__name__)
+        
         # Import event handlers from other modules
         # This ensures handlers are registered at startup
         try:
             from modules.clients import event_handlers  # noqa: F401
-        except ImportError:
-            pass  # Module may not have event handlers yet
+            logger.info("Registered event handlers from modules.clients")
+        except ImportError as e:
+            # Only log if the module exists but has import errors
+            # (ignore if event_handlers.py doesn't exist yet)
+            if 'event_handlers' not in str(e):
+                logger.warning(f"Failed to import clients.event_handlers: {e}")
+        
+        # TODO: Add imports for other modules' event handlers as they are created
+        # Example:
+        # try:
+        #     from modules.projects import event_handlers  # noqa: F401
+        # except ImportError as e:
+        #     if 'event_handlers' not in str(e):
+        #         logger.warning(f"Failed to import projects.event_handlers: {e}")

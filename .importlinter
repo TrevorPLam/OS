@@ -114,7 +114,7 @@ forbidden_modules =
     api.portal
 
 [importlinter:contract:7]
-name = Events module is foundational - only publishes, never subscribes to domain modules
+name = Events module provides foundational infrastructure - cannot import domain modules
 type = forbidden
 source_modules =
     modules.events

@@ -69,8 +69,16 @@ class EventBus:
         Publish an event to all registered handlers.
         
         Handlers are executed synchronously in registration order.
-        If a handler raises an exception, subsequent handlers are still executed,
-        but the exception is logged and re-raised after all handlers complete.
+        
+        TRANSACTION SAFETY:
+        Handlers should be decorated with @transaction.atomic to ensure
+        all-or-nothing semantics. If a handler fails, its transaction will
+        rollback, but other handlers' transactions remain independent.
+        
+        IMPORTANT: For cross-handler consistency, wrap the entire publish
+        call in a transaction at the call site:
+            with transaction.atomic():
+                publish_event(event)
         
         Args:
             event: Event instance to publish
@@ -93,6 +101,7 @@ class EventBus:
                 exceptions.append((handler, e))
         
         # If any handler failed, raise the first exception
+        # Caller should wrap in transaction.atomic() to rollback all changes
         if exceptions:
             handler, exception = exceptions[0]
             raise exception

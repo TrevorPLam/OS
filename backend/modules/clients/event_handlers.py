@@ -60,16 +60,24 @@ def _create_client_from_proposal(event: ProposalAcceptedEvent):
     """
     Create a new Client from an accepted prospective_client proposal.
     
-    Note: This function needs access to the Proposal model to extract data.
-    To fully break the dependency, we would need to:
-    1. Include all necessary data in the event, OR
-    2. Use a repository pattern that abstracts model access, OR
-    3. Accept the one-way dependency (clients can query crm data for enrichment)
+    ARCHITECTURE NOTE:
+    This function currently imports crm.models.Proposal to fetch additional data
+    not included in the event. This represents a TEMPORARY one-way dependency
+    while we migrate from signals to events.
     
-    For now, we keep the import local to demonstrate the architectural pattern.
+    FUTURE IMPROVEMENT (Priority 2):
+    To fully eliminate this dependency, we should:
+    1. Enrich ProposalAcceptedEvent with all necessary prospect/proposal data, OR
+    2. Use a repository pattern with dependency injection, OR
+    3. Accept this as a read-only downstream dependency (clients can query
+       crm data for enrichment without creating circular coupling)
+    
+    The key architectural win is that CRM no longer depends on clients module.
+    The dependency now flows ONE WAY: clients → crm (read-only queries).
+    This enables independent CRM module evolution and testing.
     """
-    # Local import to demonstrate the pattern (in full implementation, 
-    # all data should be in the event or retrieved via repository)
+    # TEMPORARY: Local imports for data enrichment
+    # TODO (Priority 2): Remove by enriching event with prospect data
     from modules.crm.models import Proposal, Contract
     from modules.documents.models import Folder
     from modules.projects.models import Project
@@ -228,7 +236,13 @@ def _create_engagement_from_proposal(event: ProposalAcceptedEvent):
     Create new Engagement for existing client (update or renewal).
     
     For update_client or renewal_client proposals, the client already exists.
+    
+    ARCHITECTURE NOTE:
+    See _create_client_from_proposal for explanation of temporary imports.
+    This will be eliminated in Priority 2 improvements.
     """
+    # TEMPORARY: Local imports for data enrichment
+    # TODO (Priority 2): Remove by enriching event with prospect data
     from modules.crm.models import Proposal, Contract
     
     try:
