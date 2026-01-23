@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     # USP Business Modules (Organized by Domain)
     "modules.core",  # TIER 3: Shared infrastructure (purge, audit utilities)
     "modules.firm",  # TIER 0: Multi-tenant foundation (Workspace/Firm)
+    "modules.events",  # TIER 1: Domain events infrastructure (breaks circular dependencies)
     "modules.auth",
     "modules.crm",  # Pre-sale: Leads, Prospects, Proposals
     "modules.clients",  # Post-sale: Client management and portal

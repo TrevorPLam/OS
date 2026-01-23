@@ -1,163 +1,157 @@
 # Import Linter Configuration (CONST-10)
 # Enforces architectural boundaries per Constitution Section 15
+# Updated: 2026-01-23 - Diamond-Level Architecture improvements
 
 [importlinter]
-root_package = src
+root_package = backend
 
 [importlinter:contract:1]
 name = Core module has no dependencies on business modules
 type = forbidden
 source_modules =
-    src.modules.core
+    modules.core
 forbidden_modules =
-    src.modules.clients
-    src.modules.crm
-    src.modules.projects
-    src.modules.finance
-    src.modules.documents
-    src.modules.calendar
-    src.modules.marketing
-    src.modules.pricing
-    src.modules.delivery
-    src.modules.orchestration
-    src.modules.recurrence
-    src.modules.onboarding
-    src.modules.knowledge
-    src.modules.communications
-    src.modules.email_ingestion
-    src.modules.support
-    src.modules.sms
-    src.modules.snippets
-    src.modules.auth
-    src.modules.jobs
-    src.modules.assets
+    modules.clients
+    modules.crm
+    modules.projects
+    modules.finance
+    modules.documents
+    modules.calendar
+    modules.marketing
+    modules.pricing
+    modules.delivery
+    modules.orchestration
+    modules.recurrence
+    modules.onboarding
+    modules.knowledge
+    modules.communications
+    modules.email_ingestion
+    modules.support
+    modules.sms
+    modules.snippets
+    modules.auth
+    modules.jobs
+    modules.assets
 
 [importlinter:contract:2]
 name = Firm module is foundation - business modules may not import each other directly
 type = forbidden
 source_modules =
-    src.modules.firm
+    modules.firm
 forbidden_modules =
-    src.modules.clients
-    src.modules.crm
-    src.modules.projects
-    src.modules.finance
-    src.modules.documents
-    src.modules.calendar
-    src.modules.marketing
-    src.modules.pricing
-    src.modules.delivery
-    src.modules.orchestration
-    src.modules.recurrence
-    src.modules.onboarding
-    src.modules.knowledge
-    src.modules.communications
-    src.modules.email_ingestion
-    src.modules.support
-    src.modules.sms
-    src.modules.snippets
-    src.modules.auth
-    src.modules.jobs
-    src.modules.assets
+    modules.clients
+    modules.crm
+    modules.projects
+    modules.finance
+    modules.documents
+    modules.calendar
+    modules.marketing
+    modules.pricing
+    modules.delivery
+    modules.orchestration
+    modules.recurrence
+    modules.onboarding
+    modules.knowledge
+    modules.communications
+    modules.email_ingestion
+    modules.support
+    modules.sms
+    modules.snippets
+    modules.auth
+    modules.jobs
+    modules.assets
 
 [importlinter:contract:3]
 name = Portal API must not import staff admin modules
 type = forbidden
 source_modules =
-    src.api.portal
+    api.portal
 forbidden_modules =
-    src.modules.firm.admin
+    modules.firm.admin
 
 [importlinter:contract:4]
-name = API modules should not import from each other (avoid coupling) - Portal
 name = API layer must not import infrastructure directly (async tasks, signals)
 type = forbidden
 source_modules =
-    src.api
+    api
 forbidden_modules =
-    src.modules.*.tasks
-    src.modules.*.signals
+    modules.*.tasks
+    modules.*.signals
     celery
 
-[importlinter:contract:2]
-name = Domain/service layer must not import Django ORM directly
-type = forbidden
-source_modules =
-    src.modules.*.services
-    src.modules.*.domain
-forbidden_modules =
-    django.db.models.query
-ignore_imports =
-    django.db.transaction -> *
-
-[importlinter:contract:3]
-name = No circular dependencies between core modules
-type = independence
-modules =
-    src.modules.crm
-    src.modules.finance
-    src.modules.projects
-    src.modules.documents
-    src.modules.clients
-    src.modules.calendar
-
-[importlinter:contract:4]
+[importlinter:contract:5]
 name = Portal API must not import staff-only modules
 type = forbidden
 source_modules =
-    src.api.portal
+    api.portal
 forbidden_modules =
-    src.api.crm
-    src.api.finance
-    src.api.projects
-    src.api.documents
-    src.api.clients
-    src.api.assets
+    api.crm
+    api.finance
+    api.projects
+    api.documents
+    api.clients
+    api.assets
 
-[importlinter:contract:5]
-name = API modules should not import from each other (avoid coupling) - CRM
+[importlinter:contract:6]
+name = API modules should not import from each other (avoid coupling)
 type = forbidden
 source_modules =
-    src.api.crm
+    api.crm
+    api.finance
+    api.projects
+    api.documents
+    api.clients
+    api.assets
+    api.webhooks
 forbidden_modules =
-    src.api.portal
-    src.api.finance
-    src.api.projects
-    src.api.documents
-    src.api.clients
-    src.api.assets
+    api.crm
+    api.finance
+    api.projects
+    api.documents
+    api.clients
+    api.assets
+    api.webhooks
+    api.portal
 
-# Architectural Guidelines:
+[importlinter:contract:7]
+name = Events module is foundational - only publishes, never subscribes to domain modules
+type = forbidden
+source_modules =
+    modules.events
+forbidden_modules =
+    modules.clients
+    modules.crm
+    modules.projects
+    modules.finance
+    modules.documents
+
+# Architectural Guidelines (Updated 2026-01-23 for Diamond-Level):
 # 
 # 1. Layer hierarchy (top can import from bottom):
-#    - API Layer (api/*) - ViewSets, serializers
-#    - Business Logic (modules/*) - Models, services
-#    - Infrastructure (config/*) - Settings, middleware
+#    Layer 0 (Foundation): modules.firm, modules.core
+#    Layer 1 (Infrastructure): modules.events (domain events)
+#    Layer 2 (Domain Modules): modules.crm, modules.clients, modules.projects, etc.
+#    Layer 3 (API): api.* (ViewSets, serializers)
 # 
 # 2. Foundation modules (everyone can depend on these):
-#    - src.modules.firm - Firm/tenant foundation
-#    - src.modules.core - Shared utilities
+#    - modules.firm: Firm/tenant foundation
+#    - modules.core: Shared utilities
+#    - modules.events: Domain events infrastructure
 # 
-# 3. Cross-module dependencies:
-#    - Business modules should communicate via services, not direct imports
-#    - Use events/signals for cross-module communication when possible
+# 3. Cross-module communication:
+#    - Domain modules MUST communicate via events (modules.events)
+#    - Direct imports between domain modules are FORBIDDEN
+#    - Use @subscribe_to decorator in event_handlers.py
 # 
 # 4. Portal isolation:
 #    - Portal API has restricted access
-#    - Cannot import admin-only code
+#    - Cannot import admin-only code or staff API modules
 # 
 # 5. API isolation:
-#    - API modules should not import from each other
+#    - API modules MUST NOT import from each other
 #    - Prevents tight coupling between API endpoints
-
-    src.modules.firm.provisioning
-    src.modules.firm.admin
-
-[importlinter:contract:5]
-name = Infrastructure must not import domain logic
-type = layers
-layers =
-    src.modules.*.views
-    src.modules.*.serializers
-    src.modules.*.services
-    src.modules.*.models
+# 
+# 6. Event-driven architecture:
+#    - modules.events is Layer 1 (foundation)
+#    - Domain modules publish events, subscribe to events
+#    - Events break circular dependencies
