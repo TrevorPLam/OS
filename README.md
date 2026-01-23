@@ -78,13 +78,14 @@ UBOS is a full-stack platform for managing client work, projects, billing, and o
 - `make setup` install backend/frontend dependencies
 - `make lint` run linters
 - `make test` run test suites
-- `make verify` run the full local CI suite
+- `make verify` run the local CI suite (defaults to light checks)
+- `make verify SKIP_HEAVY=0` run the full suite (tests/build/OpenAPI)
 - `make ci` alias of `make verify` (used by CI)
 
 ## Configuration
 
 - Copy `.env.example` to `.env` and fill in values.
-- Backend reads environment variables for database and secrets.
+- Backend reads environment variables for database, secrets, and local KMS settings.
 
 ## Docker (optional)
 

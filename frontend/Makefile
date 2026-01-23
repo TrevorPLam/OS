@@ -29,7 +29,7 @@ build:
 	$(Q)$(NPM) run build
 
 build-check:
-    $(Q)set -e
+	$(Q)set -e
 	$(Q)test -d dist
 	$(Q)test -f dist/index.html
 	$(Q)test -d dist/assets

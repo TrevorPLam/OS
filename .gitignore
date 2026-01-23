@@ -80,6 +80,16 @@ dist-ssr/
 .env.test.local
 .env.production.local
 
+# Local toolchain/cache (project-contained)
+.mise/
+.pip-cache/
+backend/.venv/
+frontend/.npm-cache/
+tools/mise/
+tools/python/
+tools/node/
+tools/downloads/
+
 # Docker
 *.pid
 *.seed
