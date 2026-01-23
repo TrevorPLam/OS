@@ -1,0 +1,330 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Trace Log Schema",
+  "description": "Machine-readable trace log for governance verification",
+  "type": "object",
+  "required": [
+    "trace_id",
+    "agent_id",
+    "timestamp",
+    "task_id",
+    "change_type",
+    "files_changed",
+    "verification_commands",
+    "verification_results",
+    "status"
+  ],
+  "properties": {
+    "trace_id": {
+      "type": "string",
+      "description": "Unique identifier for this trace",
+      "pattern": "^TRACE-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}$",
+      "example": "TRACE-2024-01-15-143000"
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "Identifier of the agent that performed the work",
+      "example": "copilot-agent-v1"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when trace was created",
+      "example": "2024-01-15T14:30:00Z"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "Task identifier from task packet",
+      "pattern": "^TASK-[0-9]+$",
+      "example": "TASK-123"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": ["feature", "bugfix", "refactor", "docs", "security", "performance", "test"],
+      "description": "Type of change made"
+    },
+    "files_changed": {
+      "type": "array",
+      "description": "List of files created, modified, or deleted",
+      "items": {
+        "type": "object",
+        "required": ["path", "action"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Absolute path from repository root",
+            "pattern": "^/.*",
+            "example": "/src/auth/login/domain/authService.ts"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["created", "modified", "deleted"],
+            "description": "What action was taken on this file"
+          },
+          "lines_added": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of lines added (for modified files)"
+          },
+          "lines_deleted": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of lines deleted (for modified files)"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "verification_commands": {
+      "type": "array",
+      "description": "Commands executed to verify the changes",
+      "items": {
+        "type": "string",
+        "example": "npm run lint"
+      },
+      "minItems": 1
+    },
+    "verification_results": {
+      "type": "object",
+      "description": "Results of verification commands",
+      "required": ["lint", "tests"],
+      "properties": {
+        "lint": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"],
+          "description": "Linting result"
+        },
+        "tests": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"],
+          "description": "Test suite result"
+        },
+        "typecheck": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"],
+          "description": "Type checking result"
+        },
+        "coverage": {
+          "type": "string",
+          "pattern": "^[0-9]+%$",
+          "description": "Test coverage percentage",
+          "example": "85%"
+        },
+        "boundaries": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"],
+          "description": "Boundary checker result"
+        },
+        "security": {
+          "type": "string",
+          "enum": ["pass", "fail", "skipped"],
+          "description": "Security scan result"
+        }
+      }
+    },
+    "hitl_items": {
+      "type": "array",
+      "description": "HITL items created or referenced",
+      "items": {
+        "type": "object",
+        "required": ["id", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^HITL-[0-9]{4}-[0-9]{2}-[0-9]{2}-.*\\.md$",
+            "example": "HITL-2024-01-15-email-service.md"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "completed", "superseded"],
+            "description": "Current status of HITL item"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["external_integration", "clarification", "risk", "security", "architecture", "compliance"],
+            "description": "Category of HITL item"
+          }
+        }
+      }
+    },
+    "risks_identified": {
+      "type": "array",
+      "description": "Risks identified during execution",
+      "items": {
+        "type": "object",
+        "required": ["description", "level"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the risk"
+          },
+          "level": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "Risk severity level"
+          },
+          "mitigation": {
+            "type": "string",
+            "description": "How the risk was mitigated"
+          }
+        }
+      }
+    },
+    "waivers_needed": {
+      "type": "array",
+      "description": "Waivers generated for quality gate failures",
+      "items": {
+        "type": "object",
+        "required": ["id", "gate", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^WAIVER-[0-9]{4}-[0-9]{2}-[0-9]{2}-.*\\.md$",
+            "example": "WAIVER-2024-01-15-coverage-decrease.md"
+          },
+          "gate": {
+            "type": "string",
+            "enum": ["coverage", "performance", "boundaries", "linting", "security"],
+            "description": "Which quality gate failed"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "approved", "rejected", "expired"],
+            "description": "Current status of waiver"
+          }
+        }
+      }
+    },
+    "boundary_violations": {
+      "type": "array",
+      "description": "Boundary violations detected and their resolution",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "resolution"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Source file of import",
+            "example": "/src/billing/checkout/ui/CheckoutForm.tsx"
+          },
+          "to": {
+            "type": "string",
+            "description": "Target file being imported",
+            "example": "/src/auth/user/domain/userService.ts"
+          },
+          "violation_type": {
+            "type": "string",
+            "enum": ["cross_feature", "wrong_layer", "platform_import"],
+            "description": "Type of boundary violation"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": ["adr_created", "hitl_created", "refactored", "waived"],
+            "description": "How the violation was resolved"
+          },
+          "adr_id": {
+            "type": "string",
+            "description": "ADR created if applicable",
+            "pattern": "^ADR-[0-9]+$",
+            "example": "ADR-042"
+          }
+        }
+      }
+    },
+    "adrs_created": {
+      "type": "array",
+      "description": "ADRs created during this work",
+      "items": {
+        "type": "string",
+        "pattern": "^ADR-[0-9]+$",
+        "example": "ADR-042"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["complete", "blocked", "failed", "partial"],
+      "description": "Final status of the work"
+    },
+    "duration_minutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Duration of work in minutes"
+    },
+    "pr_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Pull request number if created",
+      "example": 456
+    },
+    "log_file": {
+      "type": "string",
+      "description": "Path to detailed human-readable log",
+      "pattern": "^/.repo/logs/.*\\.md$",
+      "example": "/.repo/logs/active/LOG-2024-01-15-143000.md"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes or context"
+    }
+  },
+  "examples": [
+    {
+      "trace_id": "TRACE-2024-01-15-143000",
+      "agent_id": "copilot-agent-v1",
+      "timestamp": "2024-01-15T14:30:00Z",
+      "task_id": "TASK-230",
+      "change_type": "feature",
+      "files_changed": [
+        {
+          "path": "/src/auth/reset/domain/resetService.ts",
+          "action": "created"
+        },
+        {
+          "path": "/src/auth/reset/data/resetRepository.ts",
+          "action": "created"
+        },
+        {
+          "path": "/src/auth/login/ui/LoginPage.tsx",
+          "action": "modified",
+          "lines_added": 15,
+          "lines_deleted": 0
+        }
+      ],
+      "verification_commands": [
+        "npm run lint",
+        "npm run type-check",
+        "npm test"
+      ],
+      "verification_results": {
+        "lint": "pass",
+        "tests": "pass",
+        "typecheck": "pass",
+        "coverage": "89%",
+        "boundaries": "pass",
+        "security": "pass"
+      },
+      "hitl_items": [
+        {
+          "id": "HITL-2024-01-15-email-service.md",
+          "status": "pending",
+          "category": "external_integration"
+        }
+      ],
+      "risks_identified": [
+        {
+          "description": "Token collision (low probability)",
+          "level": "low",
+          "mitigation": "Using crypto.randomBytes(32) for high entropy"
+        }
+      ],
+      "waivers_needed": [],
+      "boundary_violations": [],
+      "adrs_created": [],
+      "status": "complete",
+      "duration_minutes": 135,
+      "pr_number": 456,
+      "log_file": "/.repo/logs/active/LOG-2024-01-15-143000.md",
+      "notes": "Email integration blocked pending HITL approval"
+    }
+  ]
+}
