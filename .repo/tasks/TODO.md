@@ -66,21 +66,23 @@
 
 ---
 
-### [TASK-012] Fix TypeScript Duplicate Properties in frontend/src/api/crm.ts
+### [TASK-013] Convert API Layer to React Query Hooks (Phase 1: Core APIs)
 - **Priority:** P0
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** Critical TypeScript errors found in ANALYSIS.md Section 0.1. Duplicate properties in PipelineStage, Pipeline, and Deal interfaces indicate copy-paste errors and potential runtime bugs. Blocks type safety.
+- **Context:** CRITICAL pattern violation per ANALYSIS.md. All API files export plain async functions instead of React Query hooks, contradicting documented patterns in PATTERNS.md. This blocks caching, background refetching, and proper error handling.
 
 #### Acceptance Criteria
-- [ ] Remove duplicate `display_order` and `probability` in PipelineStage interface (lines 148-149)
-- [ ] Remove duplicate `stages`, `created_at`, `updated_at` in Pipeline interface (lines 165-167)
-- [ ] Consolidate 15+ duplicate properties in Deal interface (lines 195-223)
-- [ ] Resolve optional/required inconsistencies (e.g., `expected_close_date` vs `expected_close_date?`)
-- [ ] Verify TypeScript compilation passes with no errors
-- [ ] Update any code that depends on these interfaces
+- [ ] Convert `frontend/src/api/clients.ts` - all 13 functions to React Query hooks
+- [ ] Convert `frontend/src/api/auth.ts` - all 6 functions to React Query hooks
+- [ ] Export hooks: `useClients()`, `useClient(id)`, `useCreateClient()`, `useUpdateClient()`, `useDeleteClient()`, `useLogin()`, `useRegister()`, etc.
+- [ ] Implement proper query invalidation on mutations
+- [ ] Add TypeScript return types to all hooks
+- [ ] Update PATTERNS.md if patterns need adjustment
+- [ ] Verify hooks follow pattern in `frontend/src/api/PATTERNS.md`
 
 #### Notes
-- Per ANALYSIS.md Section 0.1: 15+ duplicate properties across 3 interfaces
-- Quick win - estimated 30 minutes
-- Reference: ANALYSIS.md lines 55-129 for detailed breakdown
+- Per ANALYSIS.md Section 0.2, 1.1.1: Pattern violation affects all API files
+- Reference implementation: `frontend/src/pages/WorkflowBuilder.tsx` (correct pattern)
+- Estimated: 4-6 hours for core APIs
+- Files: `frontend/src/api/clients.ts`, `frontend/src/api/auth.ts`
