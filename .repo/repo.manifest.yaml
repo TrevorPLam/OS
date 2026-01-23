@@ -1,0 +1,432 @@
+# /.repo/repo.manifest.yaml
+# Repository Manifest - Source of Truth for Commands and Configuration
+# Version: 1.0.0
+# Last Updated: 2024-01-15
+
+# === REPOSITORY METADATA ===
+repo:
+  name: "OS"
+  ships: true
+  ship_kind: "user_facing_app"
+  release_protects:
+    - "app_stability"
+    - "login_security"
+    - "money_flows"
+  description: "Operating System project with Django backend and frontend"
+
+# === STRUCTURE ===
+structure:
+  backend: "backend/"
+  frontend: "frontend/"
+  scripts: "scripts/"
+  tests: "tests/"
+  governance: ".repo/"
+  waivers: "waivers/"
+  platform: "src/platform/"
+
+# === PREREQUISITES ===
+prerequisites:
+  package_manager: "pip+npm"
+  package_manager_backend: "pip"
+  package_manager_frontend: "npm"
+  runtime_pinned: true
+  python_version: "3.11+"
+  node_version: "18+"
+  platform_tools_required_for_release: true
+  required_tools:
+    - "make"
+    - "python3"
+    - "node"
+    - "npm"
+    - "docker"
+    - "docker-compose"
+
+# === CANONICAL COMMANDS ===
+canonical_commands:
+  # Install all dependencies
+  install:
+    command: "make setup"
+    description: "Install all backend and frontend dependencies"
+    timeout_minutes: 10
+    expected_artifacts:
+      - "backend virtual environment or dependencies installed"
+      - "frontend node_modules installed"
+
+  # Quick check - fast verification for local development
+  "check:quick":
+    command: "make lint && make typecheck"
+    description: "Fast local verification: linting and type checking"
+    timeout_minutes: 5
+    expected_output: "All linting and type checks pass"
+
+  # CI check - comprehensive verification for pull requests
+  "check:ci":
+    command: "make lint && make typecheck && make test"
+    description: "Full CI verification: lint, typecheck, and tests"
+    timeout_minutes: 15
+    expected_output: "All checks pass, all tests pass"
+
+  # Release check - complete verification before release
+  "check:release":
+    command: "make verify"
+    description: "Complete release verification: all checks plus security and performance"
+    timeout_minutes: 30
+    expected_output: "All verification steps pass"
+
+  # Governance check - verify governance policies
+  "check:governance":
+    command: "echo 'Governance checks not yet automated'"
+    description: "Verify compliance with governance policies"
+    timeout_minutes: 2
+    notes: "To be implemented in Phase 6 - automation"
+    # TODO: Implement governance-verify tool
+    # future_command: "./.repo/automation/governance-verify.sh"
+
+  # Boundaries check - verify architectural boundaries
+  "check:boundaries":
+    command: "echo 'Boundary checks not yet automated'"
+    description: "Verify architectural boundary compliance"
+    timeout_minutes: 2
+    notes: "To be implemented in Phase 6 - automation"
+    # TODO: Implement boundary checker
+    # future_command: "./.repo/automation/boundary-checker.js"
+
+  # Security check - verify security baseline
+  "check:security":
+    command: "echo 'Security checks not yet automated' && pip check"
+    description: "Verify security baseline: dependency vulnerabilities, secrets, forbidden patterns"
+    timeout_minutes: 5
+    notes: "Basic check with pip check; full automation in Phase 6"
+    # TODO: Implement full security scanning
+    # future_command: "./.repo/automation/security-check.sh"
+
+  # Development server
+  dev:
+    command: "make dev"
+    description: "Start development servers for both backend and frontend"
+    timeout_minutes: 0
+    notes: "Long-running process, no timeout"
+
+  # E2E tests
+  e2e:
+    command: "make e2e"
+    description: "Run end-to-end tests"
+    timeout_minutes: 15
+
+# === VERIFY PROFILES ===
+verify_profiles:
+  # Quick profile - fast local checks before commit
+  quick:
+    name: "Quick Verification"
+    commands:
+      - "check:quick"
+    target_time_minutes: 5
+    use_case: "Local development, pre-commit"
+
+  # CI profile - comprehensive checks for PR
+  ci:
+    name: "CI Verification"
+    commands:
+      - "check:ci"
+    target_time_minutes: 15
+    use_case: "Pull request verification"
+
+  # Release profile - complete checks before release
+  release:
+    name: "Release Verification"
+    commands:
+      - "check:release"
+      - "check:security"
+    target_time_minutes: 30
+    use_case: "Pre-release verification"
+
+  # Governance profile - policy compliance checks
+  governance:
+    name: "Governance Verification"
+    commands:
+      - "check:governance"
+      - "check:boundaries"
+    target_time_minutes: 5
+    use_case: "Governance compliance verification"
+
+# === TESTS CONFIGURATION ===
+tests:
+  required_level: "unit+integration"
+  unit_tests:
+    backend_command: "make -C backend test"
+    frontend_command: "make -C frontend test"
+  integration_tests:
+    backend_command: "make -C backend test"  # Django tests include integration
+    frontend_command: "make -C frontend test"
+  e2e_tests:
+    command: "make e2e"
+  coverage:
+    enabled: true
+    strategy: "gradual_ratchet"
+    baseline_file: ".repo/metrics/coverage-baseline.txt"
+    minimum_percentage: 70
+    # Coverage cannot decrease; each PR must maintain or improve
+  performance_tests:
+    command: "make test-performance"
+    enabled: true
+
+# === BUDGETS CONFIGURATION ===
+budgets:
+  mode: "both"  # both static and runtime budgets
+  enforcement: "hard_fail_with_waiver"
+  fallback_to_default: true
+
+  # Frontend performance budgets
+  frontend:
+    bundle_size:
+      javascript_gzipped_kb: 200
+      css_gzipped_kb: 50
+    page_load:
+      initial_load_ms: 3000
+      time_to_interactive_ms: 5000
+    lighthouse_ci:
+      config_file: "frontend/lighthouserc.cjs"
+      min_scores:
+        performance: 90
+        accessibility: 95
+        best_practices: 95
+        seo: 95
+
+  # Backend performance budgets
+  backend:
+    api_response:
+      p95_ms: 500
+      p99_ms: 1000
+    database_query:
+      p95_ms: 100
+      p99_ms: 200
+
+  # Default budgets (when specific not defined)
+  defaults:
+    response_time_ms: 1000
+    memory_mb: 512
+    cpu_percent: 80
+
+# === SECURITY CONFIGURATION ===
+security:
+  check_every_pr: true
+  release_includes_security: true
+  dependency_vulnerabilities: "always_hitl"
+
+  # Dependency scanning
+  dependency_scan:
+    backend:
+      tool: "pip-audit"
+      command: "pip-audit"
+    frontend:
+      tool: "npm audit"
+      command: "cd frontend && npm audit"
+
+  # Secrets scanning
+  secrets_handling: "absolute_prohibition"
+  secrets_scan:
+    tool: "detect-secrets"
+    command: "echo 'Secrets scan not yet implemented'"
+    # TODO: Implement secrets scanning in Phase 6
+
+  # Security review triggers (from security baseline)
+  review_triggers:
+    - id: 1
+      name: "Auth/login behavior change"
+    - id: 2
+      name: "Money/payment flow change"
+    - id: 4
+      name: "External service integration change"
+    - id: 5
+      name: "Sensitive data handling change"
+    - id: 6
+      name: "Permission/privacy change"
+    - id: 8
+      name: "Production config/keys change"
+    - id: 9
+      name: "Cryptography/security control change"
+    - id: 10
+      name: "Dependency / supply-chain risk change"
+
+  # Forbidden patterns (to be defined per repo)
+  forbidden_patterns:
+    - id: "A"
+      description: "Hardcoded credentials"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "B"
+      description: "SQL injection vulnerabilities"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "C"
+      description: "Command injection vulnerabilities"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "D"
+      description: "XSS vulnerabilities"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "E"
+      description: "Path traversal vulnerabilities"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "F"
+      description: "Insecure randomness"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "G"
+      description: "Insecure deserialization"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+    - id: "H"
+      description: "Logging sensitive data"
+      pattern: "UNKNOWN"  # To be defined in Phase 6
+
+# === BOUNDARIES CONFIGURATION ===
+boundaries:
+  model: "hybrid_domain_feature_layer"
+  enforcement: "hybrid_static_checker_plus_manifest"
+  
+  # Directory structure pattern
+  structure_pattern: "src/<domain>/<feature>/<layer>/"
+  shared_platform: "src/platform/"
+  
+  # Allowed import direction
+  allowed_import_direction:
+    ui: ["domain", "data", "shared_platform"]
+    domain: ["data", "shared_platform"]
+    data: ["shared_platform"]
+    shared_platform: []
+  
+  # Cross-feature rule
+  cross_feature_rule: "adr_required"
+  
+  # Exception process
+  exception_process: "task_packet_for_small_exceptions_adr_for_large"
+  
+  # Violation severity
+  violation_severity: "waiver_plus_auto_task"
+  
+  # Allowed edges (cross-feature dependencies requiring ADR)
+  # Format: from -> to (reason: ADR reference)
+  edges_model: "layered_allow_list"
+  allowed_edges: []
+  # Example (uncomment when needed):
+  # - from: "src/billing"
+  #   to: "src/auth"
+  #   reason: "Need current user for billing"
+  #   adr: "ADR-042"
+  #   approved_by: "architect@example.com"
+  #   approved_date: "2024-01-15"
+
+# === EXTERNAL SYSTEMS ===
+# External integrations that require HITL
+external_systems: []
+# Example (add as integrations are added):
+# - name: "Stripe"
+#   type: "payment"
+#   hitl_required: true
+#   approved_by: "finance@example.com"
+#   approved_date: "2024-01-15"
+#   endpoints:
+#     - "https://api.stripe.com"
+#   credentials_location: "Environment variables"
+#   documentation: "/.repo/docs/integrations/stripe.md"
+
+# === GOVERNANCE CONTRACT ===
+governance:
+  style: "concise_contract"
+  tone: "legal_contract"
+  merge_blocking: "strict_slightly_elaborated"
+  
+  # Quality gates
+  quality_gates:
+    merge_policy: "soft_block_with_auto_generated_waivers"
+    coverage_strategy: "gradual_ratchet"
+    performance_budgets: "strict_with_fallback_to_default"
+    warnings: "zero_warnings"
+    pr_size_policy: "no_limits"
+    governance_verify_checks: "all"
+  
+  # Waivers
+  waivers:
+    all_failures_require_waiver: true
+    auto_generate_waivers: true
+    lifecycle: "full_history"
+    active_location: "waivers/active/"
+    historical_location: "waivers/historical/"
+  
+  # HITL
+  hitl:
+    storage: "split_same_folder"
+    index: ".repo/policy/HITL.md"
+    items_dir: ".repo/hitl/"
+    sync_model: "auto_sync_pr_and_hitl"
+    external_system_detection: "keywords_plus_manifest_plus_change_type"
+    human_effort_goal: "minimal; agent does mechanical sync"
+
+# === PRINCIPLES ===
+# Reference to principles document
+principles:
+  document: ".repo/policy/PRINCIPLES.md"
+  count: 23
+  range: "P3-P25"
+  foundational:
+    - "P3: One Change Type Per PR"
+    - "P4: Make It Shippable"
+    - "P7: UNKNOWN Is a First-Class State"
+    - "P10: Risk Triggers a Stop"
+    - "P13: Respect Boundaries by Default"
+
+# === RELEASE PROCESS ===
+release:
+  strategy: "continuous_delivery"
+  approval_required: true
+  security_check_required: true
+  performance_check_required: true
+  
+  # Release checklist
+  pre_release_checklist:
+    - "All tests pass"
+    - "Security scan clean or HITL approved"
+    - "Performance budgets met"
+    - "Governance checks pass"
+    - "CHANGELOG updated"
+    - "Version bumped"
+    - "Documentation updated"
+  
+  # Deployment
+  deployment:
+    method: "docker-compose"
+    command: "docker-compose up -d"
+    rollback_command: "docker-compose down && git checkout <previous-tag> && docker-compose up -d"
+
+# === AUTOMATION STUBS ===
+# Automation tools to be implemented in Phase 6
+automation:
+  governance_verify:
+    script: ".repo/automation/governance-verify.sh"
+    status: "not_implemented"
+  boundary_checker:
+    script: ".repo/automation/boundary-checker.js"
+    status: "not_implemented"
+  security_scanner:
+    script: ".repo/automation/security-check.sh"
+    status: "not_implemented"
+  waiver_generator:
+    script: ".repo/automation/waiver-generator.py"
+    status: "not_implemented"
+
+# === DOCUMENTATION ===
+documentation:
+  governance: ".repo/GOVERNANCE.md"
+  constitution: ".repo/policy/CONSTITUTION.md"
+  principles: ".repo/policy/PRINCIPLES.md"
+  quality_gates: ".repo/policy/QUALITY_GATES.md"
+  security_baseline: ".repo/policy/SECURITY_BASELINE.md"
+  boundaries: ".repo/policy/BOUNDARIES.md"
+  hitl: ".repo/policy/HITL.md"
+  standards:
+    documentation: ".repo/docs/standards/documentation.md"
+    style: ".repo/docs/standards/style.md"
+
+# === NOTES ===
+notes:
+  - "This manifest is the source of truth for repository commands and configuration"
+  - "All <FILL_FROM_REPO> placeholders have been resolved with actual commands"
+  - "Some automation tools are stubs pending Phase 6 implementation"
+  - "Security patterns need to be defined based on actual code review"
+  - "Update this file when adding new external integrations or boundaries"
