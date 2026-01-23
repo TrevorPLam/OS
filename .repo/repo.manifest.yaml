@@ -1,0 +1,53 @@
+# /.repo/repo.manifest.yaml
+# SOURCE OF TRUTH for executable commands + verification profiles.
+# RULE: Agents MUST NOT guess commands. If unknown, set <UNKNOWN> and open HITL.
+
+repo:
+  ships: true
+  ship_kind: user_facing_app
+  release_protects: [app_stability, login_security, money_flows]
+
+prerequisites:
+  package_manager: npm+pip
+  runtime_pinned: true
+  platform_tools_required_for_release: true
+
+# Canonical commands (names are fixed). Fill values by following /.repo/docs/standards/manifest.md
+# Commands resolved from: Makefile, CI workflow (.github/workflows/ci.yml), package.json scripts
+commands:
+  install: "make setup"
+  check:quick: "make lint && make frontend-build"
+  check:ci: "make verify SKIP_HEAVY=0"
+  check:release: "make verify SKIP_HEAVY=0 && pip-audit -r requirements.txt -r requirements-dev.txt && safety check --file requirements.txt && bandit -r backend/ -ll && cd frontend && npm audit --audit-level=moderate && cd .. && trufflehog filesystem --directory . --json || true"
+  check:governance: "./scripts/governance-verify.sh"
+  check:boundaries: "lint-imports --config .importlinter"
+  check:security: "pip-audit -r requirements.txt -r requirements-dev.txt && safety check --file requirements.txt && bandit -r backend/ -ll && cd frontend && npm audit --audit-level=moderate && cd .. && trufflehog filesystem --directory . --json || true"
+
+verify_profiles:
+  quick: [check:quick]
+  ci: [check:ci]
+  release: [check:release]
+  governance: [check:governance]
+
+tests:
+  required_level: unit+integration
+
+budgets:
+  mode: both               # bundle + runtime
+  enforcement: hard_fail_with_waiver
+  fallback_to_default: true
+  # defaults live in: /.repo/policy/QUALITY_GATES.md (if repo-specific budgets missing)
+
+security:
+  every_pr: true
+  release_includes_security: true
+  dependency_vulns_always_hitl: true
+  secrets_absolute_prohibition: true
+  forbidden_patterns_source: "/.repo/policy/SECURITY_BASELINE.md"
+
+boundaries:
+  enforcement: hybrid_checker_plus_manifest_edges
+  edges_model: layered_allow_list
+  # Explicit edges represent allowed exceptions beyond the default import direction.
+  # Format: from -> to, with reason + required ADR if cross-feature.
+  edges: []

@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Trace Schema",
+  "description": "Schema for agent trace logs. Placeholder - to be filled in with actual trace structure.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "agent_role": {
+      "type": "string",
+      "enum": ["primary", "secondary", "reviewer", "release"],
+      "description": "Role of the agent performing the work"
+    },
+    "task_id": {
+      "type": "string",
+      "description": "Reference to task in agents/tasks/"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the work was performed"
+    },
+    "files_modified": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of filepaths modified"
+    },
+    "commands_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string"
+          },
+          "exit_code": {
+            "type": "integer"
+          },
+          "output_file": {
+            "type": "string",
+            "description": "Filepath to command output if saved"
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "tests_passed": {
+          "type": "boolean"
+        },
+        "quality_gates_passed": {
+          "type": "boolean"
+        },
+        "evidence_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "hitl_items": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "HITL item IDs created or referenced"
+      }
+    },
+    "unknown_items": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "Items marked as UNKNOWN"
+      }
+    }
+  },
+  "required": ["version", "agent_role", "timestamp"],
+  "additionalProperties": false
+}
