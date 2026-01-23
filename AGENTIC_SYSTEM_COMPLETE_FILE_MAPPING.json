@@ -1,0 +1,1703 @@
+{
+  "metadata": {
+    "date": "2026-01-23",
+    "purpose": "Comprehensive mapping of EVERY file in the agentic coding system",
+    "use_case": "Injection into other repositories, complete system documentation",
+    "total_files_mapped": 120,
+    "status": "Comprehensive mapping complete"
+  },
+  "categories": {
+    "root_entry_points": {
+      "description": "Root-level agent entry points",
+      "files": [
+        {
+          "path": "/AGENTS.json",
+          "type": "JSON Schema",
+          "lines": 183,
+          "purpose": "Machine-readable agent entry point with structured workflow definitions",
+          "key_contents": [
+            "Command routing (Start/Work/Task/Review/Security/Help)",
+            "Required reading order (TODO.md → manifest.yaml → rules.json)",
+            "Context determination logic (security, boundaries, backend/frontend, folder entry, unknown)",
+            "Three-pass workflow definition (Pass 0: Context, Pass 1: Plan, Pass 2: Change, Pass 3: Verify)",
+            "Task completion workflow",
+            "PR creation requirements",
+            "Rules (always/never)",
+            "Decision trees (HITL needed?)",
+            "Troubleshooting guidance"
+          ],
+          "dependencies": [
+            ".repo/tasks/TODO.md",
+            ".repo/repo.manifest.yaml",
+            ".repo/agents/rules.json"
+          ],
+          "used_by": ["Agents as primary entry point"],
+          "schema": "JSON Schema draft-07"
+        },
+        {
+          "path": "/AGENTS.md",
+          "type": "Markdown",
+          "lines": 164,
+          "purpose": "Human-readable agent entry point (fallback for non-JSON parsers)",
+          "key_contents": [
+            "Command routing instructions",
+            "Step-by-step workflow (Read files → Determine context → Three-pass workflow → Complete task)",
+            "PR creation checklist",
+            "Rules summary (always/never)",
+            "Decision tree for HITL",
+            "Troubleshooting section"
+          ],
+          "dependencies": [
+            ".repo/tasks/TODO.md",
+            ".repo/repo.manifest.yaml",
+            ".repo/agents/rules.json"
+          ],
+          "used_by": ["Human agents", "AI agents that prefer markdown"],
+          "relationship": "Human-readable version of AGENTS.json"
+        }
+      ]
+    },
+    "policy_governance": {
+      "description": "Policy and governance files",
+      "files": [
+        {
+          "path": ".repo/policy/CONSTITUTION.md",
+          "type": "Markdown",
+          "lines": 43,
+          "purpose": "Immutable constitutional articles (8 articles) - highest level governance",
+          "key_contents": [
+            "Article 1: Final Authority (solo founder)",
+            "Article 2: Verifiable over Persuasive (proof required)",
+            "Article 3: No Guessing (UNKNOWN → HITL → Stop)",
+            "Article 4: Incremental Delivery (small PRs)",
+            "Article 5: Strict Traceability (link to tasks, archive)",
+            "Article 6: Safety Before Speed (risky → HITL)",
+            "Article 7: Per-Repo Variation (manifest allows variation)",
+            "Article 8: HITL for External Systems (credentials, billing, production)"
+          ],
+          "status": "IMMUTABLE (unless solo founder approves)",
+          "referenced_by": [
+            "All policy files",
+            "rules.json",
+            "QUICK_REFERENCE.md"
+          ]
+        },
+        {
+          "path": ".repo/policy/PRINCIPLES.md",
+          "type": "Markdown",
+          "lines": 78,
+          "purpose": "Operating principles (25 principles) implementing the constitution",
+          "key_contents": [
+            "Global rule: Filepaths required everywhere",
+            "P3-P25: Detailed operating principles covering change types, shippability, surprises, evidence, UNKNOWN handling, assumptions, risk triggers, guardrails, rollback, boundaries, complexity, consistency, decisions, PR narration, scope, docs, examples, naming, waivers, ADRs, logs, TODO discipline"
+          ],
+          "status": "Updateable (flexibility below constitution)",
+          "referenced_by": [
+            "rules.json",
+            "QUICK_REFERENCE.md",
+            "BESTPR.md"
+          ]
+        },
+        {
+          "path": ".repo/policy/SECURITY_BASELINE.md",
+          "type": "Markdown",
+          "lines": 62,
+          "purpose": "Security rules, triggers, and forbidden patterns",
+          "key_contents": [
+            "Absolute prohibitions (no secrets/tokens/keys)",
+            "Dependency vulnerability handling (always HITL)",
+            "Security check frequency (every PR)",
+            "Security review triggers (IDs 1,2,4,5,6,8,9,10)",
+            "Forbidden patterns (regex patterns A-H: API keys, secrets, AWS credentials, private keys, OAuth tokens, database strings, JWT secrets, Stripe keys)",
+            "Mandatory HITL actions (IDs 1-8)",
+            "Evidence requirements"
+          ],
+          "referenced_by": [
+            "rules.json",
+            "governance-verify scripts",
+            "CI workflows"
+          ],
+          "enforced_by": "check:security command"
+        },
+        {
+          "path": ".repo/policy/BOUNDARIES.md",
+          "type": "Markdown",
+          "lines": 58,
+          "purpose": "Module boundary enforcement rules",
+          "key_contents": [
+            "Model: hybrid_domain_feature_layer",
+            "Directory pattern: src/<domain>/<feature>/<layer>/",
+            "Default allowed import direction: ui → domain → data → shared_platform",
+            "Cross-feature rule: Requires ADR",
+            "Enforcement method: hybrid_static_checker_plus_manifest",
+            "Exceptions: Small (Task Packet) vs Large (ADR)",
+            "Violation severity: waiver_plus_auto_task",
+            "Boundary visibility: inline_comments_plus_summary",
+            "Practical examples (allowed/forbidden)",
+            "UBOS-specific notes (Django modules, firm-scoped multi-tenancy)"
+          ],
+          "referenced_by": [
+            "check-boundaries.js",
+            "rules.json",
+            "BESTPR.md"
+          ],
+          "enforced_by": "lint-imports with .importlinter config"
+        },
+        {
+          "path": ".repo/policy/QUALITY_GATES.md",
+          "type": "Markdown",
+          "lines": 72,
+          "purpose": "Merge rules and verification requirements",
+          "key_contents": [
+            "Merge policy: soft block with auto-generated waivers",
+            "Hard gates (must pass, not waiverable): Required artifacts missing, Trace log missing/invalid, Required HITL items not Completed, Waiver missing/expired, governance-verify fails",
+            "Waiverable gates: Coverage targets (gradual ratchet), Performance/bundle budgets, Warning budgets (zero warnings), Test coverage regression",
+            "Test requirements: Minimum coverage thresholds (backend 80%, frontend 70%), Test file requirements, Coverage validation, Test patterns",
+            "Coverage strategy: gradual ratchet",
+            "Performance budgets: strict with fallback",
+            "Warnings: zero warnings policy",
+            "PR size policy: no limits (but Article 4 requires decomposition)",
+            "Required checks: all governance_verify_checks"
+          ],
+          "referenced_by": [
+            "governance-verify.sh",
+            "governance-verify.js",
+            "CI workflows"
+          ],
+          "enforced_by": "governance-verify command"
+        },
+        {
+          "path": ".repo/policy/HITL.md",
+          "type": "Markdown",
+          "lines": 73,
+          "purpose": "Human-In-The-Loop process and item management",
+          "key_contents": [
+            "Storage model: Split (index in HITL.md, items in .repo/hitl/)",
+            "Rule: minimal human effort (human sets status + evidence, agents do mechanical work)",
+            "Categories: External Integration, Clarification, Risk, Feedback, Vendor",
+            "Statuses: Pending | In Progress | Blocked | Completed | Superseded",
+            "Merge blocking rule: PR blocked if required HITL not Completed",
+            "Who can do what: Agents create, humans complete, agents sync",
+            "External systems detection: keywords + manifest + change type",
+            "HITL item file format (HITL-XXXX.md): ID, Category, Required For, Owner, Reviewer, Status, Date Required, Date Completed, Summary, Required Human Action steps, Evidence, Related artifacts",
+            "Index tables: Active and Archived",
+            "Archiving process"
+          ],
+          "referenced_by": [
+            "create-hitl-item.sh",
+            "sync-hitl-to-pr.py",
+            "governance-verify scripts"
+          ],
+          "used_by": ["All agents when encountering risky/unknown situations"]
+        },
+        {
+          "path": ".repo/policy/BESTPR.md",
+          "type": "Markdown",
+          "lines": 106,
+          "purpose": "Repository-specific best practices (UBOS-specific)",
+          "key_contents": [
+            "Repository map (where to work): backend/modules/, backend/api/, backend/config/, frontend/src/, tests/, docs/, .repo/tasks/, scripts/",
+            "Tech stack & core libraries: Backend (Django 4.2, Python 3.11, PostgreSQL 15, DRF), Frontend (React 18.3, TypeScript 5.9, Vite 5.4), State (TanStack React Query 5.90), Forms (React Hook Form 7.69), Routing (React Router DOM 6.30), Visualization (ReactFlow 11.10), Testing (pytest, Vitest, Playwright, Testing Library), Formatting (ruff, black, mypy, ESLint, Prettier, tsc), Observability (Sentry)",
+            "Delivery workflow: Local checks (make lint, make typecheck, make test, make verify), OpenAPI regeneration (make -C backend openapi)",
+            "Repo-specific coding practices: Backend (Django REST Framework viewsets, FirmScopedMixin, module boundaries), Frontend (Functional components, React Query, React Hook Form), Shared (Integration tests, OpenAPI schema, firm-scoped multi-tenancy)",
+            "Documentation expectations",
+            "Governance alignment"
+          ],
+          "referenced_by": [
+            ".agent-context.json files",
+            "folder guides",
+            "rules.json"
+          ],
+          "used_by": ["Agents working in backend/frontend"]
+        }
+      ]
+    },
+    "agent_framework": {
+      "description": "Agent framework files",
+      "files": [
+        {
+          "path": ".repo/agents/rules.json",
+          "type": "JSON Schema",
+          "lines": 240,
+          "purpose": "Machine-readable agent rules and policies",
+          "key_contents": [
+            "Schema metadata (version 1.0.0, last_updated 2026-01-23)",
+            "Required files (startup, conditional)",
+            "Constitution (8 articles with rules and workflows)",
+            "Principles (25 principles with global rule)",
+            "Workflows (three-pass, unknown, hitl_decision)",
+            "Security (triggers, absolute_prohibitions)",
+            "Rules (always, never)",
+            "Artifacts (by change type)",
+            "Commands (from manifest)",
+            "Tech stack (backend, frontend)",
+            "Project structure",
+            "Code style (backend, frontend patterns)"
+          ],
+          "dependencies": [
+            "CONSTITUTION.md",
+            "PRINCIPLES.md",
+            "repo.manifest.yaml"
+          ],
+          "used_by": ["Agents as machine-readable rules source"],
+          "relationship": "Machine-readable version of QUICK_REFERENCE.md"
+        },
+        {
+          "path": ".repo/agents/QUICK_REFERENCE.md",
+          "type": "Markdown",
+          "lines": 537,
+          "purpose": "Human-readable quick reference card with essential rules",
+          "key_contents": [
+            "Reading order instructions",
+            "Decision tree: Do I Need HITL?",
+            "Constitution (8 articles summary)",
+            "Key principles (most critical)",
+            "Change type determination (decision tree with examples)",
+            "Three-pass workflow details: Pass 0 (Context), Pass 1 (Plan), Pass 2 (Change), Pass 3 (Verify)",
+            "Artifact requirements by change type",
+            "Command reference (from manifest)",
+            "Quality gates summary",
+            "HITL workflow",
+            "Boundary enforcement",
+            "Task lifecycle",
+            "Troubleshooting"
+          ],
+          "dependencies": [
+            "All policy files",
+            "manifest",
+            "templates"
+          ],
+          "used_by": ["Agents as primary human-readable reference"],
+          "relationship": "Human-readable version of rules.json"
+        },
+        {
+          "path": ".repo/agents/AGENTS.md",
+          "type": "Markdown",
+          "purpose": "Deep dive on agent rules (if QUICK_REFERENCE insufficient)",
+          "status": "Referenced but not read in detail (token optimization)",
+          "used_by": ["Agents needing deeper context"]
+        },
+        {
+          "path": ".repo/agents/capabilities.md",
+          "type": "Markdown",
+          "purpose": "What agent role can do",
+          "used_by": ["Agents checking capabilities"]
+        },
+        {
+          "path": ".repo/agents/rules-compact.md",
+          "type": "Markdown",
+          "purpose": "Compact version of rules",
+          "used_by": ["Token-constrained scenarios"]
+        },
+        {
+          "path": ".repo/agents/FORMATS.md",
+          "type": "Markdown",
+          "purpose": "Format specifications for artifacts",
+          "used_by": ["Agents creating artifacts"]
+        },
+        {
+          "path": ".repo/agents/checklists/change-plan.md",
+          "type": "Markdown",
+          "purpose": "Checklist for planning changes",
+          "used_by": ["Agents in Pass 1 (Plan)"]
+        },
+        {
+          "path": ".repo/agents/checklists/pr-review.md",
+          "type": "Markdown",
+          "lines": 9,
+          "purpose": "PR review checklist",
+          "key_contents": [
+            "One change type?",
+            "Task packet complete?",
+            "Evidence present?",
+            "Logs + Trace included?",
+            "Boundaries respected?",
+            "HITL satisfied?",
+            "Waivers valid?"
+          ],
+          "used_by": ["Agents creating/reviewing PRs"]
+        },
+        {
+          "path": ".repo/agents/checklists/incident.md",
+          "type": "Markdown",
+          "purpose": "Incident response checklist",
+          "used_by": ["Agents handling incidents"]
+        },
+        {
+          "path": ".repo/agents/prompts/pr_template.md",
+          "type": "Markdown",
+          "purpose": "PR template prompt",
+          "used_by": ["Agents creating PRs"]
+        },
+        {
+          "path": ".repo/agents/prompts/task_packet.md",
+          "type": "Markdown",
+          "purpose": "Task packet creation prompt",
+          "used_by": ["Agents creating task packets"]
+        },
+        {
+          "path": ".repo/agents/roles/primary.md",
+          "type": "Markdown",
+          "purpose": "Primary agent role definition",
+          "used_by": ["Primary agents"]
+        },
+        {
+          "path": ".repo/agents/roles/secondary.md",
+          "type": "Markdown",
+          "purpose": "Secondary agent role definition",
+          "used_by": ["Secondary agents"]
+        },
+        {
+          "path": ".repo/agents/roles/reviewer.md",
+          "type": "Markdown",
+          "purpose": "Reviewer agent role definition",
+          "used_by": ["Reviewer agents"]
+        },
+        {
+          "path": ".repo/agents/roles/release.md",
+          "type": "Markdown",
+          "purpose": "Release agent role definition",
+          "used_by": ["Release agents"]
+        },
+        {
+          "path": ".repo/AGENT.md",
+          "type": "Markdown",
+          "lines": 25,
+          "purpose": "Quick start guide pointing to rules.json",
+          "key_contents": [
+            "Points to rules.json for complete rules",
+            "Quick start reading order",
+            "Note about single-agent system"
+          ],
+          "used_by": ["Agents entering .repo directory"]
+        }
+      ]
+    },
+    "task_management": {
+      "description": "Task management files",
+      "files": [
+        {
+          "path": ".repo/tasks/TODO.md",
+          "type": "Markdown",
+          "lines": 86,
+          "purpose": "Current active task (single task only)",
+          "key_contents": [
+            "Workflow instructions",
+            "Task completion process",
+            "Task format reference",
+            "Active task section"
+          ],
+          "dependencies": [
+            "BACKLOG.md",
+            "ARCHIVE.md"
+          ],
+          "used_by": ["Agents as FIRST file to read (per AGENTS.json)"],
+          "workflow": "When task completes → archive → promote from BACKLOG"
+        },
+        {
+          "path": ".repo/tasks/BACKLOG.md",
+          "type": "Markdown",
+          "lines": 225,
+          "purpose": "Prioritized queue of pending tasks (P0 → P3)",
+          "key_contents": [
+            "Workflow instructions (adding, promoting)",
+            "Task format template",
+            "Priority legend (P0-P3 with SLA)",
+            "Tasks organized by priority"
+          ],
+          "dependencies": [
+            "TODO.md",
+            "archive-task.py",
+            "promote-task.sh"
+          ],
+          "used_by": [
+            "Agents promoting tasks",
+            "archive-task.py"
+          ],
+          "workflow": "Top task promoted to TODO.md when TODO is empty"
+        },
+        {
+          "path": ".repo/tasks/ARCHIVE.md",
+          "type": "Markdown",
+          "lines": 74,
+          "purpose": "Historical record of completed tasks",
+          "key_contents": [
+            "Workflow instructions (archiving)",
+            "Archive format",
+            "Statistics (total, by priority)",
+            "Completed tasks (prepended, newest first)"
+          ],
+          "dependencies": ["archive-task.py"],
+          "used_by": [
+            "Agents for historical reference",
+            "archive-task.py"
+          ],
+          "workflow": "Tasks moved here from TODO.md when complete"
+        },
+        {
+          "path": ".repo/tasks/README.md",
+          "type": "Markdown",
+          "purpose": "Task management workflow documentation",
+          "used_by": ["Agents managing tasks (first time)"]
+        },
+        {
+          "path": ".repo/tasks/REMAINING_TASKS.md",
+          "type": "Markdown",
+          "lines": 300,
+          "purpose": "Implementation status tracking",
+          "used_by": ["Humans tracking implementation progress"]
+        },
+        {
+          "path": ".repo/tasks/IMPLEMENTATION_COMPLETE.md",
+          "type": "Markdown",
+          "purpose": "Completed implementation tasks",
+          "used_by": ["Historical reference"]
+        }
+      ]
+    },
+    "templates_schemas": {
+      "description": "Templates and schemas",
+      "files": [
+        {
+          "path": ".repo/templates/PR_TEMPLATE.md",
+          "type": "Markdown",
+          "lines": 27,
+          "purpose": "PR description template with change type declaration",
+          "key_contents": [
+            "JSON structure for PR metadata",
+            "Change type decision tree",
+            "Required fields: title, change_type, task_packet, changes, evidence, verification_commands_run, hitl, waivers, notes"
+          ],
+          "used_by": ["Agents creating PRs"],
+          "referenced_by": ["pr-review.md checklist"]
+        },
+        {
+          "path": ".repo/templates/ADR_TEMPLATE.md",
+          "type": "Markdown",
+          "lines": 14,
+          "purpose": "Architecture Decision Record template",
+          "key_contents": [
+            "JSON structure: context, decision_drivers, options, decision, consequences, modules, commands, migration, boundary_impact, hitl"
+          ],
+          "used_by": ["Agents creating ADRs (cross-module, api_change)"],
+          "referenced_by": [
+            "BOUNDARIES.md",
+            "QUALITY_GATES.md"
+          ]
+        },
+        {
+          "path": ".repo/templates/WAIVER_TEMPLATE.md",
+          "type": "Markdown",
+          "purpose": "Waiver template for waiverable gate failures",
+          "used_by": ["Agents creating waivers"],
+          "referenced_by": [
+            "QUALITY_GATES.md",
+            "create-waiver.sh"
+          ]
+        },
+        {
+          "path": ".repo/templates/AGENT_CONTEXT_SCHEMA.json",
+          "type": "JSON Schema",
+          "lines": 188,
+          "purpose": "Schema for .agent-context.json files",
+          "key_contents": [
+            "Schema version, type, folder structure",
+            "agent_rules (can_do, cannot_do, requires_hitl)",
+            "patterns (code patterns)",
+            "boundaries (can_import_from, cannot_import_from, cross_module_requires_adr)",
+            "quick_links (guide, index, policy, best_practices)",
+            "common_tasks (task definitions with steps and files)",
+            "metrics (files_count, last_modified, last_verified, test_coverage)"
+          ],
+          "used_by": [
+            "validate-agent-context.js",
+            "all .agent-context.json files"
+          ],
+          "referenced_by": ["All .agent-context.json files ($schema field)"]
+        },
+        {
+          "path": ".repo/templates/AGENT_TRACE_SCHEMA.json",
+          "type": "JSON Schema",
+          "lines": 14,
+          "purpose": "Schema for trace logs",
+          "key_contents": [
+            "Required fields: intent, files, commands, evidence, hitl, unknowns"
+          ],
+          "used_by": [
+            "validate-agent-trace.js",
+            "generate-trace-log.sh"
+          ],
+          "referenced_by": ["QUALITY_GATES.md (hard gate: trace log validation)"]
+        },
+        {
+          "path": ".repo/templates/AGENT_LOG_TEMPLATE.md",
+          "type": "Markdown",
+          "purpose": "Agent log template",
+          "used_by": ["Agents creating agent logs (non_doc_change)"]
+        },
+        {
+          "path": ".repo/templates/AGENT_PATTERNS_TEMPLATE.md",
+          "type": "Markdown",
+          "purpose": "Code patterns template",
+          "used_by": ["Agents documenting patterns"]
+        },
+        {
+          "path": ".repo/templates/AGENT_QUICK_REFERENCE_TEMPLATE.md",
+          "type": "Markdown",
+          "purpose": "Template for creating folder-level .AGENT.md files",
+          "used_by": ["Agents creating folder guides"]
+        },
+        {
+          "path": ".repo/templates/RFC_TEMPLATE.md",
+          "type": "Markdown",
+          "purpose": "Request for Comments template",
+          "used_by": ["Agents creating RFCs"]
+        },
+        {
+          "path": ".repo/templates/RUNBOOK_TEMPLATE.md",
+          "type": "Markdown",
+          "purpose": "Runbook template",
+          "used_by": ["Agents creating runbooks"]
+        },
+        {
+          "path": ".repo/templates/examples/example_task_packet.json",
+          "type": "JSON",
+          "purpose": "Example task packet for feature changes",
+          "used_by": ["Agents as reference when creating task packets"]
+        },
+        {
+          "path": ".repo/templates/examples/example_task_packet_api_change.json",
+          "type": "JSON",
+          "purpose": "Example task packet for API changes",
+          "used_by": ["Agents creating API change task packets"]
+        },
+        {
+          "path": ".repo/templates/examples/example_task_packet_cross_module.json",
+          "type": "JSON",
+          "purpose": "Example task packet for cross-module changes",
+          "used_by": ["Agents creating cross-module task packets"]
+        },
+        {
+          "path": ".repo/templates/examples/example_trace_log.json",
+          "type": "JSON",
+          "purpose": "Example trace log",
+          "used_by": ["Agents creating trace logs"]
+        },
+        {
+          "path": ".repo/templates/examples/example_hitl_item.md",
+          "type": "Markdown",
+          "purpose": "Example HITL item",
+          "used_by": ["Agents creating HITL items"]
+        },
+        {
+          "path": ".repo/templates/examples/example_waiver.md",
+          "type": "Markdown",
+          "purpose": "Example waiver",
+          "used_by": ["Agents creating waivers"]
+        },
+        {
+          "path": ".repo/templates/examples/example_test_viewset.py",
+          "type": "Python",
+          "purpose": "Example Django ViewSet test",
+          "used_by": ["Agents creating backend tests"]
+        },
+        {
+          "path": ".repo/templates/examples/example_test_component.tsx",
+          "type": "TypeScript/React",
+          "purpose": "Example React component test",
+          "used_by": ["Agents creating frontend tests"]
+        },
+        {
+          "path": ".repo/templates/examples/example_test_api_integration.py",
+          "type": "Python",
+          "purpose": "Example API integration test",
+          "used_by": ["Agents creating integration tests"]
+        },
+        {
+          "path": ".repo/templates/examples/README.md",
+          "type": "Markdown",
+          "purpose": "Documentation for example files",
+          "used_by": ["Agents understanding examples"]
+        }
+      ]
+    },
+    "automation_scripts": {
+      "description": "Node.js automation scripts",
+      "files": [
+        {
+          "path": ".repo/automation/scripts/governance-verify.js",
+          "type": "Node.js",
+          "lines": 521,
+          "purpose": "Governance verification script (Node.js version)",
+          "key_functionality": [
+            "Checks required policy files exist",
+            "Validates manifest (no UNKNOWN placeholders)",
+            "Checks HITL items status",
+            "Validates repository structure",
+            "Checks trace logs (if change type requires)",
+            "Validates artifacts by change type",
+            "Checks boundaries",
+            "Validates context files",
+            "Generates summary report"
+          ],
+          "dependencies": ["agent-logger.js (graceful fallback)"],
+          "used_by": [
+            "CI workflows",
+            "Makefile (check-governance target)"
+          ],
+          "exit_codes": {
+            "0": "pass",
+            "1": "hard failure",
+            "2": "waiverable failure"
+          }
+        },
+        {
+          "path": ".repo/automation/scripts/agent-logger.js",
+          "type": "Node.js",
+          "lines": 275,
+          "purpose": "Agent interaction logging SDK",
+          "key_functionality": [
+            "logInteraction(entry): Logs agent actions (JSONL format)",
+            "logError(entry): Logs errors",
+            "generateMetrics(date): Generates daily metrics from logs",
+            "Log rotation/cleanup",
+            "Graceful degradation (continues if logging fails)"
+          ],
+          "log_locations": [
+            ".agent-logs/interactions/YYYY-MM-DD.jsonl",
+            ".agent-logs/errors/YYYY-MM-DD.jsonl",
+            ".agent-logs/metrics/YYYY-MM-DD.json"
+          ],
+          "used_by": [
+            "governance-verify.js",
+            "agents (if integrated)"
+          ],
+          "dependencies": ["fs", "path (Node.js built-in)"]
+        },
+        {
+          "path": ".repo/automation/scripts/check-artifacts-by-change-type.js",
+          "type": "Node.js",
+          "lines": 258,
+          "purpose": "Checks required artifacts based on change type",
+          "key_functionality": [
+            "Parses change type from PR description (JSON or markdown)",
+            "Checks artifacts per change type: feature (task_packet, trace_log, tests), api_change (task_packet, adr, trace_log, openapi_update), security (hitl, trace_log, security_tests), cross_module (adr, task_packet, trace_log), non_doc_change (agent_log, trace_log, reasoning_summary)",
+            "Validates artifact recency (within 24 hours)",
+            "Checks artifact locations and formats"
+          ],
+          "used_by": ["governance-verify.js"],
+          "referenced_by": ["QUALITY_GATES.md"]
+        },
+        {
+          "path": ".repo/automation/scripts/check-boundaries.js",
+          "type": "Node.js",
+          "lines": 104,
+          "purpose": "Boundary checking script (wraps lint-imports)",
+          "key_functionality": [
+            "Checks if lint-imports is installed",
+            "Validates .importlinter config exists",
+            "Runs lint-imports with config",
+            "Parses violations from output",
+            "Option to fail on violations (--fail-on-violations)"
+          ],
+          "dependencies": [
+            "lint-imports (external tool)",
+            ".importlinter config"
+          ],
+          "used_by": [
+            "governance-verify.js",
+            "CI workflows"
+          ],
+          "referenced_by": [
+            "BOUNDARIES.md",
+            "repo.manifest.yaml (check:boundaries)"
+          ]
+        },
+        {
+          "path": ".repo/automation/scripts/validate-agent-context.js",
+          "type": "Node.js",
+          "lines": 156,
+          "purpose": "Validates .agent-context.json files against schema",
+          "key_functionality": [
+            "Loads JSON schema (AGENT_CONTEXT_SCHEMA.json)",
+            "Validates using ajv (with graceful fallback)",
+            "Optional checks: --check-files (validates folder paths exist), --check-boundaries (validates boundary rules), --check-links (validates quick_links paths)",
+            "Reports errors and warnings"
+          ],
+          "dependencies": [
+            "ajv (optional, graceful fallback)",
+            "AGENT_CONTEXT_SCHEMA.json"
+          ],
+          "used_by": [
+            "governance-verify.js",
+            "CI workflows"
+          ],
+          "referenced_by": ["check-stale-context.js"]
+        },
+        {
+          "path": ".repo/automation/scripts/check-stale-context.js",
+          "type": "Node.js",
+          "lines": 113,
+          "purpose": "Checks for stale context files (older than threshold)",
+          "key_functionality": [
+            "Finds all .agent-context.json files recursively",
+            "Checks last_verified date against threshold (default 30 days)",
+            "Reports missing last_verified dates",
+            "Reports stale files (older than threshold)",
+            "Option: --warn-only (doesn't exit with error)",
+            "Option: --threshold-days=N (custom threshold)"
+          ],
+          "dependencies": ["validate-agent-context.js (indirect)"],
+          "used_by": [
+            "CI workflows",
+            "maintenance scripts"
+          ],
+          "referenced_by": ["Context file maintenance workflow"]
+        },
+        {
+          "path": ".repo/automation/scripts/update-context-verified.js",
+          "type": "Node.js",
+          "purpose": "Updates last_verified dates in context files",
+          "key_functionality": [
+            "Updates metrics.last_verified to current date",
+            "Can update single file or batch"
+          ],
+          "used_by": [
+            "Maintenance scripts",
+            "agents after verifying context"
+          ]
+        },
+        {
+          "path": ".repo/automation/scripts/validate-agent-trace.js",
+          "type": "Node.js",
+          "purpose": "Validates trace logs against schema",
+          "key_functionality": [
+            "Validates trace log JSON against AGENT_TRACE_SCHEMA.json",
+            "Checks required fields: intent, files, commands, evidence, hitl, unknowns"
+          ],
+          "dependencies": ["AGENT_TRACE_SCHEMA.json"],
+          "used_by": [
+            "governance-verify.js",
+            "generate-trace-log.sh"
+          ],
+          "referenced_by": ["QUALITY_GATES.md (hard gate)"]
+        },
+        {
+          "path": ".repo/automation/scripts/pattern-verification.js",
+          "type": "Node.js",
+          "purpose": "Verifies code patterns match context files",
+          "used_by": ["Governance verification"]
+        },
+        {
+          "path": ".repo/automation/scripts/generate-agent-context.js",
+          "type": "Node.js",
+          "purpose": "Generates .agent-context.json from code analysis",
+          "used_by": ["Context file creation/update"]
+        },
+        {
+          "path": ".repo/automation/scripts/generate-index-json.js",
+          "type": "Node.js",
+          "purpose": "Generates index JSON for documentation",
+          "used_by": ["Documentation generation"]
+        },
+        {
+          "path": ".repo/automation/scripts/package.json",
+          "type": "JSON",
+          "purpose": "Node.js dependencies for automation scripts",
+          "dependencies": ["ajv (for JSON schema validation)"],
+          "used_by": ["npm install in .repo/automation/scripts/"]
+        },
+        {
+          "path": ".repo/automation/scripts/setup-agent-logs.sh",
+          "type": "Bash",
+          "purpose": "Sets up agent log directories",
+          "used_by": ["Initial setup"]
+        },
+        {
+          "path": ".repo/automation/scripts/SETUP_INSTRUCTIONS.md",
+          "type": "Markdown",
+          "purpose": "Setup instructions for automation scripts",
+          "used_by": ["Initial setup"]
+        },
+        {
+          "path": ".repo/automation/scripts/STATUS.md",
+          "type": "Markdown",
+          "purpose": "Status of automation scripts",
+          "used_by": ["Maintenance"]
+        },
+        {
+          "path": ".repo/automation/scripts/VERIFICATION.md",
+          "type": "Markdown",
+          "purpose": "Verification documentation",
+          "used_by": ["Testing"]
+        },
+        {
+          "path": ".repo/automation/ci/governance-verify.yml",
+          "type": "YAML (GitHub Actions template)",
+          "purpose": "CI workflow template for governance verification",
+          "status": "Template (needs integration into .github/workflows/)",
+          "used_by": ["CI integration (when integrated)"]
+        },
+        {
+          "path": ".repo/automation/README.md",
+          "type": "Markdown",
+          "purpose": "Automation directory documentation",
+          "used_by": ["Understanding automation structure"]
+        }
+      ]
+    },
+    "shell_scripts": {
+      "description": "Shell scripts and Python scripts",
+      "files": [
+        {
+          "path": "scripts/governance-verify.sh",
+          "type": "Bash",
+          "lines": 309,
+          "purpose": "Governance verification script (bash version)",
+          "key_functionality": [
+            "Same functionality as governance-verify.js (bash implementation)",
+            "Checks policy files, manifest, HITL, structure, artifacts, boundaries",
+            "Exit codes: 0 = pass, 1 = hard failure, 2 = waiverable failure"
+          ],
+          "used_by": [
+            "Makefile (check-governance target)",
+            "CI workflows"
+          ],
+          "referenced_by": ["repo.manifest.yaml (check:governance)"]
+        },
+        {
+          "path": "scripts/archive-task.py",
+          "type": "Python 3",
+          "lines": 291,
+          "purpose": "Archives completed task and promotes next task",
+          "key_functionality": [
+            "Reads current task from TODO.md",
+            "Checks if all acceptance criteria are complete",
+            "Moves task to ARCHIVE.md (prepends)",
+            "Promotes next task from BACKLOG.md to TODO.md",
+            "Updates archive statistics",
+            "Option: --force (archive even if incomplete)"
+          ],
+          "dependencies": [
+            "Python 3",
+            "re",
+            "sys",
+            "pathlib",
+            "datetime"
+          ],
+          "used_by": [
+            "Task completion workflow",
+            "CI workflows (if integrated)"
+          ],
+          "referenced_by": ["TODO.md workflow instructions"]
+        },
+        {
+          "path": "scripts/promote-task.sh",
+          "type": "Bash",
+          "lines": 125,
+          "purpose": "Promotes task from BACKLOG.md to TODO.md",
+          "key_functionality": [
+            "Checks if TODO.md already has task (prevents duplicates)",
+            "Promotes specific task (by ID) or highest priority task",
+            "Updates status to \"In Progress\"",
+            "Removes task from BACKLOG.md"
+          ],
+          "dependencies": ["Bash", "grep", "sed"],
+          "used_by": [
+            "Task promotion workflow",
+            "archive-task.py (indirect)"
+          ],
+          "referenced_by": ["TODO.md workflow instructions"]
+        },
+        {
+          "path": "scripts/create-hitl-item.sh",
+          "type": "Bash",
+          "lines": 142,
+          "purpose": "Creates new HITL item from template",
+          "key_functionality": [
+            "Validates category (External Integration, Clarification, Risk, Feedback, Vendor)",
+            "Generates next HITL ID (HITL-XXXX)",
+            "Creates HITL item file (.repo/hitl/HITL-XXXX.md)",
+            "Adds entry to HITL.md index (Active table)",
+            "Uses template format"
+          ],
+          "dependencies": ["Bash", "date", "find", "sort"],
+          "used_by": [
+            "Agents creating HITL items",
+            "workflow automation"
+          ],
+          "referenced_by": [
+            "HITL.md",
+            "AGENTS.json (HITL workflow)"
+          ]
+        },
+        {
+          "path": "scripts/create-waiver.sh",
+          "type": "Bash",
+          "lines": 175,
+          "purpose": "Creates new waiver from template",
+          "key_functionality": [
+            "Creates waiver file (.repo/waivers/WAIVER-XXX.md)",
+            "Uses WAIVER_TEMPLATE.md",
+            "Adds to waivers index (if exists)",
+            "Sets creation date"
+          ],
+          "dependencies": ["Bash", "date"],
+          "used_by": [
+            "Agents creating waivers",
+            "governance-verify (auto-generation)"
+          ],
+          "referenced_by": ["QUALITY_GATES.md"]
+        },
+        {
+          "path": "scripts/sync-hitl-to-pr.py",
+          "type": "Python 3",
+          "lines": 199,
+          "purpose": "Syncs HITL items status to PR description",
+          "key_functionality": [
+            "Parses HITL index (.repo/policy/HITL.md)",
+            "Reads HITL item files (.repo/hitl/)",
+            "Updates PR description via GitHub API",
+            "Formats HITL section in PR",
+            "Handles Completed/Superseded items (archives)"
+          ],
+          "dependencies": [
+            "Python 3",
+            "requests (optional)",
+            "GitHub API"
+          ],
+          "environment_variables": [
+            "GITHUB_TOKEN",
+            "GITHUB_REPOSITORY"
+          ],
+          "used_by": ["CI workflows (after HITL status changes)"],
+          "referenced_by": ["CI integration (governance-verify.yml)"]
+        },
+        {
+          "path": "scripts/generate-trace-log.sh",
+          "type": "Bash",
+          "purpose": "Generates trace log from workflow",
+          "key_functionality": [
+            "Creates trace log JSON file",
+            "Validates against schema",
+            "Saves to .repo/traces/"
+          ],
+          "used_by": ["Agents in Pass 3 (Verify)"],
+          "referenced_by": ["QUALITY_GATES.md (hard gate)"]
+        },
+        {
+          "path": "scripts/generate-agent-log.sh",
+          "type": "Bash",
+          "purpose": "Generates agent log",
+          "used_by": ["Agents for non_doc_change"]
+        },
+        {
+          "path": "scripts/create-adr-from-trigger.sh",
+          "type": "Bash",
+          "purpose": "Creates ADR from trigger detection",
+          "used_by": ["Agents when ADR trigger detected"]
+        },
+        {
+          "path": "scripts/detect-adr-triggers.sh",
+          "type": "Bash",
+          "purpose": "Detects ADR triggers in changes",
+          "used_by": ["Governance verification"]
+        },
+        {
+          "path": "scripts/validate-manifest-commands.sh",
+          "type": "Bash",
+          "purpose": "Validates commands in manifest exist",
+          "used_by": ["Governance verification"]
+        },
+        {
+          "path": "scripts/validate-pr-body.sh",
+          "type": "Bash",
+          "purpose": "Validates PR body format",
+          "used_by": ["PR validation"]
+        },
+        {
+          "path": "scripts/validate-task-format.sh",
+          "type": "Bash",
+          "purpose": "Validates task format in TODO.md/BACKLOG.md",
+          "used_by": ["Task validation"]
+        },
+        {
+          "path": "scripts/validate-trace-log.sh",
+          "type": "Bash",
+          "purpose": "Validates trace log format",
+          "used_by": ["Trace log validation"]
+        },
+        {
+          "path": "scripts/check-expired-waivers.sh",
+          "type": "Bash",
+          "purpose": "Checks for expired waivers",
+          "used_by": ["Governance verification"]
+        },
+        {
+          "path": "scripts/archive-hitl-items.sh",
+          "type": "Bash",
+          "purpose": "Archives completed HITL items",
+          "used_by": ["HITL maintenance"]
+        },
+        {
+          "path": "scripts/suggest-waiver.sh",
+          "type": "Bash",
+          "purpose": "Suggests waiver for gate failure",
+          "used_by": ["Governance verification"]
+        },
+        {
+          "path": "scripts/generate-metrics.sh",
+          "type": "Bash",
+          "purpose": "Generates metrics from agent logs",
+          "used_by": ["Metrics generation"]
+        },
+        {
+          "path": "scripts/generate-dashboard.sh",
+          "type": "Bash",
+          "purpose": "Generates dashboard from metrics",
+          "used_by": ["Dashboard generation"]
+        },
+        {
+          "path": "scripts/get-next-task-number.sh",
+          "type": "Bash",
+          "purpose": "Gets next task number for new tasks",
+          "used_by": ["Task creation"]
+        },
+        {
+          "path": "scripts/migrate.sh",
+          "type": "Bash",
+          "purpose": "Migration script",
+          "used_by": ["Migrations"]
+        },
+        {
+          "path": "scripts/setup-migrations.sh",
+          "type": "Bash",
+          "purpose": "Sets up migrations",
+          "used_by": ["Migration setup"]
+        },
+        {
+          "path": "scripts/INDEX.md",
+          "type": "Markdown",
+          "purpose": "Index of scripts",
+          "used_by": ["Script navigation"]
+        },
+        {
+          "path": "scripts/SCRIPTS.md",
+          "type": "Markdown",
+          "purpose": "Scripts documentation",
+          "used_by": ["Script usage"]
+        },
+        {
+          "path": "scripts/requirements.txt",
+          "type": "Text",
+          "purpose": "Python dependencies for scripts",
+          "used_by": ["Python script setup"]
+        }
+      ]
+    },
+    "context_files": {
+      "description": "Folder-level context files (.agent-context.json)",
+      "total_count": 11,
+      "files": [
+        {
+          "path": "backend/.agent-context.json",
+          "type": "JSON",
+          "lines": 85,
+          "purpose": "Backend folder context",
+          "key_contents": [
+            "Folder: backend/ (purpose: Django backend, layer: api)",
+            "agent_rules: can_do, cannot_do, requires_hitl",
+            "patterns: model, viewset, serializer (Django patterns)",
+            "boundaries: can_import_from (empty), cannot_import_from (frontend), cross_module_requires_adr (true)",
+            "quick_links: guide (BACKEND.md), index (INDEX.md), policy (BOUNDARIES.md), best_practices (BESTPR.md)",
+            "common_tasks: Add new module, Add field to existing model",
+            "metrics: files_count (500), last_modified (2026-01-23), last_verified (2026-01-23), test_coverage (0.82)"
+          ],
+          "schema": "References .repo/templates/AGENT_CONTEXT_SCHEMA.json",
+          "used_by": ["Agents entering backend/ directory (Pass 0)"]
+        },
+        {
+          "path": "frontend/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Frontend folder context",
+          "key_contents": [
+            "Folder: frontend/ (purpose: React frontend, layer: ui)",
+            "agent_rules: React-specific rules",
+            "patterns: React component patterns",
+            "boundaries: Frontend-specific boundaries",
+            "quick_links: FRONTEND.md, INDEX.md, etc."
+          ],
+          "schema": "References .repo/templates/AGENT_CONTEXT_SCHEMA.json",
+          "used_by": ["Agents entering frontend/ directory (Pass 0)"]
+        },
+        {
+          "path": "frontend/src/components/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Components folder context",
+          "used_by": ["Agents working in components/"]
+        },
+        {
+          "path": "frontend/src/api/.agent-context.json",
+          "type": "JSON",
+          "purpose": "API client folder context",
+          "used_by": ["Agents working in API clients"]
+        },
+        {
+          "path": "backend/modules/core/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Core module context",
+          "used_by": ["Agents working in core module"]
+        },
+        {
+          "path": "backend/modules/firm/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Firm module context",
+          "used_by": ["Agents working in firm module"]
+        },
+        {
+          "path": "backend/modules/clients/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Clients module context",
+          "used_by": ["Agents working in clients module"]
+        },
+        {
+          "path": "backend/modules/crm/.agent-context.json",
+          "type": "JSON",
+          "purpose": "CRM module context",
+          "used_by": ["Agents working in CRM module"]
+        },
+        {
+          "path": "backend/modules/finance/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Finance module context",
+          "used_by": ["Agents working in finance module"]
+        },
+        {
+          "path": "backend/modules/projects/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Projects module context",
+          "used_by": ["Agents working in projects module"]
+        },
+        {
+          "path": "backend/api/clients/.agent-context.json",
+          "type": "JSON",
+          "purpose": "Clients API context",
+          "used_by": ["Agents working in clients API"]
+        }
+      ]
+    },
+    "folder_guides": {
+      "description": "Folder-level guides (.AGENT.md)",
+      "total_count": 6,
+      "files": [
+        {
+          "path": "backend/modules/core/.AGENT.md",
+          "type": "Markdown",
+          "lines": 78,
+          "purpose": "Core module quick reference",
+          "key_contents": [
+            "Quick rules (can do, cannot do, requires HITL)",
+            "Patterns (model, utility function)",
+            "Boundaries (can import from: nothing, cannot import from: business modules)",
+            "Common tasks (Add utility function)",
+            "Links (CORE.md, BOUNDARIES.md, .agent-context.json)"
+          ],
+          "used_by": ["Agents entering core module (Pass 0)"]
+        },
+        {
+          "path": "backend/modules/firm/.AGENT.md",
+          "type": "Markdown",
+          "purpose": "Firm module quick reference",
+          "used_by": ["Agents entering firm module"]
+        },
+        {
+          "path": "backend/modules/clients/.AGENT.md",
+          "type": "Markdown",
+          "purpose": "Clients module quick reference",
+          "used_by": ["Agents entering clients module"]
+        },
+        {
+          "path": "backend/modules/finance/.AGENT.md",
+          "type": "Markdown",
+          "purpose": "Finance module quick reference",
+          "used_by": ["Agents entering finance module"]
+        },
+        {
+          "path": "frontend/src/components/.AGENT.md",
+          "type": "Markdown",
+          "purpose": "Components folder quick reference",
+          "used_by": ["Agents entering components/"]
+        },
+        {
+          "path": "frontend/src/api/.AGENT.md",
+          "type": "Markdown",
+          "purpose": "API client folder quick reference",
+          "used_by": ["Agents entering API clients"]
+        }
+      ]
+    },
+    "cicd_integration": {
+      "description": "CI/CD integration files",
+      "files": [
+        {
+          "path": "/Makefile",
+          "type": "Makefile",
+          "lines": 212,
+          "purpose": "Root Makefile orchestrating backend/frontend workflows",
+          "key_targets": [
+            "setup: Backend + frontend setup",
+            "lint: Backend + frontend linting",
+            "test: Backend + frontend tests",
+            "test-performance: Backend performance tests",
+            "typecheck: Backend type checking",
+            "e2e: Frontend e2e tests",
+            "frontend-build: Frontend build",
+            "verify: Full verification (SKIP_HEAVY=1 by default)",
+            "ci: CI workflow",
+            "check-governance: Runs governance-verify.sh (lines 200-209)"
+          ],
+          "key_functionality": [
+            "Orchestrates backend/frontend Makefiles",
+            "Summary reporting",
+            "check-governance target calls scripts/governance-verify.sh"
+          ],
+          "referenced_by": ["repo.manifest.yaml (commands resolve to Makefile targets)"],
+          "used_by": [
+            "CI workflows",
+            "local development"
+          ]
+        },
+        {
+          "path": ".pre-commit-config.yaml",
+          "type": "YAML",
+          "lines": 89,
+          "purpose": "Pre-commit hooks configuration",
+          "key_hooks": [
+            "Ruff (Python linter)",
+            "Black (Python formatter)",
+            "Mypy (Type checking)",
+            "git-secrets (Secret detection)",
+            "lint-firm-scoping (Custom firm scoping linter)",
+            "Django checks",
+            "Frontend ESLint",
+            "Trailing whitespace, file endings, YAML/JSON checks",
+            "governance-verify (runs on .repo/, agents/, scripts/ changes)"
+          ],
+          "installation": "pip install pre-commit && pre-commit install",
+          "used_by": ["Git pre-commit hooks"],
+          "status": "Documented, verification needed"
+        },
+        {
+          "path": ".repo/repo.manifest.yaml",
+          "type": "YAML",
+          "lines": 54,
+          "purpose": "Source of truth for executable commands + verification profiles",
+          "key_contents": [
+            "repo metadata (ships, ship_kind, release_protects)",
+            "prerequisites (package_manager, runtime_pinned, platform_tools_required_for_release)",
+            "commands (canonical names): install, check:quick, check:ci, check:release, check:governance, check:boundaries, check:security",
+            "verify_profiles: quick, ci, release, governance",
+            "tests: required_level (unit+integration)",
+            "budgets: mode, enforcement, fallback_to_default",
+            "security: every_pr, release_includes_security, dependency_vulns_always_hitl, secrets_absolute_prohibition, forbidden_patterns_source",
+            "boundaries: enforcement, edges_model, edges"
+          ],
+          "rule": "Agents MUST NOT guess commands. If unknown, set <UNKNOWN> and open HITL.",
+          "referenced_by": [
+            "AGENTS.json",
+            "rules.json",
+            "all agents"
+          ],
+          "used_by": ["Agents before running ANY command"],
+          "note": "GitHub Actions workflows (.github/workflows/ci.yml) mentioned in assessments but not found in file system. May need to be created or exists in different location."
+        }
+      ]
+    },
+    "supporting_documentation": {
+      "description": "Supporting documentation files",
+      "files": [
+        {
+          "path": ".repo/DOCUMENT_MAP.md",
+          "type": "Markdown",
+          "lines": 248,
+          "purpose": "Token-optimized reference system mapping all documents",
+          "key_contents": [
+            "Document inventory (when to read, token cost, priority)",
+            "Smart reference trails by workflow: Starting a new task, Making code changes, Security/risky changes, Cross-module work, Creating PR, UNKNOWN situation, Task management",
+            "Token optimization rules (DO/DON'T)",
+            "Token budget by workflow",
+            "Document size estimates"
+          ],
+          "used_by": ["Agents for efficient document navigation"],
+          "referenced_by": ["AGENTS.md"]
+        },
+        {
+          "path": ".repo/GOVERNANCE.md",
+          "type": "Markdown",
+          "purpose": "Governance framework overview",
+          "status": "First-time onboarding, too verbose for regular use",
+          "used_by": ["Humans understanding framework (not agents - use QUICK_REFERENCE.md)"]
+        },
+        {
+          "path": ".repo/INDEX.md",
+          "type": "Markdown",
+          "purpose": "Navigation reference",
+          "used_by": ["Navigation"]
+        },
+        {
+          "path": ".repo/CHANGELOG.md",
+          "type": "Markdown",
+          "purpose": "Changelog",
+          "used_by": ["Historical reference"]
+        },
+        {
+          "path": ".repo/CLEANUP_SUMMARY.md",
+          "type": "Markdown",
+          "purpose": "Cleanup summary",
+          "used_by": ["Maintenance"]
+        },
+        {
+          "path": ".repo/CRITICAL_ANALYSIS_FAILURES.md",
+          "type": "Markdown",
+          "lines": 730,
+          "purpose": "Critical analysis of failures",
+          "used_by": [
+            "Historical reference",
+            "assessment documents"
+          ]
+        },
+        {
+          "path": ".repo/IMPLEMENTATION_PROGRESS.md",
+          "type": "Markdown",
+          "purpose": "Implementation progress tracking",
+          "status": "May be outdated (conflicts with REMAINING_TASKS.md)",
+          "used_by": ["Progress tracking"]
+        },
+        {
+          "path": ".repo/PROJECTED_ANALYSIS_AFTER_FIXES.md",
+          "type": "Markdown",
+          "purpose": "Projected analysis after fixes",
+          "used_by": ["Historical reference"]
+        },
+        {
+          "path": ".repo/REPOSITORY_BEST_PRACTICES_ANALYSIS.md",
+          "type": "Markdown",
+          "purpose": "Best practices analysis",
+          "used_by": ["Historical reference"]
+        },
+        {
+          "path": ".repo/docs/TROUBLESHOOTING.md",
+          "type": "Markdown",
+          "purpose": "Troubleshooting guide",
+          "used_by": ["Problem resolution"]
+        },
+        {
+          "path": ".repo/hitl/README.md",
+          "type": "Markdown",
+          "purpose": "HITL directory documentation",
+          "used_by": ["Understanding HITL structure"]
+        },
+        {
+          "path": ".repo/waivers/",
+          "type": "Directory",
+          "purpose": "Waiver files storage",
+          "used_by": ["Waiver management"]
+        },
+        {
+          "path": ".repo/traces/",
+          "type": "Directory",
+          "purpose": "Trace log storage",
+          "status": "Empty (infrastructure ready, awaiting first use)",
+          "used_by": ["Trace log storage"]
+        },
+        {
+          "path": ".repo/logs/",
+          "type": "Directory",
+          "purpose": "Agent log storage",
+          "status": "Empty (infrastructure ready, awaiting first use)",
+          "used_by": ["Agent log storage"]
+        },
+        {
+          "path": ".agent-logs/",
+          "type": "Directory",
+          "purpose": "Agent interaction logs (from agent-logger.js)",
+          "subdirectories": [
+            "interactions/ (YYYY-MM-DD.jsonl files)",
+            "errors/ (YYYY-MM-DD.jsonl files)",
+            "metrics/ (YYYY-MM-DD.json files)"
+          ],
+          "status": "Directories exist, may be empty",
+          "used_by": ["agent-logger.js"]
+        },
+        {
+          "path": ".repo/archive/assessments/",
+          "type": "Directory",
+          "files": "11 markdown files",
+          "purpose": "Archived assessment documents",
+          "status": "Historical reference only (not for agents)"
+        }
+      ]
+    }
+  },
+  "statistics": {
+    "file_counts": {
+      "root_entry_points": 2,
+      "policy_files": 7,
+      "agent_framework_files": 17,
+      "task_management_files": 6,
+      "templates_schemas": 20,
+      "automation_scripts": 18,
+      "shell_scripts": 25,
+      "context_files": 11,
+      "folder_guides": 6,
+      "cicd_integration": 3,
+      "supporting_documentation": 15,
+      "total": 120
+    }
+  },
+  "key_directories": {
+    ".repo/policy/": {
+      "purpose": "Governance policies",
+      "key_files": [
+        "CONSTITUTION.md",
+        "PRINCIPLES.md",
+        "SECURITY_BASELINE.md"
+      ]
+    },
+    ".repo/agents/": {
+      "purpose": "Agent framework",
+      "key_files": [
+        "rules.json",
+        "QUICK_REFERENCE.md",
+        "checklists/",
+        "roles/",
+        "prompts/"
+      ]
+    },
+    ".repo/tasks/": {
+      "purpose": "Task management",
+      "key_files": [
+        "TODO.md",
+        "BACKLOG.md",
+        "ARCHIVE.md"
+      ]
+    },
+    ".repo/templates/": {
+      "purpose": "Templates & schemas",
+      "key_files": [
+        "PR_TEMPLATE.md",
+        "ADR_TEMPLATE.md",
+        "schemas",
+        "examples/"
+      ]
+    },
+    ".repo/automation/scripts/": {
+      "purpose": "Node.js automation",
+      "key_files": [
+        "governance-verify.js",
+        "agent-logger.js",
+        "validation scripts"
+      ]
+    },
+    "scripts/": {
+      "purpose": "Shell scripts",
+      "key_files": [
+        "governance-verify.sh",
+        "archive-task.py",
+        "create-hitl-item.sh"
+      ]
+    },
+    ".repo/hitl/": {
+      "purpose": "HITL items",
+      "key_files": ["HITL-XXXX.md files"]
+    },
+    ".repo/waivers/": {
+      "purpose": "Waivers",
+      "key_files": ["WAIVER-XXX.md files"]
+    },
+    ".repo/traces/": {
+      "purpose": "Trace logs",
+      "key_files": ["TASK-XXX-trace.json files"]
+    },
+    ".repo/logs/": {
+      "purpose": "Agent logs",
+      "key_files": ["Agent log files"]
+    },
+    ".agent-logs/": {
+      "purpose": "Interaction logs",
+      "subdirectories": [
+        "interactions/",
+        "errors/",
+        "metrics/"
+      ]
+    }
+  },
+  "integration_points": {
+    "cicd_integration": {
+      "makefile": "check-governance target calls scripts/governance-verify.sh",
+      "pre_commit": ".pre-commit-config.yaml includes governance-verify hook",
+      "github_actions": "Template exists (.repo/automation/ci/governance-verify.yml) but needs integration",
+      "hitl_sync": "scripts/sync-hitl-to-pr.py syncs HITL status to PRs"
+    },
+    "command_resolution": {
+      "source_of_truth": ".repo/repo.manifest.yaml",
+      "resolution": "Commands resolve to Makefile targets or direct scripts",
+      "rule": "Agents MUST use manifest, never guess commands"
+    },
+    "workflow_integration": {
+      "entry_point": "AGENTS.json or AGENTS.md",
+      "reading_order": "TODO.md → manifest.yaml → rules.json/QUICK_REFERENCE.md",
+      "pass_0": "Read .agent-context.json and .AGENT.md when entering folder",
+      "pass_1_3": "Three-pass workflow (Plan → Change → Verify)"
+    }
+  },
+  "dependencies": {
+    "core": [
+      {
+        "from": "AGENTS.json",
+        "to": [
+          "TODO.md",
+          "manifest.yaml",
+          "rules.json",
+          "policy files"
+        ]
+      },
+      {
+        "from": "rules.json",
+        "to": [
+          "CONSTITUTION.md",
+          "PRINCIPLES.md",
+          "manifest.yaml"
+        ]
+      },
+      {
+        "from": "QUICK_REFERENCE.md",
+        "to": [
+          "All policy files",
+          "manifest",
+          "templates"
+        ]
+      },
+      {
+        "from": "governance-verify.js",
+        "to": [
+          "agent-logger.js",
+          "check-artifacts-by-change-type.js",
+          "check-boundaries.js",
+          "validate-agent-context.js"
+        ]
+      },
+      {
+        "from": ".agent-context.json",
+        "to": ["AGENT_CONTEXT_SCHEMA.json"]
+      },
+      {
+        "from": "archive-task.py",
+        "to": [
+          "TODO.md",
+          "BACKLOG.md",
+          "ARCHIVE.md"
+        ]
+      },
+      {
+        "from": "create-hitl-item.sh",
+        "to": [
+          ".repo/hitl/HITL-XXXX.md",
+          ".repo/policy/HITL.md"
+        ]
+      }
+    ],
+    "external": [
+      {
+        "name": "lint-imports",
+        "purpose": "Boundary checking",
+        "type": "Python package"
+      },
+      {
+        "name": "ajv",
+        "purpose": "JSON schema validation",
+        "type": "Node.js package",
+        "optional": true,
+        "fallback": true
+      },
+      {
+        "name": "requests",
+        "purpose": "GitHub API",
+        "type": "Python package",
+        "optional": true
+      },
+      {
+        "name": "pre-commit",
+        "purpose": "Git hooks framework",
+        "type": "Python package"
+      },
+      {
+        "name": "ruff, black, mypy",
+        "purpose": "Python tooling",
+        "type": "Python packages"
+      },
+      {
+        "name": "ESLint, Prettier",
+        "purpose": "Frontend tooling",
+        "type": "Node.js packages"
+      }
+    ]
+  },
+  "file_status": {
+    "production_ready": [
+      "All policy files (CONSTITUTION.md, PRINCIPLES.md, etc.)",
+      "All agent framework files (rules.json, QUICK_REFERENCE.md, etc.)",
+      "All templates and schemas",
+      "Core automation scripts (governance-verify.js, agent-logger.js, etc.)",
+      "Core shell scripts (governance-verify.sh, archive-task.py, promote-task.sh)",
+      "All context files (.agent-context.json)",
+      "All folder guides (.AGENT.md)",
+      "Makefile integration",
+      "Pre-commit configuration"
+    ],
+    "needs_verification": [
+      "Pre-commit hooks installation status",
+      "GitHub Actions workflow integration (template exists, needs integration)",
+      "Agent logger actual usage by agents (SDK exists, used by scripts, unclear if agents call it)"
+    ],
+    "missing_incomplete": [
+      "Learning from failures (no analysis scripts)",
+      "Self-healing (no retry logic, no automatic recovery)",
+      "Auto-triggering (scripts exist but not scheduled)",
+      "Trend analysis (no historical analysis)",
+      "Pattern extraction from code (basic verification exists, no extraction)"
+    ]
+  },
+  "usage_patterns": {
+    "agent_startup_flow": [
+      "Read AGENTS.json or AGENTS.md",
+      "Read .repo/tasks/TODO.md (current task)",
+      "Read .repo/repo.manifest.yaml (commands)",
+      "Read .repo/agents/rules.json or QUICK_REFERENCE.md (rules)",
+      "Enter folder → Read .agent-context.json and .AGENT.md (Pass 0)"
+    ],
+    "task_completion_flow": [
+      "Mark criteria [x] in TODO.md",
+      "Run scripts/archive-task.py",
+      "Script archives task to ARCHIVE.md",
+      "Script promotes next task from BACKLOG.md to TODO.md"
+    ],
+    "pr_creation_flow": [
+      "Read .repo/agents/checklists/pr-review.md",
+      "Read .repo/templates/PR_TEMPLATE.md",
+      "Read .repo/policy/QUALITY_GATES.md",
+      "Read .repo/policy/HITL.md (check blockers)",
+      "Create PR with required sections",
+      "Run governance-verify (checks artifacts, boundaries, HITL, etc.)"
+    ],
+    "hitl_flow": [
+      "Agent encounters risky/unknown situation",
+      "Agent runs scripts/create-hitl-item.sh",
+      "HITL item created in .repo/hitl/HITL-XXXX.md",
+      "Entry added to .repo/policy/HITL.md (Active table)",
+      "Human reviews and marks Completed",
+      "Agent runs scripts/sync-hitl-to-pr.py (updates PR)",
+      "Agent runs scripts/archive-hitl-items.sh (moves to Archived)"
+    ]
+  }
+}
