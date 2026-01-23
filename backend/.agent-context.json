@@ -1,0 +1,84 @@
+{
+  "$schema": "../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/",
+    "purpose": "Django backend application with domain modules, API endpoints, and configuration",
+    "layer": "api",
+    "depends_on": [],
+    "used_by": ["frontend/"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create new modules in backend/modules/ (within firm-scoping rules)",
+      "Modify existing modules (within boundaries)",
+      "Create/modify API endpoints in backend/api/",
+      "Update configuration in backend/config/ (with care for production impact)",
+      "Add migrations when schema changes"
+    ],
+    "cannot_do": [
+      "Cross-module imports without ADR (see .repo/policy/BOUNDARIES.md)",
+      "Break firm-scoping (all models must be firm-scoped)",
+      "Import from backend/modules/core/ and re-export across modules",
+      "Modify migrations directly (use makemigrations)",
+      "Break existing API contracts without ADR",
+      "Add dependencies without security review"
+    ],
+    "requires_hitl": [
+      "Schema changes affecting other modules",
+      "Breaking API changes",
+      "Security-related changes",
+      "Production configuration changes",
+      "Dependency additions"
+    ]
+  },
+  "patterns": {
+    "model": "class ModelName(FirmScopedMixin, models.Model):\n    firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)",
+    "viewset": "class ModelViewSet(FirmScopedMixin, viewsets.ModelViewSet):\n    queryset = ModelName.objects.all()\n    serializer_class = ModelSerializer",
+    "serializer": "class ModelSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = ModelName\n        fields = '__all__'"
+  },
+  "boundaries": {
+    "can_import_from": [],
+    "cannot_import_from": ["frontend/"],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/BACKEND.md",
+    "index": "backend/INDEX.md",
+    "policy": ".repo/policy/BOUNDARIES.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new module",
+      "steps": [
+        "1. Create directory: backend/modules/{module_name}/",
+        "2. Create models.py with FirmScopedMixin",
+        "3. Create serializers.py",
+        "4. Create views.py with FirmScopedMixin viewsets",
+        "5. Create urls.py",
+        "6. Register in backend/config/settings.py INSTALLED_APPS",
+        "7. Create initial migration: python manage.py makemigrations {module_name}",
+        "8. Add tests in tests/{module_name}/"
+      ],
+      "files": ["backend/modules/{module_name}/*", "backend/config/settings.py", "tests/{module_name}/*"]
+    },
+    {
+      "task": "Add field to existing model",
+      "steps": [
+        "1. Add field to models.py in module",
+        "2. Create migration: python manage.py makemigrations {module_name}",
+        "3. Update serializer if needed",
+        "4. Update tests"
+      ],
+      "files": ["backend/modules/{module_name}/models.py", "backend/modules/{module_name}/serializers.py", "backend/modules/{module_name}/migrations/"]
+    }
+  ],
+  "metrics": {
+    "files_count": 500,
+    "last_modified": "2026-01-23",
+    "last_verified": "2026-01-23",
+    "test_coverage": 0.82
+  }
+}

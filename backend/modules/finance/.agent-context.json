@@ -1,0 +1,70 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/modules/finance",
+    "purpose": "Finance module - manages billing, invoicing, payments, and accounting integrations",
+    "layer": "domain",
+    "depends_on": ["backend/modules/core", "backend/modules/firm"],
+    "used_by": ["backend/api/finance", "frontend/src/api/finance.ts"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create finance models with FirmScopedMixin",
+      "Add billing logic",
+      "Add payment processing",
+      "Add accounting integrations"
+    ],
+    "cannot_do": [
+      "Import from other business modules without ADR",
+      "Break firm-scoping",
+      "Modify payment flows without HITL",
+      "Add external payment services without security review"
+    ],
+    "requires_hitl": [
+      "ALL changes (money flows require HITL per Article 8)",
+      "Payment flow changes",
+      "Billing logic changes",
+      "External service integrations",
+      "Security-related changes"
+    ]
+  },
+  "patterns": {
+    "model": "class Invoice(FirmScopedMixin, models.Model):\n    firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)",
+    "viewset": "class InvoiceViewSet(FirmScopedMixin, viewsets.ModelViewSet):\n    queryset = Invoice.objects.all()\n    serializer_class = InvoiceSerializer"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/modules/core", "backend/modules/firm"],
+    "cannot_import_from": [
+      "backend/modules/clients",
+      "backend/modules/crm",
+      "backend/modules/projects"
+    ],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/modules/finance/.AGENT.md",
+    "index": "backend/INDEX.md",
+    "policy": ".repo/policy/SECURITY_BASELINE.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add payment method",
+      "steps": [
+        "1. CREATE HITL ITEM FIRST (money flows require HITL)",
+        "2. Add model if needed",
+        "3. Add payment service",
+        "4. Add tests",
+        "5. Get HITL approval before merging"
+      ],
+      "files": ["backend/modules/finance/models.py", "backend/modules/finance/services.py"]
+    }
+  ],
+  "metrics": {
+    "files_count": 31,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.85
+  }
+}

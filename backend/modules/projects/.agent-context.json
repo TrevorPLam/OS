@@ -1,0 +1,66 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/modules/projects",
+    "purpose": "Project management module - manages projects, tasks, and project workflows",
+    "layer": "domain",
+    "depends_on": ["backend/modules/core", "backend/modules/firm"],
+    "used_by": ["backend/api/projects", "frontend/src/api/projects.ts"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create project models with FirmScopedMixin",
+      "Add serializers for API",
+      "Create viewsets with FirmScopedMixin",
+      "Add migrations for schema changes",
+      "Add project management logic"
+    ],
+    "cannot_do": [
+      "Import from other business modules without ADR",
+      "Break firm-scoping",
+      "Depend on business modules (only core/firm allowed)"
+    ],
+    "requires_hitl": [
+      "Schema changes affecting other modules",
+      "Breaking API changes"
+    ]
+  },
+  "patterns": {
+    "model": "class Project(FirmScopedMixin, models.Model):\n    firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)",
+    "viewset": "class ProjectViewSet(FirmScopedMixin, viewsets.ModelViewSet):\n    queryset = Project.objects.all()\n    serializer_class = ProjectSerializer"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/modules/core", "backend/modules/firm"],
+    "cannot_import_from": [
+      "backend/modules/clients",
+      "backend/modules/crm",
+      "backend/modules/finance"
+    ],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/modules/projects/.AGENT.md",
+    "index": "backend/INDEX.md",
+    "policy": ".repo/policy/BOUNDARIES.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add project field",
+      "steps": [
+        "1. Add field to models.py",
+        "2. Create migration: python manage.py makemigrations projects",
+        "3. Update serializer",
+        "4. Update tests"
+      ],
+      "files": ["backend/modules/projects/models.py", "backend/modules/projects/serializers.py"]
+    }
+  ],
+  "metrics": {
+    "files_count": 14,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.78
+  }
+}

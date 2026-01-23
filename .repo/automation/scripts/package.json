@@ -1,0 +1,19 @@
+{
+  "name": "repo-automation-scripts",
+  "version": "1.0.0",
+  "description": "Automation scripts for repository governance and agent tooling",
+  "private": true,
+  "scripts": {
+    "validate-context": "node validate-agent-context.js",
+    "validate-trace": "node validate-agent-trace.js",
+    "governance-verify": "node governance-verify.js",
+    "generate-metrics": "node agent-logger.js metrics",
+    "cleanup-logs": "node agent-logger.js cleanup"
+  },
+  "dependencies": {
+    "ajv": "^8.12.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

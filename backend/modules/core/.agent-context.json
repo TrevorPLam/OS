@@ -1,0 +1,91 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/modules/core",
+    "purpose": "Shared platform/core utilities - foundation layer that provides common functionality for all modules",
+    "layer": "platform",
+    "depends_on": [],
+    "used_by": [
+      "backend/modules/firm",
+      "backend/modules/clients",
+      "backend/modules/crm",
+      "backend/modules/finance",
+      "backend/modules/projects",
+      "backend/modules/documents",
+      "backend/modules/*"
+    ]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Add shared utilities and base classes",
+      "Create common functionality used across modules",
+      "Provide platform-level abstractions",
+      "Update core infrastructure (with care for breaking changes)"
+    ],
+    "cannot_do": [
+      "Add business logic or domain-specific code",
+      "Depend on other modules (core is the foundation)",
+      "Create module-specific functionality",
+      "Break existing core APIs without migration plan",
+      "Add dependencies that other modules must inherit"
+    ],
+    "requires_hitl": [
+      "Breaking changes to core APIs",
+      "Changes affecting all modules",
+      "Security-related changes",
+      "Dependency additions"
+    ]
+  },
+  "patterns": {
+    "model": "# Core models use standard Django patterns\nclass ModelName(models.Model):\n    created_at = models.DateTimeField(auto_now_add=True)\n    updated_at = models.DateTimeField(auto_now=True)",
+    "mixin": "# Core mixins provide shared functionality\nclass MixinName:\n    def shared_method(self):\n        pass",
+    "utility": "# Core utilities are standalone functions\nfrom django.utils import timezone\n\ndef utility_function(param):\n    return result"
+  },
+  "boundaries": {
+    "can_import_from": [],
+    "cannot_import_from": [
+      "backend/modules/firm",
+      "backend/modules/clients",
+      "backend/modules/crm",
+      "backend/modules/finance",
+      "backend/modules/projects"
+    ],
+    "cross_module_requires_adr": false
+  },
+  "quick_links": {
+    "guide": "backend/modules/core/.AGENT.md",
+    "index": "backend/modules/core/CORE.md",
+    "policy": ".repo/policy/BOUNDARIES.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new utility function",
+      "steps": [
+        "1. Create function in appropriate utility file",
+        "2. Add type hints",
+        "3. Add docstring",
+        "4. Add tests in tests/core/",
+        "5. Export from __init__.py if needed"
+      ],
+      "files": ["backend/modules/core/*.py", "tests/core/*.py"]
+    },
+    {
+      "task": "Add new base class or mixin",
+      "steps": [
+        "1. Create class in appropriate file",
+        "2. Document usage patterns",
+        "3. Add tests",
+        "4. Update documentation"
+      ],
+      "files": ["backend/modules/core/*.py", "tests/core/*.py"]
+    }
+  ],
+  "metrics": {
+    "files_count": 30,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.85
+  }
+}

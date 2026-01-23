@@ -47,9 +47,9 @@ Example waiver format.
 
 ### `example_task_packet.json`
 
-Example task packet format.
+Example task packet format for **feature** changes.
 
-**Usage:** Reference when creating task packets for changes.
+**Usage:** Reference when creating task packets for feature changes.
 
 **Key sections:**
 - `goal`: What the task accomplishes
@@ -61,6 +61,65 @@ Example task packet format.
 - `risks`: Potential issues
 - `rollback_plan`: How to undo if needed
 - `hitl_requirements`: Required HITL items
+
+### `example_task_packet_api_change.json`
+
+Example task packet format for **API change** changes.
+
+**Usage:** Reference when creating task packets for API contract changes.
+
+**Key differences from feature:**
+- Must include OpenAPI schema updates
+- Requires ADR for API contract changes
+- Must maintain backward compatibility
+- Includes API-specific verification steps
+
+### `example_task_packet_cross_module.json`
+
+Example task packet format for **cross-module** changes.
+
+**Usage:** Reference when creating task packets for cross-module integrations.
+
+**Key differences from feature:**
+- Requires ADR (Principle 23, BOUNDARIES.md)
+- Must verify no boundary violations
+- Must respect firm-scoping (multi-tenancy)
+- Includes boundary checking in verification plan
+
+### `example_test_viewset.py`
+
+Example test pattern for Django ViewSet tests.
+
+**Usage:** Reference when writing tests for Django REST Framework viewsets.
+
+**Key patterns:**
+- Uses pytest fixtures for firm, user, api_client
+- Tests CRUD operations (list, create, retrieve, update, delete)
+- Tests firm-scoping (multi-tenancy)
+- Tests authentication/authorization
+
+### `example_test_component.tsx`
+
+Example test pattern for React component tests.
+
+**Usage:** Reference when writing tests for React components.
+
+**Key patterns:**
+- Uses Vitest and Testing Library
+- Mocks React Query hooks
+- Tests loading, success, error states
+- Tests user interactions
+
+### `example_test_api_integration.py`
+
+Example test pattern for API integration tests.
+
+**Usage:** Reference when writing integration tests for API workflows.
+
+**Key patterns:**
+- Tests complete workflows (create → list → update → delete)
+- Tests pagination and filtering
+- Tests firm-scoping across API calls
 
 ## Related Documentation
 

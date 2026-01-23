@@ -1,0 +1,67 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/api/clients",
+    "purpose": "Client API endpoints - REST API for client management",
+    "layer": "api",
+    "depends_on": ["backend/modules/clients"],
+    "used_by": ["frontend/src/api/clients.ts"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create API endpoints",
+      "Add serializers for API-specific needs",
+      "Add public views for portal access",
+      "Update URL routing"
+    ],
+    "cannot_do": [
+      "Break existing API contracts without ADR",
+      "Remove endpoints without deprecation",
+      "Change response formats without versioning"
+    ],
+    "requires_hitl": [
+      "Breaking API changes",
+      "Security-related changes",
+      "Public endpoint changes"
+    ]
+  },
+  "patterns": {
+    "viewset": "from modules.clients.views import ClientViewSet\nfrom modules.clients.serializers import ClientSerializer\n\n# API endpoints use module viewsets",
+    "public_view": "from rest_framework.decorators import api_view\n\n@api_view(['GET'])\ndef public_client_view(request):\n    # Public portal endpoint"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/modules/clients"],
+    "cannot_import_from": [
+      "backend/modules/crm",
+      "backend/modules/finance",
+      "backend/modules/projects"
+    ],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/api/clients/.AGENT.md",
+    "index": "backend/INDEX.md",
+    "policy": ".repo/policy/BESTPR.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new API endpoint",
+      "steps": [
+        "1. Add viewset method or create new view",
+        "2. Add URL route in urls.py",
+        "3. Update OpenAPI schema: make -C backend openapi",
+        "4. Add tests",
+        "5. Document in API docs"
+      ],
+      "files": ["backend/api/clients/views.py", "backend/api/clients/urls.py", "docs/03-reference/api/openapi.yaml"]
+    }
+  ],
+  "metrics": {
+    "files_count": 3,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.90
+  }
+}

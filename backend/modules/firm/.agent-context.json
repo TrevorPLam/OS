@@ -1,0 +1,89 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/modules/firm",
+    "purpose": "Multi-tenant foundation - provides Firm model, FirmMembership, firm context middleware, and firm-scoped utilities",
+    "layer": "platform",
+    "depends_on": ["backend/modules/core"],
+    "used_by": [
+      "backend/modules/clients",
+      "backend/modules/crm",
+      "backend/modules/finance",
+      "backend/modules/projects",
+      "backend/modules/documents",
+      "backend/modules/*"
+    ]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Add firm-scoped utilities",
+      "Update firm context middleware",
+      "Add firm-related models (with care)",
+      "Update firm scoping helpers"
+    ],
+    "cannot_do": [
+      "Break firm-scoping invariants",
+      "Remove firm context requirement",
+      "Break FirmScopedMixin API",
+      "Depend on business modules"
+    ],
+    "requires_hitl": [
+      "Changes to Firm model schema",
+      "Changes to firm context resolution",
+      "Breaking changes to FirmScopedMixin",
+      "Security-related changes"
+    ]
+  },
+  "patterns": {
+    "model": "class ModelName(FirmScopedMixin, models.Model):\n    firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)",
+    "viewset": "class ModelViewSet(FirmScopedMixin, viewsets.ModelViewSet):\n    queryset = ModelName.objects.all()\n    serializer_class = ModelSerializer",
+    "firm_scoped_query": "from modules.firm.utils import get_request_firm, firm_scoped_queryset\n\nfirm = get_request_firm(request)\nqueryset = firm_scoped_queryset(ModelName, firm)"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/modules/core"],
+    "cannot_import_from": [
+      "backend/modules/clients",
+      "backend/modules/crm",
+      "backend/modules/finance",
+      "backend/modules/projects"
+    ],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/modules/firm/.AGENT.md",
+    "index": "backend/modules/firm/README.md",
+    "policy": ".repo/policy/BOUNDARIES.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add firm-scoped model",
+      "steps": [
+        "1. Inherit from FirmScopedMixin and models.Model",
+        "2. Add firm ForeignKey",
+        "3. Create migration: python manage.py makemigrations firm",
+        "4. Add serializer",
+        "5. Add viewset with FirmScopedMixin",
+        "6. Add tests"
+      ],
+      "files": ["backend/modules/firm/models.py", "backend/modules/firm/serializers.py", "backend/modules/firm/views.py"]
+    },
+    {
+      "task": "Update firm context middleware",
+      "steps": [
+        "1. Modify FirmContextMiddleware in middleware.py",
+        "2. Test firm context resolution",
+        "3. Update tests",
+        "4. Document changes"
+      ],
+      "files": ["backend/modules/firm/middleware.py", "tests/firm/test_middleware.py"]
+    }
+  ],
+  "metrics": {
+    "files_count": 34,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.88
+  }
+}

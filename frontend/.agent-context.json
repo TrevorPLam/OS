@@ -1,0 +1,83 @@
+{
+  "$schema": "../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "frontend/",
+    "purpose": "React/TypeScript frontend application built with Vite",
+    "layer": "ui",
+    "depends_on": ["backend/"],
+    "used_by": []
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create new React components in frontend/src/components/",
+      "Add new pages in frontend/src/pages/",
+      "Create API client functions in frontend/src/api/ (organized by domain)",
+      "Add React hooks and contexts in frontend/src/",
+      "Create E2E tests in frontend/e2e/",
+      "Add unit tests in frontend/tests/",
+      "Update Vite configuration when needed",
+      "Add dependencies (with security review)"
+    ],
+    "cannot_do": [
+      "Break existing component patterns without justification",
+      "Create new abstractions before checking existing patterns",
+      "Use non-React Query patterns for API data fetching",
+      "Break TypeScript types or skip type checking",
+      "Modify build configuration without testing",
+      "Add dependencies without security review",
+      "Create components that don't follow React Hook Form patterns for forms"
+    ],
+    "requires_hitl": [
+      "Breaking API contract changes",
+      "Security-related changes",
+      "Dependency additions",
+      "Build configuration changes"
+    ]
+  },
+  "patterns": {
+    "component": "export const Component: React.FC = () => {\n  const { data } = useQuery(...);\n  return <div>...</div>;\n};",
+    "api_client": "export const useClients = () => {\n  return useQuery({\n    queryKey: ['clients'],\n    queryFn: () => apiClient.get('/api/clients/')\n  });\n};",
+    "form": "const { register, handleSubmit } = useForm();"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/"],
+    "cannot_import_from": [],
+    "cross_module_requires_adr": false
+  },
+  "quick_links": {
+    "guide": "frontend/FRONTEND.md",
+    "index": "frontend/INDEX.md",
+    "policy": ".repo/policy/BESTPR.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new page",
+      "steps": [
+        "1. Create page component in frontend/src/pages/{PageName}.tsx",
+        "2. Create co-located CSS file: frontend/src/pages/{PageName}.css",
+        "3. Add route in App.tsx or router configuration",
+        "4. Create API client function in frontend/src/api/ if needed",
+        "5. Add tests in frontend/tests/"
+      ],
+      "files": ["frontend/src/pages/{PageName}.tsx", "frontend/src/pages/{PageName}.css", "frontend/src/App.tsx", "frontend/src/api/*.ts"]
+    },
+    {
+      "task": "Add new API client function",
+      "steps": [
+        "1. Add function to appropriate domain file in frontend/src/api/",
+        "2. Use TanStack React Query useQuery or useMutation",
+        "3. Export from frontend/src/api/index.ts if needed",
+        "4. Add tests in frontend/src/api/__tests__/"
+      ],
+      "files": ["frontend/src/api/{domain}.ts", "frontend/src/api/__tests__/{domain}.test.ts"]
+    }
+  ],
+  "metrics": {
+    "files_count": 96,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.75
+  }
+}

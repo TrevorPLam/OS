@@ -25,6 +25,9 @@
 
 ## Step 2: Determine Context
 
+**When entering a folder:**
+→ Read `.agent-context.json` (if exists) → Read `.AGENT.md` (if exists) → Use folder-specific context
+
 **If security/auth/money/external:**
 → Read `.repo/policy/SECURITY_BASELINE.md` → Create HITL → Stop work
 
@@ -32,7 +35,7 @@
 → Read `.repo/policy/BOUNDARIES.md` → Create ADR
 
 **If backend/frontend:**
-→ Read `.repo/policy/BESTPR.md` + folder guide (`backend/BACKEND.md` or `frontend/FRONTEND.md`)
+→ Read `.repo/policy/BESTPR.md` + folder guide (`backend/BACKEND.md` or `frontend/FRONTEND.md`) + `.agent-context.json`
 
 **If UNKNOWN:**
 → Mark `<UNKNOWN>` → Read `.repo/policy/HITL.md` → Create HITL → Stop work
@@ -41,12 +44,19 @@
 
 ## Step 3: Three-Pass Workflow
 
+### Pass 0: Context (When Entering Folder)
+1. Read `.agent-context.json` if it exists in the folder
+2. Read `.AGENT.md` if it exists in the folder
+3. Use folder-specific patterns, boundaries, and rules
+
 ### Pass 1: Plan
-1. List actions
-2. Identify risks
-3. List files to modify (include filepaths)
-4. Mark UNKNOWN items
-5. Check if HITL needed
+1. **Determine change type** (feature/api_change/security/cross_module/non_doc_change)
+2. List actions
+3. Identify risks
+4. List files to modify (include filepaths)
+5. Mark UNKNOWN items
+6. Check if HITL needed
+7. Create task packet if required for change type
 
 **If HITL needed:** Create HITL → Stop → Wait
 **If ADR needed:** Create ADR → Document decision

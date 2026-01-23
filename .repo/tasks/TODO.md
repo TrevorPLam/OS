@@ -2,9 +2,13 @@
 
 > **Single Active Task** — Only ONE task should be in this file at any time.
 
-**Agent Instructions:** Read `AGENTS.json` (or `AGENTS.md`) first, then this file.
+**Agent Instructions:** This is your current task. Read this file FIRST.
 
-**Reading order:** 1) `AGENTS.json` → 2) This file (`TODO.md`) → 3) `.repo/repo.manifest.yaml` → 4) `.repo/agents/rules.json`
+**Reading order (canonical per AGENTS.json):**
+1. This file (`.repo/tasks/TODO.md`) - Current task - **MUST READ FIRST**
+2. `.repo/repo.manifest.yaml` - Commands - **BEFORE ANY COMMAND**
+3. `.repo/agents/QUICK_REFERENCE.md` - Rules - **START HERE**
+4. Conditional: Policy docs as needed (security, boundaries, etc.)
 
 ---
 
@@ -49,6 +53,18 @@
 ---
 
 ## Active Task
+
+> **Welcome!** 👋 If this section is empty, you need to promote a task from the backlog:
+>
+> 1. Read `.repo/tasks/BACKLOG.md` to see available tasks
+> 2. Find the highest priority task (P0 → P1 → P2 → P3)
+> 3. Copy the task block from `BACKLOG.md` to this file
+> 4. Update status from `Pending` to `In Progress`
+> 5. Remove the task from `BACKLOG.md`
+>
+> **Then:** Follow the three-pass workflow from `AGENTS.json` to complete the task.
+
+---
 
 ### [TASK-001] Refine AGENTS.md to Be Concise & Effective
 - **Priority:** P0

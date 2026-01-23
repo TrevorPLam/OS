@@ -1,0 +1,43 @@
+{
+  "goal": "Add project time tracking integration with finance module",
+  "non_goals": [
+    "Creating new finance features (only integration)",
+    "Changing project module structure (only adding integration)",
+    "UI changes (backend integration only)"
+  ],
+  "acceptance_criteria": [
+    "TimeEntry from projects module can be linked to finance InvoiceLineItem",
+    "Time entries are automatically included in invoice generation",
+    "Integration respects firm-scoping (multi-tenancy)",
+    "No circular dependencies between modules",
+    "Test coverage >= 80% for integration code",
+    "ADR created for cross-module integration"
+  ],
+  "approach": "Create integration layer in projects module. Add foreign key relationship to finance InvoiceLineItem. Use signals or service layer for automatic linking. Ensure firm-scoping is maintained. Write integration tests. Create ADR documenting the cross-module dependency.",
+  "files_touched": [
+    "backend/modules/projects/models.py",
+    "backend/modules/projects/services.py",
+    "backend/modules/finance/models.py",
+    "backend/modules/finance/services.py",
+    "tests/integration/test_projects_finance_integration.py",
+    "docs/adr/ADR-0043-projects-finance-integration.md"
+  ],
+  "verification_plan": [
+    "Run unit tests: pytest tests/modules/projects/",
+    "Run unit tests: pytest tests/modules/finance/",
+    "Run integration tests: pytest tests/integration/test_projects_finance_integration.py",
+    "Check boundary violations: lint-imports --config .importlinter",
+    "Verify firm-scoping: Test with multiple firms",
+    "Check linting: make lint",
+    "Manual test: Create time entry, verify it appears in invoice generation"
+  ],
+  "risks": [
+    "Cross-module dependency: Requires ADR (Principle 23, BOUNDARIES.md)",
+    "Circular dependency risk: Must ensure clean module boundaries",
+    "Firm-scoping: Integration must respect multi-tenancy",
+    "Breaking change: May affect existing invoice generation"
+  ],
+  "rollback_plan": "Revert commits. Remove integration code. Restore previous module boundaries. Remove ADR if not merged. Verify no circular dependencies remain.",
+  "hitl_requirements": [],
+  "notes": "This is a cross-module change (change_type: cross_module). Requires ADR per Principle 23 and BOUNDARIES.md. Must verify no boundary violations. Related to TASK-089."
+}

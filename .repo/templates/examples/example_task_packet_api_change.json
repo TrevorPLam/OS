@@ -1,0 +1,42 @@
+{
+  "goal": "Update Client API to support bulk operations",
+  "non_goals": [
+    "Adding new client fields (separate task)",
+    "Changing authentication (no auth changes)",
+    "Frontend changes (backend API only)"
+  ],
+  "acceptance_criteria": [
+    "POST /api/clients/bulk-create accepts array of client objects",
+    "POST /api/clients/bulk-update accepts array of client updates",
+    "Bulk operations are transactional (all or nothing)",
+    "OpenAPI schema updated with new endpoints",
+    "Backward compatibility maintained for single-client endpoints",
+    "Test coverage >= 85% for bulk operations",
+    "ADR created for API contract change"
+  ],
+  "approach": "Add bulk endpoints to ClientViewSet. Use Django transactions for atomicity. Create serializers for bulk operations. Update OpenAPI schema. Write comprehensive tests including edge cases.",
+  "files_touched": [
+    "backend/api/clients/views.py",
+    "backend/api/clients/serializers.py",
+    "backend/api/clients/urls.py",
+    "backend/openapi.yaml",
+    "tests/api/clients/test_bulk_operations.py",
+    "docs/adr/ADR-0042-bulk-client-operations.md"
+  ],
+  "verification_plan": [
+    "Run unit tests: pytest tests/api/clients/test_bulk_operations.py",
+    "Run integration tests: pytest tests/integration/test_client_bulk_flow.py",
+    "Check linting: make lint",
+    "Verify OpenAPI schema: make -C backend openapi",
+    "Test backward compatibility: Verify single-client endpoints still work",
+    "Manual test: Use Postman/curl to test bulk endpoints"
+  ],
+  "risks": [
+    "Breaking change: API contract change requires ADR (Principle 23)",
+    "Performance: Bulk operations may be slow for large datasets",
+    "Transaction size: Large bulk operations may hit database limits"
+  ],
+  "rollback_plan": "Revert commits. Remove bulk endpoints. Restore previous API version. Update OpenAPI schema. Remove ADR if not merged.",
+  "hitl_requirements": [],
+  "notes": "This is an API change (change_type: api_change). Requires ADR per Principle 23 (cross-boundary API contract change). Related to TASK-078."
+}

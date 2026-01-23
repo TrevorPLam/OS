@@ -1,0 +1,85 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/modules/clients",
+    "purpose": "Client management module with firm-scoped multi-tenancy - manages clients, contacts, engagements, health scores, and portal access",
+    "layer": "domain",
+    "depends_on": ["backend/modules/core", "backend/modules/firm"],
+    "used_by": ["backend/api/clients", "frontend/src/api/clients.ts"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create new models with FirmScopedMixin",
+      "Add serializers for API",
+      "Create viewsets with FirmScopedMixin",
+      "Add migrations for schema changes",
+      "Add client-related utilities",
+      "Update portal functionality"
+    ],
+    "cannot_do": [
+      "Import from other business modules without ADR",
+      "Break firm-scoping",
+      "Depend on business modules (only core/firm allowed)",
+      "Remove firm ForeignKey from models"
+    ],
+    "requires_hitl": [
+      "Schema changes affecting other modules",
+      "Breaking API changes",
+      "Security-related changes",
+      "Portal access changes"
+    ]
+  },
+  "patterns": {
+    "model": "class Client(FirmScopedMixin, models.Model):\n    firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)\n    name = models.CharField(max_length=255)",
+    "viewset": "class ClientViewSet(FirmScopedMixin, viewsets.ModelViewSet):\n    queryset = Client.objects.all()\n    serializer_class = ClientSerializer",
+    "serializer": "class ClientSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Client\n        fields = '__all__'"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/modules/core", "backend/modules/firm"],
+    "cannot_import_from": [
+      "backend/modules/crm",
+      "backend/modules/finance",
+      "backend/modules/projects",
+      "backend/modules/documents"
+    ],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/modules/clients/.AGENT.md",
+    "index": "backend/INDEX.md",
+    "policy": ".repo/policy/BOUNDARIES.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new client field",
+      "steps": [
+        "1. Add field to backend/modules/clients/models/clients.py",
+        "2. Create migration: python manage.py makemigrations clients",
+        "3. Update ClientSerializer in serializers.py",
+        "4. Update tests in tests/clients/"
+      ],
+      "files": ["backend/modules/clients/models/clients.py", "backend/modules/clients/serializers.py", "backend/modules/clients/migrations/"]
+    },
+    {
+      "task": "Add new contact model",
+      "steps": [
+        "1. Create model in backend/modules/clients/models/contacts.py",
+        "2. Inherit from FirmScopedMixin",
+        "3. Add firm ForeignKey",
+        "4. Create migration",
+        "5. Add serializer",
+        "6. Add viewset",
+        "7. Add tests"
+      ],
+      "files": ["backend/modules/clients/models/contacts.py", "backend/modules/clients/serializers.py", "backend/modules/clients/views.py"]
+    }
+  ],
+  "metrics": {
+    "files_count": 47,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.82
+  }
+}

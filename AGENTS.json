@@ -35,7 +35,11 @@
     },
     "backend_frontend": {
       "triggers": ["backend_code", "frontend_code"],
-      "action": ["read", ".repo/policy/BESTPR.md", "read_folder_guide"]
+      "action": ["read", ".repo/policy/BESTPR.md", "read_folder_guide", "read_agent_context_json"]
+    },
+    "folder_entry": {
+      "triggers": ["entering_folder"],
+      "action": ["read", ".agent-context.json", "read", ".AGENT.md"]
     },
     "unknown": {
       "triggers": ["not_in_docs", "not_in_manifest", "not_in_code"],
@@ -45,13 +49,23 @@
 
   "workflow": {
     "three_pass": {
+      "pass0_context": {
+        "name": "Context",
+        "steps": [
+          "read_folder_context_files",
+          "read_agent_context_json_when_entering_folder"
+        ],
+        "description": "Read folder-level context files (.agent-context.json, .AGENT.md) when entering a folder"
+      },
       "pass1_plan": {
         "steps": [
+          "determine_change_type",
           "list_all_actions",
           "identify_risks",
           "list_all_files_to_modify",
           "mark_unknown_items",
-          "check_hitl_needed"
+          "check_hitl_needed",
+          "create_task_packet_if_required"
         ],
         "output": "plan_with_actions_risks_files_unknowns_hitl",
         "blockers": {

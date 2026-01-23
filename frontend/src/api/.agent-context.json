@@ -1,0 +1,63 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "frontend/src/api",
+    "purpose": "API client functions organized by domain - uses TanStack React Query for data fetching",
+    "layer": "ui",
+    "depends_on": ["backend/"],
+    "used_by": ["frontend/src/pages", "frontend/src/components"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create API client functions",
+      "Add React Query hooks (useQuery, useMutation)",
+      "Organize by domain (clients, crm, finance, etc.)",
+      "Add TypeScript types"
+    ],
+    "cannot_do": [
+      "Use non-React Query patterns for data fetching",
+      "Break TypeScript types",
+      "Create direct fetch calls (use API client)",
+      "Skip error handling"
+    ],
+    "requires_hitl": [
+      "Breaking API contract changes",
+      "Security-related changes"
+    ]
+  },
+  "patterns": {
+    "query_hook": "export const useClients = () => {\n  return useQuery({\n    queryKey: ['clients'],\n    queryFn: () => apiClient.get('/api/clients/')\n  });\n};",
+    "mutation_hook": "export const useCreateClient = () => {\n  return useMutation({\n    mutationFn: (data) => apiClient.post('/api/clients/', data)\n  });\n};"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/"],
+    "cannot_import_from": [],
+    "cross_module_requires_adr": false
+  },
+  "quick_links": {
+    "guide": "frontend/src/api/.AGENT.md",
+    "index": "frontend/INDEX.md",
+    "policy": ".repo/policy/BESTPR.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new API client function",
+      "steps": [
+        "1. Add function to appropriate domain file (e.g., clients.ts)",
+        "2. Use useQuery or useMutation from React Query",
+        "3. Add TypeScript types",
+        "4. Add error handling",
+        "5. Add tests in __tests__/"
+      ],
+      "files": ["frontend/src/api/{domain}.ts", "frontend/src/api/__tests__/{domain}.test.ts"]
+    }
+  ],
+  "metrics": {
+    "files_count": 15,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.85
+  }
+}

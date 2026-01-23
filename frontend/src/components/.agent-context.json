@@ -1,0 +1,65 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "frontend/src/components",
+    "purpose": "Reusable React components - Layout, ErrorBoundary, CommandCenter, etc.",
+    "layer": "ui",
+    "depends_on": ["frontend/src/api"],
+    "used_by": ["frontend/src/pages"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create new React components",
+      "Add TypeScript types",
+      "Use React Query hooks for data",
+      "Add co-located CSS files",
+      "Create reusable components"
+    ],
+    "cannot_do": [
+      "Break existing component patterns without justification",
+      "Create new abstractions before checking existing patterns",
+      "Skip TypeScript types",
+      "Use non-functional components",
+      "Break component API contracts"
+    ],
+    "requires_hitl": [
+      "Breaking component API changes",
+      "Security-related changes"
+    ]
+  },
+  "patterns": {
+    "component": "export const Component: React.FC<ComponentProps> = () => {\n  const { data } = useQuery(...);\n  return <div>...</div>;\n};",
+    "with_css": "// Component.tsx\nimport './Component.css';\n\nexport const Component: React.FC = () => { ... };"
+  },
+  "boundaries": {
+    "can_import_from": ["frontend/src/api", "frontend/src/contexts"],
+    "cannot_import_from": ["backend/"],
+    "cross_module_requires_adr": false
+  },
+  "quick_links": {
+    "guide": "frontend/src/components/.AGENT.md",
+    "index": "frontend/INDEX.md",
+    "policy": ".repo/policy/BESTPR.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new component",
+      "steps": [
+        "1. Create Component.tsx in frontend/src/components/",
+        "2. Create Component.css (co-located)",
+        "3. Add TypeScript types",
+        "4. Use functional component pattern",
+        "5. Add tests in frontend/tests/"
+      ],
+      "files": ["frontend/src/components/Component.tsx", "frontend/src/components/Component.css"]
+    }
+  ],
+  "metrics": {
+    "files_count": 8,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.80
+  }
+}

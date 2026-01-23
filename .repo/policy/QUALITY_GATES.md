@@ -22,7 +22,33 @@ These are "governance integrity" gates. If these fail, the repo is not self-gove
 - Coverage targets (gradual ratchet).
 - Performance/bundle budgets (strict with fallback to default).
 - Warning budgets (zero warnings; waiver required if warnings exist).
+- Test coverage regression (coverage should not decrease).
 Note: waivers must be rare + temporary (see Principle 22).
+
+## Test Requirements
+
+**Minimum Coverage Thresholds:**
+- Backend: 80% for new code, gradual ratchet for existing code
+- Frontend: 70% for new components, gradual ratchet for existing code
+- Integration tests: Required for API changes and cross-module work
+
+**Test File Requirements:**
+- New viewsets must have corresponding test files
+- New components must have corresponding test files
+- New API endpoints must have integration tests
+- Test files should be co-located or in `tests/` directory
+
+**Coverage Validation:**
+- `governance-verify` checks that test files exist for modified code
+- Coverage regression is detected (coverage should not decrease)
+- Missing tests for new code trigger warnings (waiverable)
+
+**Test Patterns:**
+- See `.repo/templates/examples/` for test examples:
+  - `example_test_viewset.py` - Django ViewSet tests
+  - `example_test_component.tsx` - React component tests
+  - `example_test_api_integration.py` - API integration tests
+- See folder-level `.AGENT.md` files for module-specific test patterns
 
 ## Coverage strategy: gradual ratchet
 - Do not require perfection immediately.

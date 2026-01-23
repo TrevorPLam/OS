@@ -1,0 +1,72 @@
+{
+  "$schema": "../../../.repo/templates/AGENT_CONTEXT_SCHEMA.json",
+  "version": "1.0.0",
+  "type": "folder_context",
+  "folder": {
+    "path": "backend/modules/crm",
+    "purpose": "CRM module - manages leads, prospects, deals, pipelines, proposals, and enrichment",
+    "layer": "domain",
+    "depends_on": ["backend/modules/core", "backend/modules/firm"],
+    "used_by": ["backend/api/crm", "frontend/src/api/crm.ts"]
+  },
+  "agent_rules": {
+    "can_do": [
+      "Create new CRM models with FirmScopedMixin",
+      "Add serializers for API",
+      "Create viewsets with FirmScopedMixin",
+      "Add migrations for schema changes",
+      "Add lead scoring logic",
+      "Add enrichment services"
+    ],
+    "cannot_do": [
+      "Import from other business modules without ADR",
+      "Break firm-scoping",
+      "Depend on business modules (only core/firm allowed)"
+    ],
+    "requires_hitl": [
+      "Schema changes affecting other modules",
+      "Breaking API changes",
+      "Security-related changes",
+      "External service integrations"
+    ]
+  },
+  "patterns": {
+    "model": "class Lead(FirmScopedMixin, models.Model):\n    firm = models.ForeignKey('firm.Firm', on_delete=models.CASCADE)",
+    "viewset": "class LeadViewSet(FirmScopedMixin, viewsets.ModelViewSet):\n    queryset = Lead.objects.all()\n    serializer_class = LeadSerializer"
+  },
+  "boundaries": {
+    "can_import_from": ["backend/modules/core", "backend/modules/firm"],
+    "cannot_import_from": [
+      "backend/modules/clients",
+      "backend/modules/finance",
+      "backend/modules/projects"
+    ],
+    "cross_module_requires_adr": true
+  },
+  "quick_links": {
+    "guide": "backend/modules/crm/.AGENT.md",
+    "index": "backend/INDEX.md",
+    "policy": ".repo/policy/BOUNDARIES.md",
+    "best_practices": ".repo/policy/BESTPR.md"
+  },
+  "common_tasks": [
+    {
+      "task": "Add new CRM model",
+      "steps": [
+        "1. Create model in backend/modules/crm/models/",
+        "2. Inherit from FirmScopedMixin",
+        "3. Add firm ForeignKey",
+        "4. Create migration",
+        "5. Add serializer",
+        "6. Add viewset",
+        "7. Add tests"
+      ],
+      "files": ["backend/modules/crm/models/*.py", "backend/modules/crm/serializers.py", "backend/modules/crm/views.py"]
+    }
+  ],
+  "metrics": {
+    "files_count": 42,
+    "last_modified": "2026-01-23",
+    "test_coverage": 0.80
+  }
+}

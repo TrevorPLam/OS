@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Agent Context Schema",
+  "description": "Schema for folder-level agent context files (.agent-context.json)",
+  "type": "object",
+  "required": ["version", "type", "folder"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON schema reference"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Schema version (semver)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["folder_context"],
+      "description": "Type of context file"
+    },
+    "folder": {
+      "type": "object",
+      "required": ["path", "purpose"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Relative path to folder from repo root"
+        },
+        "purpose": {
+          "type": "string",
+          "description": "Brief description of folder purpose"
+        },
+        "layer": {
+          "type": "string",
+          "enum": ["platform", "domain", "api", "ui", "test", "docs", "config"],
+          "description": "Architectural layer"
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Folders this folder depends on"
+        },
+        "used_by": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Folders that use this folder"
+        }
+      }
+    },
+    "agent_rules": {
+      "type": "object",
+      "properties": {
+        "can_do": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of actions agents can perform in this folder"
+        },
+        "cannot_do": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of actions agents cannot perform in this folder"
+        },
+        "requires_hitl": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Actions that require HITL approval"
+        }
+      }
+    },
+    "patterns": {
+      "type": "object",
+      "description": "Code patterns for this folder",
+      "additionalProperties": {
+        "type": "string",
+        "description": "Code example for pattern"
+      }
+    },
+    "boundaries": {
+      "type": "object",
+      "properties": {
+        "can_import_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Folders this folder can import from"
+        },
+        "cannot_import_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Folders this folder cannot import from"
+        },
+        "cross_module_requires_adr": {
+          "type": "boolean",
+          "description": "Whether cross-module imports require ADR"
+        }
+      }
+    },
+    "quick_links": {
+      "type": "object",
+      "properties": {
+        "guide": {
+          "type": "string",
+          "description": "Path to .AGENT.md file"
+        },
+        "index": {
+          "type": "string",
+          "description": "Path to INDEX.md file"
+        },
+        "policy": {
+          "type": "string",
+          "description": "Path to relevant policy file"
+        },
+        "best_practices": {
+          "type": "string",
+          "description": "Path to best practices file"
+        }
+      }
+    },
+    "common_tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task", "steps"],
+        "properties": {
+          "task": {
+            "type": "string",
+            "description": "Name of common task"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Step-by-step instructions"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Files typically modified for this task"
+          }
+        }
+      },
+      "description": "Common tasks agents perform in this folder"
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "files_count": {
+          "type": "integer",
+          "description": "Number of files in folder"
+        },
+        "last_modified": {
+          "type": "string",
+          "format": "date",
+          "description": "Last modification date"
+        },
+        "last_verified": {
+          "type": "string",
+          "format": "date",
+          "description": "Date when context file was last verified against actual code (YYYY-MM-DD)"
+        },
+        "test_coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Test coverage ratio (0-1)"
+        }
+      }
+    }
+  }
+}

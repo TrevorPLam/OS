@@ -61,9 +61,11 @@ All agents must reference:
 
 ## Capabilities and Roles
 
+**Note:** This is a **single-agent system**. You are the only agent working on tasks. The role definitions in `.repo/agents/roles/` exist for potential future multi-agent scenarios but are not currently used.
+
 See:
 - `.repo/agents/capabilities.md` - List of all capabilities
-- `.repo/agents/roles/` - Role definitions (primary, secondary, reviewer, release)
+- `.repo/agents/roles/` - Role definitions (for reference only, not currently used)
 
 ## Quick Reference
 
@@ -71,11 +73,30 @@ For a one-page cheat sheet, see `.repo/agents/QUICK_REFERENCE.md`.
 
 ## Trace Logs
 
-Trace logs must be stored in `.repo/traces/` directory. Use `scripts/generate-trace-log.sh` to create a new trace log, and `scripts/validate-trace-log.sh` to validate it against the schema.
+**When to create:** In Pass 3 (Verify) after tests pass, for **non-doc changes only**.
+
+**What it tracks:** What changed (files, commands, evidence, HITL items, unknowns).
+
+**How:**
+1. Create: `scripts/generate-trace-log.sh [task-id] [intent]`
+2. Fill in required fields per `.repo/templates/AGENT_TRACE_SCHEMA.json`
+3. Validate: `scripts/validate-trace-log.sh [trace-log-file]` or `node .repo/automation/scripts/validate-agent-trace.js [trace-log-file]`
+4. Store in `.repo/traces/` (directory auto-created by script)
 
 ## Agent Logs
 
-Agent logs must be stored in `.repo/logs/` directory. Use `scripts/generate-agent-log.sh` to create a new agent log.
+**When to create:** In Pass 3 (Verify) for **non-doc changes** (P24 requirement: Logs Required for Non-Docs).
+
+**What it tracks:** Why/how (reasoning, decisions, assumptions, plan, risks).
+
+**How:**
+1. Create: `scripts/generate-agent-log.sh [task-id] [action]`
+2. Fill in: `intent`, `plan`, `actions`, `evidence`, `decisions`, `risks`, `reasoning_summary`
+3. Store in `.repo/logs/` (directory auto-created by script)
+
+**Difference from trace log:**
+- **Trace log** = What changed (files, commands, evidence)
+- **Agent log** = Why/how (reasoning, decisions, assumptions)
 
 ## Examples
 

@@ -12,8 +12,12 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 - `AGENT.md` - Folder-level agent guide
 - `DOCUMENT_MAP.md` - Token-optimized document reference system
 - `CHANGELOG.md` - Framework change history
-- `TOKEN_OPTIMIZATION_STRATEGY.md` - Token optimization strategy reference
 - `INDEX.md` - This file
+
+### Current Analysis & Progress
+- `CRITICAL_ANALYSIS_FAILURES.md` - Current critical analysis of system gaps
+- `PROJECTED_ANALYSIS_AFTER_FIXES.md` - Projected analysis after fixes
+- `IMPLEMENTATION_PROGRESS.md` - Current implementation progress tracking
 
 ### Entry Points (Root Level)
 - `AGENTS.json` - **Primary entry point** (structured JSON for model parsing)
@@ -67,6 +71,7 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 - `TODO.md` - Current active task (ONE only)
 - `BACKLOG.md` - Prioritized task queue (P0→P3)
 - `ARCHIVE.md` - Completed tasks
+- `REMAINING_TASKS.md` - Remaining implementation tasks from critical analysis
 - `README.md` - Task management workflow
 
 **Note:** Documentation has been moved to root `docs/` directory. See [`docs/README.md`](../docs/README.md) for documentation structure.
@@ -90,6 +95,10 @@ This file catalogs the contents of the `.repo/` governance directory. See [root 
 
 ### `waivers/` - Policy Waivers
 - Active policy waivers stored here
+
+### `archive/` - Historical Documents
+- `assessments/` - Archived assessment and analysis documents (historical reference only)
+  - See `archive/assessments/README.md` for details
 
 ## Navigation
 
