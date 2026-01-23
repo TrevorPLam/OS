@@ -1,0 +1,27 @@
+{
+  "intent": "Refine AGENTS.md guidance",
+  "plan": [
+    "Condense AGENTS.md to under 100 lines with required sections and examples.",
+    "Update task lifecycle files (TODO/BACKLOG/ARCHIVE) for TASK-001 completion.",
+    "Run required lint command and capture evidence."
+  ],
+  "actions": [
+    "Rewrote AGENTS.md with concise workflow, stack info, commands, testing, structure, style, git workflow, and boundaries.",
+    "Archived TASK-001 and promoted TASK-012 in task files.",
+    "Recorded lint results and added trace/agent logs."
+  ],
+  "evidence": [
+    "make lint failed: backend lint missing .venv/Scripts/ruff; frontend lint passed."
+  ],
+  "decisions": [
+    "Used change type non_doc_change to align with PR template requirements and generated required logs."
+  ],
+  "risks": [
+    "None (documentation and task tracking updates only)."
+  ],
+  "follow_ups": [
+    "Investigate backend lint environment setup to provide .venv/Scripts/ruff."
+  ],
+  "reasoning_summary": "Condensed AGENTS.md to meet the task acceptance criteria and kept it under 100 lines while preserving required guidance. Updated task tracking files per workflow and recorded verification results.",
+  "notes": "No secrets. No private data. No raw chain-of-thought."
+}

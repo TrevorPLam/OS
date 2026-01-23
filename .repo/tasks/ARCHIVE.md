@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 0 |
-| P0 Completed | 0 |
+| Total Completed | 1 |
+| P0 Completed | 1 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -48,7 +48,22 @@
 
 ## Completed Tasks
 
-*No tasks completed yet. This section will populate as tasks are moved from TODO.md.*
+### [TASK-001] Refine AGENTS.md to Be Concise & Effective ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-23
+- **Context:** Current AGENTS.md is 22 lines. Best practice is 50-100 lines that are highly specific and example-driven, NOT verbose documentation.
+
+#### Acceptance Criteria
+- [x] Include all six core areas: Commands, Testing, Project Structure, Code Style, Git Workflow, Boundaries
+- [x] Add specific tech stack with versions (Django 4.2 + Python 3.11 + React 18 + TypeScript)
+- [x] Include 1-2 code examples (showing patterns, not explaining them)
+- [x] Document clear boundaries (what agents must NEVER do)
+- [x] Keep total length under 100 lines
+
+#### Outcome
+- Rewrote AGENTS.md to be concise, task-focused, and under 100 lines.
 
 <!--
 Example archived task:
