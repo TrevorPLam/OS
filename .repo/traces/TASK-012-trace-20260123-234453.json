@@ -1,0 +1,28 @@
+{
+  "intent": "Fix CRM interface duplicates",
+  "task_id": "TASK-012",
+  "timestamp": "2026-01-23T23:44:53Z",
+  "files": [
+    "frontend/src/api/crm.ts",
+    "CODEX.md",
+    ".repo/tasks/TODO.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/ARCHIVE.md",
+    ".repo/logs/TASK-012-log-20260123-234450.json",
+    ".repo/traces/TASK-012-trace-20260123-234453.json"
+  ],
+  "commands": [
+    "make lint",
+    "make setup",
+    "make frontend-build",
+    "make -C frontend build"
+  ],
+  "evidence": [
+    "make lint failed in backend: missing .venv/Scripts/ruff; frontend lint passed.",
+    "make setup failed in backend: missing .venv/Scripts/python; frontend setup succeeded.",
+    "make frontend-build failed because build-check expects dist/ but build outputs to build/.",
+    "make -C frontend build succeeded and emitted build artifacts."
+  ],
+  "hitl": [],
+  "unknowns": []
+}

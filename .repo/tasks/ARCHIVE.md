@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 1 |
-| P0 Completed | 1 |
+| Total Completed | 2 |
+| P0 Completed | 2 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -47,6 +47,25 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-012] Fix TypeScript Duplicate Properties in frontend/src/api/crm.ts ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-23
+- **Context:** Critical TypeScript errors found in ANALYSIS.md Section 0.1. Duplicate properties in PipelineStage, Pipeline, and Deal interfaces indicate copy-paste errors and potential runtime bugs. Blocks type safety.
+
+#### Acceptance Criteria
+- [x] Remove duplicate `display_order` and `probability` in PipelineStage interface (lines 148-149)
+- [x] Remove duplicate `stages`, `created_at`, `updated_at` in Pipeline interface (lines 165-167)
+- [x] Consolidate 15+ duplicate properties in Deal interface (lines 195-223)
+- [x] Resolve optional/required inconsistencies (e.g., `expected_close_date` vs `expected_close_date?`)
+- [x] Verify TypeScript compilation passes with no errors
+- [x] Update any code that depends on these interfaces
+
+#### Outcome
+- Consolidated duplicate CRM interface properties and normalized required/optional fields in `frontend/src/api/crm.ts`.
+- Verified frontend build output via `make -C frontend build` (noting `make frontend-build` fails due to dist/build mismatch).
 
 ### [TASK-001] Refine AGENTS.md to Be Concise & Effective ✓
 - **Priority:** P0

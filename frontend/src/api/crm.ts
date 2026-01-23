@@ -145,8 +145,6 @@ export interface PipelineStage {
   is_closed_lost: boolean
   display_order: number
   auto_tasks: any[]
-  display_order: number
-  probability: number
   created_at: string
   updated_at: string
 }
@@ -158,13 +156,10 @@ export interface Pipeline {
   is_active: boolean
   is_default: boolean
   display_order: number
-  stages: PipelineStage[]
-  created_at: string
-  updated_at: string
-  created_by?: number
   stages?: PipelineStage[]
   created_at: string
   updated_at: string
+  created_by?: number
 }
 
 export interface Deal {
@@ -192,15 +187,6 @@ export interface Deal {
   source?: string
   campaign?: number
   campaign_name?: string
-  value: string
-  probability: number
-  weighted_value: string
-  expected_close_date?: string
-  actual_close_date?: string
-  owner?: number
-  owner_name?: string
-  account?: number
-  account_name?: string
   contacts?: number[]
   is_active: boolean
   is_won: boolean
@@ -211,16 +197,12 @@ export interface Deal {
   stale_days_threshold: number
   converted_to_project: boolean
   project?: number
-  tags: string[]
   created_at: string
   updated_at: string
   created_by?: number
-  is_stale: boolean
   stale_days?: number
   tags?: string[]
   custom_fields?: Record<string, any>
-  created_at: string
-  updated_at: string
 }
 
 export interface DealTask {
