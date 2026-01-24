@@ -108,6 +108,26 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Analyze bundle size
+        run: |
+          cd frontend
+          if npm run | grep -q "analyze"; then
+            npm run analyze
+          else
+            echo "⚠️  Bundle analyzer script not found, skipping"
+          fi
+        continue-on-error: true
+
+      - name: Analyze test coverage
+        run: |
+          cd frontend
+          if npm run | grep -q "coverage:analyze"; then
+            npm run coverage:analyze
+          else
+            echo "⚠️  Coverage analyzer script not found, skipping"
+          fi
+        continue-on-error: true
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest

@@ -40,10 +40,17 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
     "test": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage",
     "e2e": "playwright test",
     "lighthouse:ci": "npx @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs",
     "deps:check": "npm outdated",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "analyze": "node scripts/bundle-analyzer.mjs",
+    "analyze:json": "node scripts/bundle-analyzer.mjs --json",
+    "check:bundle-size": "node scripts/bundle-analyzer.mjs --limit=500000",
+    "coverage:analyze": "node scripts/test-coverage-analyzer.mjs",
+    "coverage:analyze:json": "node scripts/test-coverage-analyzer.mjs --json",
+    "coverage:check": "node scripts/test-coverage-analyzer.mjs --target=80"
   },
   "browserslist": {
     "production": [
