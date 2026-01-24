@@ -47,23 +47,6 @@
 
 ## P0 — Critical
 
-### [TASK-003] Fix Duplicate Content in CI Workflow
-- **Priority:** P0
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** `.github/workflows/ci.yml` has two conflicting workflow definitions causing confusion.
-
-#### Acceptance Criteria
-- [ ] Remove duplicate workflow definition
-- [ ] Ensure single coherent CI pipeline
-- [ ] Verify all jobs run correctly
-- [ ] Test on a branch before merging
-
-#### Notes
-- File currently has 403 lines with overlapping `name: CI` and `name: CI/CD Pipeline`
-
----
-
 ## P1 — High
 
 ### [TASK-016] Implement React Hook Form in All Forms

@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 5 |
-| P0 Completed | 5 |
+| Total Completed | 6 |
+| P0 Completed | 6 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -47,6 +47,22 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-002] Create .env.example File ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** Code references `.env.example` but file doesn't exist. Blocks new environment setup.
+
+#### Acceptance Criteria
+- [x] Document all required environment variables from `env_validator.py`
+- [x] Include comments explaining each variable
+- [x] Add placeholder values (never real secrets)
+- [x] Reference in README.md and docs/getting-started/onboarding.md
+
+#### Outcome
+- Added a documented `.env.example` with placeholders and production notes, plus onboarding references.
 
 ### [TASK-015] Refactor Page Components to Use React Query Hooks (Phase 1: Core Pages) ✓
 - **Priority:** P0

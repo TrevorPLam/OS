@@ -1,0 +1,27 @@
+{
+  "intent": "Create .env.example and update docs",
+  "plan": [
+    "Review env_validator requirements and create .env.example with placeholders.",
+    "Reference .env.example in README and onboarding docs.",
+    "Update task tracking files and record verification evidence."
+  ],
+  "actions": [
+    "Added .env.example with required and optional environment variables.",
+    "Updated README and docs/getting-started/onboarding.md to reference .env.example.",
+    "Archived TASK-002 and promoted TASK-003 in task tracking files."
+  ],
+  "evidence": [
+    "make lint failed: backend lint could not find .venv/Scripts/ruff; frontend lint passed."
+  ],
+  "decisions": [
+    "Included production-only variables and optional webhook secrets in .env.example with clear comments."
+  ],
+  "risks": [
+    "Linting incomplete for backend due to missing virtualenv; requires rerun after setup."
+  ],
+  "follow_ups": [
+    "Run make lint after backend virtualenv setup to confirm backend lint passes."
+  ],
+  "reasoning_summary": "Created a documented .env.example and updated onboarding docs to unblock local setup, then recorded task progression and verification evidence.",
+  "notes": "No secrets. No private data. No raw chain-of-thought."
+}

@@ -13,7 +13,11 @@ This guide gets you from zero to a running dev environment.
 1. Install dependencies:
    - `make setup`
 
-2. Start the dev servers:
+2. Configure environment:
+   - `cp .env.example .env`
+   - Update values in `.env` (see comments in `.env.example`)
+
+3. Start the dev servers:
    - `make dev`
 
 ## Where to look
