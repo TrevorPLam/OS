@@ -74,28 +74,6 @@
 
 ---
 
-### [TASK-018] Re-enable ESLint Rules and Fix Violations
-- **Priority:** P1
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 0.8, 4 critical ESLint rules are disabled, compromising type safety and code quality. Per Section 11.4, 57 instances of `any` type exist.
-
-#### Acceptance Criteria
-- [ ] Re-enable `@typescript-eslint/no-explicit-any` (start with "warn")
-- [ ] Re-enable `@typescript-eslint/no-unused-vars` (start with "warn")
-- [ ] Re-enable `react-hooks/exhaustive-deps` (start with "warn")
-- [ ] Fix all violations across codebase (57 `any` types, unused vars, etc.)
-- [ ] Gradually increase rules to "error" level
-- [ ] Verify `make -C frontend lint` passes
-
-#### Notes
-- Per ANALYSIS.md Section 0.8: Lines 35-38 need rule re-enabling
-- Per Section 11.4: 57 `any` types need replacement
-- Estimated: 8-10 hours to fix all violations
-- File: `frontend/.eslintrc.cjs` + all source files
-
----
-
 ### [TASK-019] Create Shared Error and Loading Components
 - **Priority:** P1
 - **Status:** Pending

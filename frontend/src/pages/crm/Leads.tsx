@@ -14,11 +14,12 @@ const Leads: React.FC = () => {
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterSource, setFilterSource] = useState<string>('all')
-  const { data: leads = [], isLoading } = useLeads()
+  const { data: leads = [], isLoading, error: leadsError } = useLeads()
   const createLeadMutation = useCreateLead()
   const updateLeadMutation = useUpdateLead()
   const deleteLeadMutation = useDeleteLead()
   const convertLeadMutation = useConvertLeadToProspect()
+  const [actionError, setActionError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Lead>>({
     company_name: '',
     industry: '',
@@ -41,8 +42,9 @@ const Leads: React.FC = () => {
         await createLeadMutation.mutateAsync(formData)
       }
       resetForm()
-    } catch (error) {
-      console.error('Failed to save lead:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to save the lead. Please try again.')
     }
   }
 
@@ -56,8 +58,9 @@ const Leads: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       try {
         await deleteLeadMutation.mutateAsync(id)
-      } catch (error) {
-        console.error('Failed to delete lead:', error)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the lead. Please try again.')
       }
     }
   }
@@ -67,9 +70,9 @@ const Leads: React.FC = () => {
       try {
         const result = await convertLeadMutation.mutateAsync({ id: lead.id })
         alert(`Successfully converted to prospect! Prospect ID: ${result.prospect.id}`)
-      } catch (error) {
-        console.error('Failed to convert lead:', error)
-        alert('Failed to convert lead to prospect')
+        setActionError(null)
+      } catch {
+        setActionError('Failed to convert lead to prospect. Please try again.')
       }
     }
   }
@@ -89,6 +92,7 @@ const Leads: React.FC = () => {
     })
     setEditingLead(null)
     setShowForm(false)
+    setActionError(null)
   }
 
   const filteredLeads = leads.filter((lead) => {
@@ -119,8 +123,13 @@ const Leads: React.FC = () => {
     return <div className="loading">Loading leads...</div>
   }
 
+  if (leadsError) {
+    return <div className="error">Unable to load leads. Please refresh and try again.</div>
+  }
+
   return (
     <div className="crm-page">
+      {actionError && <div className="error">{actionError}</div>}
       <div className="page-header">
         <div>
           <h1>Leads</h1>

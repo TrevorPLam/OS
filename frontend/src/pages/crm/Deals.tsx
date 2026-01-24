@@ -22,18 +22,27 @@ const Deals: React.FC = () => {
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStale, setFilterStale] = useState(false)
-  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelines()
-  const { data: stages = [] } = usePipelineStages(selectedPipelineId ?? undefined)
-  const { data: activeDeals = [] } = useDeals(
+  const { data: pipelines = [], isLoading: pipelinesLoading, error: pipelinesError } = usePipelines()
+  const {
+    data: stages = [],
+    isLoading: stagesLoading,
+    error: stagesError,
+  } = usePipelineStages(selectedPipelineId ?? undefined)
+  const {
+    data: activeDeals = [],
+    isLoading: dealsLoading,
+    error: dealsError,
+  } = useDeals(
     selectedPipelineId ? { pipeline: selectedPipelineId, is_active: true } : undefined,
   )
-  const { data: staleDeals = [] } = useStaleDeals()
+  const { data: staleDeals = [], error: staleDealsError } = useStaleDeals()
   const createDealMutation = useCreateDeal()
   const updateDealMutation = useUpdateDeal()
   const deleteDealMutation = useDeleteDeal()
   const moveDealMutation = useMoveDealToStage()
   const markDealWonMutation = useMarkDealWon()
   const markDealLostMutation = useMarkDealLost()
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -107,8 +116,8 @@ const Deals: React.FC = () => {
         stageId: targetStageId,
         notes: 'Moved via drag and drop',
       })
-    } catch (error) {
-      console.error('Error moving deal:', error)
+    } catch {
+      setActionError('Unable to move the deal. Please try again.')
     } finally {
       setDraggedDeal(null)
     }
@@ -150,6 +159,7 @@ const Deals: React.FC = () => {
       expected_close_date: '',
       owner: null,
     })
+    setActionError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -170,8 +180,9 @@ const Deals: React.FC = () => {
       }
 
       resetForm()
-    } catch (error) {
-      console.error('Error saving deal:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to save the deal. Please check the details and try again.')
     }
   }
 
@@ -180,16 +191,18 @@ const Deals: React.FC = () => {
 
     try {
       await deleteDealMutation.mutateAsync(id)
-    } catch (error) {
-      console.error('Error deleting deal:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to delete the deal. Please try again.')
     }
   }
 
   const handleMarkWon = async (id: number) => {
     try {
       await markDealWonMutation.mutateAsync(id)
-    } catch (error) {
-      console.error('Error marking deal as won:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to mark the deal as won. Please try again.')
     }
   }
 
@@ -199,8 +212,9 @@ const Deals: React.FC = () => {
 
     try {
       await markDealLostMutation.mutateAsync({ id, reason })
-    } catch (error) {
-      console.error('Error marking deal as lost:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to mark the deal as lost. Please try again.')
     }
   }
 
@@ -236,8 +250,21 @@ const Deals: React.FC = () => {
     return <div className="loading">Loading...</div>
   }
 
+  if (pipelinesError) {
+    return <div className="error">Unable to load pipelines. Please refresh and try again.</div>
+  }
+
   return (
     <div className="deals-page">
+      {(stagesError || dealsError || staleDealsError || actionError) && (
+        <div className="error">
+          {actionError ||
+            stagesError?.message ||
+            dealsError?.message ||
+            staleDealsError?.message ||
+            'Something went wrong. Please try again.'}
+        </div>
+      )}
       <div className="deals-header">
         <div>
           <h1>Sales Pipeline</h1>
@@ -302,6 +329,7 @@ const Deals: React.FC = () => {
       </div>
 
       <div className="pipeline-board">
+        {stagesLoading || dealsLoading ? <div className="loading">Loading deals...</div> : null}
         {sortedStages.map((stage) => (
           <div
             key={stage.id}
