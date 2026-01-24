@@ -2,8 +2,24 @@ import React, { useState } from 'react'
 import { Client, useClients, useCreateClient, useDeleteClient, useUpdateClient } from '../api/clients'
 import './Clients.css'
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (!error) {
+    return ''
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  if (typeof error === 'string') {
+    return error
+  }
+
+  return fallback
+}
+
 const Clients: React.FC = () => {
-  const { data: clients = [], isLoading } = useClients()
+  const { data: clients = [], isLoading, error: clientsError } = useClients()
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
@@ -21,37 +37,43 @@ const Clients: React.FC = () => {
     assigned_team: [],
   })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const clearMutationErrors = () => {
+    createClientMutation.reset()
+    updateClientMutation.reset()
+    deleteClientMutation.reset()
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      if (editingClient) {
-        await updateClientMutation.mutateAsync({ id: editingClient.id, data: formData })
-      } else {
-        await createClientMutation.mutateAsync(formData)
-      }
-      resetForm()
-    } catch (error) {
-      console.error('Failed to save client:', error)
+    clearMutationErrors()
+
+    if (editingClient) {
+      updateClientMutation.mutate(
+        { id: editingClient.id, data: formData },
+        { onSuccess: resetForm }
+      )
+      return
     }
+
+    createClientMutation.mutate(formData, { onSuccess: resetForm })
   }
 
   const handleEdit = (client: Client) => {
+    clearMutationErrors()
     setEditingClient(client)
     setFormData(client)
     setShowForm(true)
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (window.confirm('Are you sure you want to delete this client?')) {
-      try {
-        await deleteClientMutation.mutateAsync(id)
-      } catch (error) {
-        console.error('Failed to delete client:', error)
-      }
+      deleteClientMutation.reset()
+      deleteClientMutation.mutate(id)
     }
   }
 
   const resetForm = () => {
+    clearMutationErrors()
     setFormData({
       company_name: '',
       industry: '',
@@ -67,6 +89,13 @@ const Clients: React.FC = () => {
     setShowForm(false)
   }
 
+  const clientLoadError = getErrorMessage(clientsError, 'Unable to load clients. Please try again.')
+  const clientMutationError = getErrorMessage(
+    createClientMutation.error ?? updateClientMutation.error ?? deleteClientMutation.error,
+    'Unable to save client changes. Please try again.'
+  )
+  const isSaving = createClientMutation.isPending || updateClientMutation.isPending
+
   if (isLoading) {
     return <div className="loading">Loading...</div>
   }
@@ -80,10 +109,21 @@ const Clients: React.FC = () => {
         </button>
       </div>
 
+      {clientLoadError && (
+        <div className="error-message">
+          {clientLoadError}
+        </div>
+      )}
+
       {showForm && (
         <div className="modal-overlay" onClick={resetForm}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>{editingClient ? 'Edit Client' : 'New Client'}</h2>
+            {clientMutationError && (
+              <div className="error-message">
+                {clientMutationError}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="client-form">
               <div className="form-group">
                 <label htmlFor="client-company-name">Company Name *</label>
@@ -159,8 +199,8 @@ const Clients: React.FC = () => {
                 <button type="button" onClick={resetForm} className="btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary">
-                  {editingClient ? 'Update' : 'Create'} Client
+                <button type="submit" className="btn-primary" disabled={isSaving}>
+                  {isSaving ? 'Saving...' : `${editingClient ? 'Update' : 'Create'} Client`}
                 </button>
               </div>
             </form>

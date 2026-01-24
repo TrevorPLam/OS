@@ -1,0 +1,32 @@
+{
+  "intent": "Refactor core pages to use React Query hooks",
+  "task_id": "TASK-015",
+  "timestamp": "2026-01-24T01:17:36Z",
+  "files": [
+    "frontend/src/pages/Clients.tsx",
+    "frontend/src/pages/Login.tsx",
+    "frontend/src/pages/Register.tsx",
+    "frontend/src/contexts/AuthContext.tsx",
+    "frontend/src/pages/__tests__/Login.test.tsx",
+    "frontend/src/pages/__tests__/Register.test.tsx",
+    "frontend/src/pages/__tests__/Clients.test.tsx",
+    ".repo/tasks/TODO.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/ARCHIVE.md"
+  ],
+  "commands": [
+    "make lint",
+    "make test",
+    "bash scripts/generate-trace-log.sh TASK-015 \"Refactor core pages to use React Query hooks\"",
+    "bash scripts/generate-agent-log.sh TASK-015 \"Refactor core pages to React Query hooks\"",
+    "bash scripts/validate-trace-log.sh .repo/traces/TASK-015-trace-20260124-011736.json",
+    "cd frontend && npm run dev -- --host 0.0.0.0 --port 5173"
+  ],
+  "evidence": [
+    "make lint failed: backend lint missing .venv/Scripts/ruff; frontend lint passed.",
+    "make test failed: backend pytest missing .venv/Scripts/pytest; frontend typecheck and tests reported pre-existing failures plus Clients test mock mismatch (fixed in code, not re-run).",
+    "Playwright screenshot attempt failed due to headless Chromium crash (TargetClosedError)."
+  ],
+  "hitl": [],
+  "unknowns": []
+}

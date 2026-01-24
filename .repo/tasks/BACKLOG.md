@@ -47,24 +47,6 @@
 
 ## P0 — Critical
 
-### [TASK-002] Create .env.example File
-- **Priority:** P0
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Code references `.env.example` but file doesn't exist. Blocks new environment setup.
-
-#### Acceptance Criteria
-- [ ] Document all required environment variables from `env_validator.py`
-- [ ] Include comments explaining each variable
-- [ ] Add placeholder values (never real secrets)
-- [ ] Reference in README.md and docs/getting-started/onboarding.md
-
-#### Notes
-- Required vars: DJANGO_SECRET_KEY, POSTGRES_*, AWS_*, STRIPE_*, etc.
-- Production vars differ from development vars
-
----
-
 ### [TASK-003] Fix Duplicate Content in CI Workflow
 - **Priority:** P0
 - **Status:** Pending

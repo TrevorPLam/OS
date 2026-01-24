@@ -4,13 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Clients from '../Clients'
 
 const createClientMutation = {
-  mutateAsync: vi.fn(),
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  error: undefined as unknown,
 }
 const updateClientMutation = {
-  mutateAsync: vi.fn(),
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  error: undefined as unknown,
 }
 const deleteClientMutation = {
-  mutateAsync: vi.fn(),
+  mutate: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  error: undefined as unknown,
 }
 
 const useClientsMock = vi.fn()
@@ -25,10 +34,7 @@ vi.mock('../../api/clients', () => ({
 describe('Clients form', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useClientsMock.mockReturnValue({ data: [], isLoading: false })
-    createClientMutation.mutateAsync.mockResolvedValue({})
-    updateClientMutation.mutateAsync.mockResolvedValue({})
-    deleteClientMutation.mutateAsync.mockResolvedValue({})
+    useClientsMock.mockReturnValue({ data: [], isLoading: false, error: undefined })
   })
 
   it('shows the empty state when no clients exist', async () => {
@@ -53,7 +59,7 @@ describe('Clients form', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create Client' }))
 
-    expect(createClientMutation.mutateAsync).toHaveBeenCalledWith(
+    expect(createClientMutation.mutate).toHaveBeenCalledWith(
       expect.objectContaining({
         company_name: 'Acme Co',
         industry: 'Manufacturing',
@@ -61,6 +67,7 @@ describe('Clients form', () => {
         primary_contact_email: 'alex@example.com',
         primary_contact_phone: '555-0100',
       }),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
   })
 })

@@ -43,30 +43,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [isLoading, profile])
 
   const login = async (credentials: LoginRequest) => {
-    try {
-      const response = await loginMutation.mutateAsync(credentials)
-      setUser(response.user)
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
-    }
+    const response = await loginMutation.mutateAsync(credentials)
+    setUser(response.user)
   }
 
   const register = async (data: RegisterRequest) => {
-    try {
-      const response = await registerMutation.mutateAsync(data)
-      setUser(response.user)
-    } catch (error) {
-      console.error('Registration failed:', error)
-      throw error
-    }
+    const response = await registerMutation.mutateAsync(data)
+    setUser(response.user)
   }
 
   const logout = async () => {
     try {
       await logoutMutation.mutateAsync()
-    } catch (error) {
-      console.error('Logout failed:', error)
     } finally {
       setUser(null)
     }

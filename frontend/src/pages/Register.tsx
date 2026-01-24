@@ -1,11 +1,28 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useRegister } from '../api/auth'
 import './Auth.css'
+
+type RegisterErrorResponse = Record<string, string[]>
+
+const getRegisterFieldErrors = (error: unknown): RegisterErrorResponse => {
+  if (!error) {
+    return {}
+  }
+
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const responseData = (error as { response?: { data?: RegisterErrorResponse } }).response?.data
+    if (responseData && typeof responseData === 'object') {
+      return responseData
+    }
+  }
+
+  return {}
+}
 
 const Register: React.FC = () => {
   const navigate = useNavigate()
-  const { register } = useAuth()
+  const registerMutation = useRegister()
 
   const [formData, setFormData] = useState({
     username: '',
@@ -15,8 +32,6 @@ const Register: React.FC = () => {
     password: '',
     password2: '',
   })
-  const [errors, setErrors] = useState<Record<string, string[]>>({})
-  const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -27,19 +42,17 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrors({})
-    setLoading(true)
+    registerMutation.reset()
 
     try {
-      await register(formData)
+      await registerMutation.mutateAsync(formData)
       navigate('/')
-    } catch (err: any) {
-      const errorData = err.response?.data || {}
-      setErrors(errorData)
-    } finally {
-      setLoading(false)
+    } catch {
+      // Errors are surfaced via the mutation state.
     }
   }
+
+  const errors = getRegisterFieldErrors(registerMutation.error)
 
   return (
     <div className="auth-container">
@@ -145,9 +158,9 @@ const Register: React.FC = () => {
           <button
             type="submit"
             className="btn-primary"
-            disabled={loading}
+            disabled={registerMutation.isPending}
           >
-            {loading ? 'Creating account...' : 'Sign Up'}
+            {registerMutation.isPending ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
 
