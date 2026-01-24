@@ -6,6 +6,62 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
+// Type definitions
+export interface WorkflowData {
+  name: string;
+  description?: string;
+  is_active?: boolean;
+  trigger_type?: string;
+  [key: string]: unknown;
+}
+
+export interface TriggerData {
+  workflow: number;
+  trigger_type: string;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface NodeData {
+  workflow: number;
+  node_type: string;
+  position_x?: number;
+  position_y?: number;
+  config?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface EdgeData {
+  workflow: number;
+  source_node: number;
+  target_node: number;
+  condition?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export interface ExecutionParams {
+  workflow?: number;
+  status?: string;
+  limit?: number;
+  offset?: number;
+  [key: string]: unknown;
+}
+
+export interface GoalData {
+  workflow: number;
+  name: string;
+  target_value?: number;
+  metric_type?: string;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsParams {
+  workflow?: number;
+  date_from?: string;
+  date_to?: string;
+  [key: string]: unknown;
+}
+
 // Workflow API
 export const getWorkflows = async () => {
   const response = await axios.get(`${API_BASE_URL}/automation/workflows/`);
@@ -17,12 +73,12 @@ export const getWorkflow = async (id: number) => {
   return response.data;
 };
 
-export const createWorkflow = async (data: any) => {
+export const createWorkflow = async (data: WorkflowData) => {
   const response = await axios.post(`${API_BASE_URL}/automation/workflows/`, data);
   return response.data;
 };
 
-export const updateWorkflow = async (id: number, data: any) => {
+export const updateWorkflow = async (id: number, data: Partial<WorkflowData>) => {
   const response = await axios.patch(`${API_BASE_URL}/automation/workflows/${id}/`, data);
   return response.data;
 };
@@ -63,12 +119,12 @@ export const getTriggers = async (workflowId?: number) => {
   return response.data;
 };
 
-export const createTrigger = async (data: any) => {
+export const createTrigger = async (data: TriggerData) => {
   const response = await axios.post(`${API_BASE_URL}/automation/triggers/`, data);
   return response.data;
 };
 
-export const updateTrigger = async (id: number, data: any) => {
+export const updateTrigger = async (id: number, data: Partial<TriggerData>) => {
   const response = await axios.patch(`${API_BASE_URL}/automation/triggers/${id}/`, data);
   return response.data;
 };
@@ -84,12 +140,12 @@ export const getNodes = async (workflowId?: number) => {
   return response.data;
 };
 
-export const createNode = async (data: any) => {
+export const createNode = async (data: NodeData) => {
   const response = await axios.post(`${API_BASE_URL}/automation/nodes/`, data);
   return response.data;
 };
 
-export const updateNode = async (id: number, data: any) => {
+export const updateNode = async (id: number, data: Partial<NodeData>) => {
   const response = await axios.patch(`${API_BASE_URL}/automation/nodes/${id}/`, data);
   return response.data;
 };
@@ -105,7 +161,7 @@ export const getEdges = async (workflowId?: number) => {
   return response.data;
 };
 
-export const createEdge = async (data: any) => {
+export const createEdge = async (data: EdgeData) => {
   const response = await axios.post(`${API_BASE_URL}/automation/edges/`, data);
   return response.data;
 };
@@ -115,7 +171,7 @@ export const deleteEdge = async (id: number) => {
 };
 
 // Execution API
-export const getExecutions = async (params?: any) => {
+export const getExecutions = async (params?: ExecutionParams) => {
   const response = await axios.get(`${API_BASE_URL}/automation/executions/`, { params });
   return response.data;
 };
@@ -147,12 +203,12 @@ export const getGoals = async (workflowId?: number) => {
   return response.data;
 };
 
-export const createGoal = async (data: any) => {
+export const createGoal = async (data: GoalData) => {
   const response = await axios.post(`${API_BASE_URL}/automation/goals/`, data);
   return response.data;
 };
 
-export const updateGoal = async (id: number, data: any) => {
+export const updateGoal = async (id: number, data: Partial<GoalData>) => {
   const response = await axios.patch(`${API_BASE_URL}/automation/goals/${id}/`, data);
   return response.data;
 };
@@ -167,7 +223,7 @@ export const updateGoalAnalytics = async (id: number) => {
 };
 
 // Analytics API
-export const getAllAnalytics = async (params?: any) => {
+export const getAllAnalytics = async (params?: AnalyticsParams) => {
   const response = await axios.get(`${API_BASE_URL}/automation/analytics/`, { params });
   return response.data;
 };
