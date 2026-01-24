@@ -1,16 +1,25 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Campaign } from '../../api/crm'
+import React, { useState } from 'react'
+import {
+  Campaign,
+  useCampaignPerformance,
+  useCampaigns,
+  useCreateCampaign,
+  useDeleteCampaign,
+  useUpdateCampaign,
+} from '../../api/crm'
 import './CRM.css'
 
 const Campaigns: React.FC = () => {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingCampaign, setEditingCampaign] = useState<Campaign | null>(null)
   const [filterType, setFilterType] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [selectedCampaign, setSelectedCampaign] = useState<number | null>(null)
-  const [performanceData, setPerformanceData] = useState<any>(null)
+  const { data: campaigns = [], isLoading } = useCampaigns()
+  const { data: performanceData } = useCampaignPerformance(selectedCampaign ?? undefined)
+  const createCampaignMutation = useCreateCampaign()
+  const updateCampaignMutation = useUpdateCampaign()
+  const deleteCampaignMutation = useDeleteCampaign()
   const [formData, setFormData] = useState<Partial<Campaign>>({
     name: '',
     description: '',
@@ -23,40 +32,18 @@ const Campaigns: React.FC = () => {
     target_leads: 0,
   })
 
-  useEffect(() => {
-    loadCampaigns()
-  }, [])
-
-  const loadCampaigns = async () => {
-    try {
-      const data = await crmApi.getCampaigns()
-      setCampaigns(data)
-    } catch (error) {
-      console.error('Failed to load campaigns:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadPerformance = async (id: number) => {
-    try {
-      const data = await crmApi.getCampaignPerformance(id)
-      setPerformanceData(data)
-      setSelectedCampaign(id)
-    } catch (error) {
-      console.error('Failed to load campaign performance:', error)
-    }
+  const loadPerformance = (id: number) => {
+    setSelectedCampaign(id)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       if (editingCampaign) {
-        await crmApi.updateCampaign(editingCampaign.id, formData)
+        await updateCampaignMutation.mutateAsync({ id: editingCampaign.id, data: formData })
       } else {
-        await crmApi.createCampaign(formData)
+        await createCampaignMutation.mutateAsync(formData)
       }
-      loadCampaigns()
       resetForm()
     } catch (error) {
       console.error('Failed to save campaign:', error)
@@ -72,8 +59,7 @@ const Campaigns: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this campaign?')) {
       try {
-        await crmApi.deleteCampaign(id)
-        loadCampaigns()
+        await deleteCampaignMutation.mutateAsync(id)
       } catch (error) {
         console.error('Failed to delete campaign:', error)
       }
@@ -128,7 +114,7 @@ const Campaigns: React.FC = () => {
     return icons[type] || '📌'
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="loading">Loading campaigns...</div>
   }
 

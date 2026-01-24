@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Prospect } from '../../api/crm'
+import React, { useState } from 'react'
+import {
+  Prospect,
+  useCreateProspect,
+  useDeleteProspect,
+  usePipelineReport,
+  useProspects,
+  useUpdateProspect,
+} from '../../api/crm'
 import './CRM.css'
 
 const Prospects: React.FC = () => {
-  const [prospects, setProspects] = useState<Prospect[]>([])
-  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null)
   const [filterStage, setFilterStage] = useState<string>('all')
-  const [pipelineReport, setPipelineReport] = useState<any>(null)
+  const { data: prospects = [], isLoading } = useProspects()
+  const { data: pipelineReport } = usePipelineReport()
+  const createProspectMutation = useCreateProspect()
+  const updateProspectMutation = useUpdateProspect()
+  const deleteProspectMutation = useDeleteProspect()
   const [formData, setFormData] = useState<Partial<Prospect>>({
     company_name: '',
     industry: '',
@@ -25,41 +34,14 @@ const Prospects: React.FC = () => {
     close_date_estimate: '',
   })
 
-  useEffect(() => {
-    loadProspects()
-    loadPipelineReport()
-  }, [])
-
-  const loadProspects = async () => {
-    try {
-      const data = await crmApi.getProspects()
-      setProspects(data)
-    } catch (error) {
-      console.error('Failed to load prospects:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadPipelineReport = async () => {
-    try {
-      const report = await crmApi.getPipelineReport()
-      setPipelineReport(report)
-    } catch (error) {
-      console.error('Failed to load pipeline report:', error)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       if (editingProspect) {
-        await crmApi.updateProspect(editingProspect.id, formData)
+        await updateProspectMutation.mutateAsync({ id: editingProspect.id, data: formData })
       } else {
-        await crmApi.createProspect(formData)
+        await createProspectMutation.mutateAsync(formData)
       }
-      loadProspects()
-      loadPipelineReport()
       resetForm()
     } catch (error) {
       console.error('Failed to save prospect:', error)
@@ -75,9 +57,7 @@ const Prospects: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this prospect?')) {
       try {
-        await crmApi.deleteProspect(id)
-        loadProspects()
-        loadPipelineReport()
+        await deleteProspectMutation.mutateAsync(id)
       } catch (error) {
         console.error('Failed to delete prospect:', error)
       }
@@ -127,7 +107,7 @@ const Prospects: React.FC = () => {
     return 'red'
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="loading">Loading prospects...</div>
   }
 
@@ -153,7 +133,7 @@ const Prospects: React.FC = () => {
             <h4>Pipeline Value</h4>
             <p className="metric-value">${parseFloat(pipelineReport.total_pipeline_value).toLocaleString()}</p>
           </div>
-          {pipelineReport.pipeline.map((stage: any) => (
+          {pipelineReport.pipeline.map((stage) => (
             <div key={stage.pipeline_stage} className="summary-card">
               <h4>{stage.pipeline_stage}</h4>
               <p className="metric-value">{stage.count}</p>

@@ -1,80 +1,40 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Pipeline, Deal } from '../../api/crm'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Deal, Pipeline, useDealForecast, useDeals, usePipelines } from '../../api/crm'
 import './DealAnalytics.css'
 
-interface ForecastData {
-  total_pipeline_value: number
-  total_weighted_value: number
-  monthly_forecast: Array<{
-    month: string
-    deal_count: number
-    total_value: number
-    weighted_value: number
-  }>
-}
-
 const DealAnalytics: React.FC = () => {
-  const [pipelines, setPipelines] = useState<Pipeline[]>([])
+  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelines()
   const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | null>(null)
-  const [deals, setDeals] = useState<Deal[]>([])
-  const [forecast, setForecast] = useState<ForecastData | null>(null)
+  const { data: deals = [] } = useDeals(
+    selectedPipeline ? { pipeline: selectedPipeline.id } : undefined,
+  )
+  const { data: forecast } = useDealForecast()
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadData()
-  }, [])
-
-  useEffect(() => {
-    if (selectedPipeline) {
-      loadDealsAndForecast()
-    }
-  }, [selectedPipeline])
-
-  const loadData = async () => {
-    try {
-      setLoading(true)
-      const pipelinesData = await crmApi.getPipelines()
-      setPipelines(pipelinesData)
-      
-      const defaultPipeline = pipelinesData.find(p => p.is_default) || pipelinesData[0]
+    if (pipelines.length > 0 && !selectedPipeline) {
+      const defaultPipeline = pipelines.find((pipeline) => pipeline.is_default) || pipelines[0]
       if (defaultPipeline) {
         setSelectedPipeline(defaultPipeline)
       }
-    } catch (error) {
-      console.error('Error loading pipelines:', error)
-    } finally {
+    }
+  }, [pipelines, selectedPipeline])
+
+  useEffect(() => {
+    if (!pipelinesLoading) {
       setLoading(false)
     }
-  }
+  }, [pipelinesLoading])
 
-  const loadDealsAndForecast = async () => {
-    if (!selectedPipeline) return
-
-    try {
-      setLoading(true)
-      const [dealsData, forecastData] = await Promise.all([
-        crmApi.getDeals({ pipeline: selectedPipeline.id }),
-        crmApi.getDealForecast(),
-      ])
-      
-      setDeals(dealsData)
-      setForecast(forecastData)
-    } catch (error) {
-      console.error('Error loading deals and forecast:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const calculateWinLossMetrics = () => {
-    const wonDeals = deals.filter(d => d.is_won)
-    const lostDeals = deals.filter(d => d.is_lost)
-    const activeDeals = deals.filter(d => d.is_active)
+  const winLossMetrics = useMemo(() => {
+    const wonDeals = deals.filter((deal) => deal.is_won)
+    const lostDeals = deals.filter((deal) => deal.is_lost)
+    const activeDeals = deals.filter((deal) => deal.is_active)
     const totalDeals = deals.length
 
-    const wonValue = wonDeals.reduce((sum, d) => sum + parseFloat(d.value), 0)
-    const lostValue = lostDeals.reduce((sum, d) => sum + parseFloat(d.value), 0)
-    const activeValue = activeDeals.reduce((sum, d) => sum + parseFloat(d.value), 0)
+    const wonValue = wonDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
+    const lostValue = lostDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
+    const activeValue = activeDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
 
     const winRate = totalDeals > 0 ? (wonDeals.length / (wonDeals.length + lostDeals.length)) * 100 : 0
     const avgDealSize = wonDeals.length > 0 ? wonValue / wonDeals.length : 0
@@ -91,16 +51,16 @@ const DealAnalytics: React.FC = () => {
       avgDealSize,
       avgSalesCycle,
     }
-  }
+  }, [deals])
 
   const calculateAvgSalesCycle = (wonDeals: Deal[]) => {
     if (wonDeals.length === 0) return 0
 
     const cycles = wonDeals
-      .filter(d => d.actual_close_date)
-      .map(d => {
-        const created = new Date(d.created_at)
-        const closed = new Date(d.actual_close_date!)
+      .filter((deal) => deal.actual_close_date)
+      .map((deal) => {
+        const created = new Date(deal.created_at)
+        const closed = new Date(deal.actual_close_date!)
         return Math.floor((closed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
       })
 
@@ -112,11 +72,16 @@ const DealAnalytics: React.FC = () => {
 
     const stageMap = new Map<number, { name: string; count: number; value: number; probability: number }>()
 
-    deals.forEach(deal => {
-      const stage = selectedPipeline.stages.find(s => s.id === deal.stage)
+    deals.forEach((deal) => {
+      const stage = selectedPipeline.stages?.find((stageEntry) => stageEntry.id === deal.stage)
       if (!stage) return
 
-      const existing = stageMap.get(deal.stage) || { name: stage.name, count: 0, value: 0, probability: stage.probability }
+      const existing = stageMap.get(deal.stage) || {
+        name: stage.name,
+        count: 0,
+        value: 0,
+        probability: stage.probability,
+      }
       existing.count++
       existing.value += parseFloat(deal.value)
       stageMap.set(deal.stage, existing)
@@ -126,10 +91,10 @@ const DealAnalytics: React.FC = () => {
   }
 
   const calculateTopLostReasons = () => {
-    const lostDeals = deals.filter(d => d.is_lost && d.lost_reason)
+    const lostDeals = deals.filter((deal) => deal.is_lost && deal.lost_reason)
     const reasonMap = new Map<string, number>()
 
-    lostDeals.forEach(deal => {
+    lostDeals.forEach((deal) => {
       const reason = deal.lost_reason || 'Unknown'
       reasonMap.set(reason, (reasonMap.get(reason) || 0) + 1)
     })
@@ -149,7 +114,8 @@ const DealAnalytics: React.FC = () => {
     }).format(value)
   }
 
-  const formatMonth = (dateString: string) => {
+  const formatMonth = (dateString: string | null) => {
+    if (!dateString) return 'No Date'
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' })
   }
@@ -158,7 +124,7 @@ const DealAnalytics: React.FC = () => {
     return <div className="loading">Loading...</div>
   }
 
-  const metrics = calculateWinLossMetrics()
+  const metrics = calculateWinLossMetrics
   const dealsByStage = calculateDealsByStage()
   const topLostReasons = calculateTopLostReasons()
 
@@ -169,17 +135,17 @@ const DealAnalytics: React.FC = () => {
           <h1>Pipeline Analytics & Forecasting</h1>
           <p>Performance metrics and revenue projections</p>
         </div>
-        
+
         <div className="pipeline-selector">
           <label>Pipeline:</label>
           <select
             value={selectedPipeline?.id || ''}
             onChange={(e) => {
-              const pipeline = pipelines.find(p => p.id === parseInt(e.target.value))
+              const pipeline = pipelines.find((pipelineEntry) => pipelineEntry.id === parseInt(e.target.value))
               setSelectedPipeline(pipeline || null)
             }}
           >
-            {pipelines.map(pipeline => (
+            {pipelines.map((pipeline) => (
               <option key={pipeline.id} value={pipeline.id}>
                 {pipeline.name}
               </option>
@@ -189,7 +155,6 @@ const DealAnalytics: React.FC = () => {
       </div>
 
       <div className="analytics-grid">
-        {/* Win/Loss Metrics */}
         <div className="analytics-card full-width">
           <h2>Win/Loss Performance</h2>
           <div className="metrics-row">
@@ -198,147 +163,128 @@ const DealAnalytics: React.FC = () => {
               <div className="metric-content">
                 <div className="metric-value">{metrics.wonCount}</div>
                 <div className="metric-label">Deals Won</div>
-                <div className="metric-sub">{formatCurrency(metrics.wonValue)}</div>
               </div>
             </div>
-
             <div className="metric-box lost">
-              <div className="metric-icon">✗</div>
+              <div className="metric-icon">✕</div>
               <div className="metric-content">
                 <div className="metric-value">{metrics.lostCount}</div>
                 <div className="metric-label">Deals Lost</div>
-                <div className="metric-sub">{formatCurrency(metrics.lostValue)}</div>
               </div>
             </div>
-
             <div className="metric-box active">
-              <div className="metric-icon">⏳</div>
+              <div className="metric-icon">•</div>
               <div className="metric-content">
                 <div className="metric-value">{metrics.activeCount}</div>
                 <div className="metric-label">Active Deals</div>
-                <div className="metric-sub">{formatCurrency(metrics.activeValue)}</div>
               </div>
             </div>
-
-            <div className="metric-box rate">
+            <div className="metric-box win-rate">
               <div className="metric-icon">%</div>
               <div className="metric-content">
                 <div className="metric-value">{metrics.winRate.toFixed(1)}%</div>
                 <div className="metric-label">Win Rate</div>
-                <div className="metric-sub">
-                  {metrics.wonCount + metrics.lostCount} total closed
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Revenue Forecast */}
         <div className="analytics-card">
-          <h2>Revenue Forecast</h2>
-          {forecast && (
-            <>
-              <div className="forecast-summary">
-                <div className="forecast-metric">
-                  <div className="forecast-value">{formatCurrency(forecast.total_pipeline_value)}</div>
-                  <div className="forecast-label">Total Pipeline Value</div>
-                </div>
-                <div className="forecast-metric">
-                  <div className="forecast-value">{formatCurrency(forecast.total_weighted_value)}</div>
-                  <div className="forecast-label">Weighted Forecast</div>
-                </div>
-              </div>
-
-              <div className="forecast-chart">
-                <h3>Monthly Revenue Projection</h3>
-                {forecast.monthly_forecast.length === 0 ? (
-                  <p className="no-data">No forecast data available</p>
-                ) : (
-                  <div className="forecast-bars">
-                    {forecast.monthly_forecast.map((month, index) => {
-                      const maxValue = Math.max(...forecast.monthly_forecast.map(m => m.weighted_value))
-                      const barHeight = maxValue > 0 ? (month.weighted_value / maxValue) * 100 : 0
-
-                      return (
-                        <div key={index} className="forecast-bar-container">
-                          <div className="forecast-bar" style={{ height: `${barHeight}%` }}>
-                            <div className="forecast-bar-tooltip">
-                              <div>{formatCurrency(month.weighted_value)}</div>
-                              <div className="tooltip-deals">{month.deal_count} deals</div>
-                            </div>
-                          </div>
-                          <div className="forecast-bar-label">{formatMonth(month.month)}</div>
-                          <div className="forecast-bar-value">{formatCurrency(month.weighted_value)}</div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Performance Metrics */}
-        <div className="analytics-card">
-          <h2>Performance Metrics</h2>
-          <div className="performance-metrics">
-            <div className="performance-metric">
-              <div className="performance-label">Average Deal Size</div>
-              <div className="performance-value">{formatCurrency(metrics.avgDealSize)}</div>
+          <h3>Revenue Summary</h3>
+          <div className="revenue-stats">
+            <div className="stat">
+              <span className="stat-label">Won Value</span>
+              <span className="stat-value won">{formatCurrency(metrics.wonValue)}</span>
             </div>
-
-            <div className="performance-metric">
-              <div className="performance-label">Average Sales Cycle</div>
-              <div className="performance-value">{Math.round(metrics.avgSalesCycle)} days</div>
+            <div className="stat">
+              <span className="stat-label">Lost Value</span>
+              <span className="stat-value lost">{formatCurrency(metrics.lostValue)}</span>
             </div>
-
-            <div className="performance-metric">
-              <div className="performance-label">Win Rate</div>
-              <div className="performance-value">{metrics.winRate.toFixed(1)}%</div>
+            <div className="stat">
+              <span className="stat-label">Pipeline Value</span>
+              <span className="stat-value">{formatCurrency(metrics.activeValue)}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Avg Deal Size</span>
+              <span className="stat-value">{formatCurrency(metrics.avgDealSize)}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Avg Sales Cycle</span>
+              <span className="stat-value">{metrics.avgSalesCycle.toFixed(0)} days</span>
             </div>
           </div>
         </div>
 
-        {/* Deals by Stage */}
         <div className="analytics-card">
-          <h2>Pipeline Distribution</h2>
-          {dealsByStage.length === 0 ? (
-            <p className="no-data">No active deals</p>
-          ) : (
-            <div className="stage-list">
-              {dealsByStage.map((stage, index) => (
-                <div key={index} className="stage-item">
-                  <div className="stage-info">
-                    <div className="stage-name">{stage.name}</div>
-                    <div className="stage-meta">
-                      {stage.count} deals • {stage.probability}% probability
-                    </div>
-                  </div>
-                  <div className="stage-value">{formatCurrency(stage.value)}</div>
+          <h3>Stage Distribution</h3>
+          <div className="stage-distribution">
+            {dealsByStage.map((stage) => (
+              <div key={stage.name} className="stage-item">
+                <div className="stage-info">
+                  <span className="stage-name">{stage.name}</span>
+                  <span className="stage-count">{stage.count} deals</span>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="stage-bar">
+                  <div
+                    className="stage-bar-fill"
+                    style={{ width: `${(stage.value / metrics.activeValue) * 100}%` }}
+                  />
+                </div>
+                <span className="stage-value">{formatCurrency(stage.value)}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Top Lost Reasons */}
-        <div className="analytics-card full-width">
-          <h2>Top Reasons for Lost Deals</h2>
-          {topLostReasons.length === 0 ? (
-            <p className="no-data">No lost deals with reasons</p>
-          ) : (
-            <div className="lost-reasons">
-              {topLostReasons.map((item, index) => (
-                <div key={index} className="lost-reason-item">
-                  <div className="lost-reason-rank">#{index + 1}</div>
-                  <div className="lost-reason-text">{item.reason}</div>
-                  <div className="lost-reason-count">{item.count} deals</div>
+        {forecast && (
+          <div className="analytics-card full-width">
+            <h2>Revenue Forecast</h2>
+            <div className="forecast-summary">
+              <div className="forecast-stat">
+                <span className="stat-label">Total Pipeline Value</span>
+                <span className="stat-value">{formatCurrency(forecast.total_pipeline_value)}</span>
+              </div>
+              <div className="forecast-stat">
+                <span className="stat-label">Weighted Forecast</span>
+                <span className="stat-value">{formatCurrency(forecast.total_weighted_value)}</span>
+              </div>
+            </div>
+            <div className="forecast-chart">
+              {forecast.monthly_forecast.map((month, index) => (
+                <div key={index} className="forecast-bar">
+                  <div
+                    className="bar-fill"
+                    style={{
+                      height: `${(month.weighted_value / forecast.total_weighted_value) * 100}%`,
+                    }}
+                  />
+                  <span className="bar-label">{formatMonth(month.month)}</span>
+                  <span className="bar-value">{formatCurrency(month.weighted_value)}</span>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {topLostReasons.length > 0 && (
+          <div className="analytics-card full-width">
+            <h2>Top Loss Reasons</h2>
+            <div className="loss-reasons-chart">
+              {topLostReasons.map((reason) => (
+                <div key={reason.reason} className="reason-bar">
+                  <span className="reason-label">{reason.reason}</span>
+                  <div className="reason-bar-container">
+                    <div
+                      className="reason-bar-fill"
+                      style={{ width: `${(reason.count / topLostReasons[0].count) * 100}%` }}
+                    />
+                  </div>
+                  <span className="reason-count">{reason.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

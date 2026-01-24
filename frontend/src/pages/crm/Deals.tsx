@@ -1,18 +1,39 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Pipeline, PipelineStage, Deal } from '../../api/crm'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Deal,
+  PipelineStage,
+  useCreateDeal,
+  useDeals,
+  useDeleteDeal,
+  useMarkDealLost,
+  useMarkDealWon,
+  useMoveDealToStage,
+  usePipelineStages,
+  usePipelines,
+  useStaleDeals,
+  useUpdateDeal,
+} from '../../api/crm'
 import './Deals.css'
 
 const Deals: React.FC = () => {
-  const [pipelines, setPipelines] = useState<Pipeline[]>([])
-  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | null>(null)
-  const [stages, setStages] = useState<PipelineStage[]>([])
-  const [deals, setDeals] = useState<Deal[]>([])
-  const [loading, setLoading] = useState(true)
+  const [selectedPipelineId, setSelectedPipelineId] = useState<number | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStale, setFilterStale] = useState(false)
+  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelines()
+  const { data: stages = [] } = usePipelineStages(selectedPipelineId ?? undefined)
+  const { data: activeDeals = [] } = useDeals(
+    selectedPipelineId ? { pipeline: selectedPipelineId, is_active: true } : undefined,
+  )
+  const { data: staleDeals = [] } = useStaleDeals()
+  const createDealMutation = useCreateDeal()
+  const updateDealMutation = useUpdateDeal()
+  const deleteDealMutation = useDeleteDeal()
+  const moveDealMutation = useMoveDealToStage()
+  const markDealWonMutation = useMarkDealWon()
+  const markDealLostMutation = useMarkDealLost()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -24,74 +45,40 @@ const Deals: React.FC = () => {
   })
 
   useEffect(() => {
-    loadPipelines()
-  }, [])
-
-  useEffect(() => {
-    if (selectedPipeline) {
-      loadStagesAndDeals()
-    }
-  }, [selectedPipeline, filterStale])
-
-  const loadPipelines = async () => {
-    try {
-      setLoading(true)
-      const pipelinesData = await crmApi.getPipelines()
-      setPipelines(pipelinesData)
-      
-      // Select default or first pipeline
-      const defaultPipeline = pipelinesData.find(p => p.is_default) || pipelinesData[0]
+    if (!selectedPipelineId && pipelines.length > 0) {
+      const defaultPipeline = pipelines.find((pipeline) => pipeline.is_default) || pipelines[0]
       if (defaultPipeline) {
-        setSelectedPipeline(defaultPipeline)
+        setSelectedPipelineId(defaultPipeline.id)
       }
-    } catch (error) {
-      console.error('Error loading pipelines:', error)
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [pipelines, selectedPipelineId])
 
-  const loadStagesAndDeals = async () => {
-    if (!selectedPipeline) return
-
-    try {
-      setLoading(true)
-      const [stagesData, dealsData] = await Promise.all([
-        crmApi.getPipelineStages(selectedPipeline.id),
-        filterStale 
-          ? crmApi.getStaleDeals()
-          : crmApi.getDeals({ pipeline: selectedPipeline.id, is_active: true }),
-      ])
-      
-      // Sort stages by display order
-      setStages(stagesData.sort((a, b) => a.display_order - b.display_order))
-      
-      // Filter deals by selected pipeline if showing stale deals
-      if (filterStale) {
-        setDeals(dealsData.filter(deal => deal.pipeline === selectedPipeline.id))
-      } else {
-        setDeals(dealsData)
-      }
-    } catch (error) {
-      console.error('Error loading stages and deals:', error)
-    } finally {
-      setLoading(false)
+  const selectedDeals = useMemo(() => {
+    if (!selectedPipelineId) return []
+    if (filterStale) {
+      return staleDeals.filter((deal) => deal.pipeline === selectedPipelineId)
     }
-  }
+    return activeDeals
+  }, [activeDeals, filterStale, selectedPipelineId, staleDeals])
+
+  const sortedStages = useMemo(
+    () => [...stages].sort((a, b) => a.display_order - b.display_order),
+    [stages],
+  )
 
   const getDealsByStage = (stageId: number) => {
-    const stageDeals = deals.filter((deal) => deal.stage === stageId)
-    
-    // Apply search filter
+    const stageDeals = selectedDeals.filter((deal) => deal.stage === stageId)
+
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      return stageDeals.filter(deal => 
-        deal.name.toLowerCase().includes(query) ||
-        deal.description?.toLowerCase().includes(query) ||
-        deal.account_name?.toLowerCase().includes(query)
+      return stageDeals.filter(
+        (deal) =>
+          deal.name.toLowerCase().includes(query) ||
+          deal.description?.toLowerCase().includes(query) ||
+          deal.account_name?.toLowerCase().includes(query),
       )
     }
-    
+
     return stageDeals
   }
 
@@ -115,11 +102,11 @@ const Deals: React.FC = () => {
     }
 
     try {
-      // Move deal to new stage
-      await crmApi.moveDealToStage(draggedDeal.id, targetStageId, 'Moved via drag and drop')
-      
-      // Reload deals
-      await loadStagesAndDeals()
+      await moveDealMutation.mutateAsync({
+        id: draggedDeal.id,
+        stageId: targetStageId,
+        notes: 'Moved via drag and drop',
+      })
     } catch (error) {
       console.error('Error moving deal:', error)
     } finally {
@@ -167,22 +154,21 @@ const Deals: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedPipeline) return
+    if (!selectedPipelineId) return
 
     try {
       const dealData = {
         ...formData,
-        pipeline: selectedPipeline.id,
-        stage: stages[0]?.id, // First stage
+        pipeline: selectedPipelineId,
+        stage: sortedStages[0]?.id,
       }
 
       if (editingDeal) {
-        await crmApi.updateDeal(editingDeal.id, dealData)
+        await updateDealMutation.mutateAsync({ id: editingDeal.id, data: dealData })
       } else {
-        await crmApi.createDeal(dealData)
+        await createDealMutation.mutateAsync(dealData)
       }
-      
-      await loadStagesAndDeals()
+
       resetForm()
     } catch (error) {
       console.error('Error saving deal:', error)
@@ -191,10 +177,9 @@ const Deals: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this deal?')) return
-    
+
     try {
-      await crmApi.deleteDeal(id)
-      await loadStagesAndDeals()
+      await deleteDealMutation.mutateAsync(id)
     } catch (error) {
       console.error('Error deleting deal:', error)
     }
@@ -202,8 +187,7 @@ const Deals: React.FC = () => {
 
   const handleMarkWon = async (id: number) => {
     try {
-      await crmApi.markDealWon(id)
-      await loadStagesAndDeals()
+      await markDealWonMutation.mutateAsync(id)
     } catch (error) {
       console.error('Error marking deal as won:', error)
     }
@@ -214,8 +198,7 @@ const Deals: React.FC = () => {
     if (!reason) return
 
     try {
-      await crmApi.markDealLost(id, reason)
-      await loadStagesAndDeals()
+      await markDealLostMutation.mutateAsync({ id, reason })
     } catch (error) {
       console.error('Error marking deal as lost:', error)
     }
@@ -234,23 +217,22 @@ const Deals: React.FC = () => {
     return '#4299e1'
   }
 
-  // Calculate pipeline metrics
   const calculateMetrics = () => {
-    const totalValue = deals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
-    const totalWeightedValue = deals.reduce((sum, deal) => sum + parseFloat(deal.weighted_value), 0)
-    const avgDealSize = deals.length > 0 ? totalValue / deals.length : 0
-    
+    const totalValue = selectedDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
+    const totalWeightedValue = selectedDeals.reduce((sum, deal) => sum + parseFloat(deal.weighted_value), 0)
+    const avgDealSize = selectedDeals.length > 0 ? totalValue / selectedDeals.length : 0
+
     return {
       totalValue,
       totalWeightedValue,
       avgDealSize,
-      dealCount: deals.length,
+      dealCount: selectedDeals.length,
     }
   }
 
   const metrics = calculateMetrics()
 
-  if (loading && pipelines.length === 0) {
+  if (pipelinesLoading && pipelines.length === 0) {
     return <div className="loading">Loading...</div>
   }
 
@@ -278,25 +260,22 @@ const Deals: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="header-actions">
           <div className="pipeline-selector">
             <label>Pipeline:</label>
             <select
-              value={selectedPipeline?.id || ''}
-              onChange={(e) => {
-                const pipeline = pipelines.find(p => p.id === parseInt(e.target.value))
-                setSelectedPipeline(pipeline || null)
-              }}
+              value={selectedPipelineId || ''}
+              onChange={(e) => setSelectedPipelineId(parseInt(e.target.value))}
             >
-              {pipelines.map(pipeline => (
+              {pipelines.map((pipeline) => (
                 <option key={pipeline.id} value={pipeline.id}>
                   {pipeline.name}
                 </option>
               ))}
             </select>
           </div>
-          
+
           <button onClick={() => openModal()} className="btn btn-primary">
             + Add Deal
           </button>
@@ -311,7 +290,7 @@ const Deals: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="search-input"
         />
-        
+
         <label className="filter-checkbox">
           <input
             type="checkbox"
@@ -323,7 +302,7 @@ const Deals: React.FC = () => {
       </div>
 
       <div className="pipeline-board">
-        {stages.map((stage) => (
+        {sortedStages.map((stage) => (
           <div
             key={stage.id}
             className="pipeline-column"
@@ -349,22 +328,20 @@ const Deals: React.FC = () => {
                     {deal.is_stale && <span className="stale-badge">⚠️ Stale</span>}
                   </div>
 
-                  {deal.account_name && (
-                    <p className="deal-account">🏢 {deal.account_name}</p>
-                  )}
+                  {deal.account_name && <p className="deal-account">🏢 {deal.account_name}</p>}
 
                   <div className="deal-value">
                     <span className="value">{formatCurrency(deal.value)}</span>
-                    <span className="probability">{deal.probability}% • {formatCurrency(deal.weighted_value)}</span>
+                    <span className="probability">
+                      {deal.probability}% • {formatCurrency(deal.weighted_value)}
+                    </span>
                   </div>
 
                   <div className="deal-meta">
                     <span className="close-date">
                       📅 {new Date(deal.expected_close_date).toLocaleDateString()}
                     </span>
-                    {deal.owner_name && (
-                      <span className="owner">👤 {deal.owner_name}</span>
-                    )}
+                    {deal.owner_name && <span className="owner">👤 {deal.owner_name}</span>}
                   </div>
 
                   <div className="deal-actions">

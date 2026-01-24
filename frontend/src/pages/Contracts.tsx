@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Contract, Client, Proposal } from '../api/crm'
+import React, { useMemo, useState } from 'react'
+import { Contract, useContracts, useCreateContract, useDeleteContract, useProposals, useUpdateContract } from '../api/crm'
+import { Client, useClients } from '../api/clients'
 import './Contracts.css'
 
 const Contracts: React.FC = () => {
-  const [contracts, setContracts] = useState<Contract[]>([])
-  const [clients, setClients] = useState<Client[]>([])
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: contracts = [], isLoading: contractsLoading } = useContracts()
+  const { data: clients = [], isLoading: clientsLoading } = useClients()
+  const { data: proposals = [], isLoading: proposalsLoading } = useProposals()
+  const createContractMutation = useCreateContract()
+  const updateContractMutation = useUpdateContract()
+  const deleteContractMutation = useDeleteContract()
   const [showForm, setShowForm] = useState(false)
   const [editingContract, setEditingContract] = useState<Contract | null>(null)
   const [formData, setFormData] = useState<Partial<Contract>>({
@@ -22,26 +25,10 @@ const Contracts: React.FC = () => {
     end_date: '',
   })
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
-    try {
-      const [contractsData, clientsData, proposalsData] = await Promise.all([
-        crmApi.getContracts(),
-        crmApi.getClients(),
-        crmApi.getProposals(),
-      ])
-      setContracts(contractsData)
-      setClients(clientsData)
-      setProposals(proposalsData.filter(p => p.status === 'accepted'))
-    } catch (error) {
-      console.error('Failed to load data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const acceptedProposals = useMemo(
+    () => proposals.filter((proposal) => proposal.status === 'accepted'),
+    [proposals],
+  )
 
   const generateContractNumber = () => {
     const date = new Date()
@@ -55,11 +42,10 @@ const Contracts: React.FC = () => {
     e.preventDefault()
     try {
       if (editingContract) {
-        await crmApi.updateContract(editingContract.id, formData)
+        await updateContractMutation.mutateAsync({ id: editingContract.id, data: formData })
       } else {
-        await crmApi.createContract(formData)
+        await createContractMutation.mutateAsync(formData)
       }
-      loadData()
       resetForm()
     } catch (error) {
       console.error('Failed to save contract:', error)
@@ -75,8 +61,7 @@ const Contracts: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this contract?')) {
       try {
-        await crmApi.deleteContract(id)
-        loadData()
+        await deleteContractMutation.mutateAsync(id)
       } catch (error) {
         console.error('Failed to delete contract:', error)
       }
@@ -108,7 +93,7 @@ const Contracts: React.FC = () => {
     setShowForm(true)
   }
 
-  if (loading) {
+  if (contractsLoading || clientsLoading || proposalsLoading) {
     return <div className="loading">Loading...</div>
   }
 
@@ -161,7 +146,7 @@ const Contracts: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, proposal: e.target.value ? parseInt(e.target.value) : undefined })}
                 >
                   <option value="">None</option>
-                  {proposals.map((proposal) => (
+                  {acceptedProposals.map((proposal) => (
                     <option key={proposal.id} value={proposal.id}>
                       {proposal.proposal_number} - {proposal.title}
                     </option>

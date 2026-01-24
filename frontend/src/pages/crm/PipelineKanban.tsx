@@ -1,13 +1,29 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Deal, Pipeline, PipelineStage } from '../../api/crm'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Deal,
+  useCreateDeal,
+  useDeals,
+  useDeleteDeal,
+  useMarkDealLost,
+  useMarkDealWon,
+  useMoveDealToStage,
+  usePipelineStages,
+  usePipelines,
+  useUpdateDeal,
+} from '../../api/crm'
 import './CRM.css'
 
 const PipelineKanban: React.FC = () => {
-  const [pipelines, setPipelines] = useState<Pipeline[]>([])
   const [selectedPipeline, setSelectedPipeline] = useState<number | null>(null)
-  const [stages, setStages] = useState<PipelineStage[]>([])
-  const [deals, setDeals] = useState<Deal[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelines()
+  const { data: stages = [] } = usePipelineStages(selectedPipeline ?? undefined)
+  const { data: deals = [] } = useDeals(selectedPipeline ? { pipeline: selectedPipeline } : undefined)
+  const createDealMutation = useCreateDeal()
+  const updateDealMutation = useUpdateDeal()
+  const deleteDealMutation = useDeleteDeal()
+  const moveDealMutation = useMoveDealToStage()
+  const markDealWonMutation = useMarkDealWon()
+  const markDealLostMutation = useMarkDealLost()
   const [showDealModal, setShowDealModal] = useState(false)
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null)
@@ -23,56 +39,27 @@ const PipelineKanban: React.FC = () => {
   })
 
   useEffect(() => {
-    loadData()
-  }, [])
-
-  useEffect(() => {
-    if (selectedPipeline) {
-      loadPipelineData(selectedPipeline)
-    }
-  }, [selectedPipeline])
-
-  const loadData = async () => {
-    try {
-      setLoading(true)
-      const pipelinesData = await crmApi.getPipelines()
-      setPipelines(pipelinesData)
-      
-      // Select the default or first pipeline
-      const defaultPipeline = pipelinesData.find(p => p.is_default) || pipelinesData[0]
+    if (!selectedPipeline && pipelines.length > 0) {
+      const defaultPipeline = pipelines.find((pipeline) => pipeline.is_default) || pipelines[0]
       if (defaultPipeline) {
         setSelectedPipeline(defaultPipeline.id)
       }
-    } catch (error) {
-      console.error('Error loading pipelines:', error)
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [pipelines, selectedPipeline])
 
-  const loadPipelineData = async (pipelineId: number) => {
-    try {
-      setLoading(true)
-      const [stagesData, dealsData] = await Promise.all([
-        crmApi.getPipelineStages(pipelineId),
-        crmApi.getDeals({ pipeline: pipelineId }),
-      ])
-      setStages(stagesData.sort((a, b) => a.display_order - b.display_order))
-      setDeals(dealsData)
-    } catch (error) {
-      console.error('Error loading pipeline data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const sortedStages = useMemo(
+    () => [...stages].sort((a, b) => a.display_order - b.display_order),
+    [stages],
+  )
 
   const getDealsByStage = (stageId: number) => {
     return deals
-      .filter(deal => deal.stage === stageId)
-      .filter(deal => 
-        searchTerm === '' || 
-        deal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (deal.account_name && deal.account_name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter((deal) => deal.stage === stageId)
+      .filter(
+        (deal) =>
+          searchTerm === '' ||
+          deal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (deal.account_name && deal.account_name.toLowerCase().includes(searchTerm.toLowerCase())),
       )
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
   }
@@ -97,8 +84,7 @@ const PipelineKanban: React.FC = () => {
     }
 
     try {
-      await crmApi.moveDealToStage(draggedDeal.id, targetStageId)
-      await loadPipelineData(selectedPipeline!)
+      await moveDealMutation.mutateAsync({ id: draggedDeal.id, stageId: targetStageId })
     } catch (error) {
       console.error('Error moving deal:', error)
     } finally {
@@ -116,7 +102,7 @@ const PipelineKanban: React.FC = () => {
       owner: undefined,
       account: undefined,
       pipeline: selectedPipeline || undefined,
-      stage: stages[0]?.id,
+      stage: sortedStages[0]?.id,
     })
     setShowDealModal(true)
   }
@@ -139,12 +125,11 @@ const PipelineKanban: React.FC = () => {
   const handleSaveDeal = async () => {
     try {
       if (editingDeal) {
-        await crmApi.updateDeal(editingDeal.id, formData)
+        await updateDealMutation.mutateAsync({ id: editingDeal.id, data: formData })
       } else {
-        await crmApi.createDeal(formData)
+        await createDealMutation.mutateAsync(formData)
       }
       setShowDealModal(false)
-      await loadPipelineData(selectedPipeline!)
     } catch (error) {
       console.error('Error saving deal:', error)
     }
@@ -154,8 +139,7 @@ const PipelineKanban: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this deal?')) return
 
     try {
-      await crmApi.deleteDeal(dealId)
-      await loadPipelineData(selectedPipeline!)
+      await deleteDealMutation.mutateAsync(dealId)
     } catch (error) {
       console.error('Error deleting deal:', error)
     }
@@ -163,8 +147,7 @@ const PipelineKanban: React.FC = () => {
 
   const handleMarkWon = async (dealId: number) => {
     try {
-      await crmApi.markDealWon(dealId)
-      await loadPipelineData(selectedPipeline!)
+      await markDealWonMutation.mutateAsync(dealId)
     } catch (error) {
       console.error('Error marking deal as won:', error)
     }
@@ -175,8 +158,7 @@ const PipelineKanban: React.FC = () => {
     if (reason === null) return // User cancelled
 
     try {
-      await crmApi.markDealLost(dealId, reason)
-      await loadPipelineData(selectedPipeline!)
+      await markDealLostMutation.mutateAsync({ id: dealId, reason })
     } catch (error) {
       console.error('Error marking deal as lost:', error)
     }
@@ -191,17 +173,17 @@ const PipelineKanban: React.FC = () => {
 
   const getTotalPipelineValue = () => {
     return deals
-      .filter(deal => deal.is_active)
+      .filter((deal) => deal.is_active)
       .reduce((sum, deal) => sum + parseFloat(deal.value), 0)
   }
 
   const getTotalWeightedValue = () => {
     return deals
-      .filter(deal => deal.is_active)
+      .filter((deal) => deal.is_active)
       .reduce((sum, deal) => sum + parseFloat(deal.weighted_value), 0)
   }
 
-  if (loading && !selectedPipeline) {
+  if (pipelinesLoading && !selectedPipeline) {
     return <div className="loading-spinner">Loading pipelines...</div>
   }
 
@@ -216,7 +198,7 @@ const PipelineKanban: React.FC = () => {
               onChange={(e) => setSelectedPipeline(parseInt(e.target.value))}
               className="pipeline-select"
             >
-              {pipelines.map(pipeline => (
+              {pipelines.map((pipeline) => (
                 <option key={pipeline.id} value={pipeline.id}>
                   {pipeline.name} {pipeline.is_default && '(Default)'}
                 </option>
@@ -236,115 +218,113 @@ const PipelineKanban: React.FC = () => {
             </div>
             <div className="metric">
               <span className="metric-label">Active Deals:</span>
-              <span className="metric-value">{deals.filter(d => d.is_active).length}</span>
+              <span className="metric-value">{deals.filter((deal) => deal.is_active).length}</span>
             </div>
           </div>
-          <input
-            type="text"
-            placeholder="Search deals..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-          <button onClick={handleCreateDeal} className="btn btn-primary">
-            + New Deal
-          </button>
         </div>
       </div>
 
-      <div className="kanban-board">
-        {stages.map(stage => {
-          const stageDeals = getDealsByStage(stage.id)
-          const stageValue = stageDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
-          
-          return (
-            <div
-              key={stage.id}
-              className="kanban-column"
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, stage.id)}
-            >
-              <div className="column-header">
-                <h3>{stage.name}</h3>
-                <div className="column-stats">
-                  <span className="deal-count">{stageDeals.length} deals</span>
-                  <span className="stage-value">{formatCurrency(stageValue.toString())}</span>
-                  <span className="stage-probability">{stage.probability}% prob</span>
-                </div>
-              </div>
-              <div className="column-content">
-                {stageDeals.map(deal => (
-                  <div
-                    key={deal.id}
-                    className={`deal-card ${draggedDeal?.id === deal.id ? 'dragging' : ''} ${deal.is_stale ? 'stale' : ''}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, deal)}
-                  >
-                    <div className="deal-card-header">
-                      <h4>{deal.name}</h4>
-                      <div className="deal-actions">
-                        <button onClick={() => handleEditDeal(deal)} className="btn-icon" title="Edit">
-                          ✏️
-                        </button>
-                        <button onClick={() => handleDeleteDeal(deal.id)} className="btn-icon" title="Delete">
-                          🗑️
-                        </button>
-                      </div>
-                    </div>
-                    <div className="deal-card-body">
-                      {deal.account_name && (
-                        <div className="deal-info">
-                          <span className="info-label">Account:</span>
-                          <span className="info-value">{deal.account_name}</span>
-                        </div>
-                      )}
-                      <div className="deal-info">
-                        <span className="info-label">Value:</span>
-                        <span className="info-value">{formatCurrency(deal.value)}</span>
-                      </div>
-                      <div className="deal-info">
-                        <span className="info-label">Weighted:</span>
-                        <span className="info-value">{formatCurrency(deal.weighted_value)}</span>
-                      </div>
-                      {deal.expected_close_date && (
-                        <div className="deal-info">
-                          <span className="info-label">Close Date:</span>
-                          <span className="info-value">{new Date(deal.expected_close_date).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                      {deal.owner_name && (
-                        <div className="deal-info">
-                          <span className="info-label">Owner:</span>
-                          <span className="info-value">{deal.owner_name}</span>
-                        </div>
-                      )}
-                      {deal.is_stale && (
-                        <div className="deal-badge stale-badge">
-                          Stale ({deal.stale_days} days)
-                        </div>
-                      )}
-                    </div>
-                    <div className="deal-card-footer">
-                      <button onClick={() => handleMarkWon(deal.id)} className="btn btn-success btn-sm">
-                        Mark Won
-                      </button>
-                      <button onClick={() => handleMarkLost(deal.id)} className="btn btn-danger btn-sm">
-                        Mark Lost
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+      <div className="pipeline-filters">
+        <input
+          type="text"
+          placeholder="Search deals..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="search-input"
+        />
+        <button onClick={handleCreateDeal} className="btn-primary">
+          + New Deal
+        </button>
+      </div>
+
+      <div className="pipeline-stages">
+        {sortedStages.map((stage) => (
+          <div
+            key={stage.id}
+            className="pipeline-stage"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, stage.id)}
+          >
+            <div className="stage-header">
+              <h3>{stage.name}</h3>
+              <span className="stage-count">{getDealsByStage(stage.id).length}</span>
             </div>
-          )
-        })}
+            <div className="stage-probability">{stage.probability}% probability</div>
+
+            <div className="deals-container">
+              {getDealsByStage(stage.id).map((deal) => (
+                <div
+                  key={deal.id}
+                  className={`deal-card ${deal.is_won ? 'won' : deal.is_lost ? 'lost' : ''}`}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, deal)}
+                >
+                  <div className="deal-header">
+                    <h4>{deal.name}</h4>
+                    <span className="deal-value">{formatCurrency(deal.value)}</span>
+                  </div>
+
+                  <div className="deal-details">
+                    {deal.account_name && (
+                      <div className="deal-account">
+                        <span className="icon">🏢</span>
+                        <span>{deal.account_name}</span>
+                      </div>
+                    )}
+                    {deal.expected_close_date && (
+                      <div className="deal-date">
+                        <span className="icon">📅</span>
+                        <span>{new Date(deal.expected_close_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {deal.owner_name && (
+                      <div className="deal-owner">
+                        <span className="icon">👤</span>
+                        <span>{deal.owner_name}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="deal-actions">
+                    {!deal.is_won && !deal.is_lost && (
+                      <>
+                        <button onClick={() => handleMarkWon(deal.id)} className="btn-small btn-success">
+                          Won
+                        </button>
+                        <button onClick={() => handleMarkLost(deal.id)} className="btn-small btn-danger">
+                          Lost
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => handleEditDeal(deal)} className="btn-small">
+                      Edit
+                    </button>
+                    <button onClick={() => handleDeleteDeal(deal.id)} className="btn-small btn-danger">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {getDealsByStage(stage.id).length === 0 && (
+                <div className="empty-stage">No deals</div>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
       {showDealModal && (
         <div className="modal-overlay" onClick={() => setShowDealModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>{editingDeal ? 'Edit Deal' : 'Create Deal'}</h2>
-            <form onSubmit={(e) => { e.preventDefault(); handleSaveDeal(); }}>
+            <h2>{editingDeal ? 'Edit Deal' : 'New Deal'}</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                void handleSaveDeal()
+              }}
+              className="crm-form"
+            >
               <div className="form-group">
                 <label>Deal Name *</label>
                 <input
@@ -354,6 +334,7 @@ const PipelineKanban: React.FC = () => {
                   required
                 />
               </div>
+
               <div className="form-group">
                 <label>Description</label>
                 <textarea
@@ -362,43 +343,50 @@ const PipelineKanban: React.FC = () => {
                   rows={3}
                 />
               </div>
-              <div className="form-group">
-                <label>Value *</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.value}
-                  onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                  required
-                />
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Value *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.value}
+                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Expected Close Date</label>
+                  <input
+                    type="date"
+                    value={formData.expected_close_date}
+                    onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
+                  />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Stage *</label>
-                <select
-                  value={formData.stage}
-                  onChange={(e) => setFormData({ ...formData, stage: parseInt(e.target.value) })}
-                  required
-                >
-                  {stages.map(stage => (
-                    <option key={stage.id} value={stage.id}>
-                      {stage.name}
-                    </option>
-                  ))}
-                </select>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Pipeline Stage</label>
+                  <select
+                    value={formData.stage || ''}
+                    onChange={(e) => setFormData({ ...formData, stage: parseInt(e.target.value) })}
+                  >
+                    {sortedStages.map((stage) => (
+                      <option key={stage.id} value={stage.id}>
+                        {stage.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div className="form-group">
-                <label>Expected Close Date</label>
-                <input
-                  type="date"
-                  value={formData.expected_close_date}
-                  onChange={(e) => setFormData({ ...formData, expected_close_date: e.target.value })}
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowDealModal(false)} className="btn btn-secondary">
+
+              <div className="form-actions">
+                <button type="button" onClick={() => setShowDealModal(false)} className="btn-secondary">
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button type="submit" className="btn-primary">
                   {editingDeal ? 'Update' : 'Create'} Deal
                 </button>
               </div>

@@ -1,14 +1,24 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Lead } from '../../api/crm'
+import React, { useState } from 'react'
+import {
+  Lead,
+  useConvertLeadToProspect,
+  useCreateLead,
+  useDeleteLead,
+  useLeads,
+  useUpdateLead,
+} from '../../api/crm'
 import './CRM.css'
 
 const Leads: React.FC = () => {
-  const [leads, setLeads] = useState<Lead[]>([])
-  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingLead, setEditingLead] = useState<Lead | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [filterSource, setFilterSource] = useState<string>('all')
+  const { data: leads = [], isLoading } = useLeads()
+  const createLeadMutation = useCreateLead()
+  const updateLeadMutation = useUpdateLead()
+  const deleteLeadMutation = useDeleteLead()
+  const convertLeadMutation = useConvertLeadToProspect()
   const [formData, setFormData] = useState<Partial<Lead>>({
     company_name: '',
     industry: '',
@@ -22,30 +32,14 @@ const Leads: React.FC = () => {
     lead_score: 0,
   })
 
-  useEffect(() => {
-    loadLeads()
-  }, [])
-
-  const loadLeads = async () => {
-    try {
-      const data = await crmApi.getLeads()
-      setLeads(data)
-    } catch (error) {
-      console.error('Failed to load leads:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       if (editingLead) {
-        await crmApi.updateLead(editingLead.id, formData)
+        await updateLeadMutation.mutateAsync({ id: editingLead.id, data: formData })
       } else {
-        await crmApi.createLead(formData)
+        await createLeadMutation.mutateAsync(formData)
       }
-      loadLeads()
       resetForm()
     } catch (error) {
       console.error('Failed to save lead:', error)
@@ -61,8 +55,7 @@ const Leads: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       try {
-        await crmApi.deleteLead(id)
-        loadLeads()
+        await deleteLeadMutation.mutateAsync(id)
       } catch (error) {
         console.error('Failed to delete lead:', error)
       }
@@ -72,9 +65,8 @@ const Leads: React.FC = () => {
   const handleConvertToProspect = async (lead: Lead) => {
     if (window.confirm(`Convert ${lead.company_name} to a prospect (sales opportunity)?`)) {
       try {
-        const result = await crmApi.convertLeadToProspect(lead.id)
+        const result = await convertLeadMutation.mutateAsync({ id: lead.id })
         alert(`Successfully converted to prospect! Prospect ID: ${result.prospect.id}`)
-        loadLeads()
       } catch (error) {
         console.error('Failed to convert lead:', error)
         alert('Failed to convert lead to prospect')
@@ -123,7 +115,7 @@ const Leads: React.FC = () => {
     return 'red'
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="loading">Loading leads...</div>
   }
 

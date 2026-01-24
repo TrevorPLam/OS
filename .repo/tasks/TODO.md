@@ -66,22 +66,24 @@
 
 ---
 
-### [TASK-014] Convert CRM API to React Query Hooks
+### [TASK-015] Refactor Page Components to Use React Query Hooks (Phase 1: Core Pages)
 - **Priority:** P0
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** Largest API file (636 lines, 30+ functions) needs conversion to React Query hooks. Per ANALYSIS.md Section 0.1, this is the most complex API file.
+- **Context:** Per ANALYSIS.md Section 0.3-0.4, all page components use anti-pattern (useState + useEffect + direct API calls). Only 2 pages use React Query correctly. This blocks production readiness.
 
 #### Acceptance Criteria
-- [ ] Convert all 30+ functions in `frontend/src/api/crm.ts` to React Query hooks
-- [ ] Export hooks: `useLeads()`, `useDeals()`, `usePipelines()`, `usePipelineStages()`, etc.
-- [ ] Replace `any` types with proper interfaces (lines 147, 454, 527, 571)
-- [ ] Implement proper query invalidation on mutations
-- [ ] Add TypeScript return types (fix `Promise<any>` issues)
-- [ ] Verify all hooks follow documented patterns
+- [ ] Refactor `frontend/src/pages/Clients.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/Login.tsx` to use React Query hooks
+- [ ] Refactor `frontend/src/pages/Register.tsx` to use React Query hooks
+- [ ] Remove all `useState` + `useEffect` + direct API call patterns
+- [ ] Remove manual loading states (use React Query `isLoading`)
+- [ ] Replace `console.error` with proper error handling
+- [ ] Verify pages work correctly with new hooks
 
 #### Notes
-- Per ANALYSIS.md Section 0.1: 30+ functions need conversion
-- Must fix duplicate properties (TASK-012) first
-- Estimated: 6-8 hours
-- File: `frontend/src/api/crm.ts`
+- Per ANALYSIS.md Section 0.3: Clients.tsx has 4 direct API calls, 5 useState hooks
+- Per ANALYSIS.md Section 0.10: Login.tsx needs React Hook Form (separate task)
+- Reference: `frontend/src/pages/WorkflowBuilder.tsx` for correct pattern
+- Estimated: 8-10 hours for core pages
+- Files: `frontend/src/pages/Clients.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/pages/Register.tsx`

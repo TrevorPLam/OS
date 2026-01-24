@@ -1,21 +1,22 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ReactFlow, {
-  Node,
-  Edge,
-  Controls,
   Background,
-  useNodesState,
-  useEdgesState,
-  MarkerType,
   BackgroundVariant,
+  Controls,
+  Edge,
+  MarkerType,
+  Node,
   Panel,
+  useEdgesState,
+  useNodesState,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { crmApi, ContactGraphData } from '../../api/crm'
+import { ContactGraphNode, useContactGraphView } from '../../api/crm'
 import './ContactGraphView.css'
 
-// Custom node component for contacts
-const ContactNode = ({ data }: { data: any }) => {
+type ContactNodeData = ContactGraphNode['data'] & { strength: number }
+
+const ContactNode = ({ data }: { data: ContactNodeData }) => {
   return (
     <div className={`contact-node ${data.is_primary ? 'primary' : ''} ${data.is_decision_maker ? 'decision-maker' : ''}`}>
       <div className="contact-node-header">
@@ -33,8 +34,7 @@ const ContactNode = ({ data }: { data: any }) => {
   )
 }
 
-// Custom node component for accounts
-const AccountNode = ({ data }: { data: any }) => {
+const AccountNode = ({ data }: { data: ContactNodeData }) => {
   return (
     <div className={`account-node ${data.account_type || ''}`}>
       <div className="account-node-header">
@@ -56,99 +56,87 @@ const nodeTypes = {
 }
 
 const ContactGraphView: React.FC = () => {
-  const [graphData, setGraphData] = useState<ContactGraphData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [nodes, setNodes, onNodesChange] = useNodesState([])
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
-  
-  // Filters
+
   const [filterContactId, setFilterContactId] = useState<string>('')
   const [filterDepth, setFilterDepth] = useState<number>(2)
   const [includeInactive, setIncludeInactive] = useState(false)
   const [showContactsOnly, setShowContactsOnly] = useState(false)
   const [showAccountsOnly, setShowAccountsOnly] = useState(false)
 
-  const loadGraphData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const params: any = {
-        depth: filterDepth,
-        include_inactive: includeInactive,
-      }
-      
-      if (filterContactId && filterContactId.trim()) {
-        params.contact_id = parseInt(filterContactId, 10)
-      }
-      
-      const data = await crmApi.getContactGraphView(params)
-      setGraphData(data)
-      
-      // Convert graph data to React Flow format
-      const flowNodes: Node[] = data.nodes
-        .filter(node => {
-          if (showContactsOnly) return node.type === 'contact'
-          if (showAccountsOnly) return node.type === 'account'
-          return true
-        })
-        .map((node, index) => ({
-          id: node.id,
-          type: node.type,
-          data: {
-            ...node.data,
-            strength: node.strength,
-          },
-          position: calculateNodePosition(index, data.nodes.length, node.type),
-          style: {
-            opacity: 0.7 + (node.strength * 0.3), // Opacity based on strength
-          },
-        }))
-      
-      const flowEdges: Edge[] = data.edges
-        .filter(edge => {
-          // Filter edges based on node visibility
-          const sourceVisible = flowNodes.some(n => n.id === edge.source)
-          const targetVisible = flowNodes.some(n => n.id === edge.target)
-          return sourceVisible && targetVisible
-        })
-        .map(edge => ({
-          id: edge.id,
-          source: edge.source,
-          target: edge.target,
-          type: 'smoothstep',
-          animated: edge.type === 'relationship',
-          style: {
-            stroke: edge.type === 'relationship' ? '#10b981' : '#94a3b8',
-            strokeWidth: 1 + (edge.strength * 2),
-            opacity: 0.5 + (edge.strength * 0.5),
-          },
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            color: edge.type === 'relationship' ? '#10b981' : '#94a3b8',
-          },
-          label: edge.relationship_type ? edge.relationship_type.replace('_', ' ') : undefined,
-        }))
-      
-      setNodes(flowNodes)
-      setEdges(flowEdges)
-    } catch (err: any) {
-      setError(err.message || 'Failed to load graph data')
-      console.error('Failed to load contact graph:', err)
-    } finally {
-      setLoading(false)
-    }
-  }, [filterContactId, filterDepth, includeInactive, showContactsOnly, showAccountsOnly])
+  const contactId = useMemo(() => {
+    if (!filterContactId.trim()) return undefined
+    const parsed = parseInt(filterContactId, 10)
+    return Number.isNaN(parsed) ? undefined : parsed
+  }, [filterContactId])
+
+  const {
+    data: graphData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useContactGraphView({
+    contact_id: contactId,
+    depth: filterDepth,
+    include_inactive: includeInactive,
+  })
 
   useEffect(() => {
-    loadGraphData()
-  }, [loadGraphData])
+    if (!graphData) return
 
-  // Calculate node positions in a circular/force-directed layout
+    const flowNodes: Node<ContactNodeData>[] = graphData.nodes
+      .filter((node) => {
+        if (showContactsOnly) return node.type === 'contact'
+        if (showAccountsOnly) return node.type === 'account'
+        return true
+      })
+      .map((node, index) => ({
+        id: node.id,
+        type: node.type,
+        data: {
+          ...node.data,
+          strength: node.strength,
+        },
+        position: calculateNodePosition(index, graphData.nodes.length, node.type),
+        style: {
+          opacity: 0.7 + node.strength * 0.3,
+        },
+      }))
+
+    const flowEdges: Edge[] = graphData.edges
+      .filter((edge) => {
+        const sourceVisible = flowNodes.some((node) => node.id === edge.source)
+        const targetVisible = flowNodes.some((node) => node.id === edge.target)
+        return sourceVisible && targetVisible
+      })
+      .map((edge) => ({
+        id: edge.id,
+        source: edge.source,
+        target: edge.target,
+        type: 'smoothstep',
+        animated: edge.type === 'relationship',
+        style: {
+          stroke: edge.type === 'relationship' ? '#10b981' : '#94a3b8',
+          strokeWidth: 1 + edge.strength * 2,
+          opacity: 0.5 + edge.strength * 0.5,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: edge.type === 'relationship' ? '#10b981' : '#94a3b8',
+        },
+        label: edge.relationship_type ? edge.relationship_type.replace('_', ' ') : undefined,
+      }))
+
+    setNodes(flowNodes)
+    setEdges(flowEdges)
+  }, [graphData, setEdges, setNodes, showAccountsOnly, showContactsOnly])
+
   const calculateNodePosition = (index: number, total: number, type: string) => {
     const radius = type === 'contact' ? 300 : 500
     const angle = (index / total) * 2 * Math.PI
-    
+
     return {
       x: 400 + radius * Math.cos(angle),
       y: 300 + radius * Math.sin(angle),
@@ -156,7 +144,6 @@ const ContactGraphView: React.FC = () => {
   }
 
   const handleExportImage = () => {
-    // Simple implementation - in production, use react-flow's export functionality
     alert('Export functionality: In production, this would export the graph as PNG/SVG')
   }
 
@@ -168,7 +155,7 @@ const ContactGraphView: React.FC = () => {
     setShowAccountsOnly(false)
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="contact-graph-container">
         <div className="loading">Loading contact graph...</div>
@@ -176,13 +163,13 @@ const ContactGraphView: React.FC = () => {
     )
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="contact-graph-container">
         <div className="error">
           <h3>Error Loading Graph</h3>
-          <p>{error}</p>
-          <button onClick={loadGraphData}>Retry</button>
+          <p>{error instanceof Error ? error.message : 'Failed to load graph data'}</p>
+          <button onClick={() => refetch()}>Retry</button>
         </div>
       </div>
     )
@@ -264,7 +251,7 @@ const ContactGraphView: React.FC = () => {
         </div>
 
         <div className="action-buttons">
-          <button onClick={loadGraphData} className="btn-primary">
+          <button onClick={() => refetch()} className="btn-primary">
             Refresh
           </button>
           <button onClick={handleResetFilters} className="btn-secondary">

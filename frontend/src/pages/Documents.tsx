@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { useClients } from '../api/clients'
 import { documentsApi, Document, Folder } from '../api/documents'
-import { crmApi } from '../api/crm'
 import './Documents.css'
 
 interface Client {
@@ -11,7 +11,7 @@ interface Client {
 const Documents: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([])
   const [folders, setFolders] = useState<Folder[]>([])
-  const [clients, setClients] = useState<Client[]>([])
+  const { data: clients = [], isLoading: clientsLoading } = useClients()
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,14 +42,12 @@ const Documents: React.FC = () => {
     try {
       setLoading(true)
       setError(null)
-      const [docsData, foldersData, clientsData] = await Promise.all([
+      const [docsData, foldersData] = await Promise.all([
         documentsApi.getDocuments(selectedClient ? { client: selectedClient } : {}),
         documentsApi.getFolders(selectedClient ? { client: selectedClient } : {}),
-        crmApi.getClients(),
       ])
       setDocuments(docsData)
       setFolders(foldersData)
-      setClients(clientsData)
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to load documents')
     } finally {
@@ -174,7 +172,7 @@ const Documents: React.FC = () => {
     return client ? client.company_name : 'Unknown'
   }
 
-  if (loading) {
+  if (loading || clientsLoading) {
     return <div className="loading">Loading documents...</div>
   }
 

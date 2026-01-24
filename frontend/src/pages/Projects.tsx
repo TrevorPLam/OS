@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useClients } from '../api/clients'
 import { projectsApi, Project, ProjectCreate } from '../api/projects'
-import { crmApi } from '../api/crm'
 import './Projects.css'
-
-interface Client {
-  id: number
-  company_name: string
-}
 
 const Projects: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([])
-  const [clients, setClients] = useState<Client[]>([])
+  const { data: clients = [], isLoading: clientsLoading } = useClients()
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
@@ -37,12 +32,10 @@ const Projects: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [projectsData, clientsData] = await Promise.all([
+      const [projectsData] = await Promise.all([
         projectsApi.getProjects(),
-        crmApi.getClients(),
       ])
       setProjects(projectsData)
-      setClients(clientsData)
     } catch (error) {
       console.error('Error loading projects:', error)
     } finally {
@@ -130,7 +123,7 @@ const Projects: React.FC = () => {
     return client ? client.company_name : 'Unknown'
   }
 
-  if (loading) {
+  if (loading || clientsLoading) {
     return <div className="loading">Loading...</div>
   }
 
