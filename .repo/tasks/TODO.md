@@ -66,23 +66,22 @@
 
 ---
 
-### [TASK-013] Convert API Layer to React Query Hooks (Phase 1: Core APIs)
+### [TASK-014] Convert CRM API to React Query Hooks
 - **Priority:** P0
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** CRITICAL pattern violation per ANALYSIS.md. All API files export plain async functions instead of React Query hooks, contradicting documented patterns in PATTERNS.md. This blocks caching, background refetching, and proper error handling.
+- **Context:** Largest API file (636 lines, 30+ functions) needs conversion to React Query hooks. Per ANALYSIS.md Section 0.1, this is the most complex API file.
 
 #### Acceptance Criteria
-- [ ] Convert `frontend/src/api/clients.ts` - all 13 functions to React Query hooks
-- [ ] Convert `frontend/src/api/auth.ts` - all 6 functions to React Query hooks
-- [ ] Export hooks: `useClients()`, `useClient(id)`, `useCreateClient()`, `useUpdateClient()`, `useDeleteClient()`, `useLogin()`, `useRegister()`, etc.
+- [ ] Convert all 30+ functions in `frontend/src/api/crm.ts` to React Query hooks
+- [ ] Export hooks: `useLeads()`, `useDeals()`, `usePipelines()`, `usePipelineStages()`, etc.
+- [ ] Replace `any` types with proper interfaces (lines 147, 454, 527, 571)
 - [ ] Implement proper query invalidation on mutations
-- [ ] Add TypeScript return types to all hooks
-- [ ] Update PATTERNS.md if patterns need adjustment
-- [ ] Verify hooks follow pattern in `frontend/src/api/PATTERNS.md`
+- [ ] Add TypeScript return types (fix `Promise<any>` issues)
+- [ ] Verify all hooks follow documented patterns
 
 #### Notes
-- Per ANALYSIS.md Section 0.2, 1.1.1: Pattern violation affects all API files
-- Reference implementation: `frontend/src/pages/WorkflowBuilder.tsx` (correct pattern)
-- Estimated: 4-6 hours for core APIs
-- Files: `frontend/src/api/clients.ts`, `frontend/src/api/auth.ts`
+- Per ANALYSIS.md Section 0.1: 30+ functions need conversion
+- Must fix duplicate properties (TASK-012) first
+- Estimated: 6-8 hours
+- File: `frontend/src/api/crm.ts`

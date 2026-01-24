@@ -1,3 +1,4 @@
+import { useMutation, useQuery, useQueryClient, UseMutationResult, UseQueryResult } from '@tanstack/react-query'
 import apiClient from './client'
 
 // Clients Module Interfaces (Post-Sale)
@@ -73,82 +74,232 @@ export interface ClientEngagement {
   updated_at: string
 }
 
-export const clientsApi = {
-  // Clients
-  getClients: async (): Promise<Client[]> => {
-    const response = await apiClient.get('/clients/clients/')
-    return response.data.results || response.data
-  },
+const getListResults = <T>(data: { results?: T[] } | T[]): T[] => {
+  if (Array.isArray(data)) {
+    return data
+  }
 
-  getClient: async (id: number): Promise<Client> => {
-    const response = await apiClient.get(`/clients/clients/${id}/`)
-    return response.data
-  },
+  return data.results ?? []
+}
 
-  createClient: async (data: Partial<Client>): Promise<Client> => {
-    const response = await apiClient.post('/clients/clients/', data)
-    return response.data
-  },
+export const useClients = (): UseQueryResult<Client[], Error> => {
+  return useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const response = await apiClient.get('/clients/clients/')
+      return getListResults<Client>(response.data)
+    },
+  })
+}
 
-  updateClient: async (id: number, data: Partial<Client>): Promise<Client> => {
-    const response = await apiClient.put(`/clients/clients/${id}/`, data)
-    return response.data
-  },
+export const useClient = (id?: number): UseQueryResult<Client, Error> => {
+  return useQuery({
+    queryKey: ['clients', id],
+    queryFn: async () => {
+      const response = await apiClient.get(`/clients/clients/${id}/`)
+      return response.data
+    },
+    enabled: typeof id === 'number',
+  })
+}
 
-  deleteClient: async (id: number): Promise<void> => {
-    await apiClient.delete(`/clients/clients/${id}/`)
-  },
+export const useCreateClient = (): UseMutationResult<Client, Error, Partial<Client>> => {
+  const queryClient = useQueryClient()
 
-  // Portal Users
-  getPortalUsers: async (clientId?: number): Promise<ClientPortalUser[]> => {
-    const url = clientId ? `/clients/portal-users/?client=${clientId}` : '/clients/portal-users/'
-    const response = await apiClient.get(url)
-    return response.data.results || response.data
-  },
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await apiClient.post('/clients/clients/', data)
+      return response.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
+  })
+}
 
-  createPortalUser: async (data: Partial<ClientPortalUser>): Promise<ClientPortalUser> => {
-    const response = await apiClient.post('/clients/portal-users/', data)
-    return response.data
-  },
+export const useUpdateClient = (): UseMutationResult<
+  Client,
+  Error,
+  { id: number; data: Partial<Client> }
+> => {
+  const queryClient = useQueryClient()
 
-  updatePortalUser: async (id: number, data: Partial<ClientPortalUser>): Promise<ClientPortalUser> => {
-    const response = await apiClient.put(`/clients/portal-users/${id}/`, data)
-    return response.data
-  },
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiClient.put(`/clients/clients/${id}/`, data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['clients', variables.id] })
+    },
+  })
+}
 
-  deletePortalUser: async (id: number): Promise<void> => {
-    await apiClient.delete(`/clients/portal-users/${id}/`)
-  },
+export const useDeleteClient = (): UseMutationResult<void, Error, number> => {
+  const queryClient = useQueryClient()
 
-  // Client Notes
-  getNotes: async (clientId: number): Promise<ClientNote[]> => {
-    const response = await apiClient.get(`/clients/notes/?client=${clientId}`)
-    return response.data.results || response.data
-  },
+  return useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/clients/clients/${id}/`)
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+      queryClient.invalidateQueries({ queryKey: ['clients', id] })
+    },
+  })
+}
 
-  createNote: async (data: Partial<ClientNote>): Promise<ClientNote> => {
-    const response = await apiClient.post('/clients/notes/', data)
-    return response.data
-  },
+export const usePortalUsers = (clientId?: number): UseQueryResult<ClientPortalUser[], Error> => {
+  return useQuery({
+    queryKey: ['portal-users', clientId ?? 'all'],
+    queryFn: async () => {
+      const url = clientId ? `/clients/portal-users/?client=${clientId}` : '/clients/portal-users/'
+      const response = await apiClient.get(url)
+      return getListResults<ClientPortalUser>(response.data)
+    },
+  })
+}
 
-  updateNote: async (id: number, data: Partial<ClientNote>): Promise<ClientNote> => {
-    const response = await apiClient.put(`/clients/notes/${id}/`, data)
-    return response.data
-  },
+export const useCreatePortalUser = (): UseMutationResult<
+  ClientPortalUser,
+  Error,
+  Partial<ClientPortalUser>
+> => {
+  const queryClient = useQueryClient()
 
-  deleteNote: async (id: number): Promise<void> => {
-    await apiClient.delete(`/clients/notes/${id}/`)
-  },
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await apiClient.post('/clients/portal-users/', data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['portal-users'] })
+      if (variables.client) {
+        queryClient.invalidateQueries({ queryKey: ['portal-users', variables.client] })
+      }
+    },
+  })
+}
 
-  // Client Engagements
-  getEngagements: async (clientId?: number): Promise<ClientEngagement[]> => {
-    const url = clientId ? `/clients/engagements/?client=${clientId}` : '/clients/engagements/'
-    const response = await apiClient.get(url)
-    return response.data.results || response.data
-  },
+export const useUpdatePortalUser = (): UseMutationResult<
+  ClientPortalUser,
+  Error,
+  { id: number; data: Partial<ClientPortalUser> }
+> => {
+  const queryClient = useQueryClient()
 
-  getEngagement: async (id: number): Promise<ClientEngagement> => {
-    const response = await apiClient.get(`/clients/engagements/${id}/`)
-    return response.data
-  },
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiClient.put(`/clients/portal-users/${id}/`, data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['portal-users'] })
+      if (variables.data.client) {
+        queryClient.invalidateQueries({ queryKey: ['portal-users', variables.data.client] })
+      }
+    },
+  })
+}
+
+export const useDeletePortalUser = (): UseMutationResult<void, Error, number> => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/clients/portal-users/${id}/`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portal-users'] })
+    },
+  })
+}
+
+export const useClientNotes = (clientId: number): UseQueryResult<ClientNote[], Error> => {
+  return useQuery({
+    queryKey: ['client-notes', clientId],
+    queryFn: async () => {
+      const response = await apiClient.get(`/clients/notes/?client=${clientId}`)
+      return getListResults<ClientNote>(response.data)
+    },
+    enabled: typeof clientId === 'number',
+  })
+}
+
+export const useCreateClientNote = (): UseMutationResult<
+  ClientNote,
+  Error,
+  Partial<ClientNote>
+> => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (data) => {
+      const response = await apiClient.post('/clients/notes/', data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      if (variables.client) {
+        queryClient.invalidateQueries({ queryKey: ['client-notes', variables.client] })
+      }
+    },
+  })
+}
+
+export const useUpdateClientNote = (): UseMutationResult<
+  ClientNote,
+  Error,
+  { id: number; data: Partial<ClientNote> }
+> => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data }) => {
+      const response = await apiClient.put(`/clients/notes/${id}/`, data)
+      return response.data
+    },
+    onSuccess: (_, variables) => {
+      if (variables.data.client) {
+        queryClient.invalidateQueries({ queryKey: ['client-notes', variables.data.client] })
+      }
+    },
+  })
+}
+
+export const useDeleteClientNote = (): UseMutationResult<void, Error, number> => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id) => {
+      await apiClient.delete(`/clients/notes/${id}/`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-notes'] })
+    },
+  })
+}
+
+export const useClientEngagements = (
+  clientId?: number
+): UseQueryResult<ClientEngagement[], Error> => {
+  return useQuery({
+    queryKey: ['client-engagements', clientId ?? 'all'],
+    queryFn: async () => {
+      const url = clientId ? `/clients/engagements/?client=${clientId}` : '/clients/engagements/'
+      const response = await apiClient.get(url)
+      return getListResults<ClientEngagement>(response.data)
+    },
+  })
+}
+
+export const useClientEngagement = (id?: number): UseQueryResult<ClientEngagement, Error> => {
+  return useQuery({
+    queryKey: ['client-engagement', id],
+    queryFn: async () => {
+      const response = await apiClient.get(`/clients/engagements/${id}/`)
+      return response.data
+    },
+    enabled: typeof id === 'number',
+  })
 }

@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 2 |
-| P0 Completed | 2 |
+| Total Completed | 3 |
+| P0 Completed | 3 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -47,6 +47,26 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-013] Convert API Layer to React Query Hooks (Phase 1: Core APIs) ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** CRITICAL pattern violation per ANALYSIS.md. All API files export plain async functions instead of React Query hooks, contradicting documented patterns in PATTERNS.md. This blocks caching, background refetching, and proper error handling.
+
+#### Acceptance Criteria
+- [x] Convert `frontend/src/api/clients.ts` - all 13 functions to React Query hooks
+- [x] Convert `frontend/src/api/auth.ts` - all 6 functions to React Query hooks
+- [x] Export hooks: `useClients()`, `useClient(id)`, `useCreateClient()`, `useUpdateClient()`, `useDeleteClient()`, `useLogin()`, `useRegister()`, etc.
+- [x] Implement proper query invalidation on mutations
+- [x] Add TypeScript return types to all hooks
+- [x] Update PATTERNS.md if patterns need adjustment
+- [x] Verify hooks follow pattern in `frontend/src/api/PATTERNS.md`
+
+#### Outcome
+- Converted client/auth API modules to typed React Query hooks with query invalidation.
+- Updated AuthContext and relevant pages/tests to consume new hooks.
 
 ### [TASK-012] Fix TypeScript Duplicate Properties in frontend/src/api/crm.ts ✓
 - **Priority:** P0
