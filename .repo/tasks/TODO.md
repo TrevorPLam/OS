@@ -66,17 +66,24 @@
 
 ---
 
-### [TASK-003] Fix Duplicate Content in CI Workflow
-- **Priority:** P0
+### [TASK-016] Implement React Hook Form in All Forms
+- **Priority:** P1
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** `.github/workflows/ci.yml` has two conflicting workflow definitions causing confusion.
+- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
 
 #### Acceptance Criteria
-- [ ] Remove duplicate workflow definition
-- [ ] Ensure single coherent CI pipeline
-- [ ] Verify all jobs run correctly
-- [ ] Test on a branch before merging
+- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
+- [ ] Implement React Hook Form in all remaining forms (10+ pages)
+- [ ] Add proper validation rules to all forms
+- [ ] Remove manual form state management (useState patterns)
+- [ ] Verify all forms work correctly
 
 #### Notes
-- File currently has 403 lines with overlapping `name: CI` and `name: CI/CD Pipeline`
+- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
+- Would eliminate ~300-450 lines of duplicate code
+- Estimated: 12-16 hours for all forms
+- Files: All page components with forms

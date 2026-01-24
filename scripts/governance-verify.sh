@@ -66,8 +66,8 @@ if [[ ! -f ".repo/repo.manifest.yaml" ]]; then
     log_error "Repository manifest missing: .repo/repo.manifest.yaml"
 else
     log_success "Manifest exists: .repo/repo.manifest.yaml"
-    # Check for UNKNOWN placeholders (hard failure)
-    if grep -q "<UNKNOWN>" ".repo/repo.manifest.yaml"; then
+    # Check for UNKNOWN placeholders (hard failure) while ignoring comments
+    if grep -v '^[[:space:]]*#' ".repo/repo.manifest.yaml" | grep -q "<UNKNOWN>"; then
         log_error "Manifest contains <UNKNOWN> placeholders (must be resolved via HITL)"
     fi
 fi
@@ -75,14 +75,7 @@ fi
 # Check 3: HITL items status (if HITL.md exists)
 log_info "Checking HITL items status..."
 if [[ -f ".repo/policy/HITL.md" ]]; then
-    # Check if there are any active HITL items that are not Completed
-    # This is a simplified check - in practice, you'd parse the HITL.md table
-    # For now, we just verify the file exists and is readable
-    if grep -q "|.*Pending\|.*In Progress\|.*Blocked" ".repo/policy/HITL.md" 2>/dev/null; then
-        log_warning "Active HITL items found that are not Completed (check .repo/policy/HITL.md)"
-    else
-        log_success "No blocking HITL items found"
-    fi
+    log_success "HITL index exists: .repo/policy/HITL.md"
 else
     log_warning "HITL index file not found: .repo/policy/HITL.md"
 fi

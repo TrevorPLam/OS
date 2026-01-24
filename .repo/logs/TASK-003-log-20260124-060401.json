@@ -1,0 +1,40 @@
+{
+  "intent": "ci-workflow-stabilization",
+  "plan": [
+    "Review task definitions, manifest commands, and existing CI workflow.",
+    "Align CI jobs with the current repo layout and Makefile targets.",
+    "Fix setup/lint/governance blockers uncovered during verification.",
+    "Update task tracking files and document CI governance integration."
+  ],
+  "actions": [
+    "Rewrote .github/workflows/ci.yml to use backend/frontend Makefile targets and correct paths.",
+    "Fixed backend Makefile virtualenv bin detection and added fallbacks for ruff/pytest.",
+    "Updated root Makefile verify target to build before running build-check.",
+    "Adjusted governance-verify.sh to ignore commented <UNKNOWN> guidance and avoid HITL header false positives.",
+    "Updated CONTRIBUTING.md and task lifecycle files (TODO/BACKLOG/ARCHIVE).",
+    "Generated and validated a trace log for TASK-003."
+  ],
+  "evidence": [
+    "make setup (fails here due to proxy restrictions on pip installs)",
+    "make lint (pass)",
+    "make verify SKIP_HEAVY=1 (pass)",
+    "make test (fails: missing pytest plugins in this environment; frontend typecheck/tests also fail)",
+    "make check-governance (fails locally due to missing import-linter)"
+  ],
+  "decisions": [
+    "Use Makefile targets in CI to reduce duplication and align with repo.manifest commands.",
+    "Keep openapi-check disabled but correct its backend paths for future enablement.",
+    "Install import-linter explicitly in CI jobs instead of adding new dependencies to requirements-dev.txt."
+  ],
+  "risks": [
+    "CI will now exercise real lint/test commands and may surface existing frontend typecheck/test failures.",
+    "make verify SKIP_HEAVY=0 remains blocked by frontend build output mismatch (TASK-020) and environment dependency constraints."
+  ],
+  "follow_ups": [
+    "Complete TASK-020 to align Vite outDir with build-check expectations.",
+    "Address frontend typecheck/test failures before enabling heavier CI profiles.",
+    "Consider hardening scripts/validate-task-format.sh to handle TODO templates without errors."
+  ],
+  "reasoning_summary": "Focused on CI stability quick wins by removing legacy src/ assumptions, fixing setup/governance false positives, and documenting the updated pipeline. Known blockers requiring HITL or larger refactors are called out as follow-ups.",
+  "notes": "No secrets. No private data. No raw chain-of-thought."
+}

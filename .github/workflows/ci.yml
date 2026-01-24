@@ -1,10 +1,10 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [ main, develop, claude/* ]
+    branches: [main, develop, claude/*]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     # WHY: weekly dependency scans catch newly disclosed CVEs without waiting for PRs.
     - cron: '0 3 * * 1'
@@ -14,350 +14,249 @@ env:
   NODE_VERSION: '18'
 
 jobs:
-  # Job 1: Lint and Code Quality
   lint:
     name: Lint & Code Quality
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install import-linter
-      run: |
-        pip install import-linter==2.0
+      - name: Install dependencies
+        run: make setup
 
-    - name: Run flake8
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        # TIER 1: Fail CI on lint errors (removed --exit-zero)
-        flake8 src/ --count --max-complexity=10 --max-line-length=120 --statistics
+      - name: Install import-linter
+        run: backend/.venv/bin/pip install import-linter==2.0
 
-    - name: Check code formatting with black
-      run: |
-        black --check src/ --line-length=120
+      - name: Check boundary rules with import-linter
+        run: backend/.venv/bin/lint-imports --config .importlinter
 
-    - name: Check import sorting with isort
-      run: |
-        isort --check-only src/ --profile black
+      - name: Run lint suite
+        run: make lint
 
-    - name: Check boundary rules with import-linter
-      run: |
-        # CONST-10: Enforce architectural boundary rules
-        lint-imports
-
-  # Job 2: Backend Tests
   test-backend:
     name: Backend Tests
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: consultantpro_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    env:
-      DJANGO_SECRET_KEY: test-secret-key-for-ci
-      DJANGO_DEBUG: 'False'
-      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
-      POSTGRES_DB: consultantpro_test
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
-      AWS_ACCESS_KEY_ID: test-key
-      AWS_SECRET_ACCESS_KEY: test-secret
-      AWS_STORAGE_BUCKET_NAME: test-bucket
-      STRIPE_SECRET_KEY: sk_test_fake
-      STRIPE_WEBHOOK_SECRET: whsec_test_fake
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements-dev.txt
+      - name: Install backend dependencies
+        run: make -C backend setup
 
-    - name: Create logs directory
-      run: mkdir -p src/logs
+      - name: Run backend tests with coverage
+        run: make -C backend test
 
-    - name: Run migrations
-      run: |
-        cd src
-        python manage.py makemigrations
-        python manage.py migrate --noinput
+      - name: Run backend performance tests
+        run: make -C backend test-performance
 
-    - name: Run tests with coverage
-      run: |
-        cd src
-        pytest --cov=modules --cov=api --cov-report=xml --cov-report=term -v
-
-    - name: Run query efficiency tests
-      run: |
-        cd src
-        pytest -m performance -v ../tests
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./src/coverage.xml
-        flags: backend
-        # TIER 1: Fail CI if coverage upload fails
-        fail_ci_if_error: true
-
-  # Job 3: Frontend Tests & Build
   test-frontend:
     name: Frontend Tests & Build
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: src/frontend/package-lock.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install dependencies
-      run: |
-        cd src/frontend
-        npm ci
+      - name: Install frontend dependencies
+        run: make -C frontend setup
 
-    - name: Run linter
-      run: |
-        cd src/frontend
-        # TIER 1: Fail CI on lint errors (removed || echo skip pattern)
-        npm run lint
+      - name: Run frontend tests
+        run: make -C frontend test
 
-    - name: Run typecheck
-      run: |
-        cd src/frontend
-        # TIER 1: Add frontend typecheck to CI
-        npm run typecheck
+      - name: Build frontend
+        run: make -C frontend build
 
-    - name: Build frontend
-      run: |
-        cd src/frontend
-        npm run build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist
+          if-no-files-found: warn
+          retention-days: 7
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: frontend-build
-        path: src/frontend/dist
-        retention-days: 7
-
-  # Job 4: Security Audit
   security:
     name: Security Audit
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-    - name: Install safety and bandit
-      run: pip install -r requirements-dev.txt
+      - name: Install backend dependencies
+        run: make -C backend setup
 
-    - name: Run pip-audit dependency scan
-      run: |
-        # WHY: pip-audit checks published CVEs against pinned dependencies.
-        pip-audit -r requirements.txt -r requirements-dev.txt
+      - name: Install import-linter
+        run: backend/.venv/bin/pip install import-linter==2.0
 
-    - name: Check for security vulnerabilities
-      run: |
-        # TIER 1: Fail CI on security vulnerabilities (removed --continue-on-error)
-        # Note: Will fail if requirements.txt doesn't exist - this is intentional
-        safety check --file requirements.txt
+      - name: Run pip-audit dependency scan
+        run: backend/.venv/bin/pip-audit -r requirements.txt -r requirements-dev.txt
 
-    - name: Run SAST with bandit
-      run: |
-        # CONST-1: Static Application Security Testing with bandit
-        bandit -r src/ -f json -o bandit-report.json || true
-        bandit -r src/ -ll -f screen
+      - name: Check for security vulnerabilities
+        run: backend/.venv/bin/safety check --file requirements.txt
 
-    - name: Check architectural boundaries
-      run: |
-        # CONST-10: Enforce import boundaries with import-linter
-        lint-imports --config .importlinter
+      - name: Run SAST with bandit
+        run: |
+          backend/.venv/bin/bandit -r backend/ -f json -o bandit-report.json || true
+          backend/.venv/bin/bandit -r backend/ -ll -f screen
 
-    - name: Scan for secrets
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: ${{ github.event.repository.default_branch }}
-        head: HEAD
+      - name: Check architectural boundaries
+        run: backend/.venv/bin/lint-imports --config .importlinter
 
-    - name: Create issue on scheduled security scan failure
-      if: failure() && github.event_name == 'schedule'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const title = `Security scan failed (${new Date().toISOString().slice(0, 10)})`
-          const body = [
-            'Scheduled dependency/security scan failed.',
-            '',
-            `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-          ].join('\n')
-          await github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title,
-            body,
-          })
+      - name: Scan for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
 
-  # Job 5: Docker Build
+      - name: Create issue on scheduled security scan failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `Security scan failed (${new Date().toISOString().slice(0, 10)})`
+            const body = [
+              'Scheduled dependency/security scan failed.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            ].join('\n')
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+            })
+
   docker-build:
     name: Docker Build Test
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: false
-        tags: consultantpro:test
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: consultantpro:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  # Job 6: OpenAPI Schema Validation (CONST-6)
   openapi-check:
     name: OpenAPI Schema Validation
     runs-on: ubuntu-latest
-    # Temporarily disabled until blocking issues are resolved (see docs/03-reference/api/README.md)
+    # Temporarily disabled until blocking issues are resolved (see TASK-008)
     if: false
 
-    env:
-      DJANGO_SECRET_KEY: test-secret-key-for-ci
-      DJANGO_DEBUG: 'False'
-      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
-      POSTGRES_DB: consultantpro_test
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: 5432
-      AWS_ACCESS_KEY_ID: test-key
-      AWS_SECRET_ACCESS_KEY: test-secret
-      AWS_STORAGE_BUCKET_NAME: test-bucket
-      STRIPE_SECRET_KEY: sk_test_fake
-      STRIPE_WEBHOOK_SECRET: whsec_test_fake
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt -r requirements-dev.txt
+      - name: Install backend dependencies
+        run: make -C backend setup
 
-    - name: Generate OpenAPI schema
-      run: |
-        cd src
-        mkdir -p ../docs/03-reference/api
-        DJANGO_SECRET_KEY=test-key USE_SQLITE_FOR_TESTS=True python manage.py spectacular --file ../docs/03-reference/api/openapi-generated.yaml
+      - name: Generate OpenAPI schema
+        run: make -C backend openapi
 
-    - name: Check for schema drift
-      run: |
-        # CONST-6: Ensure OpenAPI schema is up to date
-        if [ ! -f docs/03-reference/api/openapi.yaml ]; then
-          echo "❌ OpenAPI schema not found. Run 'make openapi' and commit docs/03-reference/api/openapi.yaml"
-          exit 1
-        fi
+      - name: Check for schema drift
+        run: |
+          if [ ! -f backend/openapi.yaml ]; then
+            echo "❌ OpenAPI schema not found. Run 'make openapi' and commit backend/openapi.yaml"
+            exit 1
+          fi
 
-        # Compare schemas
-        if ! diff -q docs/03-reference/api/openapi.yaml docs/03-reference/api/openapi-generated.yaml; then
-          echo "❌ OpenAPI schema has drifted from committed version"
-          echo "Run 'make openapi' and commit the updated schema"
-          diff docs/03-reference/api/openapi.yaml docs/03-reference/api/openapi-generated.yaml || true
-          exit 1
-        fi
+          git diff --exit-code backend/openapi.yaml
+          echo "✅ OpenAPI schema is up to date"
 
-        echo "✅ OpenAPI schema is up to date"
-
-  # Job 7: Governance Verification
   governance:
     name: Governance Verification
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Run governance verification
-      run: |
-        chmod +x scripts/governance-verify.sh
-        ./scripts/governance-verify.sh
+      - name: Install import-linter
+        run: python -m pip install --upgrade pip import-linter==2.0
 
-    - name: Install Python dependencies for scripts
-      run: |
-        pip install requests || echo "requests not available, will use fallback method"
+      - name: Run governance verification
+        run: |
+          chmod +x scripts/governance-verify.sh
+          ./scripts/governance-verify.sh
 
-    - name: Sync HITL to PR
-      if: github.event_name == 'pull_request'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_REPOSITORY: ${{ github.repository }}
-      run: |
-        python3 scripts/sync-hitl-to-pr.py ${{ github.event.pull_request.number }} || true
-      continue-on-error: true
+      - name: Install Python dependencies for scripts
+        run: pip install requests || echo "requests not available, will use fallback method"
 
-  # Job 8: Deploy to Staging (only on main branch)
+      - name: Sync HITL to PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/sync-hitl-to-pr.py ${{ github.event.pull_request.number }} || true
+        continue-on-error: true
+
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
@@ -365,14 +264,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Deploy notification
-      run: |
-        echo "🚀 Deploying to staging environment..."
-        echo "Commit: ${{ github.sha }}"
-        echo "Branch: ${{ github.ref }}"
+      - name: Deploy notification
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "Commit: ${{ github.sha }}"
+          echo "Branch: ${{ github.ref }}"
 
     # Add your deployment steps here (e.g., SSH to server, docker-compose pull/up)
     # Example:
