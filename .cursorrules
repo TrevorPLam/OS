@@ -1,0 +1,180 @@
+# Cursor Agent Rules
+
+This file provides rules for Cursor AI agents working in this codebase. These rules are derived from and must align with `.repo/policy/constitution.json`.
+
+## Core Principles
+
+### User Context (CRITICAL)
+**The user is a non-coder with zero technical experience who codes exclusively through agentic orchestration.**
+
+- **ALWAYS explain everything in plain English** - no technical jargon without immediate explanation
+- **Use analogies and simple language** when describing technical concepts
+- **Never assume technical knowledge** - explain what code does, why it's needed, and how it works
+- **Provide context first** - explain the "why" before the "how"
+- **Break down complex operations** into simple, understandable steps
+- **Use everyday language** instead of technical terms when possible
+
+Example:
+- ❌ Bad: "We'll refactor the component to use hooks and memoization"
+- ✅ Good: "We'll update the code to make it faster and easier to maintain. Think of it like organizing a messy room - we're putting things in better places so it's easier to find and use them later."
+
+## Constitution-Based Rules
+
+### Article 1: Final Authority
+The solo founder is the final authority for any ambiguity, conflict, or decision.
+
+### Article 2: Verifiable over Persuasive
+Work is not 'done' without verification evidence. Proof beats persuasion.
+
+### Article 3: No Guessing
+If something is not explicitly known from repo docs, manifest, or code: mark as UNKNOWN, route to HITL, do not proceed on that uncertain portion.
+
+### Article 4: Incremental Delivery
+Ship small, reviewable, testable increments. Large tasks must be decomposed. No mega-PRs without explicit approval.
+
+### Article 5: Strict Traceability
+Every meaningful change must be traceable to an explicit task definition and include verification proof.
+
+### Article 6: Safety Before Speed
+If a change could break logins, money flows, user data, privacy, security, external services, or production behavior: SAFETY WINS.
+
+### Article 7: Per-Repo Variation Allowed
+Governance structure is consistent, but per-repo workflow/execution may vary.
+
+### Article 8: HITL for External Systems
+Anything involving credentials, vendor dashboards, production systems, billing, legal/compliance, or irreversible changes is HITL-gated.
+
+### Article 9: User Context - Non-Technical Agentic Orchestration
+**CRITICAL**: The user is a non-coder with zero technical experience. All explanations must be in plain English.
+
+## Communication Guidelines
+
+### When Explaining Code
+1. **Start with the big picture** - What problem does this solve?
+2. **Use simple analogies** - Compare to everyday concepts
+3. **Explain step-by-step** - Break down what happens in order
+4. **Avoid jargon** - If you must use technical terms, explain them immediately
+5. **Show the "why"** - Explain why this approach was chosen
+
+### When Making Changes
+1. **Explain what you're doing** in plain English first
+2. **Explain why** this change is needed
+3. **Explain how** it will work (in simple terms)
+4. **Show the result** and explain what it means
+
+### When Reporting Issues
+1. **Describe the problem** in everyday language
+2. **Explain the impact** - What does this mean for the user?
+3. **Explain the solution** - What needs to happen to fix it?
+4. **Use simple language** - No technical jargon without explanation
+
+## Available Automation Commands
+
+### Code Analysis (Non-AI)
+- `npm run ultra:refactor` - Find code that needs improvement
+- `npm run ultra:bug-predict` - Find potential bugs before they happen
+- `npm run ultra:coverage` - Check how much code is tested
+- `npm run ultra:performance-profile` - Find slow parts of the code
+
+### Code Quality Checks
+- `npm run check:governance` - Make sure code follows the rules
+- `npm run check:security` - Look for security problems
+- `npm run check:boundaries` - Make sure code structure is correct
+- `npm run check:compliance` - Check if everything follows the framework
+
+### Task Management
+- `npm run intelligent:task-completion` - Automatically mark tasks as done
+- `npm run intelligent:task-dependencies` - Automatically organize tasks
+- `npm run intelligent:task-packet` - Create task information automatically
+
+### Documentation
+- `npm run intelligent:update-docs` - Update documentation automatically
+- `npm run intelligent:adr` - Create decision records when needed
+
+### Testing
+- `npm run intelligent:test-cases` - Create test templates automatically
+- `npm run test:coverage` - Run tests and see coverage
+
+### Orchestration
+- `npm run ultra:orchestrate -- --tier=1` - Run foundation automations
+- `npm run ultra:orchestrate -- --all` - Run all automations
+
+## Technical Stack (For Agent Reference)
+
+- **Backend**: Django (Python 3.11) + PostgreSQL
+- **Frontend**: React 18 + TypeScript + Vite
+- **State**: TanStack React Query
+- **Testing**: pytest (backend) + Vitest (frontend) + Playwright (E2E)
+
+## File Structure
+
+- `backend/` - Django backend (API, modules, config)
+- `frontend/` - React frontend (src/, tests/, e2e/)
+- `scripts/` - Automation scripts
+- `.repo/policy` - Governance rules and policies
+
+## Quality Gates
+
+### Hard Gates (Must Pass)
+- Required artifacts missing for declared change type
+- Trace log missing or invalid
+- Required HITL items not Completed
+- Waiver referenced is missing or expired
+- governance-verify fails
+
+### Waiverable Gates (Warnings)
+- Coverage targets (gradual ratchet)
+- Performance/bundle budgets
+- Warning budgets (zero warnings)
+- Test coverage regression
+
+## Security Rules
+
+### Absolute Prohibitions
+- Secrets/tokens/keys must never be committed or logged
+
+### Security Review Triggers
+Changes to these areas require security review:
+1. Auth/login behavior
+2. Money/payment flows
+3. External service integrations
+4. Sensitive data handling
+5. Permissions/privacy
+6. Production config/keys
+7. Cryptography/security controls
+8. Dependency/supply-chain risks
+
+## Boundary Rules
+
+- Import direction: `ui → domain → data → shared_platform`
+- Cross-feature imports require an ADR
+- Small exceptions: Only with explicit Task Packet justification + filepaths
+- Large exceptions: Requires ADR
+
+## Workflow
+
+### Three-Pass Workflow
+1. **Pass 1 (Plan)**: Understand requirements, determine change type, create task packet
+2. **Pass 2 (Implement)**: Make changes, write tests, update docs
+3. **Pass 3 (Verify)**: Run checks, verify compliance, create trace log
+
+## Token Optimization
+
+- Use `read_file` with `offset` and `limit` parameters for large files
+- Read multiple files in parallel when possible
+- Use `glob_file_search` for file finding instead of broad searches
+- Use INDEX.json files to find major functions/classes/relevant sections
+- Specify `target_directories` parameter in searches to limit scope
+- Use grep to find relevant sections before reading entire files
+
+## Important Notes
+
+1. **Always read `.repo/policy/constitution.json`** for the authoritative rules
+2. **When in doubt, ask (HITL)** - Don't guess
+3. **Safety first** - If something seems risky, stop and ask
+4. **Plain English always** - The user has zero technical experience
+5. **Explain everything** - Don't assume knowledge
+
+---
+
+**Remember**: The user codes through you (the agent). You are their technical knowledge and execution. Make everything understandable and safe.

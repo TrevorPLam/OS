@@ -1,0 +1,381 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "metadata": {
+    "description": "Procedural instructions - how to do things step-by-step",
+    "last_updated": "2026-01-24"
+  },
+  "hitl": {
+    "when_to_read": "If you encounter something that requires human input (UNKNOWN, risky change, security trigger, etc.)",
+    "workflow": {
+      "steps": [
+        "Mark current task in .repo/tasks/TODO.md as Status: Blocked",
+        "Move blocked task from TODO.md to BACKLOG.md (keep same priority)",
+        "Create HITL item in .repo/hitl/HITL-XXXX.md with plain English explanation",
+        "Update .repo/policy/HITL.md index to add HITL item to Active table",
+        "Promote next highest priority task from BACKLOG.md to TODO.md",
+        "Continue working on the new task"
+      ],
+      "explanation_required": {
+        "what_is_wrong": "Explain in plain English what the issue is (e.g., 'Command X is not in manifest', 'Security trigger Y requires approval', 'Unknown how to handle Z')",
+        "what_is_needed": "Explain in plain English what you need from the human (e.g., 'Please add command X to manifest', 'Please approve this security change', 'Please clarify how to handle Z')"
+      },
+      "human_response": {
+        "format": "Simple text response - no evidence required",
+        "options": [
+          "CLEAR: Human provides answer/instruction, task can proceed when promoted",
+          "INSTRUCT: Human gives specific direction, task updated with instructions",
+          "IGNORE: Human says to proceed anyway, task unblocked"
+        ],
+        "after_response": [
+          "Update HITL item Status to 'Completed'",
+          "Move HITL item from Active to Archived table in .repo/policy/HITL.md",
+          "Update task Status in BACKLOG.md (remove Blocked, ready to be promoted)"
+        ]
+      }
+    },
+    "storage": {
+      "index": ".repo/policy/HITL.md",
+      "items": ".repo/hitl/HITL-XXXX.md"
+    },
+    "item_format": {
+      "minimal_required": [
+        "ID (HITL-XXXX)",
+        "Status (Pending)",
+        "What is wrong (plain English)",
+        "What is needed (plain English)",
+        "Task ID (if blocking a task)"
+      ],
+      "optional": ["Category", "Date Required", "Date Completed"]
+    },
+    "triggers": {
+      "security": "See constitution.json.security.review_triggers",
+      "unknown": "Something not in docs, manifest, or code (Article 3)",
+      "external_systems": "Credentials, billing, production, vendor dashboards (Article 8)",
+      "risky": "Logins, money flows, user data, privacy, security (Article 6)"
+    }
+  },
+  "adr": {
+    "when_to_read": "If you need to create an ADR (cross-feature imports, API changes, schema changes)",
+    "trigger": "Cross-feature imports detected or API contract changes",
+    "create": {
+      "script": "scripts/create-adr-from-trigger.sh",
+      "template": ".repo/templates/ADR_TEMPLATE.md",
+      "location": "docs/adr/ADR-XXXX.md",
+      "steps": [
+        "Detect triggers: scripts/detect-adr-triggers.sh or run boundary check",
+        "Read .repo/policy/constitution.json.boundaries for boundary rules",
+        "Create ADR using script or template",
+        "Store in docs/adr/ADR-XXXX.md (directory auto-created by script)",
+        "Link ADR in PR description"
+      ]
+    },
+    "required_for": [
+      "Cross-module imports",
+      "API contract changes",
+      "Schema changes"
+    ]
+  },
+  "waivers": {
+    "when_to_read": "If a waiverable gate fails (coverage, performance, warnings)",
+    "create": {
+      "script": "scripts/create-waiver.sh",
+      "template": ".repo/templates/WAIVER_TEMPLATE.md",
+      "location": ".repo/waivers/WAIVER-XXX.md",
+      "steps": [
+        "governance-verify detects waiverable failure → suggests waiver",
+        "Create waiver using script or template",
+        "Store in .repo/waivers/WAIVER-XXX.md",
+        "Add to .repo/policy/WAIVERS.md index (if exists)",
+        "Set expiration date (waivers are temporary per Principle 22)",
+        "Link waiver in PR description"
+      ]
+    },
+    "check_expired": "scripts/check-expired-waivers.sh"
+  },
+  "task_packets": {
+    "when_to_read": "If you need to create a task packet (feature, api_change, cross_module change types)",
+    "required_for": ["feature", "api_change", "cross_module"],
+    "create": {
+      "template": ".repo/agents/task_packet.md",
+      "location": ".repo/tasks/packets/TASK-XXX-packet.json",
+      "required_fields": [
+        "goal",
+        "non_goals",
+        "acceptance_criteria",
+        "approach",
+        "files_touched (include filepaths)",
+        "verification_plan",
+        "risks",
+        "rollback_plan",
+        "hitl_requirements"
+      ],
+      "steps": [
+        "Determine change type (feature/api_change/cross_module)",
+        "Create task packet using template",
+        "Store as JSON file in .repo/tasks/packets/TASK-XXX-packet.json",
+        "Link task packet in PR description"
+      ]
+    },
+    "examples": {
+      "feature": ".repo/templates/examples/example_task_packet.json",
+      "api_change": ".repo/templates/examples/example_task_packet_api_change.json",
+      "cross_module": ".repo/templates/examples/example_task_packet_cross_module.json"
+    }
+  },
+  "logs": {
+    "when_to_read": "If you need to create trace logs or agent logs (non-doc changes)",
+    "trace_log": {
+      "when": "Pass 3 (Verify) after tests pass, for non-doc changes only",
+      "script": "scripts/generate-trace-log.sh [task-id] [intent]",
+      "schema": ".repo/templates/AGENT_TRACE_SCHEMA.json",
+      "required_fields": [
+        "intent",
+        "files",
+        "commands",
+        "evidence",
+        "hitl",
+        "unknowns"
+      ],
+      "location": ".repo/traces/",
+      "validate": "scripts/validate-trace-log.sh [trace-log-file]"
+    },
+    "agent_log": {
+      "when": "Pass 3 (Verify) for non-doc changes (P24 requirement)",
+      "script": "scripts/generate-agent-log.sh [task-id] [action]",
+      "template": ".repo/templates/AGENT_LOG_TEMPLATE.md",
+      "required_fields": [
+        "intent",
+        "plan",
+        "actions",
+        "evidence",
+        "decisions",
+        "risks",
+        "reasoning_summary"
+      ],
+      "location": ".repo/logs/"
+    },
+    "difference": {
+      "trace_log": "What changed (files, commands, evidence)",
+      "agent_log": "Why/how (reasoning, decisions, assumptions)"
+    }
+  },
+  "task_archiving": {
+    "when_to_read": "If you need to archive completed tasks",
+    "steps": [
+      "Mark acceptance criteria as [x] complete in .repo/tasks/TODO.md",
+      "Move task to top of .repo/tasks/ARCHIVE.md",
+      "Promote next task from .repo/tasks/BACKLOG.md to .repo/tasks/TODO.md (see task_promotion rules)"
+    ],
+    "script": "python3 scripts/archive-task.py --task-id <TASK-ID> --status completed"
+  },
+  "task_promotion": {
+    "when_to_read": "If you need to promote tasks from backlog to TODO",
+    "rules": {
+      "target_count": "3-5 tasks in TODO.md",
+      "grouping": "Tasks must be similar types (see similarity_criteria)",
+      "exception": "If TODO.md has 2 or fewer tasks, can promote any task (type mixing allowed)"
+    },
+    "similarity_criteria": {
+      "module_feature": "Same module/feature area (Calendar, Planner, Lists, Email, Analytics, etc.)",
+      "change_type": "Same change type (feature, api_change, security, cross_module, non_doc_change)",
+      "related_work": "Related tasks (e.g., all Phase 0 analytics tasks, all Phase 1 analytics tasks)"
+    },
+    "determine_similarity": {
+      "method": "Analyze task context, notes, and filepaths to identify module/feature area",
+      "examples": {
+        "calendar_tasks": "Tasks mentioning CalendarScreen, CalendarEvent, calendar/",
+        "planner_tasks": "Tasks mentioning PlannerScreen, TaskDetailScreen, planner/",
+        "analytics_tasks": "Tasks mentioning analytics/, Phase 0, Phase 1, telemetry",
+        "lists_tasks": "Tasks mentioning ListsScreen, ListEditorScreen, lists/"
+      }
+    },
+    "promotion_logic": {
+      "if_todo_has_3_to_5_similar": "Only promote tasks of the same type",
+      "if_todo_has_2_or_fewer": "Can promote any task (type mixing allowed)",
+      "if_no_similar_available": "Work with what's available (don't force grouping)"
+    },
+    "steps": [
+      "Count tasks in TODO.md",
+      "Identify task types in TODO.md (module/feature area, change type, related work)",
+      "If TODO.md has 3-5 tasks: Find next highest priority task of similar type in BACKLOG.md",
+      "If TODO.md has 2 or fewer tasks: Find next highest priority task (any type) in BACKLOG.md",
+      "If no similar tasks available: Promote next highest priority task anyway",
+      "Move task from BACKLOG.md to TODO.md"
+    ]
+  },
+  "unknown": {
+    "when_to_read": "If you encounter something not in docs, manifest, or code",
+    "workflow": [
+      "Mark it as <UNKNOWN> in your work",
+      "Follow HITL workflow (see procedures.json.hitl)",
+      "Explain: 'What is wrong: [describe the unknown]' and 'What is needed: [what you need to know]'",
+      "Block task, move to backlog, create HITL item, then continue with next task"
+    ]
+  },
+  "quality_gates": {
+    "when_to_read": "Before creating PR or if quality gates fail",
+    "test_examples": {
+      "viewset": ".repo/templates/examples/example_test_viewset.py",
+      "component": ".repo/templates/examples/example_test_component.tsx",
+      "api_integration": ".repo/templates/examples/example_test_api_integration.py"
+    },
+    "coverage_strategy": {
+      "type": "gradual_ratchet",
+      "meaning": "Do not require perfection immediately. Each change should improve coverage or keep it from regressing."
+    },
+    "performance_budgets": {
+      "enforcement": "strict_with_fallback_to_default",
+      "on_exceed": "fail + require waiver + remediation plan"
+    }
+  },
+  "boundaries": {
+    "when_to_read": "If you need to check or enforce module boundaries",
+    "check": {
+      "command": "lint-imports --config .importlinter",
+      "script": "node scripts/check-boundaries.js"
+    },
+    "if_violations": [
+      "Fix: Refactor to respect boundaries",
+      "Or create ADR: If cross-module import is justified (see procedures.json.adr)",
+      "Or create waiver: If exception is needed (see procedures.json.waivers)"
+    ],
+    "ci_integration": "Boundary checks run automatically in CI. PRs with violations are blocked unless fixed or waived."
+  },
+  "best_practices": {
+    "when_to_read": "If you need repo-specific coding patterns or delivery workflow",
+    "delivery_workflow": {
+      "local_checks_before_pr": [
+        "npm run lint — Run ESLint",
+        "npm run check:types — TypeScript type checking",
+        "npm test — Run Jest tests"
+      ],
+      "when_touching_apis": "Update Drizzle schema if needed (npm run db:push)",
+      "when_touching_docs": "Keep documentation in organized /docs structure and update canonical root guides as needed"
+    },
+    "examples": {
+      "client": "See .repo/policy/BESTPR.md (archived) for TypeScript React Native example",
+      "server": "See .repo/policy/BESTPR.md (archived) for Express example"
+    }
+  },
+  "three_pass_workflow": {
+    "when_to_read": "When starting work on a task - this is the core agent workflow",
+    "pass0_context": {
+      "when": "When entering a folder",
+      "steps": [
+        "Read .agent-context.json if exists (machine-readable folder context)",
+        "Read .AGENT.md if exists (human-readable folder quick reference)"
+      ]
+    },
+    "pass1_plan": {
+      "when": "Before making any changes",
+      "steps": [
+        "Determine change type (feature/api_change/security/cross_module/non_doc_change)",
+        "Check boundaries: Run lint-imports --config .importlinter or node scripts/check-boundaries.js",
+        "If feature/api_change/cross_module: Create task packet (see procedures.json.task_packets)",
+        "List all actions to take",
+        "Identify risks",
+        "List all files to modify (include filepaths)",
+        "Mark UNKNOWN items",
+        "Check if HITL needed (see procedures.json.hitl)",
+        "If crossing boundaries → Create ADR (see procedures.json.adr)",
+        "If risky/unknown → Create HITL → Block task and continue with next"
+      ]
+    },
+    "pass2_change": {
+      "when": "After planning is complete and blockers resolved",
+      "steps": [
+        "Apply edits from plan",
+        "Follow existing patterns in codebase",
+        "Include filepaths in all changes (global rule)",
+        "Respect boundaries (see procedures.json.boundaries)"
+      ],
+      "do_not_proceed_if": [
+        "Pass 1 blockers exist (HITL not completed, ADR not created, etc.)",
+        "UNKNOWN items unresolved",
+        "Security risky without HITL approval"
+      ]
+    },
+    "pass3_verify": {
+      "when": "After changes are made",
+      "steps": [
+        "Run tests from repo.manifest.yaml",
+        "Provide evidence (test results, command outputs)",
+        "Create trace log (for non-doc changes, see procedures.json.logs.trace_log)",
+        "Create agent log (for non-doc changes, see procedures.json.logs.agent_log)",
+        "Check quality gates (see constitution.json.quality_gates)",
+        "Document in PR: what, why, filepaths, verification, risks, rollback"
+      ]
+    }
+  },
+  "artifacts_by_change_type": {
+    "when_to_read": "After determining change type in Pass 1 (Plan) - know what artifacts to create",
+    "feature": ["task_packet", "trace_log", "tests"],
+    "api_change": ["task_packet", "adr", "trace_log", "openapi_update"],
+    "security": ["hitl", "trace_log", "security_tests"],
+    "cross_module": ["adr", "task_packet", "trace_log"],
+    "non_doc_change": ["agent_log", "trace_log", "reasoning_summary"],
+    "doc_only": []
+  },
+  "change_type_determination": {
+    "when_to_read": "In Pass 1 (Plan) before creating artifacts",
+    "decision_tree": {
+      "step1": {
+        "question": "Does it touch security/auth/money/external systems?",
+        "yes": "Change Type: security (requires HITL)",
+        "no": "Continue to step2"
+      },
+      "step2": {
+        "question": "Does it cross module/feature boundaries?",
+        "yes": "Change Type: cross_module (requires ADR)",
+        "no": "Continue to step3"
+      },
+      "step3": {
+        "question": "Does it change API contracts/endpoints?",
+        "yes": "Change Type: api_change (requires ADR + OpenAPI update)",
+        "no": "Continue to step4"
+      },
+      "step4": {
+        "question": "Does it add new functionality/features?",
+        "yes": "Change Type: feature",
+        "no": "Continue to step5"
+      },
+      "step5": {
+        "question": "Is it only documentation changes?",
+        "yes": "No artifacts required (doc-only)",
+        "no": "Change Type: non_doc_change (requires agent log + trace log)"
+      }
+    },
+    "examples": {
+      "feature": "Adding new user profile page, new dashboard widget, new report",
+      "api_change": "Adding new endpoint, changing request/response format, versioning API",
+      "security": "Auth changes, payment flows, external service integration, sensitive data handling",
+      "cross_module": "Importing from one module into another, shared utilities across modules",
+      "non_doc_change": "Bug fixes, refactoring, configuration changes, test updates"
+    },
+    "important": "One change type per PR (Principle 3). If multiple types, split into separate PRs."
+  },
+  "decision_trees": {
+    "when_to_read": "When encountering risky situations or UNKNOWN items",
+    "hitl_decision": {
+      "question": "Is it risky? (security, money, production, external systems)",
+      "yes": "Create HITL item → Block task → Move to backlog → Continue with next task",
+      "no": "Continue to unknown_check"
+    },
+    "unknown_check": {
+      "question": "Is it UNKNOWN? (not in docs, manifest, or code)",
+      "yes": "Mark <UNKNOWN> → Create HITL → Block task → Move to backlog → Continue with next task",
+      "no": "Continue to boundary_check"
+    },
+    "boundary_check": {
+      "question": "Does it cross module boundaries?",
+      "yes": "Requires ADR (see procedures.json.adr)",
+      "no": "Continue to waiver_check"
+    },
+    "waiver_check": {
+      "question": "Did a waiverable gate fail? (coverage, performance, warnings)",
+      "yes": "Create waiver using template → Link in PR (see procedures.json.waivers)",
+      "no": "Proceed with work"
+    }
+  }
+}

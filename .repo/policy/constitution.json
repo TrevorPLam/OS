@@ -1,0 +1,308 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "metadata": {
+    "description": "Behavioral governance rules - what to do, not how to do it",
+    "immutable_sections": ["constitution"],
+    "procedures_file": ".repo/policy/procedures.json",
+    "automation_commands_file": ".repo/policy/automation-commands.json",
+    "last_updated": "2026-01-24"
+  },
+  "quick_reference": {
+    "description": "Quick lookup for most frequently referenced rules",
+    "critical_articles": [1, 2, 3, 6, 9],
+    "key_principles": [7, 10, 11, 12, 13],
+    "security_triggers": [1, 2, 4, 5, 6, 8, 9, 10],
+    "change_types": [
+      "feature",
+      "api_change",
+      "security",
+      "cross_module",
+      "non_doc_change"
+    ]
+  },
+  "constitution": {
+    "immutable": true,
+    "articles": [
+      {
+        "id": 1,
+        "title": "Final Authority",
+        "rule": "The solo founder is the final authority for any ambiguity, conflict, or decision."
+      },
+      {
+        "id": 2,
+        "title": "Verifiable over Persuasive",
+        "rule": "Work is not 'done' without verification evidence. Proof beats persuasion."
+      },
+      {
+        "id": 3,
+        "title": "No Guessing",
+        "rule": "If something is not explicitly known from repo docs, manifest, or code: mark as UNKNOWN, route to HITL, do not proceed on that uncertain portion.",
+        "if_needed": "Read procedures.json.unknown"
+      },
+      {
+        "id": 4,
+        "title": "Incremental Delivery",
+        "rule": "Ship small, reviewable, testable increments. Large tasks must be decomposed. No mega-PRs without explicit approval."
+      },
+      {
+        "id": 5,
+        "title": "Strict Traceability",
+        "rule": "Every meaningful change must be traceable to an explicit task definition and include verification proof. Completed tasks must be archived. TODO.md contains 3-5 tasks grouped by similar types.",
+        "if_needed": "Read procedures.json.task_archiving and procedures.json.task_promotion"
+      },
+      {
+        "id": 6,
+        "title": "Safety Before Speed",
+        "rule": "If a change could break logins, money flows, user data, privacy, security, external services, or production behavior: SAFETY WINS. For risky/uncertain changes: STOP → ASK (HITL) → VERIFY → THEN PROCEED.",
+        "if_needed": "Read procedures.json.hitl"
+      },
+      {
+        "id": 7,
+        "title": "Per-Repo Variation Allowed",
+        "rule": "Governance structure is consistent, but per-repo workflow/execution may vary via manifest, packs, and repo checks."
+      },
+      {
+        "id": 8,
+        "title": "HITL for External Systems",
+        "rule": "Anything involving credentials, vendor dashboards, production systems, billing, legal/compliance, or irreversible changes is HITL-gated.",
+        "if_needed": "Read procedures.json.hitl"
+      },
+      {
+        "id": 9,
+        "title": "User Context - Non-Technical Agentic Orchestration",
+        "rule": "The user is a non-coder with zero technical experience who codes exclusively through agentic orchestration. All explanations, documentation, and communication must be in plain English. Avoid technical jargon unless absolutely necessary, and when used, immediately explain in plain English. The user relies entirely on agents to understand and execute technical work.",
+        "implications": [
+          "Always explain what code does in plain English before showing it",
+          "Use analogies and simple language when describing technical concepts",
+          "Never assume the user understands technical terms without explanation",
+          "Break down complex operations into simple, understandable steps",
+          "Provide context and 'why' before 'how' in all communications"
+        ]
+      }
+    ]
+  },
+  "principles": {
+    "global_rule": "Filepaths are required everywhere: PRs, Task Packets, logs, ADRs, waivers, and inline commentary.",
+    "list": [
+      { "id": 3, "rule": "One Change Type Per PR" },
+      { "id": 4, "rule": "Make It Shippable" },
+      { "id": 5, "rule": "Don't Break Surprises" },
+      { "id": 6, "rule": "Evidence Over Vibes" },
+      { "id": 7, "rule": "UNKNOWN Is a First-Class State" },
+      { "id": 8, "rule": "Read Repo First" },
+      { "id": 9, "rule": "Assumptions Must Be Declared" },
+      { "id": 10, "rule": "Risk Triggers a Stop" },
+      { "id": 11, "rule": "Prefer Guardrails Over Heroics" },
+      { "id": 12, "rule": "Rollback Thinking" },
+      { "id": 13, "rule": "Respect Boundaries by Default" },
+      { "id": 14, "rule": "Localize Complexity" },
+      { "id": 15, "rule": "Consistency Beats Novelty" },
+      { "id": 16, "rule": "Decisions Written Down (ADR only when triggered)" },
+      {
+        "id": 17,
+        "rule": "PR Narration: what, why, filepaths, how verified, risks, rollback"
+      },
+      { "id": 18, "rule": "No Silent Scope Creep" },
+      { "id": 19, "rule": "Docs Age With Code" },
+      { "id": 20, "rule": "Examples Are Contracts" },
+      { "id": 21, "rule": "Naming Matters" },
+      { "id": 22, "rule": "Waivers Rare + Temporary" },
+      {
+        "id": 23,
+        "rule": "ADR Required When Triggered",
+        "if_needed": "Read procedures.json.adr"
+      },
+      {
+        "id": 24,
+        "rule": "Logs Required for Non-Docs",
+        "if_needed": "Read procedures.json.logs"
+      },
+      { "id": 25, "rule": "Token-Optimized TODO Discipline" },
+      {
+        "id": 26,
+        "rule": "Use `read_file` with `offset` and `limit` parameters for large files"
+      },
+      { "id": 27, "rule": "Read multiple files in parallel when possible" },
+      {
+        "id": 28,
+        "rule": "Use `glob_file_search` for file finding instead of broad searches"
+      },
+      {
+        "id": 29,
+        "rule": "Use INDEX.json files to find major functions/classes/relevant sections"
+      },
+      {
+        "id": 30,
+        "rule": "Specify `target_directories` parameter in searches to limit scope"
+      },
+      {
+        "id": 31,
+        "rule": "Use grep to find relevant sections before reading entire files"
+      }
+    ]
+  },
+  "quality_gates": {
+    "merge_policy": "soft_block_with_auto_waivers",
+    "hard_gates": [
+      "Required artifacts missing for declared change type",
+      "Trace log missing or invalid",
+      "Required HITL items not Completed",
+      "Waiver referenced is missing or expired",
+      "governance-verify fails"
+    ],
+    "waiverable_gates": [
+      "Coverage targets (gradual ratchet)",
+      "Performance/bundle budgets",
+      "Warning budgets (zero warnings)",
+      "Test coverage regression"
+    ],
+    "test_requirements": {
+      "coverage": {
+        "backend_new": "80%",
+        "frontend_new": "70%",
+        "existing": "gradual_ratchet"
+      },
+      "integration": "Required for API changes and cross-module work"
+    },
+    "if_needed": "Read procedures.json.quality_gates"
+  },
+  "security": {
+    "absolute_prohibitions": [
+      "Secrets/tokens/keys must never be committed or logged"
+    ],
+    "dependency_vulnerabilities": {
+      "action": "ALWAYS create HITL",
+      "merge_blocking": true
+    },
+    "check_frequency": "every_pr",
+    "review_triggers": {
+      "ids": [1, 2, 4, 5, 6, 8, 9, 10],
+      "meanings": {
+        "1": "Auth/login behavior change",
+        "2": "Money/payment flow change",
+        "4": "External service integration change",
+        "5": "Sensitive data handling change",
+        "6": "Permission/privacy change",
+        "8": "Production config/keys change",
+        "9": "Cryptography/security control change",
+        "10": "Dependency / supply-chain risk change"
+      }
+    },
+    "forbidden_patterns": {
+      "enforced_by": "check:security",
+      "patterns": [
+        {
+          "id": "hardcoded_api_key",
+          "name": "Hardcoded API keys",
+          "regex": "(api[_-]?key|apikey)\\s*[=:]\\s*['\"][a-zA-Z0-9]{20,}['\"]"
+        },
+        {
+          "id": "hardcoded_secret",
+          "name": "Hardcoded secrets",
+          "regex": "(secret|password|pwd|passwd)\\s*[=:]\\s*['\"][^'\"]{8,}['\"]"
+        },
+        {
+          "id": "aws_credentials",
+          "name": "AWS credentials",
+          "regex": "(aws[_-]?access[_-]?key[_-]?id|aws[_-]?secret[_-]?access[_-]?key)\\s*[=:]\\s*['\"][^'\"]+['\"]"
+        },
+        {
+          "id": "private_key",
+          "name": "Private keys",
+          "regex": "-----BEGIN\\s+(RSA\\s+)?PRIVATE\\s+KEY-----"
+        },
+        {
+          "id": "oauth_token",
+          "name": "OAuth tokens",
+          "regex": "(oauth[_-]?token|access[_-]?token)\\s*[=:]\\s*['\"][a-zA-Z0-9_-]{20,}['\"]"
+        },
+        {
+          "id": "database_connection",
+          "name": "Database connection strings",
+          "regex": "(postgres|mysql|mongodb)://[^:]+:[^@]+@"
+        },
+        {
+          "id": "jwt_secret",
+          "name": "JWT secrets",
+          "regex": "(jwt[_-]?secret|jwt[_-]?key)\\s*[=:]\\s*['\"][^'\"]{16,}['\"]"
+        },
+        {
+          "id": "stripe_key",
+          "name": "Stripe keys",
+          "regex": "(sk_live|pk_live|sk_test|pk_test)[a-zA-Z0-9]{24,}"
+        }
+      ]
+    },
+    "mandatory_hitl_actions": [1, 2, 3, 4, 5, 6, 7, 8],
+    "if_needed": "Read procedures.json.hitl"
+  },
+  "boundaries": {
+    "model": "hybrid_domain_feature_layer",
+    "import_direction": "ui → domain → data → shared_platform",
+    "cross_feature_rule": "Cross-feature imports require an ADR",
+    "enforcement": "hybrid_static_checker_plus_manifest",
+    "exceptions": {
+      "small": "Only with explicit Task Packet justification + filepaths",
+      "large": "Requires ADR"
+    },
+    "violation_severity": "waiver_plus_auto_task",
+    "if_needed": "Read procedures.json.boundaries"
+  },
+  "hitl": {
+    "when_required": [
+      "Security triggers (see security.review_triggers)",
+      "UNKNOWN items (Article 3)",
+      "External systems (Article 8)",
+      "Dependency vulnerabilities",
+      "Risky changes (Article 6)"
+    ],
+    "workflow": "Block task → Move to backlog → Create HITL item → Continue with next task",
+    "human_response": "Simple text: CLEAR, INSTRUCT, or IGNORE (no evidence required)",
+    "if_needed": "Read procedures.json.hitl"
+  },
+  "best_practices": {
+    "repository_map": {
+      "apps/mobile": "React Native + Expo (screens, components, hooks, navigation)",
+      "apps/api": "Express API (middleware, utilities, tests)",
+      "packages/contracts": "Shared types between client and server",
+      "docs": "Documentation source tree",
+      "scripts": "Project automation"
+    },
+    "tech_stack": {
+      "mobile": "React Native (React 19) + Expo (v54)",
+      "backend": "Node.js + Express, TypeScript via tsx",
+      "data": "Drizzle ORM + Zod validation",
+      "state": "TanStack React Query",
+      "testing": "Jest + Testing Library"
+    },
+    "coding_patterns": {
+      "client": "Prefer existing patterns in apps/mobile/components|screens|hooks. Use React Navigation, not React Router.",
+      "server": "Route logic close to entry points. Use Zod for validation. TypeScript throughout.",
+      "shared": "Favor packages/contracts/ for types. Prefer Zod schemas and Drizzle types."
+    },
+    "if_needed": "Read procedures.json.best_practices"
+  },
+  "workflow": {
+    "three_pass": {
+      "description": "Core agent workflow for all changes",
+      "if_needed": "Read procedures.json.three_pass_workflow"
+    }
+  },
+  "change_types": {
+    "types": [
+      "feature",
+      "api_change",
+      "security",
+      "cross_module",
+      "non_doc_change"
+    ],
+    "determination": "Use decision tree in Pass 1 (Plan)",
+    "if_needed": "Read procedures.json.change_type_determination"
+  },
+  "automation": {
+    "description": "Automation commands are defined in automation-commands.json",
+    "commands_file": ".repo/policy/automation-commands.json",
+    "note": "See automation-commands.json for complete command catalog including non-AI and AI-enhanced commands"
+  }
+}

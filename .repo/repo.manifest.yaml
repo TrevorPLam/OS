@@ -19,9 +19,9 @@ commands:
   check:quick: "make lint && make frontend-build"
   check:ci: "make verify SKIP_HEAVY=0"
   check:release: "make verify SKIP_HEAVY=0 && pip-audit -r requirements.txt -r requirements-dev.txt && safety check --file requirements.txt && bandit -r backend/ -ll && cd frontend && npm audit --audit-level=moderate && cd .. && trufflehog filesystem --directory . --json || true"
-  check:governance: "./scripts/governance-verify.sh"
-  check:boundaries: "lint-imports --config .importlinter"
-  check:security: "pip-audit -r requirements.txt -r requirements-dev.txt && safety check --file requirements.txt && bandit -r backend/ -ll && cd frontend && npm audit --audit-level=moderate && cd .. && trufflehog filesystem --directory . --json || true"
+  check:governance: "node scripts/governance-verify.js --hitl-file .repo/policy/HITL.md"
+  check:boundaries: "node scripts/check-boundaries.js"
+  check:security: "pip-audit -r requirements.txt -r requirements-dev.txt && safety check --file requirements.txt && bandit -r backend/ -ll && cd frontend && npm audit --audit-level=moderate && cd .. && trufflehog filesystem --directory . --json || true && node scripts/check-security-patterns.js"
 
 verify_profiles:
   quick: [check:quick]
@@ -36,14 +36,14 @@ budgets:
   mode: both               # bundle + runtime
   enforcement: hard_fail_with_waiver
   fallback_to_default: true
-  # defaults live in: /.repo/policy/QUALITY_GATES.md (if repo-specific budgets missing)
+  # defaults live in: .repo/policy/constitution.json.quality_gates (if repo-specific budgets missing)
 
 security:
   every_pr: true
   release_includes_security: true
   dependency_vulns_always_hitl: true
   secrets_absolute_prohibition: true
-  forbidden_patterns_source: "/.repo/policy/SECURITY_BASELINE.md"
+  forbidden_patterns_source: ".repo/policy/constitution.json"
 
 boundaries:
   enforcement: hybrid_checker_plus_manifest_edges

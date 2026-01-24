@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0.0",
+  "description": "Automation command catalog - references automation scripts in scripts/ directory",
+  "note": "See .repo/automation/AUTOMATION_MANIFEST.json for complete automation documentation",
+  "commands": {
+    "intelligent": {
+      "description": "Phase 1-2 automations focused on task management, code intelligence, and documentation",
+      "location": "scripts/intelligent/",
+      "manifest": ".repo/automation/AUTOMATION_MANIFEST.json"
+    },
+    "ultra": {
+      "description": "Tier 1-9 ultra high-leverage automations - AI-powered, predictive, and self-healing",
+      "location": "scripts/ultra/",
+      "manifest": ".repo/automation/AUTOMATION_MANIFEST.json"
+    },
+    "vibranium": {
+      "description": "Experimental/advanced automations",
+      "location": "scripts/vibranium/",
+      "manifest": ".repo/automation/AUTOMATION_MANIFEST.json"
+    }
+  },
+  "reference": "See package.json scripts section for available npm run commands"
+}
