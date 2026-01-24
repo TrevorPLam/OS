@@ -62,3 +62,24 @@ Tracking execution for TASK-013 with a Plan → Change → Verify workflow.
 
 ## Verification Notes
 - `make lint` failed in backend due to missing `.venv/Scripts/ruff`, but frontend lint passed.
+
+---
+
+## Overview (TASK-014)
+Tracking execution for TASK-014 with a Plan → Change → Verify workflow.
+
+## Plan
+- Convert `frontend/src/api/crm.ts` to React Query hooks with typed interfaces.
+- Update CRM and related pages to consume hooks and remove direct API calls.
+- Run lint checks and capture evidence.
+
+## Change Log
+- Replaced CRM API functions with React Query hooks and query invalidation in `frontend/src/api/crm.ts`.
+- Refactored CRM and related pages to use CRM hooks, plus clients hook where needed.
+- Updated task lifecycle files and logs.
+
+## Verification Plan
+- Run `make lint` and capture output.
+
+## Verification Notes
+- `make lint` failed in backend due to missing `.venv/Scripts/ruff`, but frontend lint passed.

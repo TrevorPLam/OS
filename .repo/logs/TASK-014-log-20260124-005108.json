@@ -1,0 +1,28 @@
+{
+  "intent": "Convert CRM API to React Query hooks",
+  "plan": [
+    "Replace crmApi functions in frontend/src/api/crm.ts with React Query hooks and typed interfaces.",
+    "Update CRM and related pages to use the new hooks and remove direct crmApi calls.",
+    "Run lint checks and capture evidence for verification."
+  ],
+  "actions": [
+    "Rewrote frontend/src/api/crm.ts to export typed React Query hooks with query invalidation.",
+    "Refactored CRM pages and related pages to use hooks (frontend/src/pages/crm/Leads.tsx, frontend/src/pages/crm/Prospects.tsx, frontend/src/pages/crm/Campaigns.tsx, frontend/src/pages/crm/PipelineKanban.tsx, frontend/src/pages/crm/Deals.tsx, frontend/src/pages/crm/PipelineAnalytics.tsx, frontend/src/pages/crm/DealAnalytics.tsx, frontend/src/pages/crm/ContactGraphView.tsx, frontend/src/pages/Proposals.tsx, frontend/src/pages/Contracts.tsx, frontend/src/pages/Documents.tsx, frontend/src/pages/Projects.tsx).",
+    "Updated task tracking files and CODEX.md to reflect progress (.repo/tasks/TODO.md, .repo/tasks/ARCHIVE.md, .repo/tasks/BACKLOG.md, CODEX.md)."
+  ],
+  "evidence": [
+    "make lint (backend lint failed due to missing .venv/Scripts/ruff; frontend lint passed)."
+  ],
+  "decisions": [
+    "Used React Query hooks for CRM data fetching and invalidation to align with existing auth/clients hook patterns.",
+    "Swapped crmApi.getClients usage to useClients hook from frontend/src/api/clients.ts to align with typed client access."
+  ],
+  "risks": [
+    "Refactor touches multiple pages; regressions possible if a page relied on manual refresh timing."
+  ],
+  "follow_ups": [
+    "Consider adding targeted tests for CRM hooks and page refactors (see TASK-021)."
+  ],
+  "reasoning_summary": "Migrated CRM API access to React Query hooks and updated page consumers to use the new hook-based data flow for cache consistency and type safety.",
+  "notes": "No secrets. No private data. No raw chain-of-thought."
+}

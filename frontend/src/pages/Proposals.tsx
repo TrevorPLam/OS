@@ -1,15 +1,29 @@
-import React, { useState, useEffect } from 'react'
-import { crmApi, Proposal, Prospect } from '../api/crm'
+import React, { useState } from 'react'
+import {
+  Proposal,
+  Prospect,
+  useAcceptProposal,
+  useCreateProposal,
+  useDeleteProposal,
+  useProposals,
+  useProspects,
+  useSendProposal,
+  useUpdateProposal,
+} from '../api/crm'
 import { useClients } from '../api/clients'
 import './Proposals.css'
 
 const Proposals: React.FC = () => {
-  const [proposals, setProposals] = useState<Proposal[]>([])
-  const [prospects, setProspects] = useState<Prospect[]>([])
+  const { data: proposals = [], isLoading: proposalsLoading } = useProposals()
+  const { data: prospects = [], isLoading: prospectsLoading } = useProspects()
   const { data: clients = [], isLoading: clientsLoading } = useClients()
-  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null)
+  const createProposalMutation = useCreateProposal()
+  const updateProposalMutation = useUpdateProposal()
+  const deleteProposalMutation = useDeleteProposal()
+  const sendProposalMutation = useSendProposal()
+  const acceptProposalMutation = useAcceptProposal()
   const [formData, setFormData] = useState<Partial<Proposal>>({
     proposal_type: 'prospective_client',
     prospect: undefined,
@@ -27,25 +41,6 @@ const Proposals: React.FC = () => {
     enable_portal_on_acceptance: true,
   })
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
-    try {
-      const [proposalsData, prospectsData] = await Promise.all([
-        crmApi.getProposals(),
-        crmApi.getProspects(),
-      ])
-      setProposals(proposalsData)
-      setProspects(prospectsData)
-    } catch (error) {
-      console.error('Failed to load data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const generateProposalNumber = () => {
     const date = new Date()
     const year = date.getFullYear()
@@ -58,11 +53,10 @@ const Proposals: React.FC = () => {
     e.preventDefault()
     try {
       if (editingProposal) {
-        await crmApi.updateProposal(editingProposal.id, formData)
+        await updateProposalMutation.mutateAsync({ id: editingProposal.id, data: formData })
       } else {
-        await crmApi.createProposal(formData)
+        await createProposalMutation.mutateAsync(formData)
       }
-      loadData()
       resetForm()
     } catch (error) {
       console.error('Failed to save proposal:', error)
@@ -78,8 +72,7 @@ const Proposals: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this proposal?')) {
       try {
-        await crmApi.deleteProposal(id)
-        loadData()
+        await deleteProposalMutation.mutateAsync(id)
       } catch (error) {
         console.error('Failed to delete proposal:', error)
       }
@@ -115,7 +108,7 @@ const Proposals: React.FC = () => {
     setShowForm(true)
   }
 
-  if (loading || clientsLoading) {
+  if (proposalsLoading || prospectsLoading || clientsLoading) {
     return <div className="loading">Loading...</div>
   }
 
@@ -389,8 +382,7 @@ const Proposals: React.FC = () => {
                 <button
                   onClick={async () => {
                     try {
-                      await crmApi.sendProposal(proposal.id)
-                      loadData()
+                      await sendProposalMutation.mutateAsync(proposal.id)
                     } catch (error) {
                       console.error('Failed to send proposal:', error)
                     }
@@ -405,8 +397,7 @@ const Proposals: React.FC = () => {
                   onClick={async () => {
                     if (window.confirm('Accept this proposal and trigger client conversion?')) {
                       try {
-                        await crmApi.acceptProposal(proposal.id)
-                        loadData()
+                        await acceptProposalMutation.mutateAsync(proposal.id)
                         alert('Proposal accepted! Client conversion in progress.')
                       } catch (error) {
                         console.error('Failed to accept proposal:', error)

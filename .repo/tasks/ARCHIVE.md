@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 3 |
-| P0 Completed | 3 |
+| Total Completed | 4 |
+| P0 Completed | 4 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -47,6 +47,25 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-014] Convert CRM API to React Query Hooks ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** Largest API file (636 lines, 30+ functions) needs conversion to React Query hooks. Per ANALYSIS.md Section 0.1, this is the most complex API file.
+
+#### Acceptance Criteria
+- [x] Convert all 30+ functions in `frontend/src/api/crm.ts` to React Query hooks
+- [x] Export hooks: `useLeads()`, `useDeals()`, `usePipelines()`, `usePipelineStages()`, etc.
+- [x] Replace `any` types with proper interfaces (lines 147, 454, 527, 571)
+- [x] Implement proper query invalidation on mutations
+- [x] Add TypeScript return types (fix `Promise<any>` issues)
+- [x] Verify all hooks follow documented patterns
+
+#### Outcome
+- Replaced CRM API functions with typed React Query hooks and query invalidation.
+- Updated CRM pages and related pages to consume new hooks.
 
 ### [TASK-013] Convert API Layer to React Query Hooks (Phase 1: Core APIs) ✓
 - **Priority:** P0
