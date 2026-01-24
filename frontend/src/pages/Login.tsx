@@ -1,18 +1,39 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useLogin } from '../api/auth'
 import './Auth.css'
+
+type LoginErrorResponse = {
+  error?: string
+}
+
+const getLoginErrorMessage = (error: unknown): string => {
+  if (!error) {
+    return ''
+  }
+
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const responseData = (error as { response?: { data?: LoginErrorResponse } }).response?.data
+    if (responseData?.error) {
+      return responseData.error
+    }
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  return 'Login failed. Please try again.'
+}
 
 const Login: React.FC = () => {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const loginMutation = useLogin()
 
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   })
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -23,19 +44,17 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-    setLoading(true)
+    loginMutation.reset()
 
     try {
-      await login(formData)
+      await loginMutation.mutateAsync(formData)
       navigate('/')
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Login failed. Please try again.'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
+    } catch {
+      // Errors are surfaced via the mutation state.
     }
   }
+
+  const errorMessage = getLoginErrorMessage(loginMutation.error)
 
   return (
     <div className="auth-container">
@@ -45,9 +64,9 @@ const Login: React.FC = () => {
           <p>Sign in to your account</p>
         </div>
 
-        {error && (
+        {errorMessage && (
           <div className="error-message">
-            {error}
+            {errorMessage}
           </div>
         )}
 
@@ -80,9 +99,9 @@ const Login: React.FC = () => {
           <button
             type="submit"
             className="btn-primary"
-            disabled={loading}
+            disabled={loginMutation.isPending}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 

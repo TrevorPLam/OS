@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 4 |
-| P0 Completed | 4 |
+| Total Completed | 5 |
+| P0 Completed | 5 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -47,6 +47,26 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-015] Refactor Page Components to Use React Query Hooks (Phase 1: Core Pages) ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** Per ANALYSIS.md Section 0.3-0.4, all page components use anti-pattern (useState + useEffect + direct API calls). Only 2 pages use React Query correctly. This blocks production readiness.
+
+#### Acceptance Criteria
+- [x] Refactor `frontend/src/pages/Clients.tsx` to use React Query hooks
+- [x] Refactor `frontend/src/pages/Login.tsx` to use React Query hooks
+- [x] Refactor `frontend/src/pages/Register.tsx` to use React Query hooks
+- [x] Remove all `useState` + `useEffect` + direct API call patterns
+- [x] Remove manual loading states (use React Query `isLoading`)
+- [x] Replace `console.error` with proper error handling
+- [x] Verify pages work correctly with new hooks
+
+#### Outcome
+- Updated Clients, Login, and Register pages to rely on React Query hooks for async flows and user-facing error states.
+- Removed manual loading state management and console logging from core auth flows.
 
 ### [TASK-014] Convert CRM API to React Query Hooks ✓
 - **Priority:** P0

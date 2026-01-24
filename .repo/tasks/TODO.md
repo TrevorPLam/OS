@@ -66,24 +66,18 @@
 
 ---
 
-### [TASK-015] Refactor Page Components to Use React Query Hooks (Phase 1: Core Pages)
+### [TASK-002] Create .env.example File
 - **Priority:** P0
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 0.3-0.4, all page components use anti-pattern (useState + useEffect + direct API calls). Only 2 pages use React Query correctly. This blocks production readiness.
+- **Context:** Code references `.env.example` but file doesn't exist. Blocks new environment setup.
 
 #### Acceptance Criteria
-- [ ] Refactor `frontend/src/pages/Clients.tsx` to use React Query hooks
-- [ ] Refactor `frontend/src/pages/Login.tsx` to use React Query hooks
-- [ ] Refactor `frontend/src/pages/Register.tsx` to use React Query hooks
-- [ ] Remove all `useState` + `useEffect` + direct API call patterns
-- [ ] Remove manual loading states (use React Query `isLoading`)
-- [ ] Replace `console.error` with proper error handling
-- [ ] Verify pages work correctly with new hooks
+- [ ] Document all required environment variables from `env_validator.py`
+- [ ] Include comments explaining each variable
+- [ ] Add placeholder values (never real secrets)
+- [ ] Reference in README.md and docs/getting-started/onboarding.md
 
 #### Notes
-- Per ANALYSIS.md Section 0.3: Clients.tsx has 4 direct API calls, 5 useState hooks
-- Per ANALYSIS.md Section 0.10: Login.tsx needs React Hook Form (separate task)
-- Reference: `frontend/src/pages/WorkflowBuilder.tsx` for correct pattern
-- Estimated: 8-10 hours for core pages
-- Files: `frontend/src/pages/Clients.tsx`, `frontend/src/pages/Login.tsx`, `frontend/src/pages/Register.tsx`
+- Required vars: DJANGO_SECRET_KEY, POSTGRES_*, AWS_*, STRIPE_*, etc.
+- Production vars differ from development vars

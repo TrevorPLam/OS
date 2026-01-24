@@ -4,13 +4,16 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Login from '../Login'
 
-const loginMock = vi.fn()
+const loginMutation = {
+  mutateAsync: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  error: undefined as unknown,
+}
 const navigateMock = vi.fn()
 
-vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({
-    login: loginMock,
-  }),
+vi.mock('../../api/auth', () => ({
+  useLogin: () => loginMutation,
 }))
 
 vi.mock('react-router-dom', async () => {
@@ -23,12 +26,14 @@ vi.mock('react-router-dom', async () => {
 
 describe('Login form', () => {
   beforeEach(() => {
-    loginMock.mockReset()
+    loginMutation.mutateAsync.mockReset()
+    loginMutation.reset.mockReset()
+    loginMutation.error = undefined
     navigateMock.mockReset()
   })
 
   it('submits credentials and navigates on success', async () => {
-    loginMock.mockResolvedValueOnce(undefined)
+    loginMutation.mutateAsync.mockResolvedValueOnce(undefined)
     const user = userEvent.setup()
 
     render(
@@ -41,12 +46,15 @@ describe('Login form', () => {
     await user.type(screen.getByLabelText('Password'), 'secret')
     await user.click(screen.getByRole('button', { name: 'Sign In' }))
 
-    expect(loginMock).toHaveBeenCalledWith({ username: 'jane', password: 'secret' })
+    expect(loginMutation.mutateAsync).toHaveBeenCalledWith({ username: 'jane', password: 'secret' })
     expect(navigateMock).toHaveBeenCalledWith('/')
   })
 
   it('shows an error message when login fails', async () => {
-    loginMock.mockRejectedValueOnce({ response: { data: { error: 'Invalid credentials' } } })
+    loginMutation.error = { response: { data: { error: 'Invalid credentials' } } }
+    loginMutation.mutateAsync.mockRejectedValueOnce(
+      loginMutation.error
+    )
     const user = userEvent.setup()
 
     render(

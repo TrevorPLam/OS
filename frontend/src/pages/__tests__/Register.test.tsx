@@ -4,13 +4,16 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Register from '../Register'
 
-const registerMock = vi.fn()
+const registerMutation = {
+  mutateAsync: vi.fn(),
+  reset: vi.fn(),
+  isPending: false,
+  error: undefined as unknown,
+}
 const navigateMock = vi.fn()
 
-vi.mock('../../contexts/AuthContext', () => ({
-  useAuth: () => ({
-    register: registerMock,
-  }),
+vi.mock('../../api/auth', () => ({
+  useRegister: () => registerMutation,
 }))
 
 vi.mock('react-router-dom', async () => {
@@ -23,12 +26,14 @@ vi.mock('react-router-dom', async () => {
 
 describe('Register form', () => {
   beforeEach(() => {
-    registerMock.mockReset()
+    registerMutation.mutateAsync.mockReset()
+    registerMutation.reset.mockReset()
+    registerMutation.error = undefined
     navigateMock.mockReset()
   })
 
   it('submits registration data and navigates on success', async () => {
-    registerMock.mockResolvedValueOnce(undefined)
+    registerMutation.mutateAsync.mockResolvedValueOnce(undefined)
     const user = userEvent.setup()
 
     render(
@@ -45,7 +50,7 @@ describe('Register form', () => {
     await user.type(screen.getByLabelText('Confirm Password'), 'secret123')
     await user.click(screen.getByRole('button', { name: 'Sign Up' }))
 
-    expect(registerMock).toHaveBeenCalledWith({
+    expect(registerMutation.mutateAsync).toHaveBeenCalledWith({
       username: 'janedoe',
       email: 'jane@example.com',
       first_name: 'Jane',
@@ -57,7 +62,10 @@ describe('Register form', () => {
   })
 
   it('shows field errors when registration fails', async () => {
-    registerMock.mockRejectedValueOnce({ response: { data: { email: ['Invalid email'] } } })
+    registerMutation.error = { response: { data: { email: ['Invalid email'] } } }
+    registerMutation.mutateAsync.mockRejectedValueOnce(
+      registerMutation.error
+    )
     const user = userEvent.setup()
 
     render(
