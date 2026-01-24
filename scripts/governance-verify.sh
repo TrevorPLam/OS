@@ -75,6 +75,7 @@ fi
 # Check 3: HITL items status (if HITL.md exists)
 log_info "Checking HITL items status..."
 if [[ -f ".repo/policy/HITL.md" ]]; then
+    # Detailed parsing is performed later (Check 7) to avoid false positives.
     log_success "HITL index exists: .repo/policy/HITL.md"
 else
     log_warning "HITL index file not found: .repo/policy/HITL.md"
