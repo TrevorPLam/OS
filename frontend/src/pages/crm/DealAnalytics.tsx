@@ -26,7 +26,7 @@ const DealAnalytics: React.FC = () => {
     }
   }, [pipelinesLoading])
 
-  const calculateWinLossMetrics = useMemo(() => {
+  const winLossMetrics = useMemo(() => {
     const wonDeals = deals.filter((deal) => deal.is_won)
     const lostDeals = deals.filter((deal) => deal.is_lost)
     const activeDeals = deals.filter((deal) => deal.is_active)
