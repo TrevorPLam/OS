@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { crmApi, Proposal, Prospect } from '../api/crm'
-import { clientsApi, Client } from '../api/clients'
+import { useClients } from '../api/clients'
 import './Proposals.css'
 
 const Proposals: React.FC = () => {
   const [proposals, setProposals] = useState<Proposal[]>([])
   const [prospects, setProspects] = useState<Prospect[]>([])
-  const [clients, setClients] = useState<Client[]>([])
+  const { data: clients = [], isLoading: clientsLoading } = useClients()
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingProposal, setEditingProposal] = useState<Proposal | null>(null)
@@ -33,14 +33,12 @@ const Proposals: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [proposalsData, prospectsData, clientsData] = await Promise.all([
+      const [proposalsData, prospectsData] = await Promise.all([
         crmApi.getProposals(),
         crmApi.getProspects(),
-        clientsApi.getClients(),
       ])
       setProposals(proposalsData)
       setProspects(prospectsData)
-      setClients(clientsData)
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
@@ -117,7 +115,7 @@ const Proposals: React.FC = () => {
     setShowForm(true)
   }
 
-  if (loading) {
+  if (loading || clientsLoading) {
     return <div className="loading">Loading...</div>
   }
 

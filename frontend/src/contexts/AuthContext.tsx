@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { authApi, User, LoginRequest, RegisterRequest } from '../api/auth'
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { LoginRequest, RegisterRequest, User, useLogin, useLogout, useProfile, useRegister } from '../api/auth'
 
 interface AuthContextType {
   user: User | null
@@ -26,38 +26,25 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: profile, isLoading } = useProfile()
+  const loginMutation = useLogin()
+  const registerMutation = useRegister()
+  const logoutMutation = useLogout()
 
   useEffect(() => {
-    let isMounted = true
-
-    const fetchProfile = async () => {
-      try {
-        const profile = await authApi.getProfile()
-        if (isMounted) {
-          setUser(profile)
-        }
-      } catch (error) {
-        if (isMounted) {
-          setUser(null)
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
-      }
+    if (profile) {
+      setUser(profile)
+      return
     }
 
-    fetchProfile()
-
-    return () => {
-      isMounted = false
+    if (!isLoading) {
+      setUser(null)
     }
-  }, [])
+  }, [isLoading, profile])
 
   const login = async (credentials: LoginRequest) => {
     try {
-      const response = await authApi.login(credentials)
+      const response = await loginMutation.mutateAsync(credentials)
       setUser(response.user)
     } catch (error) {
       console.error('Login failed:', error)
@@ -67,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (data: RegisterRequest) => {
     try {
-      const response = await authApi.register(data)
+      const response = await registerMutation.mutateAsync(data)
       setUser(response.user)
     } catch (error) {
       console.error('Registration failed:', error)
@@ -77,7 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await authApi.logout()
+      await logoutMutation.mutateAsync()
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
@@ -87,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value = {
     user,
-    loading,
+    loading: isLoading,
     login,
     register,
     logout,

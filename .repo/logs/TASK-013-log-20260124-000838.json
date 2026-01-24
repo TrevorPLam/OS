@@ -1,0 +1,30 @@
+{
+  "intent": "convert core API modules to React Query hooks",
+  "plan": [
+    "convert frontend/src/api/clients.ts and frontend/src/api/auth.ts to React Query hooks with typed returns",
+    "update AuthContext and pages/tests to consume hooks",
+    "run required linting and capture evidence"
+  ],
+  "actions": [
+    "replaced clients API functions with React Query hooks and invalidation logic (frontend/src/api/clients.ts)",
+    "replaced auth API functions with React Query hooks and cache updates (frontend/src/api/auth.ts)",
+    "updated AuthContext and pages to use hooks (frontend/src/contexts/AuthContext.tsx, frontend/src/pages/Clients.tsx, frontend/src/pages/Proposals.tsx)",
+    "updated unit tests to mock hooks (frontend/src/contexts/__tests__/AuthContext.test.tsx, frontend/src/pages/__tests__/Clients.test.tsx)",
+    "documented work in CODEX.md and updated task lifecycle files"
+  ],
+  "evidence": [
+    "make lint (backend failed: missing .venv/Scripts/ruff; frontend lint passed)"
+  ],
+  "decisions": [
+    "treated auth refactor as non-behavioral; no HITL required",
+    "used React Query invalidation to refresh client and portal data after mutations"
+  ],
+  "risks": [
+    "auth hook refactor could surface previously hidden query errors if upstream endpoints change"
+  ],
+  "follow_ups": [
+    "resolve backend lint environment by ensuring .venv tooling is available"
+  ],
+  "reasoning_summary": "Converted the client and auth API modules to React Query hooks with typed return values, then updated the context, pages, and tests to use the new hooks while preserving existing behavior. Documented verification results and updated task lifecycle files.",
+  "notes": "No secrets. No private data. No raw chain-of-thought."
+}

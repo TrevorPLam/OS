@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { clientsApi, Client } from '../api/clients'
+import React, { useState } from 'react'
+import { Client, useClients, useCreateClient, useDeleteClient, useUpdateClient } from '../api/clients'
 import './Clients.css'
 
 const Clients: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: clients = [], isLoading } = useClients()
+  const createClientMutation = useCreateClient()
+  const updateClientMutation = useUpdateClient()
+  const deleteClientMutation = useDeleteClient()
   const [showForm, setShowForm] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [formData, setFormData] = useState<Partial<Client>>({
@@ -19,30 +21,14 @@ const Clients: React.FC = () => {
     assigned_team: [],
   })
 
-  useEffect(() => {
-    loadClients()
-  }, [])
-
-  const loadClients = async () => {
-    try {
-      const data = await clientsApi.getClients()
-      setClients(data)
-    } catch (error) {
-      console.error('Failed to load clients:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
       if (editingClient) {
-        await clientsApi.updateClient(editingClient.id, formData)
+        await updateClientMutation.mutateAsync({ id: editingClient.id, data: formData })
       } else {
-        await clientsApi.createClient(formData)
+        await createClientMutation.mutateAsync(formData)
       }
-      loadClients()
       resetForm()
     } catch (error) {
       console.error('Failed to save client:', error)
@@ -58,8 +44,7 @@ const Clients: React.FC = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this client?')) {
       try {
-        await clientsApi.deleteClient(id)
-        loadClients()
+        await deleteClientMutation.mutateAsync(id)
       } catch (error) {
         console.error('Failed to delete client:', error)
       }
@@ -82,7 +67,7 @@ const Clients: React.FC = () => {
     setShowForm(false)
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="loading">Loading...</div>
   }
 

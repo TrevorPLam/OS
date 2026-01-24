@@ -3,24 +3,32 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Clients from '../Clients'
 
-const clientsApiMock = vi.hoisted(() => ({
-  getClients: vi.fn(),
-  createClient: vi.fn(),
-  updateClient: vi.fn(),
-  deleteClient: vi.fn(),
-}))
+const createClientMutation = {
+  mutateAsync: vi.fn(),
+}
+const updateClientMutation = {
+  mutateAsync: vi.fn(),
+}
+const deleteClientMutation = {
+  mutateAsync: vi.fn(),
+}
+
+const useClientsMock = vi.fn()
 
 vi.mock('../../api/clients', () => ({
-  clientsApi: clientsApiMock,
+  useClients: () => useClientsMock(),
+  useCreateClient: () => createClientMutation,
+  useUpdateClient: () => updateClientMutation,
+  useDeleteClient: () => deleteClientMutation,
 }))
 
 describe('Clients form', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    clientsApiMock.getClients.mockResolvedValue([]);
-    clientsApiMock.createClient.mockResolvedValue({});
-    clientsApiMock.updateClient.mockResolvedValue({});
-    clientsApiMock.deleteClient.mockResolvedValue({});
+    vi.clearAllMocks()
+    useClientsMock.mockReturnValue({ data: [], isLoading: false })
+    createClientMutation.mutateAsync.mockResolvedValue({})
+    updateClientMutation.mutateAsync.mockResolvedValue({})
+    deleteClientMutation.mutateAsync.mockResolvedValue({})
   })
 
   it('shows the empty state when no clients exist', async () => {
@@ -45,7 +53,7 @@ describe('Clients form', () => {
 
     await user.click(screen.getByRole('button', { name: 'Create Client' }))
 
-    expect(clientsApiMock.createClient).toHaveBeenCalledWith(
+    expect(createClientMutation.mutateAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         company_name: 'Acme Co',
         industry: 'Manufacturing',

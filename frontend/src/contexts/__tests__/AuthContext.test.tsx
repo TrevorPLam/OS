@@ -3,19 +3,27 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { AuthProvider, useAuth } from '../AuthContext'
-import { authApi } from '../../api/auth'
+import { User } from '../../api/auth'
+
+const loginMutation = {
+  mutateAsync: vi.fn(),
+}
+const registerMutation = {
+  mutateAsync: vi.fn(),
+}
+const logoutMutation = {
+  mutateAsync: vi.fn(),
+}
+
+let profileData: User | undefined
+let profileLoading = false
 
 vi.mock('../../api/auth', () => ({
-  authApi: {
-    login: vi.fn(),
-    register: vi.fn(),
-    logout: vi.fn(),
-    getProfile: vi.fn(),
-    changePassword: vi.fn(),
-  },
+  useProfile: () => ({ data: profileData, isLoading: profileLoading }),
+  useLogin: () => loginMutation,
+  useRegister: () => registerMutation,
+  useLogout: () => logoutMutation,
 }))
-
-const mockedAuthApi = vi.mocked(authApi)
 
 const renderWithProvider = (ui: React.ReactNode) => render(<AuthProvider>{ui}</AuthProvider>)
 
@@ -33,10 +41,12 @@ describe('AuthContext', () => {
     vi.restoreAllMocks()
     vi.clearAllMocks()
     localStorage.clear()
+    profileData = undefined
+    profileLoading = false
   })
 
   it('hydrates user from profile endpoint without using localStorage', async () => {
-    mockedAuthApi.getProfile.mockResolvedValue(mockUser)
+    profileData = mockUser
     const setItemSpy = vi.spyOn(window.localStorage, 'setItem')
     const getItemSpy = vi.spyOn(window.localStorage, 'getItem')
 
@@ -54,8 +64,8 @@ describe('AuthContext', () => {
   })
 
   it('updates user on login without writing tokens to localStorage', async () => {
-    mockedAuthApi.getProfile.mockRejectedValue(new Error('no session'))
-    mockedAuthApi.login.mockResolvedValue({ user: mockUser, message: 'Login successful' })
+    profileData = undefined
+    loginMutation.mutateAsync.mockResolvedValue({ user: mockUser, message: 'Login successful' })
     const setItemSpy = vi.spyOn(window.localStorage, 'setItem')
 
     const LoginConsumer = () => {
@@ -78,13 +88,13 @@ describe('AuthContext', () => {
     await userEvent.click(screen.getByText('login'))
 
     await waitFor(() => expect(screen.getByTestId('user-email')).toHaveTextContent(mockUser.email))
-    expect(mockedAuthApi.login).toHaveBeenCalledWith({ username: 'demo', password: 'pass' })
+    expect(loginMutation.mutateAsync).toHaveBeenCalledWith({ username: 'demo', password: 'pass' })
     expect(setItemSpy).not.toHaveBeenCalled()
   })
 
   it('clears user state on logout while relying solely on cookies', async () => {
-    mockedAuthApi.getProfile.mockResolvedValue(mockUser)
-    mockedAuthApi.logout.mockResolvedValue()
+    profileData = mockUser
+    logoutMutation.mutateAsync.mockResolvedValue()
     const removeItemSpy = vi.spyOn(window.localStorage, 'removeItem')
 
     const LogoutConsumer = () => {
@@ -107,7 +117,7 @@ describe('AuthContext', () => {
     await userEvent.click(screen.getByText('logout'))
 
     await waitFor(() => expect(screen.getByTestId('user-email')).toHaveTextContent('none'))
-    expect(mockedAuthApi.logout).toHaveBeenCalledTimes(1)
+    expect(logoutMutation.mutateAsync).toHaveBeenCalledTimes(1)
     expect(removeItemSpy).not.toHaveBeenCalled()
   })
 })

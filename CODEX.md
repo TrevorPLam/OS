@@ -33,3 +33,32 @@ Tracking execution for TASK-012 with a Plan → Change → Verify workflow.
 ## Artifacts
 - Agent log: `.repo/logs/TASK-012-log-20260123-234450.json`
 - Trace log: `.repo/traces/TASK-012-trace-20260123-234453.json` (validated)
+
+---
+
+## Overview (TASK-013)
+Tracking execution for TASK-013 with a Plan → Change → Verify workflow.
+
+## Plan
+- Review task requirements, API patterns, and frontend guidelines.
+- Convert `frontend/src/api/clients.ts` and `frontend/src/api/auth.ts` to React Query hooks with typed returns.
+- Update UI consumers and tests to use the new hooks.
+- Run required checks and capture evidence.
+- Generate agent log + trace log for non-doc change.
+
+## Change Log
+- Replaced client and auth API modules with typed React Query hooks and invalidation logic.
+- Updated AuthContext, Clients, and Proposals pages to consume hooks.
+- Updated unit tests to mock hooks instead of legacy API objects.
+
+## Verification Plan
+- Run `make lint`.
+- Run `make test` if time permits.
+- Capture command output for evidence and update trace log.
+
+## Notes
+- No scope changes or cross-module imports.
+- No HITL required (refactor only; no auth behavior change).
+
+## Verification Notes
+- `make lint` failed in backend due to missing `.venv/Scripts/ruff`, but frontend lint passed.
