@@ -1,0 +1,23 @@
+{
+  "intent": "Add .env.example and update onboarding docs",
+  "task_id": "TASK-002",
+  "timestamp": "2026-01-24T01:43:57Z",
+  "files": [
+    ".env.example",
+    "README.md",
+    "docs/getting-started/onboarding.md",
+    ".repo/tasks/TODO.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/ARCHIVE.md"
+  ],
+  "commands": [
+    "make lint",
+    "bash scripts/generate-trace-log.sh TASK-002 \"Add .env.example and update onboarding docs\"",
+    "bash scripts/generate-agent-log.sh TASK-002 \"Create .env.example and update docs\""
+  ],
+  "evidence": [
+    "make lint failed: backend lint could not find .venv/Scripts/ruff; frontend lint passed."
+  ],
+  "hitl": [],
+  "unknowns": []
+}

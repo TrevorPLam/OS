@@ -359,10 +359,9 @@ cp .env.example .env
 # - POSTGRES_USER
 # - POSTGRES_PASSWORD
 # - POSTGRES_HOST
-# - POSTGRES_PORT
-# - SENTRY_DSN (optional)
-# - AWS_ACCESS_KEY_ID (for S3)
-# - AWS_SECRET_ACCESS_KEY (for S3)
+#
+# See .env.example for the full list of required and production-only variables
+# (AWS, Stripe, and integration webhook secrets) and placeholder values.
 ```
 
 </details>
