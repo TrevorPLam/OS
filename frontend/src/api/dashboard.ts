@@ -1,4 +1,23 @@
 import apiClient from './client'
+import type { Client } from './clients'
+import type { Proposal, Contract } from './crm'
+
+// Define types for time entries and invoices (not in imported files)
+interface TimeEntry {
+  id: number;
+  hours: string | number;
+  is_billable: boolean;
+  invoiced: boolean;
+  [key: string]: unknown;
+}
+
+interface Invoice {
+  id: number;
+  status: string;
+  total_amount: string | number;
+  amount_paid: string | number;
+  [key: string]: unknown;
+}
 
 export interface DashboardStats {
   total_clients: number
@@ -23,34 +42,34 @@ export const dashboardApi = {
       apiClient.get('/finance/invoices/'),
     ])
 
-    const clientsData = clients.data.results || clients.data
-    const proposalsData = proposals.data.results || proposals.data
-    const contractsData = contracts.data.results || contracts.data
-    const timeEntriesData = timeEntries.data.results || timeEntries.data
-    const invoicesData = invoices.data.results || invoices.data
+    const clientsData = (clients.data.results || clients.data) as Client[]
+    const proposalsData = (proposals.data.results || proposals.data) as Proposal[]
+    const contractsData = (contracts.data.results || contracts.data) as Contract[]
+    const timeEntriesData = (timeEntries.data.results || timeEntries.data) as TimeEntry[]
+    const invoicesData = (invoices.data.results || invoices.data) as Invoice[]
 
     // Calculate stats
     const totalClients = clientsData.length
-    const activeClients = clientsData.filter((c: any) => c.status === 'active').length
+    const activeClients = clientsData.filter((c) => c.status === 'active').length
     const totalProposals = proposalsData.length
-    const acceptedProposals = proposalsData.filter((p: any) => p.status === 'accepted').length
-    const activeContracts = contractsData.filter((c: any) => c.status === 'active').length
+    const acceptedProposals = proposalsData.filter((p) => p.status === 'accepted').length
+    const activeContracts = contractsData.filter((c) => c.status === 'active').length
     const totalContractValue = contractsData
-      .filter((c: any) => c.status === 'active')
-      .reduce((sum: number, c: any) => sum + parseFloat(c.total_value || 0), 0)
+      .filter((c) => c.status === 'active')
+      .reduce((sum: number, c) => sum + parseFloat(String(c.total_value || 0)), 0)
       .toFixed(2)
 
     const unbilledHours = timeEntriesData
-      .filter((t: any) => t.is_billable && !t.invoiced)
-      .reduce((sum: number, t: any) => sum + parseFloat(t.hours || 0), 0)
+      .filter((t) => t.is_billable && !t.invoiced)
+      .reduce((sum: number, t) => sum + parseFloat(String(t.hours || 0)), 0)
       .toFixed(2)
 
-    const unpaidInvoices = invoicesData.filter((i: any) => i.status !== 'paid').length
+    const unpaidInvoices = invoicesData.filter((i) => i.status !== 'paid').length
     const totalReceivable = invoicesData
-      .filter((i: any) => i.status !== 'paid')
-      .reduce((sum: number, i: any) => {
-        const total = parseFloat(i.total_amount || 0)
-        const paid = parseFloat(i.amount_paid || 0)
+      .filter((i) => i.status !== 'paid')
+      .reduce((sum: number, i) => {
+        const total = parseFloat(String(i.total_amount || 0))
+        const paid = parseFloat(String(i.amount_paid || 0))
         return sum + (total - paid)
       }, 0)
       .toFixed(2)
