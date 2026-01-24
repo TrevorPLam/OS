@@ -176,7 +176,8 @@ verify:
 		echo "=== BACKEND TEST ==="; $(MAKE) -C backend test V=$(V); backend_test_status=$$?; \
 		echo "=== BACKEND PERFORMANCE TESTS ==="; $(MAKE) -C backend test-performance V=$(V); backend_performance_status=$$?; \
 		echo "=== FRONTEND TEST ==="; $(MAKE) -C frontend test V=$(V); frontend_test_status=$$?; \
-		echo "=== FRONTEND BUILD ==="; $(MAKE) -C frontend build-check V=$(V); frontend_build_status=$$?; \
+		echo "=== FRONTEND BUILD ==="; $(MAKE) -C frontend build V=$(V); frontend_build_status=$$?; \
+		if [ $$frontend_build_status -eq 0 ]; then $(MAKE) -C frontend build-check V=$(V); frontend_build_status=$$?; fi; \
 		echo "=== BACKEND OPENAPI ==="; $(MAKE) -C backend openapi V=$(V); openapi_status=$$?; \
 		git diff --exit-code backend/openapi.yaml; openapi_diff_status=$$?; \
 	fi

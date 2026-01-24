@@ -49,30 +49,6 @@
 
 ## P1 — High
 
-### [TASK-016] Implement React Hook Form in All Forms
-- **Priority:** P1
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
-
-#### Acceptance Criteria
-- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
-- [ ] Implement React Hook Form in all remaining forms (10+ pages)
-- [ ] Add proper validation rules to all forms
-- [ ] Remove manual form state management (useState patterns)
-- [ ] Verify all forms work correctly
-
-#### Notes
-- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
-- Would eliminate ~300-450 lines of duplicate code
-- Estimated: 12-16 hours for all forms
-- Files: All page components with forms
-
----
-
 ### [TASK-017] Refactor CRM Pages to Use React Query Hooks
 - **Priority:** P1
 - **Status:** Pending
@@ -402,26 +378,6 @@
 - Would improve frontend-backend alignment
 - Estimated: 8-10 hours
 - Files: New OpenAPI spec file, update API client docs
-
----
-
-### [TASK-027] Verify CI Integration for Governance Checks
-- **Priority:** P0
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify that governance-verify.sh actually runs in CI. Script exists but integration may be missing.
-
-#### Acceptance Criteria
-- [ ] Verify `.github/workflows/ci.yml` includes governance-verify step
-- [ ] Ensure governance-verify runs on all PRs
-- [ ] Verify governance-verify runs on main branch commits
-- [ ] Test that governance failures block CI
-- [ ] Document CI integration in CONTRIBUTING.md
-
-#### Notes
-- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 262: Immediate priority
-- File: `.github/workflows/ci.yml`
-- Impact: High - ensures quality gates are enforced
 
 ---
 

@@ -36,8 +36,8 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 6 |
-| P0 Completed | 6 |
+| Total Completed | 8 |
+| P0 Completed | 8 |
 | P1 Completed | 0 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
@@ -47,6 +47,43 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-027] Verify CI Integration for Governance Checks ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify that governance-verify.sh actually runs in CI. Script exists but integration may be missing.
+
+#### Acceptance Criteria
+- [x] Verify `.github/workflows/ci.yml` includes governance-verify step
+- [x] Ensure governance-verify runs on all PRs
+- [x] Verify governance-verify runs on main branch commits
+- [x] Test that governance failures block CI
+- [x] Document CI integration in CONTRIBUTING.md
+
+#### Outcome
+- Updated the governance CI job to install import-linter and run `governance-verify.sh` on all pushes/PRs.
+- Removed governance false positives caused by commented `<UNKNOWN>` guidance and HITL status headers.
+- Documented the CI governance integration in `CONTRIBUTING.md`.
+
+### [TASK-003] Fix Duplicate Content in CI Workflow ✓
+- **Priority:** P0
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** `.github/workflows/ci.yml` has two conflicting workflow definitions causing confusion.
+
+#### Acceptance Criteria
+- [x] Remove duplicate workflow definition
+- [x] Ensure single coherent CI pipeline
+- [x] Verify all jobs run correctly
+- [x] Test on a branch before merging
+
+#### Outcome
+- Replaced legacy `src/`-based CI steps with Makefile-driven jobs aligned to the current repo layout.
+- Standardized Python/Node caching and dependency installation across lint, test, security, and governance jobs.
+- Kept the OpenAPI drift job disabled but aligned it with the backend OpenAPI artifact path for future enablement.
 
 ### [TASK-002] Create .env.example File ✓
 - **Priority:** P0

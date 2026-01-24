@@ -1,0 +1,34 @@
+{
+  "intent": "Stabilize CI workflow and governance integration",
+  "task_id": "TASK-003",
+  "timestamp": "2026-01-24T06:03:26Z",
+  "files": [
+    ".github/workflows/ci.yml",
+    "backend/Makefile",
+    "Makefile",
+    "scripts/governance-verify.sh",
+    "CONTRIBUTING.md",
+    ".repo/tasks/TODO.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/ARCHIVE.md",
+    ".repo/traces/TASK-003-trace-20260124-060326.json"
+  ],
+  "commands": [
+    "mise trust /workspace/OS/mise.toml",
+    "make setup",
+    "make lint",
+    "make test",
+    "make check-governance",
+    "make verify SKIP_HEAVY=1",
+    "bash scripts/generate-trace-log.sh TASK-003 \"Stabilize CI workflow and governance integration\""
+  ],
+  "evidence": [
+    "make setup failed in this environment due to proxy/network restrictions for pip installs.",
+    "make lint passed for both backend and frontend.",
+    "make verify SKIP_HEAVY=1 passed, confirming non-heavy verification path remains healthy.",
+    "make test failed: backend missing pytest plugins in this environment and frontend typecheck/tests have existing failures.",
+    "make check-governance returned warnings/failure locally because import-linter is not installable in this environment."
+  ],
+  "hitl": [],
+  "unknowns": []
+}

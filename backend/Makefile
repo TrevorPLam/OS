@@ -16,11 +16,13 @@ endif
 
 PYTHON ?= python
 VENV_DIR ?= .venv
-VENV_BIN := $(if $(wildcard $(VENV_DIR)/bin),$(VENV_DIR)/bin,$(VENV_DIR)/Scripts)
+VENV_BIN := $(if $(wildcard $(VENV_DIR)/bin/python),$(VENV_DIR)/bin,$(if $(wildcard $(VENV_DIR)/Scripts/python),$(VENV_DIR)/Scripts,$(VENV_DIR)/bin))
 VENV_PY := $(VENV_BIN)/python
 PIP_CACHE_DIR ?= ../.pip-cache
 OPENAPI_PATH := ./openapi.yaml
 OPENAPI_ENV := DJANGO_SECRET_KEY=local POSTGRES_DB=local POSTGRES_USER=local POSTGRES_PASSWORD=local POSTGRES_HOST=localhost USE_SQLITE_FOR_TESTS=True KMS_BACKEND=local LOCAL_KMS_MASTER_KEY=local-test-key PYTHONUTF8=1
+RUFF := $(if $(wildcard $(VENV_BIN)/ruff),$(VENV_BIN)/ruff,ruff)
+PYTEST := $(if $(wildcard $(VENV_BIN)/pytest),$(VENV_BIN)/pytest,pytest)
 
 .PHONY: setup lint test test-performance typecheck migrate openapi dev fixtures
 
@@ -31,13 +33,13 @@ setup:
 	$(Q)PIP_CACHE_DIR=$(PIP_CACHE_DIR) $(VENV_PY) -m pip install -r ../requirements-dev.txt
 
 lint:
-	$(Q)$(VENV_BIN)/ruff check . --select=E9,F63,F7,F82 --ignore=F821
+	$(Q)$(RUFF) check . --select=E9,F63,F7,F82 --ignore=F821
 
 test:
-	$(Q)DJANGO_SECRET_KEY=local USE_SQLITE_FOR_TESTS=True KMS_BACKEND=local LOCAL_KMS_MASTER_KEY=local-test-key $(VENV_BIN)/pytest --cov=modules --cov=api --cov-report=term --cov-report=xml -v
+	$(Q)DJANGO_SECRET_KEY=local USE_SQLITE_FOR_TESTS=True KMS_BACKEND=local LOCAL_KMS_MASTER_KEY=local-test-key $(PYTEST) --cov=modules --cov=api --cov-report=term --cov-report=xml -v
 
 test-performance:
-	$(Q)DJANGO_SECRET_KEY=local USE_SQLITE_FOR_TESTS=True KMS_BACKEND=local LOCAL_KMS_MASTER_KEY=local-test-key $(VENV_BIN)/pytest -m performance -v -o addopts= ../tests
+	$(Q)DJANGO_SECRET_KEY=local USE_SQLITE_FOR_TESTS=True KMS_BACKEND=local LOCAL_KMS_MASTER_KEY=local-test-key $(PYTEST) -m performance -v -o addopts= ../tests
 
 typecheck:
 	$(Q)echo "Skipping mypy (relaxed)"
