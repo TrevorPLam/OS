@@ -15,9 +15,13 @@ import './CRM.css'
 
 const PipelineKanban: React.FC = () => {
   const [selectedPipeline, setSelectedPipeline] = useState<number | null>(null)
-  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelines()
-  const { data: stages = [] } = usePipelineStages(selectedPipeline ?? undefined)
-  const { data: deals = [] } = useDeals(selectedPipeline ? { pipeline: selectedPipeline } : undefined)
+  const { data: pipelines = [], isLoading: pipelinesLoading, error: pipelinesError } = usePipelines()
+  const { data: stages = [], error: stagesError } = usePipelineStages(selectedPipeline ?? undefined)
+  const {
+    data: deals = [],
+    isLoading: dealsLoading,
+    error: dealsError,
+  } = useDeals(selectedPipeline ? { pipeline: selectedPipeline } : undefined)
   const createDealMutation = useCreateDeal()
   const updateDealMutation = useUpdateDeal()
   const deleteDealMutation = useDeleteDeal()
@@ -28,6 +32,7 @@ const PipelineKanban: React.FC = () => {
   const [editingDeal, setEditingDeal] = useState<Deal | null>(null)
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<Partial<Deal>>({
     name: '',
@@ -85,8 +90,8 @@ const PipelineKanban: React.FC = () => {
 
     try {
       await moveDealMutation.mutateAsync({ id: draggedDeal.id, stageId: targetStageId })
-    } catch (error) {
-      console.error('Error moving deal:', error)
+    } catch {
+      setActionError('Unable to move the deal. Please try again.')
     } finally {
       setDraggedDeal(null)
     }
@@ -104,6 +109,7 @@ const PipelineKanban: React.FC = () => {
       pipeline: selectedPipeline || undefined,
       stage: sortedStages[0]?.id,
     })
+    setActionError(null)
     setShowDealModal(true)
   }
 
@@ -119,6 +125,7 @@ const PipelineKanban: React.FC = () => {
       pipeline: deal.pipeline,
       stage: deal.stage,
     })
+    setActionError(null)
     setShowDealModal(true)
   }
 
@@ -130,8 +137,9 @@ const PipelineKanban: React.FC = () => {
         await createDealMutation.mutateAsync(formData)
       }
       setShowDealModal(false)
-    } catch (error) {
-      console.error('Error saving deal:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to save the deal. Please try again.')
     }
   }
 
@@ -140,16 +148,18 @@ const PipelineKanban: React.FC = () => {
 
     try {
       await deleteDealMutation.mutateAsync(dealId)
-    } catch (error) {
-      console.error('Error deleting deal:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to delete the deal. Please try again.')
     }
   }
 
   const handleMarkWon = async (dealId: number) => {
     try {
       await markDealWonMutation.mutateAsync(dealId)
-    } catch (error) {
-      console.error('Error marking deal as won:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to mark the deal as won. Please try again.')
     }
   }
 
@@ -159,8 +169,9 @@ const PipelineKanban: React.FC = () => {
 
     try {
       await markDealLostMutation.mutateAsync({ id: dealId, reason })
-    } catch (error) {
-      console.error('Error marking deal as lost:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to mark the deal as lost. Please try again.')
     }
   }
 
@@ -187,8 +198,17 @@ const PipelineKanban: React.FC = () => {
     return <div className="loading-spinner">Loading pipelines...</div>
   }
 
+  if (pipelinesError) {
+    return <div className="error">Unable to load pipelines. Please refresh and try again.</div>
+  }
+
   return (
     <div className="crm-page pipeline-kanban">
+      {(actionError || dealsError || stagesError) && (
+        <div className="error">
+          {actionError || dealsError?.message || stagesError?.message || 'Something went wrong. Please try again.'}
+        </div>
+      )}
       <div className="page-header">
         <div className="header-left">
           <h1>Pipeline</h1>
@@ -238,6 +258,7 @@ const PipelineKanban: React.FC = () => {
       </div>
 
       <div className="pipeline-stages">
+        {dealsLoading ? <div className="loading">Loading deals...</div> : null}
         {sortedStages.map((stage) => (
           <div
             key={stage.id}

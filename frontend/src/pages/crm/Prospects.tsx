@@ -13,11 +13,12 @@ const Prospects: React.FC = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null)
   const [filterStage, setFilterStage] = useState<string>('all')
-  const { data: prospects = [], isLoading } = useProspects()
-  const { data: pipelineReport } = usePipelineReport()
+  const { data: prospects = [], isLoading, error: prospectsError } = useProspects()
+  const { data: pipelineReport, error: pipelineReportError } = usePipelineReport()
   const createProspectMutation = useCreateProspect()
   const updateProspectMutation = useUpdateProspect()
   const deleteProspectMutation = useDeleteProspect()
+  const [actionError, setActionError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Prospect>>({
     company_name: '',
     industry: '',
@@ -43,8 +44,9 @@ const Prospects: React.FC = () => {
         await createProspectMutation.mutateAsync(formData)
       }
       resetForm()
-    } catch (error) {
-      console.error('Failed to save prospect:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to save the prospect. Please try again.')
     }
   }
 
@@ -58,8 +60,9 @@ const Prospects: React.FC = () => {
     if (window.confirm('Are you sure you want to delete this prospect?')) {
       try {
         await deleteProspectMutation.mutateAsync(id)
-      } catch (error) {
-        console.error('Failed to delete prospect:', error)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the prospect. Please try again.')
       }
     }
   }
@@ -82,6 +85,7 @@ const Prospects: React.FC = () => {
     })
     setEditingProspect(null)
     setShowForm(false)
+    setActionError(null)
   }
 
   const filteredProspects = prospects.filter((prospect) => {
@@ -111,8 +115,17 @@ const Prospects: React.FC = () => {
     return <div className="loading">Loading prospects...</div>
   }
 
+  if (prospectsError) {
+    return <div className="error">Unable to load prospects. Please refresh and try again.</div>
+  }
+
   return (
     <div className="crm-page">
+      {(actionError || pipelineReportError) && (
+        <div className="error">
+          {actionError || pipelineReportError?.message || 'Something went wrong. Please try again.'}
+        </div>
+      )}
       <div className="page-header">
         <div>
           <h1>Prospects (Sales Pipeline)</h1>

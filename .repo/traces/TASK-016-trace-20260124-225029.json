@@ -1,0 +1,21 @@
+{
+  "intent": "Create HITL item and block task pending security review",
+  "task_id": "TASK-016",
+  "timestamp": "2026-01-24T22:50:29Z",
+  "files": [
+    ".repo/hitl/HITL-0001.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/TODO.md"
+  ],
+  "commands": [
+    "bash scripts/create-hitl-item.sh Risk \"React Hook Form migration for login/register forms\" \"Planned refactor of login/register forms to React Hook Form, which changes auth/login behavior and requires security review before proceeding.\"",
+    "bash scripts/generate-trace-log.sh TASK-016 \"Create HITL item and block task pending security review\""
+  ],
+  "evidence": [
+    "Not run (no tests or checks executed for HITL/task management update)."
+  ],
+  "hitl": [
+    "HITL-0001"
+  ],
+  "unknowns": []
+}

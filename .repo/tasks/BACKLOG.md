@@ -49,48 +49,28 @@
 
 ## P1 — High
 
-### [TASK-017] Refactor CRM Pages to Use React Query Hooks
+### [TASK-016] Implement React Hook Form in All Forms
 - **Priority:** P1
-- **Status:** Pending
+- **Status:** Blocked
 - **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 0.4, all CRM pages use anti-pattern. Deals.tsx has 10+ direct API calls and 7 useState hooks. This is the most complex refactoring.
+- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
 
 #### Acceptance Criteria
-- [ ] Refactor `frontend/src/pages/crm/Deals.tsx` to use React Query hooks
-- [ ] Refactor `frontend/src/pages/crm/Prospects.tsx` to use React Query hooks
-- [ ] Refactor `frontend/src/pages/crm/PipelineKanban.tsx` to use React Query hooks
-- [ ] Refactor `frontend/src/pages/crm/PipelineAnalytics.tsx` to use React Query hooks
-- [ ] Refactor `frontend/src/pages/crm/Leads.tsx` to use React Query hooks
-- [ ] Remove all manual state management and direct API calls
-- [ ] Implement proper error handling
+- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
+- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
+- [ ] Implement React Hook Form in all remaining forms (10+ pages)
+- [ ] Add proper validation rules to all forms
+- [ ] Remove manual form state management (useState patterns)
+- [ ] Verify all forms work correctly
 
 #### Notes
-- Per ANALYSIS.md Section 0.4: Deals.tsx is 482 lines, most complex
-- Depends on TASK-014 (CRM API hooks)
-- Estimated: 10-12 hours for all CRM pages
-- Files: All `frontend/src/pages/crm/*.tsx` files
-
----
-
-### [TASK-018] Re-enable ESLint Rules and Fix Violations
-- **Priority:** P1
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 0.8, 4 critical ESLint rules are disabled, compromising type safety and code quality. Per Section 11.4, 57 instances of `any` type exist.
-
-#### Acceptance Criteria
-- [ ] Re-enable `@typescript-eslint/no-explicit-any` (start with "warn")
-- [ ] Re-enable `@typescript-eslint/no-unused-vars` (start with "warn")
-- [ ] Re-enable `react-hooks/exhaustive-deps` (start with "warn")
-- [ ] Fix all violations across codebase (57 `any` types, unused vars, etc.)
-- [ ] Gradually increase rules to "error" level
-- [ ] Verify `make -C frontend lint` passes
-
-#### Notes
-- Per ANALYSIS.md Section 0.8: Lines 35-38 need rule re-enabling
-- Per Section 11.4: 57 `any` types need replacement
-- Estimated: 8-10 hours to fix all violations
-- File: `frontend/.eslintrc.cjs` + all source files
+- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
+- Would eliminate ~300-450 lines of duplicate code
+- Estimated: 12-16 hours for all forms
+- Files: All page components with forms
+- Blocked on HITL-0001 (security review for login/register form changes).
 
 ---
 

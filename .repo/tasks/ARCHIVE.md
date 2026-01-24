@@ -36,9 +36,9 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 11 |
+| Total Completed | 12 |
 | P0 Completed | 8 |
-| P1 Completed | 3 |
+| P1 Completed | 4 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
 
@@ -47,6 +47,26 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-017] Refactor CRM Pages to Use React Query Hooks ✓
+- **Priority:** P1
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-24
+- **Context:** Per ANALYSIS.md Section 0.4, all CRM pages use anti-pattern. Deals.tsx has 10+ direct API calls and 7 useState hooks. This is the most complex refactoring.
+
+#### Acceptance Criteria
+- [x] Refactor `frontend/src/pages/crm/Deals.tsx` to use React Query hooks
+- [x] Refactor `frontend/src/pages/crm/Prospects.tsx` to use React Query hooks
+- [x] Refactor `frontend/src/pages/crm/PipelineKanban.tsx` to use React Query hooks
+- [x] Refactor `frontend/src/pages/crm/PipelineAnalytics.tsx` to use React Query hooks
+- [x] Refactor `frontend/src/pages/crm/Leads.tsx` to use React Query hooks
+- [x] Remove all manual state management and direct API calls
+- [x] Implement proper error handling
+
+#### Outcome
+- All CRM pages now rely on React Query hooks for data access and show user-facing error states.
+- Added action-level error feedback for create/update/delete flows across CRM pages.
 
 ### [TASK-020] Fix Vite Build Configuration Mismatch ✓
 - **Priority:** P1

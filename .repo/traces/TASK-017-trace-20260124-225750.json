@@ -1,0 +1,29 @@
+{
+  "intent": "Refactor CRM pages to improve React Query error handling",
+  "task_id": "TASK-017",
+  "timestamp": "2026-01-24T22:57:50Z",
+  "files": [
+    "frontend/src/pages/crm/Deals.tsx",
+    "frontend/src/pages/crm/Prospects.tsx",
+    "frontend/src/pages/crm/PipelineKanban.tsx",
+    "frontend/src/pages/crm/PipelineAnalytics.tsx",
+    "frontend/src/pages/crm/Leads.tsx",
+    ".repo/tasks/TODO.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/ARCHIVE.md",
+    ".repo/logs/TASK-017-log-20260124-225754.json",
+    ".repo/traces/TASK-017-trace-20260124-225750.json"
+  ],
+  "commands": [
+    "make lint",
+    "npm -C frontend run dev -- --host 0.0.0.0 --port 4173",
+    "bash scripts/generate-trace-log.sh TASK-017 \"Refactor CRM pages to improve React Query error handling\"",
+    "bash scripts/generate-agent-log.sh TASK-017 \"Refactor CRM pages to use React Query error states\""
+  ],
+  "evidence": [
+    "make lint (frontend lint warnings only; backend lint pass)",
+    "Screenshot captured: artifacts/crm-deals-error-handling.png"
+  ],
+  "hitl": [],
+  "unknowns": []
+}

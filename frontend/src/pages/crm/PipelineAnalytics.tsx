@@ -3,11 +3,13 @@ import { useForecast, usePipelineAnalytics, usePipelines, useWinLossReport } fro
 import './CRM.css'
 
 const PipelineAnalytics: React.FC = () => {
-  const { data: pipelines = [], isLoading: pipelinesLoading } = usePipelines()
-  const { data: forecastData } = useForecast()
-  const { data: winLossData } = useWinLossReport()
+  const { data: pipelines = [], isLoading: pipelinesLoading, error: pipelinesError } = usePipelines()
+  const { data: forecastData, error: forecastError } = useForecast()
+  const { data: winLossData, error: winLossError } = useWinLossReport()
   const [selectedPipeline, setSelectedPipeline] = useState<number | null>(null)
-  const { data: pipelineAnalytics } = usePipelineAnalytics(selectedPipeline ?? undefined)
+  const { data: pipelineAnalytics, error: pipelineAnalyticsError } = usePipelineAnalytics(
+    selectedPipeline ?? undefined,
+  )
 
   useEffect(() => {
     if (!selectedPipeline && pipelines.length > 0) {
@@ -37,8 +39,20 @@ const PipelineAnalytics: React.FC = () => {
     return <div className="loading-spinner">Loading analytics...</div>
   }
 
+  if (pipelinesError) {
+    return <div className="error">Unable to load pipelines. Please refresh and try again.</div>
+  }
+
   return (
     <div className="crm-page pipeline-analytics">
+      {(forecastError || winLossError || pipelineAnalyticsError) && (
+        <div className="error">
+          {forecastError?.message ||
+            winLossError?.message ||
+            pipelineAnalyticsError?.message ||
+            'Something went wrong. Please try again.'}
+        </div>
+      )}
       <div className="page-header">
         <div className="header-left">
           <h1>Pipeline Analytics & Forecasting</h1>
