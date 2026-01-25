@@ -7,6 +7,8 @@ import {
   useDeleteCampaign,
   useUpdateCampaign,
 } from '../../api/crm'
+import { useConfirmDialog } from '../../components/ConfirmDialog'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import './CRM.css'
 
 const Campaigns: React.FC = () => {
@@ -15,11 +17,33 @@ const Campaigns: React.FC = () => {
   const [filterType, setFilterType] = useState<string>('all')
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [selectedCampaign, setSelectedCampaign] = useState<number | null>(null)
-  const { data: campaigns = [], isLoading } = useCampaigns()
+  const { data: campaigns = [], isLoading, error: campaignsError } = useCampaigns()
   const { data: performanceData } = useCampaignPerformance(selectedCampaign ?? undefined)
   const createCampaignMutation = useCreateCampaign()
   const updateCampaignMutation = useUpdateCampaign()
   const deleteCampaignMutation = useDeleteCampaign()
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [campaignToDelete, setCampaignToDelete] = useState<number | null>(null)
+
+  // Confirm dialog for delete
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Campaign',
+    message: 'Are you sure you want to delete this campaign? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (campaignToDelete === null) return
+      try {
+        await deleteCampaignMutation.mutateAsync(campaignToDelete)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the campaign. Please try again.')
+      } finally {
+        setCampaignToDelete(null)
+      }
+    },
+  })
+
   const [formData, setFormData] = useState<Partial<Campaign>>({
     name: '',
     description: '',
@@ -45,8 +69,9 @@ const Campaigns: React.FC = () => {
         await createCampaignMutation.mutateAsync(formData)
       }
       resetForm()
-    } catch (error) {
-      console.error('Failed to save campaign:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Unable to save the campaign. Please check the details and try again.')
     }
   }
 
@@ -56,14 +81,9 @@ const Campaigns: React.FC = () => {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this campaign?')) {
-      try {
-        await deleteCampaignMutation.mutateAsync(id)
-      } catch (error) {
-        console.error('Failed to delete campaign:', error)
-      }
-    }
+  const handleDelete = (id: number) => {
+    setCampaignToDelete(id)
+    deleteDialog.show()
   }
 
   const resetForm = () => {
@@ -80,6 +100,7 @@ const Campaigns: React.FC = () => {
     })
     setEditingCampaign(null)
     setShowForm(false)
+    setActionError(null)
   }
 
   const filteredCampaigns = campaigns.filter((campaign) => {
@@ -118,8 +139,25 @@ const Campaigns: React.FC = () => {
     return <div className="loading">Loading campaigns...</div>
   }
 
+  if (campaignsError) {
+    return (
+      <ErrorDisplay
+        error={campaignsError}
+        title="Failed to Load Campaigns"
+        variant="card"
+      />
+    )
+  }
+
   return (
     <div className="crm-page">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1>Campaigns</h1>
@@ -444,6 +482,9 @@ const Campaigns: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { Client, useClients, useCreateClient, useDeleteClient, useUpdateClient } from '../api/clients'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './Clients.css'
 
 const getErrorMessage = (error: unknown, fallback: string) => {
@@ -25,6 +27,7 @@ const Clients: React.FC = () => {
   const deleteClientMutation = useDeleteClient()
   const [showForm, setShowForm] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
+  const [clientToDelete, setClientToDelete] = useState<number | null>(null)
   const [formData, setFormData] = useState<Partial<Client>>({
     company_name: '',
     industry: '',
@@ -35,6 +38,19 @@ const Clients: React.FC = () => {
     country: 'USA',
     portal_enabled: false,
     assigned_team: [],
+  })
+
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Client',
+    message: 'Are you sure you want to delete this client? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (clientToDelete === null) return
+      deleteClientMutation.reset()
+      await deleteClientMutation.mutateAsync(clientToDelete)
+      setClientToDelete(null)
+    },
   })
 
   const clearMutationErrors = () => {
@@ -66,10 +82,8 @@ const Clients: React.FC = () => {
   }
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this client?')) {
-      deleteClientMutation.reset()
-      deleteClientMutation.mutate(id)
-    }
+    setClientToDelete(id)
+    deleteDialog.show()
   }
 
   const resetForm = () => {
@@ -110,9 +124,10 @@ const Clients: React.FC = () => {
       </div>
 
       {clientLoadError && (
-        <div className="error-message">
-          {clientLoadError}
-        </div>
+        <ErrorDisplay
+          error={clientLoadError}
+          variant="banner"
+        />
       )}
 
       {showForm && (
@@ -120,9 +135,10 @@ const Clients: React.FC = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2>{editingClient ? 'Edit Client' : 'New Client'}</h2>
             {clientMutationError && (
-              <div className="error-message">
-                {clientMutationError}
-              </div>
+              <ErrorDisplay
+                error={clientMutationError}
+                variant="inline"
+              />
             )}
             <form onSubmit={handleSubmit} className="client-form">
               <div className="form-group">
@@ -239,6 +255,8 @@ const Clients: React.FC = () => {
           </div>
         )}
       </div>
+
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

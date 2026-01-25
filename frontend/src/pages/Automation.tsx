@@ -19,6 +19,8 @@ import {
   pauseWorkflow,
   duplicateWorkflow,
 } from '../api/automation';
+import { useConfirmDialog } from '../components/ConfirmDialog';
+import ErrorDisplay from '../components/ErrorDisplay';
 import './Automation.css';
 
 interface Workflow {
@@ -43,6 +45,7 @@ const Automation: React.FC = () => {
   const [newWorkflowName, setNewWorkflowName] = useState('');
   const [newWorkflowDescription, setNewWorkflowDescription] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Fetch workflows
   const { data: workflows = [], isLoading, error } = useQuery({
@@ -58,7 +61,11 @@ const Automation: React.FC = () => {
       setShowCreateModal(false);
       setNewWorkflowName('');
       setNewWorkflowDescription('');
+      setActionError(null);
       navigate(`/automation/builder/${data.id}`);
+    },
+    onError: () => {
+      setActionError('Failed to create workflow. Please try again.');
     },
   });
 
@@ -67,6 +74,10 @@ const Automation: React.FC = () => {
     mutationFn: deleteWorkflow,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to delete workflow. Please try again.');
     },
   });
 
@@ -75,6 +86,10 @@ const Automation: React.FC = () => {
     mutationFn: activateWorkflow,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to activate workflow. Please try again.');
     },
   });
 
@@ -83,6 +98,10 @@ const Automation: React.FC = () => {
     mutationFn: pauseWorkflow,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to pause workflow. Please try again.');
     },
   });
 
@@ -91,7 +110,23 @@ const Automation: React.FC = () => {
     mutationFn: duplicateWorkflow,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      setActionError(null);
       navigate(`/automation/builder/${data.id}`);
+    },
+    onError: () => {
+      setActionError('Failed to duplicate workflow. Please try again.');
+    },
+  });
+
+  // Confirm dialog for delete workflow
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Workflow',
+    message: 'Are you sure you want to delete this workflow?',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      const workflowId = deleteDialog.metadata as number;
+      deleteMutation.mutate(workflowId);
     },
   });
 
@@ -105,9 +140,7 @@ const Automation: React.FC = () => {
   };
 
   const handleDeleteWorkflow = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this workflow?')) {
-      deleteMutation.mutate(id);
-    }
+    deleteDialog.show(id);
   };
 
   const handleActivateWorkflow = (id: number) => {
@@ -133,11 +166,24 @@ const Automation: React.FC = () => {
   }
 
   if (error) {
-    return <div className="automation-error">Error loading workflows: {String(error)}</div>;
+    return (
+      <ErrorDisplay
+        error={error}
+        title="Failed to Load Workflows"
+        variant="card"
+      />
+    );
   }
 
   return (
     <div className="automation-container">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="automation-header">
         <h1>Automation Workflows</h1>
         <button
@@ -309,6 +355,9 @@ const Automation: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { SiteMessage, SiteMessagePayload, trackingApi } from '../api/tracking'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './SiteMessages.css'
 
 type VariantDraft = {
@@ -43,8 +44,9 @@ export const SiteMessages = () => {
   const [variants, setVariants] = useState<VariantDraft[]>([])
   const [previewVariant, setPreviewVariant] = useState('base')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const previewContent = useMemo(() => {
     if (previewVariant === 'base') {
@@ -64,11 +66,12 @@ export const SiteMessages = () => {
 
   const loadMessages = async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const data = await trackingApi.listSiteMessages()
       setMessages(data)
     } catch {
-      setError('Unable to load site messages. Confirm you have permissions and a firm selected.')
+      setLoadError('Unable to load site messages. Confirm you have permissions and a firm selected.')
     } finally {
       setLoading(false)
     }
@@ -88,7 +91,7 @@ export const SiteMessages = () => {
     setSegmentsInput('')
     setVariants([])
     setPreviewVariant('base')
-    setError(null)
+    setActionError(null)
   }
 
   const handleSelectMessage = (message: SiteMessage) => {
@@ -179,7 +182,7 @@ export const SiteMessages = () => {
 
   const handleSubmit = async () => {
     setSaving(true)
-    setError(null)
+    setActionError(null)
     const payload = buildPayload()
     try {
       if (editingId) {
@@ -189,9 +192,8 @@ export const SiteMessages = () => {
       }
       await loadMessages()
       resetForm()
-    } catch (err) {
-      console.error(err)
-      setError('Unable to save site message. Please verify required fields.')
+    } catch {
+      setActionError('Unable to save site message. Please verify required fields.')
     } finally {
       setSaving(false)
     }
@@ -199,8 +201,25 @@ export const SiteMessages = () => {
 
   const previewVariants = ['base', ...experiments]
 
+  if (loadError) {
+    return (
+      <ErrorDisplay
+        error={loadError}
+        title="Failed to Load Site Messages"
+        variant="card"
+      />
+    );
+  }
+
   return (
     <div className="site-messages">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1>Site Messages</h1>
@@ -213,8 +232,6 @@ export const SiteMessages = () => {
           New Message
         </button>
       </div>
-
-      {error && <div className="error-banner">{error}</div>}
 
       <div className="grid two-columns">
         <div className="card">

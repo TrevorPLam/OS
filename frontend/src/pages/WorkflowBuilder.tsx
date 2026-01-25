@@ -24,6 +24,8 @@ import {
   createNode,
   deleteNode,
 } from '../api/automation';
+import { useConfirmDialog } from '../components/ConfirmDialog';
+import ErrorDisplay from '../components/ErrorDisplay';
 import './WorkflowBuilder.css';
 
 interface WorkflowNodeView {
@@ -46,9 +48,10 @@ const WorkflowBuilder: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'canvas' | 'triggers' | 'settings'>('canvas');
   const [showTriggerModal, setShowTriggerModal] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Fetch workflow
-  const { data: workflow, isLoading: workflowLoading } = useQuery({
+  const { data: workflow, isLoading: workflowLoading, error: workflowError } = useQuery({
     queryKey: ['workflow', id],
     queryFn: () => getWorkflow(Number(id)),
     enabled: !!id,
@@ -73,6 +76,10 @@ const WorkflowBuilder: React.FC = () => {
     mutationFn: createNode,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['nodes', id] });
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to create node. Please try again.');
     },
   });
 
@@ -81,6 +88,10 @@ const WorkflowBuilder: React.FC = () => {
     mutationFn: deleteNode,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['nodes', id] });
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to delete node. Please try again.');
     },
   });
 
@@ -90,6 +101,10 @@ const WorkflowBuilder: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['triggers', id] });
       setShowTriggerModal(false);
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to create trigger. Please try again.');
     },
   });
 
@@ -98,6 +113,22 @@ const WorkflowBuilder: React.FC = () => {
     mutationFn: deleteTrigger,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['triggers', id] });
+      setActionError(null);
+    },
+    onError: () => {
+      setActionError('Failed to delete trigger. Please try again.');
+    },
+  });
+
+  // Confirm dialog for delete node
+  const deleteNodeDialog = useConfirmDialog({
+    title: 'Delete Node',
+    message: 'Are you sure you want to delete this node?',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      const nodeId = deleteNodeDialog.metadata as number;
+      deleteNodeMutation.mutate(nodeId);
     },
   });
 
@@ -116,9 +147,7 @@ const WorkflowBuilder: React.FC = () => {
   };
 
   const handleDeleteNode = (nodeId: number) => {
-    if (window.confirm('Are you sure you want to delete this node?')) {
-      deleteNodeMutation.mutate(nodeId);
-    }
+    deleteNodeDialog.show(nodeId);
   };
 
   const getNodeLabel = (nodeType: string): string => {
@@ -170,12 +199,35 @@ const WorkflowBuilder: React.FC = () => {
     return <div className="builder-loading">Loading workflow...</div>;
   }
 
+  if (workflowError) {
+    return (
+      <ErrorDisplay
+        error={workflowError}
+        title="Failed to Load Workflow"
+        variant="card"
+      />
+    );
+  }
+
   if (!workflow) {
-    return <div className="builder-error">Workflow not found</div>;
+    return (
+      <ErrorDisplay
+        error="Workflow not found"
+        title="Workflow Not Found"
+        variant="card"
+      />
+    );
   }
 
   return (
     <div className="workflow-builder">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="builder-header">
         <button className="btn-back" onClick={() => navigate('/automation')}>
           ← Back
@@ -385,6 +437,9 @@ const WorkflowBuilder: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Delete node confirmation dialog */}
+      <deleteNodeDialog.ConfirmDialog />
     </div>
   );
 };

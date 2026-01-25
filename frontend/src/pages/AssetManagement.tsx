@@ -3,6 +3,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { assetsApi, Asset, MaintenanceLog } from '../api/assets';
+import ErrorDisplay from '../components/ErrorDisplay';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './AssetManagement.css';
 
@@ -11,6 +12,8 @@ export const AssetManagement: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [maintenanceLogs, setMaintenanceLogs] = useState<MaintenanceLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('');
@@ -45,6 +48,7 @@ export const AssetManagement: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       // Keep filter parameters explicit to avoid `any` while sending only strings.
       const params: Record<string, string> = {};
       if (filterStatus) params.status = filterStatus;
@@ -57,8 +61,8 @@ export const AssetManagement: React.FC = () => {
 
       setAssets(assetsRes.data.results || []);
       setMaintenanceLogs(maintenanceRes.data.results || []);
-    } catch (error) {
-      console.error('Error loading data:', error);
+    } catch {
+      setLoadError('Unable to load assets and maintenance data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -74,10 +78,10 @@ export const AssetManagement: React.FC = () => {
       await assetsApi.createAsset(assetForm);
       setShowAssetModal(false);
       resetAssetForm();
+      setActionError(null);
       loadData();
-    } catch (error) {
-      console.error('Error creating asset:', error);
-      alert('Failed to create asset');
+    } catch {
+      setActionError('Unable to create asset. Please check the details and try again.');
     }
   };
 
@@ -87,20 +91,20 @@ export const AssetManagement: React.FC = () => {
       await assetsApi.createMaintenanceLog(maintenanceForm);
       setShowMaintenanceModal(false);
       resetMaintenanceForm();
+      setActionError(null);
       loadData();
-    } catch (error) {
-      console.error('Error creating maintenance log:', error);
-      alert('Failed to create maintenance log');
+    } catch {
+      setActionError('Unable to create maintenance log. Please check the details and try again.');
     }
   };
 
   const handleUpdateAssetStatus = async (asset: Asset, newStatus: string) => {
     try {
       await assetsApi.updateAsset(asset.id, { status: newStatus });
+      setActionError(null);
       loadData();
-    } catch (error) {
-      console.error('Error updating asset:', error);
-      alert('Failed to update asset status');
+    } catch {
+      setActionError('Unable to update asset status. Please try again.');
     }
   };
 
@@ -160,8 +164,25 @@ export const AssetManagement: React.FC = () => {
     return <LoadingSpinner message="Loading assets..." />;
   }
 
+  if (loadError) {
+    return (
+      <ErrorDisplay
+        error={loadError}
+        title="Failed to Load Assets"
+        variant="card"
+      />
+    );
+  }
+
   return (
     <div className="asset-management">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <header className="asset-header">
         <div>
           <h1>Asset Management</h1>

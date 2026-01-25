@@ -21,6 +21,7 @@ import {
   PortalAccount,
   PortalProfile,
 } from '../api/clientPortal';
+import ErrorDisplay from '../components/ErrorDisplay';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClientPortal.css';
 
@@ -93,6 +94,7 @@ export const ClientPortal: React.FC = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
   const [switchingAccount, setSwitchingAccount] = useState(false);
   const [accountSwitchMessage, setAccountSwitchMessage] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     activeProjects: 0,
@@ -126,8 +128,8 @@ export const ClientPortal: React.FC = () => {
       setAppointments(appointmentsResponse.data.results || []);
       setAppointmentTypes(typesResponse.data || []);
     } catch (error) {
-      console.error('Error loading appointments:', error);
-      setAppointmentsError('Unable to load appointment options right now.');
+      const errorMsg = resolvePortalError(error) || 'Unable to load appointment options right now.';
+      setAppointmentsError(errorMsg);
     } finally {
       setAppointmentsLoading(false);
     }
@@ -142,8 +144,8 @@ export const ClientPortal: React.FC = () => {
       setProfile(response.data);
       setProfilePreferences(stringifyPreferences(response.data.notification_preferences ?? null));
     } catch (error) {
-      console.error('Error loading profile:', error);
-      setProfileError('Unable to load profile details right now.');
+      const errorMsg = resolvePortalError(error) || 'Unable to load profile details right now.';
+      setProfileError(errorMsg);
     } finally {
       setProfileLoading(false);
     }
@@ -159,8 +161,8 @@ export const ClientPortal: React.FC = () => {
       setCurrentAccountId(response.data.current_account_id ?? null);
       setSelectedAccountId(response.data.current_account_id ?? null);
     } catch (error) {
-      console.error('Error loading accounts:', error);
-      setAccountsError('Unable to load account options right now.');
+      const errorMsg = resolvePortalError(error) || 'Unable to load account options right now.';
+      setAccountsError(errorMsg);
     } finally {
       setAccountsLoading(false);
     }
@@ -230,7 +232,8 @@ export const ClientPortal: React.FC = () => {
           unreadMessages: unreadCount,
         });
       } catch (error) {
-        console.error('Error loading chat:', error);
+        const errorMsg = resolvePortalError(error) || 'Unable to load chat messages.';
+        setGlobalError(errorMsg);
         setStats({
           activeProjects: activeProjectsCount,
           totalDocuments: docsResponse.length || 0,
@@ -239,7 +242,8 @@ export const ClientPortal: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Error loading portal data:', error);
+      const errorMsg = resolvePortalError(error) || 'Unable to load portal data. Please refresh the page.';
+      setGlobalError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -287,8 +291,8 @@ export const ClientPortal: React.FC = () => {
       setProfile(response.data);
       setProfilePreferences(stringifyPreferences(response.data.notification_preferences ?? null));
     } catch (error) {
-      console.error('Error saving profile preferences:', error);
-      setProfileError('Unable to save profile changes right now.');
+      const errorMsg = resolvePortalError(error) || 'Unable to save profile changes right now.';
+      setProfileError(errorMsg);
     } finally {
       setProfileSaving(false);
     }
@@ -318,8 +322,8 @@ export const ClientPortal: React.FC = () => {
       // Refresh portal data to reflect the newly active account scope.
       await loadPortalData();
     } catch (error) {
-      console.error('Error switching account:', error);
-      setAccountsError('Unable to switch accounts right now.');
+      const errorMsg = resolvePortalError(error) || 'Unable to switch accounts right now.';
+      setAccountsError(errorMsg);
     } finally {
       setSwitchingAccount(false);
     }
@@ -353,8 +357,8 @@ export const ClientPortal: React.FC = () => {
 
       setAvailableSlots(response.data.slots || []);
     } catch (error) {
-      console.error('Error loading appointment slots:', error);
-      setSlotsError('Unable to load appointment times. Please try again.');
+      const errorMsg = resolvePortalError(error) || 'Unable to load appointment times. Please try again.';
+      setSlotsError(errorMsg);
     } finally {
       setSlotsLoading(false);
     }
@@ -381,8 +385,8 @@ export const ClientPortal: React.FC = () => {
       await loadAppointmentData();
       alert('Appointment booked successfully!');
     } catch (error) {
-      console.error('Error booking appointment:', error);
-      setBookingError('Unable to book this appointment. Please try another time.');
+      const errorMsg = resolvePortalError(error) || 'Unable to book this appointment. Please try another time.';
+      setBookingError(errorMsg);
     } finally {
       setBookingAppointment(false);
     }
@@ -393,8 +397,8 @@ export const ClientPortal: React.FC = () => {
       await clientPortalApi.cancelAppointment(appointmentId);
       await loadAppointmentData();
     } catch (error) {
-      console.error('Error cancelling appointment:', error);
-      alert('Unable to cancel appointment right now.');
+      const errorMsg = resolvePortalError(error) || 'Unable to cancel appointment right now.';
+      setAppointmentsError(errorMsg);
     }
   };
 
@@ -403,8 +407,8 @@ export const ClientPortal: React.FC = () => {
       const response = await portalDocumentsApi.downloadDocument(documentId);
       window.open(response.download_url, '_blank');
     } catch (error) {
-      console.error('Error downloading document:', error);
-      alert('Failed to download document');
+      const errorMsg = resolvePortalError(error) || 'Failed to download document. Please try again.';
+      setGlobalError(errorMsg);
     }
   };
 
@@ -437,8 +441,8 @@ export const ClientPortal: React.FC = () => {
 
       alert('Comment added successfully!');
     } catch (error) {
-      console.error('Error submitting comment:', error);
-      alert('Failed to add comment. Please try again.');
+      const errorMsg = resolvePortalError(error) || 'Failed to add comment. Please try again.';
+      setGlobalError(errorMsg);
     } finally {
       setSubmittingComment(null);
     }
@@ -456,10 +460,9 @@ export const ClientPortal: React.FC = () => {
         alert(response.data.message);
       }
     } catch (error) {
-      console.error('Error generating payment link:', error);
       const errorMessage =
         resolvePortalError(error) || 'Failed to generate payment link. Please try again.';
-      alert(errorMessage);
+      setGlobalError(errorMessage);
     } finally {
       setGeneratingPaymentLink(null);
     }
@@ -484,8 +487,8 @@ export const ClientPortal: React.FC = () => {
       setMessages(threadResponse.data.recent_messages || []);
       setChatThread(threadResponse.data);
     } catch (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send message. Please try again.');
+      const errorMsg = resolvePortalError(error) || 'Failed to send message. Please try again.';
+      setGlobalError(errorMsg);
     } finally {
       setSendingMessage(false);
     }
@@ -501,7 +504,11 @@ export const ClientPortal: React.FC = () => {
         setMessages(threadResponse.data.recent_messages || []);
         setChatThread(threadResponse.data);
       } catch (error) {
-        console.error('Error refreshing messages:', error);
+        // Silently fail for auto-refresh to avoid disrupting user experience
+        const errorMsg = resolvePortalError(error);
+        if (errorMsg) {
+          setGlobalError(errorMsg);
+        }
       }
     };
 
@@ -571,6 +578,15 @@ export const ClientPortal: React.FC = () => {
 
   return (
     <div className="client-portal">
+      {/* Global Error Display */}
+      {globalError && (
+        <ErrorDisplay
+          error={globalError}
+          variant="banner"
+          onDismiss={() => setGlobalError(null)}
+        />
+      )}
+
       <header className="portal-header">
         <h1>Client Portal</h1>
         <p className="portal-subtitle">Welcome back! Here's your project overview.</p>
@@ -1392,7 +1408,11 @@ export const ClientPortal: React.FC = () => {
             <h2>Appointments</h2>
 
             {appointmentsError && (
-              <p className="error-state">{appointmentsError}</p>
+              <ErrorDisplay
+                error={appointmentsError}
+                variant="banner"
+                onDismiss={() => setAppointmentsError(null)}
+              />
             )}
 
             <div className="appointments-layout">
@@ -1471,7 +1491,13 @@ export const ClientPortal: React.FC = () => {
                       </button>
                     </div>
 
-                    {slotsError && <p className="error-state">{slotsError}</p>}
+                    {slotsError && (
+                      <ErrorDisplay
+                        error={slotsError}
+                        variant="banner"
+                        onDismiss={() => setSlotsError(null)}
+                      />
+                    )}
 
                     {availableSlots.length === 0 && !slotsLoading ? (
                       <p className="empty-state">No available times yet. Try another type or check back soon.</p>
@@ -1503,7 +1529,13 @@ export const ClientPortal: React.FC = () => {
                       />
                     </div>
 
-                    {bookingError && <p className="error-state">{bookingError}</p>}
+                    {bookingError && (
+                      <ErrorDisplay
+                        error={bookingError}
+                        variant="banner"
+                        onDismiss={() => setBookingError(null)}
+                      />
+                    )}
 
                     <button
                       className="book-appointment-btn"
@@ -1523,7 +1555,13 @@ export const ClientPortal: React.FC = () => {
           <div className="profile-tab">
             <h2>Profile & Accounts</h2>
 
-            {profileError && <p className="error-state">{profileError}</p>}
+            {profileError && (
+              <ErrorDisplay
+                error={profileError}
+                variant="banner"
+                onDismiss={() => setProfileError(null)}
+              />
+            )}
 
             <div className="profile-grid">
               <section className="profile-card">
@@ -1586,7 +1624,13 @@ export const ClientPortal: React.FC = () => {
 
               <section className="profile-card">
                 <h3>Account Switcher</h3>
-                {accountsError && <p className="error-state">{accountsError}</p>}
+                {accountsError && (
+                  <ErrorDisplay
+                    error={accountsError}
+                    variant="banner"
+                    onDismiss={() => setAccountsError(null)}
+                  />
+                )}
                 {accountSwitchMessage && <p className="success-state">{accountSwitchMessage}</p>}
                 {accountsLoading ? (
                   <p className="loading-state">Loading accounts...</p>

@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { timeTrackingApi, TimeEntry, Project } from '../api/timeTracking'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './TimeTracking.css'
 
 const TimeTracking: React.FC = () => {
@@ -7,6 +9,28 @@ const TimeTracking: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [entryToDelete, setEntryToDelete] = useState<number | null>(null)
+
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Time Entry',
+    message: 'Are you sure you want to delete this time entry? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (entryToDelete === null) return
+      try {
+        await timeTrackingApi.deleteTimeEntry(entryToDelete)
+        loadData()
+        setError(null)
+      } catch (err) {
+        setError('Failed to delete time entry. Please try again.')
+      } finally {
+        setEntryToDelete(null)
+      }
+    },
+  })
+
   const [formData, setFormData] = useState<Partial<TimeEntry>>({
     project: 0,
     date: new Date().toISOString().split('T')[0],
@@ -36,8 +60,9 @@ const TimeTracking: React.FC = () => {
           }
         })
       }
-    } catch (error) {
-      console.error('Failed to load data:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to load data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -53,20 +78,15 @@ const TimeTracking: React.FC = () => {
       await timeTrackingApi.createTimeEntry(formData)
       loadData()
       resetForm()
-    } catch (error) {
-      console.error('Failed to save time entry:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to save time entry. Please try again.')
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this time entry?')) {
-      try {
-        await timeTrackingApi.deleteTimeEntry(id)
-        loadData()
-      } catch (error) {
-        console.error('Failed to delete time entry:', error)
-      }
-    }
+  const handleDelete = (id: number) => {
+    setEntryToDelete(id)
+    deleteDialog.show()
   }
 
   const resetForm = () => {
@@ -100,6 +120,13 @@ const TimeTracking: React.FC = () => {
 
   return (
     <div className="time-tracking-page">
+      {error && (
+        <ErrorDisplay
+          error={error}
+          variant="banner"
+          onDismiss={() => setError(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1>Time Tracking</h1>
@@ -264,6 +291,8 @@ const TimeTracking: React.FC = () => {
           </table>
         )}
       </div>
+
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

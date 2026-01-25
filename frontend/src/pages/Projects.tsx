@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useClients } from '../api/clients'
 import { projectsApi, Project, ProjectCreate } from '../api/projects'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './Projects.css'
 
 const Projects: React.FC = () => {
@@ -10,6 +12,27 @@ const Projects: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [projectToDelete, setProjectToDelete] = useState<number | null>(null)
+
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Project',
+    message: 'Are you sure you want to delete this project? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (projectToDelete === null) return
+      try {
+        await projectsApi.deleteProject(projectToDelete)
+        await loadData()
+        setError(null)
+      } catch (err) {
+        setError('Failed to delete project. Please try again.')
+      } finally {
+        setProjectToDelete(null)
+      }
+    },
+  })
 
   const [formData, setFormData] = useState<ProjectCreate>({
     client: 0,
@@ -36,8 +59,9 @@ const Projects: React.FC = () => {
         projectsApi.getProjects(),
       ])
       setProjects(projectsData)
-    } catch (error) {
-      console.error('Error loading projects:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to load projects. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -103,19 +127,15 @@ const Projects: React.FC = () => {
       }
       await loadData()
       resetForm()
-    } catch (error) {
-      console.error('Error saving project:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to save project. Please try again.')
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this project?')) return
-    try {
-      await projectsApi.deleteProject(id)
-      await loadData()
-    } catch (error) {
-      console.error('Error deleting project:', error)
-    }
+  const handleDelete = (id: number) => {
+    setProjectToDelete(id)
+    deleteDialog.show()
   }
 
   const getClientName = (clientId: number) => {
@@ -129,6 +149,13 @@ const Projects: React.FC = () => {
 
   return (
     <div className="projects-page">
+      {error && (
+        <ErrorDisplay
+          error={error}
+          variant="banner"
+          onDismiss={() => setError(null)}
+        />
+      )}
       <div className="page-header">
         <h1>Projects</h1>
         <button onClick={() => openModal()} className="btn btn-primary">
@@ -364,6 +391,8 @@ const Projects: React.FC = () => {
           </div>
         </div>
       )}
+
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

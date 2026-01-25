@@ -7,18 +7,40 @@ import {
   useProspects,
   useUpdateProspect,
 } from '../../api/crm'
+import { useConfirmDialog } from '../../components/ConfirmDialog'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import './CRM.css'
 
 const Prospects: React.FC = () => {
   const [showForm, setShowForm] = useState(false)
   const [editingProspect, setEditingProspect] = useState<Prospect | null>(null)
   const [filterStage, setFilterStage] = useState<string>('all')
+  const [prospectToDelete, setProspectToDelete] = useState<number | null>(null)
   const { data: prospects = [], isLoading, error: prospectsError } = useProspects()
   const { data: pipelineReport, error: pipelineReportError } = usePipelineReport()
   const createProspectMutation = useCreateProspect()
   const updateProspectMutation = useUpdateProspect()
   const deleteProspectMutation = useDeleteProspect()
   const [actionError, setActionError] = useState<string | null>(null)
+
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Prospect',
+    message: 'Are you sure you want to delete this prospect? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (prospectToDelete === null) return
+      try {
+        await deleteProspectMutation.mutateAsync(prospectToDelete)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the prospect. Please try again.')
+      } finally {
+        setProspectToDelete(null)
+      }
+    },
+  })
+
   const [formData, setFormData] = useState<Partial<Prospect>>({
     company_name: '',
     industry: '',
@@ -56,15 +78,9 @@ const Prospects: React.FC = () => {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this prospect?')) {
-      try {
-        await deleteProspectMutation.mutateAsync(id)
-        setActionError(null)
-      } catch {
-        setActionError('Unable to delete the prospect. Please try again.')
-      }
-    }
+  const handleDelete = (id: number) => {
+    setProspectToDelete(id)
+    deleteDialog.show()
   }
 
   const resetForm = () => {
@@ -116,15 +132,23 @@ const Prospects: React.FC = () => {
   }
 
   if (prospectsError) {
-    return <div className="error">Unable to load prospects. Please refresh and try again.</div>
+    return (
+      <ErrorDisplay
+        error={prospectsError}
+        title="Failed to Load Prospects"
+        variant="card"
+      />
+    )
   }
 
   return (
     <div className="crm-page">
       {(actionError || pipelineReportError) && (
-        <div className="error">
-          {actionError || pipelineReportError?.message || 'Something went wrong. Please try again.'}
-        </div>
+        <ErrorDisplay
+          error={actionError || pipelineReportError?.message || 'Something went wrong'}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
       )}
       <div className="page-header">
         <div>
@@ -383,6 +407,8 @@ const Prospects: React.FC = () => {
           </div>
         )}
       </div>
+
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

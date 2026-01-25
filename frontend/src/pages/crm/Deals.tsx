@@ -13,6 +13,8 @@ import {
   useStaleDeals,
   useUpdateDeal,
 } from '../../api/crm'
+import { useConfirmDialog } from '../../components/ConfirmDialog'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import './Deals.css'
 
 const Deals: React.FC = () => {
@@ -22,6 +24,7 @@ const Deals: React.FC = () => {
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStale, setFilterStale] = useState(false)
+  const [dealToDelete, setDealToDelete] = useState<number | null>(null)
   const { data: pipelines = [], isLoading: pipelinesLoading, error: pipelinesError } = usePipelines()
   const {
     data: stages = [],
@@ -43,6 +46,25 @@ const Deals: React.FC = () => {
   const markDealWonMutation = useMarkDealWon()
   const markDealLostMutation = useMarkDealLost()
   const [actionError, setActionError] = useState<string | null>(null)
+
+  // Confirm dialog for delete
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Deal',
+    message: 'Are you sure you want to delete this deal? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (dealToDelete === null) return
+      try {
+        await deleteDealMutation.mutateAsync(dealToDelete)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the deal. Please try again.')
+      } finally {
+        setDealToDelete(null)
+      }
+    },
+  })
 
   const [formData, setFormData] = useState({
     name: '',
@@ -186,15 +208,9 @@ const Deals: React.FC = () => {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this deal?')) return
-
-    try {
-      await deleteDealMutation.mutateAsync(id)
-      setActionError(null)
-    } catch {
-      setActionError('Unable to delete the deal. Please try again.')
-    }
+  const handleDelete = (id: number) => {
+    setDealToDelete(id)
+    deleteDialog.show()
   }
 
   const handleMarkWon = async (id: number) => {
@@ -251,19 +267,29 @@ const Deals: React.FC = () => {
   }
 
   if (pipelinesError) {
-    return <div className="error">Unable to load pipelines. Please refresh and try again.</div>
+    return (
+      <ErrorDisplay
+        error={pipelinesError}
+        title="Failed to Load Pipelines"
+        variant="card"
+      />
+    )
   }
 
   return (
     <div className="deals-page">
       {(stagesError || dealsError || staleDealsError || actionError) && (
-        <div className="error">
-          {actionError ||
-            stagesError?.message ||
-            dealsError?.message ||
-            staleDealsError?.message ||
-            'Something went wrong. Please try again.'}
-        </div>
+        <ErrorDisplay
+          error={
+            actionError ||
+            stagesError ||
+            dealsError ||
+            staleDealsError ||
+            'Something went wrong. Please try again.'
+          }
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
       )}
       <div className="deals-header">
         <div>
@@ -479,6 +505,9 @@ const Deals: React.FC = () => {
           </div>
         </div>
       )}
+      
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

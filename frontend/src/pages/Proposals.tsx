@@ -10,6 +10,8 @@ import {
   useUpdateProposal,
 } from '../api/crm'
 import { useClients } from '../api/clients'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './Proposals.css'
 
 const Proposals: React.FC = () => {
@@ -39,6 +41,7 @@ const Proposals: React.FC = () => {
     auto_create_project: true,
     enable_portal_on_acceptance: true,
   })
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const generateProposalNumber = () => {
     const date = new Date()
@@ -57,8 +60,9 @@ const Proposals: React.FC = () => {
         await createProposalMutation.mutateAsync(formData)
       }
       resetForm()
-    } catch (error) {
-      console.error('Failed to save proposal:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Failed to save proposal. Please try again.')
     }
   }
 
@@ -68,14 +72,25 @@ const Proposals: React.FC = () => {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this proposal?')) {
+  // Confirm dialog for delete proposal
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Proposal',
+    message: 'Are you sure you want to delete this proposal?',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      const proposalId = deleteDialog.metadata as number
       try {
-        await deleteProposalMutation.mutateAsync(id)
-      } catch (error) {
-        console.error('Failed to delete proposal:', error)
+        await deleteProposalMutation.mutateAsync(proposalId)
+        setActionError(null)
+      } catch {
+        setActionError('Failed to delete proposal. Please try again.')
       }
-    }
+    },
+  })
+
+  const handleDelete = (id: number) => {
+    deleteDialog.show(id)
   }
 
   const resetForm = () => {
@@ -97,7 +112,25 @@ const Proposals: React.FC = () => {
     })
     setEditingProposal(null)
     setShowForm(false)
+    setActionError(null)
   }
+
+  // Confirm dialog for accept proposal
+  const acceptDialog = useConfirmDialog({
+    title: 'Accept Proposal',
+    message: 'Accept this proposal and trigger client conversion?',
+    variant: 'success',
+    confirmText: 'Accept',
+    onConfirm: async () => {
+      const proposalId = acceptDialog.metadata as number
+      try {
+        await acceptProposalMutation.mutateAsync(proposalId)
+        setActionError(null)
+      } catch {
+        setActionError('Failed to accept proposal. Please try again.')
+      }
+    },
+  })
 
   const handleNewProposal = () => {
     setFormData({
@@ -131,6 +164,13 @@ const Proposals: React.FC = () => {
 
   return (
     <div className="proposals-page">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1>Proposals</h1>
@@ -384,8 +424,9 @@ const Proposals: React.FC = () => {
                   onClick={async () => {
                     try {
                       await sendProposalMutation.mutateAsync(proposal.id)
-                    } catch (error) {
-                      console.error('Failed to send proposal:', error)
+                      setActionError(null)
+                    } catch {
+                      setActionError('Failed to send proposal. Please try again.')
                     }
                   }}
                   className="btn-small btn-success"
@@ -395,17 +436,7 @@ const Proposals: React.FC = () => {
               )}
               {proposal.status === 'sent' && !proposal.converted_to_engagement && (
                 <button
-                  onClick={async () => {
-                    if (window.confirm('Accept this proposal and trigger client conversion?')) {
-                      try {
-                        await acceptProposalMutation.mutateAsync(proposal.id)
-                        alert('Proposal accepted! Client conversion in progress.')
-                      } catch (error) {
-                        console.error('Failed to accept proposal:', error)
-                        alert('Failed to accept proposal')
-                      }
-                    }
-                  }}
+                  onClick={() => acceptDialog.show(proposal.id)}
                   className="btn-small btn-success"
                 >
                   Accept
@@ -427,6 +458,11 @@ const Proposals: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
+      {/* Accept confirmation dialog */}
+      <acceptDialog.ConfirmDialog />
     </div>
   )
 }
