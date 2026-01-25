@@ -75,23 +75,6 @@
 
 ---
 
-### [TASK-006] Expand docs/ARCHITECTURE.md
-- **Priority:** P1
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Current file is 14 lines. Needs comprehensive system documentation.
-
-#### Acceptance Criteria
-- [ ] Add Mermaid diagrams for system architecture
-- [ ] Document module ownership and boundaries
-- [ ] Explain data flow and integration patterns
-- [ ] Include decision rationale for key choices
-
-#### Notes
-- Critical for AI to understand system structure
-
----
-
 ## P2 — Medium
 
 ### [TASK-021] Increase Frontend Test Coverage to 60%

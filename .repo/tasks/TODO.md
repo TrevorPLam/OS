@@ -66,25 +66,17 @@
 
 ---
 
-### [TASK-019] Create Shared Error and Loading Components
+### [TASK-006] Expand docs/ARCHITECTURE.md
 - **Priority:** P1
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 11.2, 88 console.error calls exist with 0 user-facing error components. Per Section 11.12, loading states are duplicated in 20+ files.
+- **Context:** Current file is 14 lines. Needs comprehensive system documentation.
 
 #### Acceptance Criteria
-- [x] Create `frontend/src/components/ErrorDisplay.tsx` component
-- [x] Create `frontend/src/components/ConfirmDialog.tsx` component (replace window.confirm)
-- [x] Enhance `frontend/src/components/LoadingSpinner.tsx` if needed
-- [x] Replace all `console.error` calls with ErrorDisplay component (50+ instances - COMPLETE)
-- [x] Replace all `window.confirm` calls with ConfirmDialog (18 instances - COMPLETE)
-- [x] Replace manual loading states with shared component (LoadingSpinner already used)
-- [x] Add proper accessibility (ARIA labels, keyboard navigation)
+- [ ] Add Mermaid diagrams for system architecture
+- [ ] Document module ownership and boundaries
+- [ ] Explain data flow and integration patterns
+- [ ] Include decision rationale for key choices
 
 #### Notes
-- Per ANALYSIS.md Section 11.2: 88 console.error, 0 error components - NOW RESOLVED
-- Per Section 11.5: 19 window.confirm calls need replacement - NOW RESOLVED
-- Per Section 11.12: ~800-1000 lines of duplicate code - NOW IMPROVED
-- Estimated: 6-8 hours - COMPLETED
-- Files: 18 page components modified with ErrorDisplay and ConfirmDialog
-- All acceptance criteria met - ready to archive
+- Critical for AI to understand system structure
