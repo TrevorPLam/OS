@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { Contract, useContracts, useCreateContract, useDeleteContract, useProposals, useUpdateContract } from '../api/crm'
-import { Client, useClients } from '../api/clients'
+import { useClients } from '../api/clients'
 import './Contracts.css'
 
 const Contracts: React.FC = () => {

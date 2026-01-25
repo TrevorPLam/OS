@@ -1,6 +1,9 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosHeaderValue, AxiosRequestConfig } from 'axios'
 
-const broadcastImpersonationStatus = (headers: Record<string, any>) => {
+// Narrow header values to known shapes so lint stays strict without blocking axios headers.
+type HeaderValue = AxiosHeaderValue | AxiosHeaderValue[] | undefined
+
+const broadcastImpersonationStatus = (headers: Record<string, HeaderValue>) => {
   const rawHeader = headers['x-break-glass-impersonation']
 
   if (rawHeader) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { calendarApi, OAuthConnection } from '../api/calendar'
 import './CalendarSync.css'
 
@@ -11,11 +11,19 @@ const CalendarSync: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadConnections()
-  }, [])
+  // Keep error parsing typed so eslint can stay strict without `any`.
+  const resolveCalendarError = (error: unknown) => {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const response = (error as { response?: { data?: { error?: string } } }).response
+      return response?.data?.error
+    }
+    if (error instanceof Error) {
+      return error.message
+    }
+    return undefined
+  }
 
-  const loadConnections = async () => {
+  const loadConnections = useCallback(async () => {
     try {
       const data = await calendarApi.getConnections()
       setConnections(data)
@@ -24,15 +32,19 @@ const CalendarSync: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadConnections()
+  }, [loadConnections])
 
   const handleConnectGoogle = async () => {
     try {
       const response = await calendarApi.initiateGoogleOAuth()
       // Redirect to OAuth authorization URL
       window.location.href = response.authorization_url
-    } catch (error: any) {
-      setErrorMessage(error.response?.data?.error || 'Failed to initiate Google OAuth')
+    } catch (error) {
+      setErrorMessage(resolveCalendarError(error) || 'Failed to initiate Google OAuth')
     }
   }
 
@@ -41,8 +53,8 @@ const CalendarSync: React.FC = () => {
       const response = await calendarApi.initiateMicrosoftOAuth()
       // Redirect to OAuth authorization URL
       window.location.href = response.authorization_url
-    } catch (error: any) {
-      setErrorMessage(error.response?.data?.error || 'Failed to initiate Microsoft OAuth')
+    } catch (error) {
+      setErrorMessage(resolveCalendarError(error) || 'Failed to initiate Microsoft OAuth')
     }
   }
 
@@ -69,8 +81,8 @@ const CalendarSync: React.FC = () => {
         `Sync completed! Pulled: ${result.pulled} events, Pushed: ${result.pushed} events`
       )
       loadConnections()
-    } catch (error: any) {
-      setErrorMessage(error.response?.data?.error || 'Sync failed')
+    } catch (error) {
+      setErrorMessage(resolveCalendarError(error) || 'Sync failed')
     } finally {
       setSyncing(null)
     }

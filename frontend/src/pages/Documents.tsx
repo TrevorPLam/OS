@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useClients } from '../api/clients'
 import { documentsApi, Document, Folder } from '../api/documents'
 import './Documents.css'
-
-interface Client {
-  id: number
-  company_name: string
-}
 
 const Documents: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([])
@@ -34,11 +29,19 @@ const Documents: React.FC = () => {
     visibility: 'internal' as 'internal' | 'client_visible',
   })
 
-  useEffect(() => {
-    loadData()
-  }, [selectedClient])
+  // Normalize API error payloads for consistent UI messaging.
+  const resolveDocumentsError = (error: unknown) => {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const response = (error as { response?: { data?: { error?: { message?: string } } } }).response
+      return response?.data?.error?.message
+    }
+    if (error instanceof Error) {
+      return error.message
+    }
+    return undefined
+  }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -48,12 +51,16 @@ const Documents: React.FC = () => {
       ])
       setDocuments(docsData)
       setFolders(foldersData)
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load documents')
+    } catch (error) {
+      setError(resolveDocumentsError(error) || 'Failed to load documents')
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedClient])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -91,8 +98,8 @@ const Documents: React.FC = () => {
       await loadData()
       resetUploadForm()
       setShowUploadModal(false)
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Upload failed')
+    } catch (error) {
+      setError(resolveDocumentsError(error) || 'Upload failed')
     } finally {
       setUploading(false)
     }
@@ -106,8 +113,8 @@ const Documents: React.FC = () => {
       await loadData()
       resetFolderForm()
       setShowFolderModal(false)
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to create folder')
+    } catch (error) {
+      setError(resolveDocumentsError(error) || 'Failed to create folder')
     }
   }
 
@@ -116,8 +123,8 @@ const Documents: React.FC = () => {
       setError(null)
       const { download_url } = await documentsApi.downloadDocument(doc.id)
       window.open(download_url, '_blank')
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Download failed')
+    } catch (error) {
+      setError(resolveDocumentsError(error) || 'Download failed')
     }
   }
 
@@ -127,8 +134,8 @@ const Documents: React.FC = () => {
       setError(null)
       await documentsApi.deleteDocument(id)
       await loadData()
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Delete failed')
+    } catch (error) {
+      setError(resolveDocumentsError(error) || 'Delete failed')
     }
   }
 

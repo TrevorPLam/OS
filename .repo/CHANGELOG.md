@@ -4,6 +4,12 @@
 
 This file tracks improvements and changes to the governance framework.
 
+## 2026-01-25 - Frontend Lint Rules Restored to Strict Mode
+
+### Updated
+
+- Re-enabled strict ESLint rules and removed violations across frontend UI code (`frontend/.eslintrc.cjs`, `frontend/src/api/client.ts`, `frontend/src/components/CommandCenter.tsx`, `frontend/src/pages/AssetManagement.tsx`, `frontend/src/pages/Automation.tsx`, `frontend/src/pages/CalendarOAuthCallback.tsx`, `frontend/src/pages/CalendarSync.tsx`, `frontend/src/pages/ClientPortal.tsx`, `frontend/src/pages/Communications.tsx`, `frontend/src/pages/Contracts.tsx`, `frontend/src/pages/Documents.tsx`, `frontend/src/pages/KnowledgeCenter.tsx`, `frontend/src/pages/ProjectKanban.tsx`, `frontend/src/pages/Proposals.tsx`, `frontend/src/pages/SiteMessages.tsx`, `frontend/src/pages/TimeTracking.tsx`, `frontend/src/pages/WorkflowBuilder.tsx`, `frontend/src/pages/crm/DealAnalytics.tsx`).
+
 ## 2026-01-23 - World-Class Documentation Structure
 
 ### Added

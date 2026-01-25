@@ -32,16 +32,16 @@ module.exports = {
   },
   rules: {
     "react/react-in-jsx-scope": "off",
-    // Re-enabled as "warn" - we fixed all API layer any types (Task 3)
-    "@typescript-eslint/no-explicit-any": "warn",
-    // Re-enabled as "warn" - helps catch unused variables
-    "@typescript-eslint/no-unused-vars": ["warn", { 
+    // Re-enabled as "error" now that explicit any usage is removed.
+    "@typescript-eslint/no-explicit-any": "error",
+    // Re-enabled as "error" - helps catch unused variables
+    "@typescript-eslint/no-unused-vars": ["error", { 
       "argsIgnorePattern": "^_",
       "varsIgnorePattern": "^_"
     }],
     "react/no-unescaped-entities": "off",
-    // Re-enabled as "warn" - helps catch missing dependencies
-    "react-hooks/exhaustive-deps": "warn",
+    // Re-enabled as "error" - helps catch missing dependencies
+    "react-hooks/exhaustive-deps": "error",
   },
   ignorePatterns: ["dist/", "node_modules/"],
 };

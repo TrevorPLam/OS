@@ -36,9 +36,9 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 12 |
+| Total Completed | 13 |
 | P0 Completed | 8 |
-| P1 Completed | 4 |
+| P1 Completed | 5 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
 
@@ -47,6 +47,25 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-018] Re-enable ESLint Rules and Fix Violations ✓
+- **Priority:** P1
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-25
+- **Context:** Per ANALYSIS.md Section 0.8, 4 critical ESLint rules are disabled, compromising type safety and code quality. Per Section 11.4, 57 instances of `any` type exist.
+
+#### Acceptance Criteria
+- [x] Re-enable `@typescript-eslint/no-explicit-any` (start with "warn")
+- [x] Re-enable `@typescript-eslint/no-unused-vars` (start with "warn")
+- [x] Re-enable `react-hooks/exhaustive-deps` (start with "warn")
+- [x] Fix all violations across codebase (57 `any` types, unused vars, etc.)
+- [x] Gradually increase rules to "error" level
+- [x] Verify `make -C frontend lint` passes
+
+#### Outcome
+- Re-enabled strict ESLint rules and cleaned violations across frontend UI code (`frontend/.eslintrc.cjs`, `frontend/src/api/client.ts`, `frontend/src/api/documents.ts`, `frontend/src/components/CommandCenter.tsx`, `frontend/src/pages/AssetManagement.tsx`, `frontend/src/pages/Automation.tsx`, `frontend/src/pages/CalendarOAuthCallback.tsx`, `frontend/src/pages/CalendarSync.tsx`, `frontend/src/pages/ClientPortal.tsx`, `frontend/src/pages/Communications.tsx`, `frontend/src/pages/Contracts.tsx`, `frontend/src/pages/Documents.tsx`, `frontend/src/pages/KnowledgeCenter.tsx`, `frontend/src/pages/ProjectKanban.tsx`, `frontend/src/pages/Proposals.tsx`, `frontend/src/pages/SiteMessages.tsx`, `frontend/src/pages/TimeTracking.tsx`, `frontend/src/pages/WorkflowBuilder.tsx`, `frontend/src/pages/crm/DealAnalytics.tsx`).
+- Verified linting passes via `make -C frontend lint`.
 
 ### [TASK-017] Refactor CRM Pages to Use React Query Hooks ✓
 - **Priority:** P1

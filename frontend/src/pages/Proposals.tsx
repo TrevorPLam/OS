@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import {
   Proposal,
-  Prospect,
   useAcceptProposal,
   useCreateProposal,
   useDeleteProposal,
@@ -162,12 +161,14 @@ const Proposals: React.FC = () => {
                   <label>Proposal Type *</label>
                   <select
                     value={formData.proposal_type}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      proposal_type: e.target.value as any,
-                      prospect: undefined,
-                      client: undefined,
-                    })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        proposal_type: e.target.value as Proposal['proposal_type'],
+                        prospect: undefined,
+                        client: undefined,
+                      })
+                    }
                     required
                   >
                     <option value="prospective_client">New Business (Prospect)</option>
