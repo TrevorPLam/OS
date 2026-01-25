@@ -66,25 +66,24 @@
 
 ---
 
-### [TASK-016] Implement React Hook Form in All Forms
+### [TASK-019] Create Shared Error and Loading Components
 - **Priority:** P1
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
+- **Context:** Per ANALYSIS.md Section 11.2, 88 console.error calls exist with 0 user-facing error components. Per Section 11.12, loading states are duplicated in 20+ files.
 
 #### Acceptance Criteria
-- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
-- [ ] Implement React Hook Form in all remaining forms (10+ pages)
-- [ ] Add proper validation rules to all forms
-- [ ] Remove manual form state management (useState patterns)
-- [ ] Verify all forms work correctly
+- [ ] Create `frontend/src/components/ErrorDisplay.tsx` component
+- [ ] Create `frontend/src/components/ConfirmDialog.tsx` component (replace window.confirm)
+- [ ] Enhance `frontend/src/components/LoadingSpinner.tsx` if needed
+- [ ] Replace all `console.error` calls with ErrorDisplay component (88 instances)
+- [ ] Replace all `window.confirm` calls with ConfirmDialog (19 instances)
+- [ ] Replace manual loading states with shared component
+- [ ] Add proper accessibility (ARIA labels, keyboard navigation)
 
 #### Notes
-- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
-- Would eliminate ~300-450 lines of duplicate code
-- Estimated: 12-16 hours for all forms
-- Files: All page components with forms
-- Blocked on HITL-0001 (security review for login/register form changes).
+- Per ANALYSIS.md Section 11.2: 88 console.error, 0 error components
+- Per Section 11.5: 19 window.confirm calls need replacement
+- Per Section 11.12: ~800-1000 lines of duplicate code
+- Estimated: 6-8 hours
+- Files: New components + all page components
