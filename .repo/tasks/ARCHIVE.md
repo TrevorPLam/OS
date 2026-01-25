@@ -1,3 +1,26 @@
+
+### [TASK-028] Add Automatic Task Lifecycle Triggering to CI
+- **Priority:** P1
+- **Status:** In Progress
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, archive-task.py and promote-task.sh exist but require manual execution. Should be auto-triggered in CI.
+- **Completed:** 2026-01-25
+
+#### Acceptance Criteria
+- [x] Add GitHub Actions workflow to trigger archive-task.py on task completion
+- [x] Add webhook or scheduled job to auto-promote tasks
+- [x] Ensure task lifecycle runs automatically after PR merge
+- [x] Add error handling and notifications for lifecycle failures
+- [x] Document auto-triggering in CONTRIBUTING.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 283: High priority enhancement
+- Scripts exist: `scripts/archive-task.py`, `scripts/promote-task.sh`
+- Impact: Medium - improves automation
+- Files: `.github/workflows/task-lifecycle.yml`, `CONTRIBUTING.md`
+- All acceptance criteria met - ready to archive
+
+---
 # ✅ Completed Tasks Archive
 
 > **Historical Record** — All completed tasks with outcomes and completion dates.
@@ -36,16 +59,13 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 15 |
-| P0 Completed | 8 |
-| P1 Completed | 7 |
+| Total Completed | 18 |
+| P0 Completed | 9 |
+| P1 Completed | 9 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
 
-*Update statistics when archiving tasks.*
-
----
-
+*Statistics auto-updated on 2026-01-25*
 ## Completed Tasks
 
 ### [TASK-006] Expand docs/ARCHITECTURE.md ✓
