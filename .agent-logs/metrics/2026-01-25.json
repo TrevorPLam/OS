@@ -1,10 +1,20 @@
 {
   "date": "2026-01-25",
-  "total_interactions": 0,
-  "successful": 0,
+  "total_interactions": 1,
+  "successful": 1,
   "failed": 0,
-  "success_rate": 0,
-  "avg_duration_ms": 0,
-  "actions": {},
+  "success_rate": 1,
+  "total_duration_ms": 10,
+  "avg_duration_ms": 10,
+  "actions": {
+    "test_log": {
+      "count": 1,
+      "successful": 1,
+      "failed": 0,
+      "total_duration_ms": 10,
+      "avg_duration_ms": 10,
+      "success_rate": 1
+    }
+  },
   "errors": []
 }

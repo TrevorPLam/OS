@@ -1,7 +1,7 @@
 
 ### [TASK-007] Create docs/adr/ Folder with ADR Template
 - **Priority:** P2
-- **Status:** In Progress
+- **Status:** Completed
 - **Created:** 2026-01-23
 - **Context:** Architecture Decision Records document WHY decisions were made.
 - **Completed:** 2026-01-25
@@ -19,7 +19,7 @@
 
 ### [TASK-029] Verify Agent Logger Integration
 - **Priority:** P1
-- **Status:** In Progress
+- **Status:** Completed
 - **Created:** 2026-01-23
 - **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify if agents actually call agent-logger.js. Logging SDK exists but usage may not be integrated.
 - **Completed:** 2026-01-25
@@ -40,7 +40,7 @@
 
 ### [TASK-028] Add Automatic Task Lifecycle Triggering to CI
 - **Priority:** P1
-- **Status:** In Progress
+- **Status:** Completed
 - **Created:** 2026-01-23
 - **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, archive-task.py and promote-task.sh exist but require manual execution. Should be auto-triggered in CI.
 - **Completed:** 2026-01-25
