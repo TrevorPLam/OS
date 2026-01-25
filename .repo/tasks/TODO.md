@@ -4,20 +4,17 @@
 
 ---
 
-### [TASK-029] Verify Agent Logger Integration
-- **Priority:** P1
+### [TASK-007] Create docs/adr/ Folder with ADR Template
+- **Priority:** P2
 - **Status:** In Progress
 - **Created:** 2026-01-23
-- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify if agents actually call agent-logger.js. Logging SDK exists but usage may not be integrated.
+- **Context:** Architecture Decision Records document WHY decisions were made.
 
 #### Acceptance Criteria
-- [ ] Audit codebase for agent-logger.js usage
-- [ ] Verify agents call logging SDK in workflow
-- [ ] Add integration hooks if missing
-- [ ] Add logging examples to AGENTS.md
-- [ ] Document logging patterns in QUICK_REFERENCE.md
+- [ ] Create `docs/adr/` directory
+- [ ] Add ADR template (ADR-000-template.md)
+- [ ] Create first ADR for multi-tenancy model
+- [ ] Document ADR process in docs/architecture/decisions/
 
 #### Notes
-- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 271: Medium impact
-- File: Check for `agent-logger.js` or logging SDK usage
-- Impact: Medium - ensures proper logging
+- ADRs help AI understand historical context

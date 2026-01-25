@@ -75,6 +75,8 @@
 
 ---
 
+## P2 — Medium
+
 ### [TASK-021] Increase Frontend Test Coverage to 60%
 - **Priority:** P2
 - **Status:** Pending
@@ -140,23 +142,6 @@
 - Depends on TASK-019 (ErrorDisplay component)
 - Estimated: 8-10 hours
 - Files: All page components, API hooks, ErrorBoundary
-
----
-
-### [TASK-007] Create docs/adr/ Folder with ADR Template
-- **Priority:** P2
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Architecture Decision Records document WHY decisions were made.
-
-#### Acceptance Criteria
-- [ ] Create `docs/adr/` directory
-- [ ] Add ADR template (ADR-000-template.md)
-- [ ] Create first ADR for multi-tenancy model
-- [ ] Document ADR process in docs/architecture/decisions/
-
-#### Notes
-- ADRs help AI understand historical context
 
 ---
 
