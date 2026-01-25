@@ -9,6 +9,18 @@ const CalendarOAuthCallback: React.FC = () => {
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing')
   const [message, setMessage] = useState('Processing OAuth callback...')
 
+  // Normalize API error payloads without falling back to `any`.
+  const resolveOAuthError = (error: unknown) => {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const response = (error as { response?: { data?: { error?: string } } }).response
+      return response?.data?.error
+    }
+    if (error instanceof Error) {
+      return error.message
+    }
+    return undefined
+  }
+
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
 
@@ -36,10 +48,10 @@ const CalendarOAuthCallback: React.FC = () => {
         setStatus('success')
         setMessage(result.message || 'Calendar connected successfully!')
         timeoutId = setTimeout(() => navigate('/calendar-sync'), 2000)
-      } catch (error: any) {
+      } catch (error) {
         setStatus('error')
         setMessage(
-          error.response?.data?.error || 'Failed to connect calendar. Please try again.'
+          resolveOAuthError(error) || 'Failed to connect calendar. Please try again.'
         )
         timeoutId = setTimeout(() => navigate('/calendar-sync'), 3000)
       }

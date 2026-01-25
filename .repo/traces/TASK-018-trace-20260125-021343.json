@@ -1,0 +1,44 @@
+{
+  "intent": "Re-enable ESLint rules and fix violations",
+  "task_id": "TASK-018",
+  "timestamp": "2026-01-25T02:13:43Z",
+  "files": [
+    ".repo/CHANGELOG.md",
+    ".repo/logs/TASK-018-log-20260125-021352.json",
+    ".repo/tasks/ARCHIVE.md",
+    ".repo/tasks/BACKLOG.md",
+    ".repo/tasks/TODO.md",
+    ".repo/traces/TASK-018-trace-20260125-021343.json",
+    "frontend/.eslintrc.cjs",
+    "frontend/src/api/client.ts",
+    "frontend/src/api/documents.ts",
+    "frontend/src/components/CommandCenter.tsx",
+    "frontend/src/pages/AssetManagement.tsx",
+    "frontend/src/pages/Automation.tsx",
+    "frontend/src/pages/CalendarOAuthCallback.tsx",
+    "frontend/src/pages/CalendarSync.tsx",
+    "frontend/src/pages/ClientPortal.tsx",
+    "frontend/src/pages/Communications.tsx",
+    "frontend/src/pages/Contracts.tsx",
+    "frontend/src/pages/Documents.tsx",
+    "frontend/src/pages/KnowledgeCenter.tsx",
+    "frontend/src/pages/ProjectKanban.tsx",
+    "frontend/src/pages/Proposals.tsx",
+    "frontend/src/pages/SiteMessages.tsx",
+    "frontend/src/pages/TimeTracking.tsx",
+    "frontend/src/pages/WorkflowBuilder.tsx",
+    "frontend/src/pages/crm/DealAnalytics.tsx"
+  ],
+  "commands": [
+    "make -C frontend lint",
+    "make test",
+    "make -C frontend e2e"
+  ],
+  "evidence": [
+    "make -C frontend lint (pass)",
+    "make test (fails: pytest args unrecognized; frontend typecheck errors in tests and existing type issues; vitest failures in ClientPortalAppointments and ClientPortalProfile; Playwright suite errors)",
+    "make -C frontend e2e (fails: syntax error in frontend/e2e/core-business-flows.spec.ts)"
+  ],
+  "hitl": [],
+  "unknowns": []
+}

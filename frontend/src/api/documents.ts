@@ -5,6 +5,7 @@ export interface Document {
   folder: number | null
   client: number
   project: number | null
+  folder_name?: string
   name: string
   description: string
   visibility: 'internal' | 'client_visible'

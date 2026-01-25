@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { tasksApi, Task, TaskCreate } from '../api/tasks'
 import { projectsApi } from '../api/projects'
@@ -38,11 +38,7 @@ const ProjectKanban: React.FC = () => {
     { id: 'done', title: 'Done', color: '#48bb78' },
   ]
 
-  useEffect(() => {
-    loadData()
-  }, [projectId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       const [projectData, tasksData] = await Promise.all([
@@ -56,7 +52,11 @@ const ProjectKanban: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const getTasksByStatus = (status: Task['status']) => {
     return tasks.filter((task) => task.status === status).sort((a, b) => a.position - b.position)

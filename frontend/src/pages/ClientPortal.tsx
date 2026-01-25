@@ -2,8 +2,8 @@
  * Client Portal - Main dashboard for client users
  * Provides access to work, documents, invoices, messages, and analytics
  */
-import React, { useState, useEffect } from 'react';
-import { portalDocumentsApi } from '../api/documents';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Document, portalDocumentsApi } from '../api/documents';
 import {
   clientPortalApi,
   ClientProject,
@@ -23,16 +23,6 @@ import {
 } from '../api/clientPortal';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './ClientPortal.css';
-
-interface Document {
-  id: number;
-  name: string;
-  folder_name: string;
-  file_type: string;
-  file_size_bytes: number;
-  created_at: string;
-  description: string;
-}
 
 const buildPortalPermissionSummary = (profile: PortalProfile) => [
   { label: 'Projects', enabled: profile.can_view_projects },
@@ -111,11 +101,72 @@ export const ClientPortal: React.FC = () => {
     unreadMessages: 0,
   });
 
-  useEffect(() => {
-    loadPortalData();
+  // Centralize error extraction to keep portal messaging consistent without `any`.
+  const resolvePortalError = (error: unknown) => {
+    if (error && typeof error === 'object' && 'response' in error) {
+      const response = (error as { response?: { data?: { error?: string } } }).response;
+      return response?.data?.error;
+    }
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return undefined;
+  };
+
+  const loadAppointmentData = useCallback(async () => {
+    try {
+      setAppointmentsLoading(true);
+      setAppointmentsError(null);
+
+      const [appointmentsResponse, typesResponse] = await Promise.all([
+        clientPortalApi.listAppointments(),
+        clientPortalApi.listAppointmentTypes(),
+      ]);
+
+      setAppointments(appointmentsResponse.data.results || []);
+      setAppointmentTypes(typesResponse.data || []);
+    } catch (error) {
+      console.error('Error loading appointments:', error);
+      setAppointmentsError('Unable to load appointment options right now.');
+    } finally {
+      setAppointmentsLoading(false);
+    }
   }, []);
 
-  const loadPortalData = async () => {
+  const loadProfileData = useCallback(async () => {
+    try {
+      setProfileLoading(true);
+      setProfileError(null);
+
+      const response = await clientPortalApi.getProfile();
+      setProfile(response.data);
+      setProfilePreferences(stringifyPreferences(response.data.notification_preferences ?? null));
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      setProfileError('Unable to load profile details right now.');
+    } finally {
+      setProfileLoading(false);
+    }
+  }, []);
+
+  const loadAccountData = useCallback(async () => {
+    try {
+      setAccountsLoading(true);
+      setAccountsError(null);
+
+      const response = await clientPortalApi.listAccounts();
+      setAccounts(response.data.accounts || []);
+      setCurrentAccountId(response.data.current_account_id ?? null);
+      setSelectedAccountId(response.data.current_account_id ?? null);
+    } catch (error) {
+      console.error('Error loading accounts:', error);
+      setAccountsError('Unable to load account options right now.');
+    } finally {
+      setAccountsLoading(false);
+    }
+  }, []);
+
+  const loadPortalData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -192,60 +243,11 @@ export const ClientPortal: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [loadAccountData, loadAppointmentData, loadProfileData, selectedProject]);
 
-  const loadAppointmentData = async () => {
-    try {
-      setAppointmentsLoading(true);
-      setAppointmentsError(null);
-
-      const [appointmentsResponse, typesResponse] = await Promise.all([
-        clientPortalApi.listAppointments(),
-        clientPortalApi.listAppointmentTypes(),
-      ]);
-
-      setAppointments(appointmentsResponse.data.results || []);
-      setAppointmentTypes(typesResponse.data || []);
-    } catch (error) {
-      console.error('Error loading appointments:', error);
-      setAppointmentsError('Unable to load appointment options right now.');
-    } finally {
-      setAppointmentsLoading(false);
-    }
-  };
-
-  const loadProfileData = async () => {
-    try {
-      setProfileLoading(true);
-      setProfileError(null);
-
-      const response = await clientPortalApi.getProfile();
-      setProfile(response.data);
-      setProfilePreferences(stringifyPreferences(response.data.notification_preferences ?? null));
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      setProfileError('Unable to load profile details right now.');
-    } finally {
-      setProfileLoading(false);
-    }
-  };
-
-  const loadAccountData = async () => {
-    try {
-      setAccountsLoading(true);
-      setAccountsError(null);
-
-      const response = await clientPortalApi.listAccounts();
-      setAccounts(response.data.accounts || []);
-      setCurrentAccountId(response.data.current_account_id ?? null);
-      setSelectedAccountId(response.data.current_account_id ?? null);
-    } catch (error) {
-      console.error('Error loading accounts:', error);
-      setAccountsError('Unable to load account options right now.');
-    } finally {
-      setAccountsLoading(false);
-    }
-  };
+  useEffect(() => {
+    loadPortalData();
+  }, [loadPortalData]);
 
   const buildAvailabilityRange = () => {
     // Keep a deterministic 14-day window so availability is predictable and fast for portal users.
@@ -453,9 +455,10 @@ export const ClientPortal: React.FC = () => {
       if (response.data.message) {
         alert(response.data.message);
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error generating payment link:', error);
-      const errorMessage = error.response?.data?.error || 'Failed to generate payment link. Please try again.';
+      const errorMessage =
+        resolvePortalError(error) || 'Failed to generate payment link. Please try again.';
       alert(errorMessage);
     } finally {
       setGeneratingPaymentLink(null);

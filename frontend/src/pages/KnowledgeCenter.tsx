@@ -119,12 +119,6 @@ export const KnowledgeCenter: React.FC = () => {
     ? sops
     : sops.filter(sop => sop.category === selectedCategory);
 
-  const getOrgChartLevel = (memberId: number): number => {
-    const member = teamMembers.find(m => m.id === memberId);
-    if (!member || !member.reportsTo) return 0;
-    return 1 + getOrgChartLevel(member.reportsTo);
-  };
-
   const getDirectReports = (managerId: number): TeamMember[] => {
     return teamMembers.filter(m => m.reportsTo === managerId);
   };

@@ -113,7 +113,9 @@ export const SiteMessages = () => {
     const segmentList = (message.targeting_rules?.segments as string[]) || []
     setSegmentsInput(segmentList.join(', '))
 
-    const variantEntries = Object.entries((content.variants as Record<string, any>) || {})
+    const variantEntries = Object.entries(
+      (content.variants as Record<string, Partial<VariantDraft>>) || {}
+    )
     setVariants(
       variantEntries.map(([label, value]) => ({
         label,

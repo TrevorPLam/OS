@@ -12,24 +12,32 @@
  * React Flow (https://reactflow.dev/) or similar library.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getWorkflow,
-  updateWorkflow,
   getTriggers,
   createTrigger,
   deleteTrigger,
   getNodes,
   createNode,
-  updateNode,
   deleteNode,
-  getEdges,
-  createEdge,
-  deleteEdge,
 } from '../api/automation';
 import './WorkflowBuilder.css';
+
+interface WorkflowNodeView {
+  id: number;
+  node_type: string;
+  node_type_display?: string;
+  label?: string;
+}
+
+interface WorkflowTriggerView {
+  id: number;
+  trigger_type_display?: string;
+  is_active?: boolean;
+}
 
 const WorkflowBuilder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,9 +45,7 @@ const WorkflowBuilder: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<'canvas' | 'triggers' | 'settings'>('canvas');
-  const [showNodeModal, setShowNodeModal] = useState(false);
   const [showTriggerModal, setShowTriggerModal] = useState(false);
-  const [selectedNode, setSelectedNode] = useState<any>(null);
 
   // Fetch workflow
   const { data: workflow, isLoading: workflowLoading } = useQuery({
@@ -49,23 +55,16 @@ const WorkflowBuilder: React.FC = () => {
   });
 
   // Fetch triggers
-  const { data: triggers = [] } = useQuery({
+  const { data: triggers = [] } = useQuery<WorkflowTriggerView[]>({
     queryKey: ['triggers', id],
     queryFn: () => getTriggers(Number(id)),
     enabled: !!id,
   });
 
   // Fetch nodes
-  const { data: nodes = [] } = useQuery({
+  const { data: nodes = [] } = useQuery<WorkflowNodeView[]>({
     queryKey: ['nodes', id],
     queryFn: () => getNodes(Number(id)),
-    enabled: !!id,
-  });
-
-  // Fetch edges
-  const { data: edges = [] } = useQuery({
-    queryKey: ['edges', id],
-    queryFn: () => getEdges(Number(id)),
     enabled: !!id,
   });
 
@@ -74,17 +73,6 @@ const WorkflowBuilder: React.FC = () => {
     mutationFn: createNode,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['nodes', id] });
-      setShowNodeModal(false);
-    },
-  });
-
-  // Update node mutation
-  const updateNodeMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => updateNode(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['nodes'] });
-      setSelectedNode(null);
-      setShowNodeModal(false);
     },
   });
 
@@ -252,7 +240,7 @@ const WorkflowBuilder: React.FC = () => {
                 </div>
               ) : (
                 <div className="nodes-list">
-                  {nodes.map((node: any) => (
+                  {nodes.map((node) => (
                     <div key={node.id} className="node-item">
                       <div className="node-header">
                         <strong>{node.label}</strong>
@@ -261,10 +249,8 @@ const WorkflowBuilder: React.FC = () => {
                       <div className="node-actions">
                         <button
                           className="btn-edit-node"
-                          onClick={() => {
-                            setSelectedNode(node);
-                            setShowNodeModal(true);
-                          }}
+                          disabled
+                          title="Node editing is planned but not implemented yet."
                         >
                           Edit
                         </button>
@@ -302,7 +288,7 @@ const WorkflowBuilder: React.FC = () => {
             </div>
           ) : (
             <div className="triggers-list">
-              {triggers.map((trigger: any) => (
+              {triggers.map((trigger) => (
                 <div key={trigger.id} className="trigger-item">
                   <div className="trigger-header">
                     <strong>{trigger.trigger_type_display}</strong>

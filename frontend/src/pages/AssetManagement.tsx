@@ -1,7 +1,7 @@
 /**
  * Asset Management - Track company assets and maintenance
  */
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { assetsApi, Asset, MaintenanceLog } from '../api/assets';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './AssetManagement.css';
@@ -13,7 +13,6 @@ export const AssetManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterCategory, setFilterCategory] = useState<string>('');
 
@@ -43,14 +42,11 @@ export const AssetManagement: React.FC = () => {
     cost: '0.00'
   });
 
-  useEffect(() => {
-    loadData();
-  }, [filterStatus, filterCategory]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const params: any = {};
+      // Keep filter parameters explicit to avoid `any` while sending only strings.
+      const params: Record<string, string> = {};
       if (filterStatus) params.status = filterStatus;
       if (filterCategory) params.category = filterCategory;
 
@@ -66,7 +62,11 @@ export const AssetManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterCategory, filterStatus]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleCreateAsset = async (e: React.FormEvent) => {
     e.preventDefault();

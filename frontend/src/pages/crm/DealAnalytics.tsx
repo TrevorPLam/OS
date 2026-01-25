@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Deal, Pipeline, useDealForecast, useDeals, usePipelines } from '../../api/crm'
+import React, { useEffect, useState } from 'react'
+import { Pipeline, useDealForecast, useDeals, usePipelines } from '../../api/crm'
 import './DealAnalytics.css'
 
 const DealAnalytics: React.FC = () => {
@@ -26,47 +26,6 @@ const DealAnalytics: React.FC = () => {
     }
   }, [pipelinesLoading])
 
-  const winLossMetrics = useMemo(() => {
-    const wonDeals = deals.filter((deal) => deal.is_won)
-    const lostDeals = deals.filter((deal) => deal.is_lost)
-    const activeDeals = deals.filter((deal) => deal.is_active)
-    const totalDeals = deals.length
-
-    const wonValue = wonDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
-    const lostValue = lostDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
-    const activeValue = activeDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
-
-    const winRate = totalDeals > 0 ? (wonDeals.length / (wonDeals.length + lostDeals.length)) * 100 : 0
-    const avgDealSize = wonDeals.length > 0 ? wonValue / wonDeals.length : 0
-    const avgSalesCycle = calculateAvgSalesCycle(wonDeals)
-
-    return {
-      wonCount: wonDeals.length,
-      lostCount: lostDeals.length,
-      activeCount: activeDeals.length,
-      wonValue,
-      lostValue,
-      activeValue,
-      winRate,
-      avgDealSize,
-      avgSalesCycle,
-    }
-  }, [deals])
-
-  const calculateAvgSalesCycle = (wonDeals: Deal[]) => {
-    if (wonDeals.length === 0) return 0
-
-    const cycles = wonDeals
-      .filter((deal) => deal.actual_close_date)
-      .map((deal) => {
-        const created = new Date(deal.created_at)
-        const closed = new Date(deal.actual_close_date!)
-        return Math.floor((closed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
-      })
-
-    return cycles.length > 0 ? cycles.reduce((sum, days) => sum + days, 0) / cycles.length : 0
-  }
-
   const calculateDealsByStage = () => {
     if (!selectedPipeline || !selectedPipeline.stages) return []
 
@@ -88,6 +47,43 @@ const DealAnalytics: React.FC = () => {
     })
 
     return Array.from(stageMap.values()).sort((a, b) => b.value - a.value)
+  }
+
+  const calculateWinLossMetrics = () => {
+    const wonDeals = deals.filter((deal) => deal.is_won)
+    const lostDeals = deals.filter((deal) => deal.is_lost)
+    const activeDeals = deals.filter((deal) => deal.is_active)
+    const totalResolved = wonDeals.length + lostDeals.length
+
+    const wonValue = wonDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
+    const lostValue = lostDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
+    const activeValue = activeDeals.reduce((sum, deal) => sum + parseFloat(deal.value), 0)
+
+    const winRate = totalResolved > 0 ? (wonDeals.length / totalResolved) * 100 : 0
+    const avgDealSize = wonDeals.length > 0 ? wonValue / wonDeals.length : 0
+    const salesCycles = wonDeals
+      .filter((deal) => deal.actual_close_date)
+      .map((deal) => {
+        const created = new Date(deal.created_at)
+        const closed = new Date(deal.actual_close_date!)
+        return Math.floor((closed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24))
+      })
+    const avgSalesCycle =
+      salesCycles.length > 0
+        ? salesCycles.reduce((sum, days) => sum + days, 0) / salesCycles.length
+        : 0
+
+    return {
+      wonCount: wonDeals.length,
+      lostCount: lostDeals.length,
+      activeCount: activeDeals.length,
+      wonValue,
+      lostValue,
+      activeValue,
+      winRate,
+      avgDealSize,
+      avgSalesCycle,
+    }
   }
 
   const calculateTopLostReasons = () => {
@@ -124,7 +120,7 @@ const DealAnalytics: React.FC = () => {
     return <div className="loading">Loading...</div>
   }
 
-  const metrics = calculateWinLossMetrics
+  const metrics = calculateWinLossMetrics()
   const dealsByStage = calculateDealsByStage()
   const topLostReasons = calculateTopLostReasons()
 

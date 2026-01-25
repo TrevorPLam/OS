@@ -17,7 +17,6 @@ interface Message {
 
 export const Communications: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'team' | 'client' | 'email'>('team');
-  const [selectedConversation, setSelectedConversation] = useState<number | null>(null);
   const [messageText, setMessageText] = useState('');
 
   // Mock data - replace with WebSocket/API integration

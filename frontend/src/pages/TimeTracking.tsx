@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { timeTrackingApi, TimeEntry, Project } from '../api/timeTracking'
 import './TimeTracking.css'
 
@@ -16,11 +16,7 @@ const TimeTracking: React.FC = () => {
     hourly_rate: '150.00',
   })
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [entries, projectsList] = await Promise.all([
         timeTrackingApi.getTimeEntries(),
@@ -30,19 +26,26 @@ const TimeTracking: React.FC = () => {
       setProjects(projectsList)
 
       // Set default hourly rate from first project if available
-      if (projectsList.length > 0 && !formData.project) {
-        setFormData((prev) => ({
-          ...prev,
-          project: projectsList[0].id,
-          hourly_rate: projectsList[0].hourly_rate || '150.00',
-        }))
+      if (projectsList.length > 0) {
+        setFormData((prev) => {
+          if (prev.project) return prev
+          return {
+            ...prev,
+            project: projectsList[0].id,
+            hourly_rate: projectsList[0].hourly_rate || '150.00',
+          }
+        })
       }
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

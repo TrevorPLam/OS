@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import './CommandCenter.css'
 
 interface Module {
@@ -10,7 +10,6 @@ interface Module {
 }
 
 const CommandCenter: React.FC = () => {
-  const navigate = useNavigate()
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0)
 
   const modules: Module[] = [
