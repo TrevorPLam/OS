@@ -267,27 +267,6 @@
 
 ---
 
-### [TASK-028] Add Automatic Task Lifecycle Triggering to CI
-- **Priority:** P1
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, archive-task.py and promote-task.sh exist but require manual execution. Should be auto-triggered in CI.
-
-#### Acceptance Criteria
-- [ ] Add GitHub Actions workflow to trigger archive-task.py on task completion
-- [ ] Add webhook or scheduled job to auto-promote tasks
-- [ ] Ensure task lifecycle runs automatically after PR merge
-- [ ] Add error handling and notifications for lifecycle failures
-- [ ] Document auto-triggering in CONTRIBUTING.md
-
-#### Notes
-- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 283: High priority enhancement
-- Scripts exist: `scripts/archive-task.py`, `scripts/promote-task.sh`
-- Impact: Medium - improves automation
-- Files: `.github/workflows/`, `scripts/archive-task.py`
-
----
-
 ### [TASK-029] Verify Agent Logger Integration
 - **Priority:** P1
 - **Status:** Pending

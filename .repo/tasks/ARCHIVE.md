@@ -36,9 +36,9 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 14 |
+| Total Completed | 15 |
 | P0 Completed | 8 |
-| P1 Completed | 6 |
+| P1 Completed | 7 |
 | P2 Completed | 0 |
 | P3 Completed | 0 |
 
@@ -47,6 +47,27 @@
 ---
 
 ## Completed Tasks
+
+### [TASK-006] Expand docs/ARCHITECTURE.md ✓
+- **Priority:** P1
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Completed:** 2026-01-25 (Previously completed)
+- **Context:** Current file was stated as 14 lines. Needs comprehensive system documentation.
+
+#### Acceptance Criteria
+- [x] Add Mermaid diagrams for system architecture
+- [x] Document module ownership and boundaries
+- [x] Explain data flow and integration patterns
+- [x] Include decision rationale for key choices
+
+#### Outcome
+- File already contains 694 lines of comprehensive documentation
+- Multiple Mermaid diagrams included: High-Level Architecture, Request Flow, Multi-Tenancy, Component Architecture, Data Architecture ERD, Core Domain Models, Integration Patterns, Authentication Flow, Future Scaling
+- Module ownership and boundaries fully documented with interaction rules
+- Data flow and integration patterns explained in detail
+- Architectural principles (7 key principles) and decision rationale included
+- Task appears to have been completed by prior work, verified as meeting all acceptance criteria
 
 ### [TASK-019] Create Shared Error and Loading Components ✓
 - **Priority:** P1
