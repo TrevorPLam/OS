@@ -98,9 +98,9 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 20 |
-| P0 Completed | 9 |
-| P1 Completed | 10 |
+| Total Completed | 18 |
+| P0 Completed | 8 |
+| P1 Completed | 9 |
 | P2 Completed | 1 |
 | P3 Completed | 0 |
 
