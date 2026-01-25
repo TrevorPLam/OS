@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react'
 import { Contract, useContracts, useCreateContract, useDeleteContract, useProposals, useUpdateContract } from '../api/crm'
 import { useClients } from '../api/clients'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './Contracts.css'
 
 const Contracts: React.FC = () => {
@@ -24,6 +26,7 @@ const Contracts: React.FC = () => {
     start_date: '',
     end_date: '',
   })
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const acceptedProposals = useMemo(
     () => proposals.filter((proposal) => proposal.status === 'accepted'),
@@ -47,8 +50,9 @@ const Contracts: React.FC = () => {
         await createContractMutation.mutateAsync(formData)
       }
       resetForm()
-    } catch (error) {
-      console.error('Failed to save contract:', error)
+      setActionError(null)
+    } catch {
+      setActionError('Failed to save contract. Please try again.')
     }
   }
 
@@ -58,14 +62,25 @@ const Contracts: React.FC = () => {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this contract?')) {
+  // Confirm dialog for delete contract
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Contract',
+    message: 'Are you sure you want to delete this contract?',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      const contractId = deleteDialog.metadata as number
       try {
-        await deleteContractMutation.mutateAsync(id)
-      } catch (error) {
-        console.error('Failed to delete contract:', error)
+        await deleteContractMutation.mutateAsync(contractId)
+        setActionError(null)
+      } catch {
+        setActionError('Failed to delete contract. Please try again.')
       }
-    }
+    },
+  })
+
+  const handleDelete = (id: number) => {
+    deleteDialog.show(id)
   }
 
   const resetForm = () => {
@@ -83,6 +98,7 @@ const Contracts: React.FC = () => {
     })
     setEditingContract(null)
     setShowForm(false)
+    setActionError(null)
   }
 
   const handleNewContract = () => {
@@ -99,6 +115,13 @@ const Contracts: React.FC = () => {
 
   return (
     <div className="contracts-page">
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="page-header">
         <h1>Contracts</h1>
         <button onClick={handleNewContract} className="btn-primary">
@@ -323,6 +346,9 @@ const Contracts: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

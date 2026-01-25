@@ -11,6 +11,8 @@ import {
   usePipelines,
   useUpdateDeal,
 } from '../../api/crm'
+import { useConfirmDialog } from '../../components/ConfirmDialog'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import './CRM.css'
 
 const PipelineKanban: React.FC = () => {
@@ -33,6 +35,26 @@ const PipelineKanban: React.FC = () => {
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [actionError, setActionError] = useState<string | null>(null)
+  const [dealToDelete, setDealToDelete] = useState<number | null>(null)
+
+  // Confirm dialog for delete
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Deal',
+    message: 'Are you sure you want to delete this deal? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (dealToDelete === null) return
+      try {
+        await deleteDealMutation.mutateAsync(dealToDelete)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the deal. Please try again.')
+      } finally {
+        setDealToDelete(null)
+      }
+    },
+  })
 
   const [formData, setFormData] = useState<Partial<Deal>>({
     name: '',
@@ -143,15 +165,9 @@ const PipelineKanban: React.FC = () => {
     }
   }
 
-  const handleDeleteDeal = async (dealId: number) => {
-    if (!window.confirm('Are you sure you want to delete this deal?')) return
-
-    try {
-      await deleteDealMutation.mutateAsync(dealId)
-      setActionError(null)
-    } catch {
-      setActionError('Unable to delete the deal. Please try again.')
-    }
+  const handleDeleteDeal = (dealId: number) => {
+    setDealToDelete(dealId)
+    deleteDialog.show()
   }
 
   const handleMarkWon = async (dealId: number) => {
@@ -165,7 +181,7 @@ const PipelineKanban: React.FC = () => {
 
   const handleMarkLost = async (dealId: number) => {
     const reason = window.prompt('Please provide a reason for losing this deal:')
-    if (reason === null) return // User cancelled
+    if (reason === null) return
 
     try {
       await markDealLostMutation.mutateAsync({ id: dealId, reason })
@@ -199,15 +215,28 @@ const PipelineKanban: React.FC = () => {
   }
 
   if (pipelinesError) {
-    return <div className="error">Unable to load pipelines. Please refresh and try again.</div>
+    return (
+      <ErrorDisplay
+        error={pipelinesError}
+        title="Failed to Load Pipelines"
+        variant="card"
+      />
+    )
   }
 
   return (
     <div className="crm-page pipeline-kanban">
-      {(actionError || dealsError || stagesError) && (
-        <div className="error">
-          {actionError || dealsError?.message || stagesError?.message || 'Something went wrong. Please try again.'}
-        </div>
+      {(stagesError || dealsError || actionError) && (
+        <ErrorDisplay
+          error={
+            actionError ||
+            stagesError ||
+            dealsError ||
+            'Something went wrong. Please try again.'
+          }
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
       )}
       <div className="page-header">
         <div className="header-left">
@@ -415,6 +444,9 @@ const PipelineKanban: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

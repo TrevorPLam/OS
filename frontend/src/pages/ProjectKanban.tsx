@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { tasksApi, Task, TaskCreate } from '../api/tasks'
 import { projectsApi } from '../api/projects'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './ProjectKanban.css'
 
 interface Project {
@@ -18,6 +20,27 @@ const ProjectKanban: React.FC = () => {
   const [showModal, setShowModal] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [draggedTask, setDraggedTask] = useState<Task | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [taskToDelete, setTaskToDelete] = useState<number | null>(null)
+
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Task',
+    message: 'Are you sure you want to delete this task? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (taskToDelete === null) return
+      try {
+        await tasksApi.deleteTask(taskToDelete)
+        await loadData()
+        setError(null)
+      } catch (err) {
+        setError('Failed to delete task. Please try again.')
+      } finally {
+        setTaskToDelete(null)
+      }
+    },
+  })
 
   const [formData, setFormData] = useState<TaskCreate>({
     project: parseInt(projectId || '0'),
@@ -47,8 +70,9 @@ const ProjectKanban: React.FC = () => {
       ])
       setProject(projectData)
       setTasks(tasksData)
-    } catch (error) {
-      console.error('Error loading data:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to load data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -93,8 +117,9 @@ const ProjectKanban: React.FC = () => {
 
       // Reload tasks
       await loadData()
-    } catch (error) {
-      console.error('Error updating task:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to update task. Please try again.')
     } finally {
       setDraggedTask(null)
     }
@@ -154,19 +179,15 @@ const ProjectKanban: React.FC = () => {
       }
       await loadData()
       resetForm()
-    } catch (error) {
-      console.error('Error saving task:', error)
+      setError(null)
+    } catch (err) {
+      setError('Failed to save task. Please try again.')
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this task?')) return
-    try {
-      await tasksApi.deleteTask(id)
-      await loadData()
-    } catch (error) {
-      console.error('Error deleting task:', error)
-    }
+  const handleDelete = (id: number) => {
+    setTaskToDelete(id)
+    deleteDialog.show()
   }
 
   const getPriorityColor = (priority: Task['priority']) => {
@@ -190,6 +211,13 @@ const ProjectKanban: React.FC = () => {
 
   return (
     <div className="kanban-page">
+      {error && (
+        <ErrorDisplay
+          error={error}
+          variant="banner"
+          onDismiss={() => setError(null)}
+        />
+      )}
       <div className="kanban-header">
         <div>
           <h1>{project?.name}</h1>
@@ -364,6 +392,8 @@ const ProjectKanban: React.FC = () => {
           </div>
         </div>
       )}
+
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

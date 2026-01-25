@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useClients } from '../api/clients'
 import { documentsApi, Document, Folder } from '../api/documents'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './Documents.css'
 
 const Documents: React.FC = () => {
@@ -13,6 +15,26 @@ const Documents: React.FC = () => {
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [showFolderModal, setShowFolderModal] = useState(false)
   const [selectedClient, setSelectedClient] = useState<number | null>(null)
+  const [documentToDelete, setDocumentToDelete] = useState<number | null>(null)
+
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Document',
+    message: 'Are you sure you want to delete this document? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (documentToDelete === null) return
+      try {
+        setError(null)
+        await documentsApi.deleteDocument(documentToDelete)
+        await loadData()
+      } catch (err) {
+        setError(resolveDocumentsError(err) || 'Delete failed')
+      } finally {
+        setDocumentToDelete(null)
+      }
+    },
+  })
 
   const [uploadForm, setUploadForm] = useState({
     file: null as File | null,
@@ -128,15 +150,9 @@ const Documents: React.FC = () => {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this document?')) return
-    try {
-      setError(null)
-      await documentsApi.deleteDocument(id)
-      await loadData()
-    } catch (error) {
-      setError(resolveDocumentsError(error) || 'Delete failed')
-    }
+  const handleDelete = (id: number) => {
+    setDocumentToDelete(id)
+    deleteDialog.show()
   }
 
   const resetUploadForm = () => {
@@ -201,10 +217,11 @@ const Documents: React.FC = () => {
       </div>
 
       {error && (
-        <div className="error-banner">
-          <span>⚠️ {error}</span>
-          <button onClick={() => setError(null)}>✕</button>
-        </div>
+        <ErrorDisplay
+          error={error}
+          variant="banner"
+          onDismiss={() => setError(null)}
+        />
       )}
 
       <div className="filters">
@@ -481,6 +498,8 @@ const Documents: React.FC = () => {
           </div>
         </div>
       )}
+
+      <deleteDialog.ConfirmDialog />
     </div>
   )
 }

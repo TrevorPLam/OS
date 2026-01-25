@@ -7,6 +7,8 @@ import {
   useLeads,
   useUpdateLead,
 } from '../../api/crm'
+import { useConfirmDialog } from '../../components/ConfirmDialog'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import './CRM.css'
 
 const Leads: React.FC = () => {
@@ -20,6 +22,48 @@ const Leads: React.FC = () => {
   const deleteLeadMutation = useDeleteLead()
   const convertLeadMutation = useConvertLeadToProspect()
   const [actionError, setActionError] = useState<string | null>(null)
+  const [leadToDelete, setLeadToDelete] = useState<number | null>(null)
+  const [leadToConvert, setLeadToConvert] = useState<Lead | null>(null)
+
+  // Confirm dialog for delete
+  const deleteDialog = useConfirmDialog({
+    title: 'Delete Lead',
+    message: 'Are you sure you want to delete this lead? This action cannot be undone.',
+    variant: 'danger',
+    confirmText: 'Delete',
+    onConfirm: async () => {
+      if (leadToDelete === null) return
+      try {
+        await deleteLeadMutation.mutateAsync(leadToDelete)
+        setActionError(null)
+      } catch {
+        setActionError('Unable to delete the lead. Please try again.')
+      } finally {
+        setLeadToDelete(null)
+      }
+    },
+  })
+
+  // Confirm dialog for convert
+  const convertDialog = useConfirmDialog({
+    title: 'Convert to Prospect',
+    message: leadToConvert ? `Convert ${leadToConvert.company_name} to a prospect (sales opportunity)?` : 'Convert this lead to a prospect?',
+    variant: 'info',
+    confirmText: 'Convert',
+    onConfirm: async () => {
+      if (!leadToConvert) return
+      try {
+        const result = await convertLeadMutation.mutateAsync({ id: leadToConvert.id })
+        alert(`Successfully converted to prospect! Prospect ID: ${result.prospect.id}`)
+        setActionError(null)
+      } catch {
+        setActionError('Failed to convert lead to prospect. Please try again.')
+      } finally {
+        setLeadToConvert(null)
+      }
+    },
+  })
+
   const [formData, setFormData] = useState<Partial<Lead>>({
     company_name: '',
     industry: '',
@@ -54,27 +98,14 @@ const Leads: React.FC = () => {
     setShowForm(true)
   }
 
-  const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this lead?')) {
-      try {
-        await deleteLeadMutation.mutateAsync(id)
-        setActionError(null)
-      } catch {
-        setActionError('Unable to delete the lead. Please try again.')
-      }
-    }
+  const handleDelete = (id: number) => {
+    setLeadToDelete(id)
+    deleteDialog.show()
   }
 
-  const handleConvertToProspect = async (lead: Lead) => {
-    if (window.confirm(`Convert ${lead.company_name} to a prospect (sales opportunity)?`)) {
-      try {
-        const result = await convertLeadMutation.mutateAsync({ id: lead.id })
-        alert(`Successfully converted to prospect! Prospect ID: ${result.prospect.id}`)
-        setActionError(null)
-      } catch {
-        setActionError('Failed to convert lead to prospect. Please try again.')
-      }
-    }
+  const handleConvertToProspect = (lead: Lead) => {
+    setLeadToConvert(lead)
+    convertDialog.show()
   }
 
   const resetForm = () => {
@@ -124,12 +155,24 @@ const Leads: React.FC = () => {
   }
 
   if (leadsError) {
-    return <div className="error">Unable to load leads. Please refresh and try again.</div>
+    return (
+      <ErrorDisplay
+        error={leadsError}
+        title="Failed to Load Leads"
+        variant="card"
+      />
+    )
   }
 
   return (
     <div className="crm-page">
-      {actionError && <div className="error">{actionError}</div>}
+      {actionError && (
+        <ErrorDisplay
+          error={actionError}
+          variant="banner"
+          onDismiss={() => setActionError(null)}
+        />
+      )}
       <div className="page-header">
         <div>
           <h1>Leads</h1>
@@ -371,6 +414,12 @@ const Leads: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      <deleteDialog.ConfirmDialog />
+
+      {/* Convert confirmation dialog */}
+      <convertDialog.ConfirmDialog />
     </div>
   )
 }

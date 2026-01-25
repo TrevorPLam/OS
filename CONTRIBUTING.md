@@ -43,3 +43,55 @@ From repo root:
 - Typecheck: `npm run typecheck`
 - Tests: `npm run test` via `make -C frontend test`
 - E2E: `npm run e2e` via `make -C frontend e2e`
+
+## Task Lifecycle Automation
+
+### Automatic Task Management
+
+The repository uses an automated task lifecycle system that:
+- Automatically archives completed tasks when PRs are merged
+- Promotes the next highest-priority task from the backlog
+- Maintains a single active task in `.repo/tasks/TODO.md`
+
+#### How It Works
+
+1. **Trigger**: When a PR is merged to `main`, the `task-lifecycle.yml` workflow runs
+2. **Detection**: Checks if the PR completes a task by looking for:
+   - Keywords in PR title/body: "completes TASK-XXX", "resolves TASK-XXX", etc.
+   - All acceptance criteria marked complete in `TODO.md` (all `[x]`)
+3. **Archive**: Runs `scripts/archive-task.py` to move completed task to `ARCHIVE.md`
+4. **Promote**: Runs `scripts/promote-task.sh` to move next task from `BACKLOG.md` to `TODO.md`
+5. **Commit**: Automatically commits and pushes changes back to `main`
+
+#### Manual Task Management
+
+You can also manually manage tasks using the scripts:
+
+```bash
+# Archive the current task in TODO.md
+python scripts/archive-task.py
+
+# Force archive even if not all criteria are complete
+python scripts/archive-task.py --force
+
+# Promote next highest priority task from backlog
+bash scripts/promote-task.sh
+
+# Promote a specific task by ID
+bash scripts/promote-task.sh TASK-025
+```
+
+#### Task Files
+
+- `.repo/tasks/TODO.md` - Single active task (ONE only)
+- `.repo/tasks/BACKLOG.md` - Prioritized queue (P0 → P1 → P2 → P3)
+- `.repo/tasks/ARCHIVE.md` - Completed tasks with outcomes
+
+#### Best Practices
+
+- Complete all acceptance criteria before merging task-related PRs
+- Mention task ID in PR title or body (e.g., "Complete TASK-019")
+- Let automation handle task lifecycle (manual intervention rarely needed)
+- If automation fails, check workflow logs and follow manual steps
+
+For more details, see `.repo/agents/QUICK_REFERENCE.md` and `.repo/tasks/TODO.md`.

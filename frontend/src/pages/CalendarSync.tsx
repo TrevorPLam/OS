@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { calendarApi, OAuthConnection } from '../api/calendar'
+import { useConfirmDialog } from '../components/ConfirmDialog'
+import ErrorDisplay from '../components/ErrorDisplay'
 import './CalendarSync.css'
 
 const CalendarSync: React.FC = () => {
@@ -27,8 +29,9 @@ const CalendarSync: React.FC = () => {
     try {
       const data = await calendarApi.getConnections()
       setConnections(data)
+      setErrorMessage(null)
     } catch (error) {
-      console.error('Failed to load calendar connections:', error)
+      setErrorMessage('Failed to load calendar connections')
     } finally {
       setLoading(false)
     }
@@ -58,19 +61,27 @@ const CalendarSync: React.FC = () => {
     }
   }
 
-  const handleDisconnect = async (connectionId: number) => {
-    if (!window.confirm('Are you sure you want to disconnect this calendar?')) {
-      return
-    }
+  // Confirm dialog for disconnect
+  const disconnectDialog = useConfirmDialog({
+    title: 'Disconnect Calendar',
+    message: 'Are you sure you want to disconnect this calendar?',
+    variant: 'danger',
+    confirmText: 'Disconnect',
+    onConfirm: async () => {
+      const connectionId = disconnectDialog.metadata as number
+      try {
+        await calendarApi.disconnectCalendar(connectionId)
+        setSuccessMessage('Calendar disconnected successfully')
+        setErrorMessage(null)
+        loadConnections()
+      } catch {
+        setErrorMessage('Failed to disconnect calendar')
+      }
+    },
+  })
 
-    try {
-      await calendarApi.disconnectCalendar(connectionId)
-      setSuccessMessage('Calendar disconnected successfully')
-      loadConnections()
-    } catch (error) {
-      console.error('Failed to disconnect calendar:', error)
-      setErrorMessage('Failed to disconnect calendar')
-    }
+  const handleDisconnect = (connectionId: number) => {
+    disconnectDialog.show(connectionId)
   }
 
   const handleSyncNow = async (connectionId: number) => {
@@ -101,9 +112,9 @@ const CalendarSync: React.FC = () => {
       await calendarApi.updateConnection(connectionId, editData)
       setEditingConnection(null)
       setSuccessMessage('Connection settings updated successfully')
+      setErrorMessage(null)
       loadConnections()
-    } catch (error) {
-      console.error('Failed to update connection:', error)
+    } catch {
       setErrorMessage('Failed to update connection settings')
     }
   }
@@ -162,12 +173,11 @@ const CalendarSync: React.FC = () => {
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="notification notification-error">
-          <span>✗ {errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="notification-close">
-            ×
-          </button>
-        </div>
+        <ErrorDisplay
+          error={errorMessage}
+          variant="banner"
+          onDismiss={() => setErrorMessage(null)}
+        />
       )}
 
       <div className="connect-section">
@@ -315,6 +325,9 @@ const CalendarSync: React.FC = () => {
           <p>No calendars connected yet. Connect a calendar to start syncing appointments.</p>
         </div>
       )}
+      
+      {/* Disconnect confirmation dialog */}
+      <disconnectDialog.ConfirmDialog />
     </div>
   )
 }
