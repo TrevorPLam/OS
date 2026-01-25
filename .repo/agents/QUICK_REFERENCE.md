@@ -341,6 +341,15 @@ try {
 - **Pass 2:** Log file operations (read, write, search)
 - **Pass 3:** Log verification actions (test runs, validation)
 
+**Integration for GitHub Copilot/Claude:**
+AI agents (GitHub Copilot, Claude) don't directly execute JavaScript but can use the logger by:
+1. Creating Node.js scripts that use the logger
+2. Using bash to call node with inline JavaScript:
+   ```bash
+   node -e "const logger = require('./.repo/automation/scripts/agent-logger.js'); logger.logInteraction({ agent: 'Auto', action: 'file_read', file: 'test.txt', success: true });"
+   ```
+3. Using existing automation scripts that already integrate the logger (e.g., governance-verify.js)
+
 **Note:** Logging is optional but recommended for metrics collection. If logger is unavailable, workflow continues without logging.
 
 ---
