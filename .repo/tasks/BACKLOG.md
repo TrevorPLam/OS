@@ -49,33 +49,6 @@
 
 ## P1 — High
 
-### [TASK-016] Implement React Hook Form in All Forms
-- **Priority:** P1
-- **Status:** Blocked
-- **Created:** 2026-01-23
-- **Blocked By:** HITL-0001 (security review for login/register form changes)
-- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
-
-#### Acceptance Criteria
-- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
-- [ ] Implement React Hook Form in all remaining forms (10+ pages)
-- [ ] Add proper validation rules to all forms
-- [ ] Remove manual form state management (useState patterns)
-- [ ] Verify all forms work correctly
-
-#### Notes
-- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
-- Would eliminate ~300-450 lines of duplicate code
-- Estimated: 12-16 hours for all forms
-- Files: All page components with forms
-- Blocked on HITL-0001 (security review for login/register form changes)
-
----
-
-## P2 — Medium
 
 ### [TASK-021] Increase Frontend Test Coverage to 60%
 - **Priority:** P2

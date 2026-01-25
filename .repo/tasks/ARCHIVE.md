@@ -1,4 +1,22 @@
 
+### [TASK-007] Create docs/adr/ Folder with ADR Template
+- **Priority:** P2
+- **Status:** In Progress
+- **Created:** 2026-01-23
+- **Context:** Architecture Decision Records document WHY decisions were made.
+- **Completed:** 2026-01-25
+
+#### Acceptance Criteria
+- [x] Create `docs/adr/` directory
+- [x] Add ADR template (ADR-000-template.md)
+- [x] Create first ADR for multi-tenancy model
+- [x] Document ADR process in docs/architecture/decisions/
+
+#### Notes
+- ADRs help AI understand historical context
+
+---
+
 ### [TASK-029] Verify Agent Logger Integration
 - **Priority:** P1
 - **Status:** In Progress
@@ -80,10 +98,10 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 19 |
+| Total Completed | 20 |
 | P0 Completed | 9 |
 | P1 Completed | 10 |
-| P2 Completed | 0 |
+| P2 Completed | 1 |
 | P3 Completed | 0 |
 
 *Statistics auto-updated on 2026-01-25*
