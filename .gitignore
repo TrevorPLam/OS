@@ -140,3 +140,4 @@ SF2_text.txt
 # Generated governance artifacts
 TODO.generated.md
 .TODO.generated.md
+frontend/coverage/
