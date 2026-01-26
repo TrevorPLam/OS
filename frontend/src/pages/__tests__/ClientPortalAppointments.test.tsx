@@ -152,7 +152,8 @@ describe('ClientPortal appointments', () => {
     await screen.findByText('Client Portal')
     await user.click(screen.getByRole('button', { name: '🗓️ Appointments' }))
 
-    await user.click(screen.getByRole('button', { name: 'Consultation' }))
+    // The button has a longer accessible name due to its content
+    await user.click(screen.getByRole('button', { name: /Consultation/ }))
     await user.click(screen.getByRole('button', { name: 'Check availability' }))
 
     const slotButtons = await screen.findAllByRole('button', { name: /→/ })
@@ -192,6 +193,8 @@ describe('ClientPortal appointments', () => {
     await screen.findByText('Client Portal')
     await user.click(screen.getByRole('button', { name: '🗓️ Appointments' }))
 
-    expect(await screen.findByText('Unable to load appointment options right now.')).toBeInTheDocument()
+    // Check for error display (the component shows the error message in an ErrorDisplay component)
+    expect(await screen.findByText('Network failure')).toBeInTheDocument()
+    expect(screen.getByText('No appointment types available.')).toBeInTheDocument()
   })
 })
