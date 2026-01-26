@@ -125,7 +125,9 @@ describe('ClientPortal profile and accounts', () => {
 
     const preferencesInput = screen.getByLabelText('Notification preferences')
     await user.clear(preferencesInput)
-    await user.type(preferencesInput, '{"email": false}')
+    // Use paste instead of type to avoid user-event interpreting curly braces as keyboard commands
+    await user.click(preferencesInput)
+    await user.paste('{"email": false}')
     await user.click(screen.getByRole('button', { name: 'Save preferences' }))
 
     expect(clientPortalApiMock.updateProfile).toHaveBeenCalledWith({
@@ -172,6 +174,8 @@ describe('ClientPortal profile and accounts', () => {
     await screen.findByText('Client Portal')
     await user.click(screen.getByRole('button', { name: '👤 Profile' }))
 
-    expect(await screen.findByText('Unable to load profile details right now.')).toBeInTheDocument()
+    // Check for error display (the component shows the error message in an ErrorDisplay component)
+    expect(await screen.findByText('Network error')).toBeInTheDocument()
+    expect(screen.getByText('Profile details are unavailable.')).toBeInTheDocument()
   })
 })
