@@ -1,3 +1,65 @@
+
+### [TASK-007] Create docs/adr/ Folder with ADR Template
+- **Priority:** P2
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Context:** Architecture Decision Records document WHY decisions were made.
+- **Completed:** 2026-01-25
+
+#### Acceptance Criteria
+- [x] Create `docs/adr/` directory
+- [x] Add ADR template (ADR-000-template.md)
+- [x] Create first ADR for multi-tenancy model
+- [x] Document ADR process in docs/architecture/decisions/
+
+#### Notes
+- ADRs help AI understand historical context
+
+---
+
+### [TASK-029] Verify Agent Logger Integration
+- **Priority:** P1
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify if agents actually call agent-logger.js. Logging SDK exists but usage may not be integrated.
+- **Completed:** 2026-01-25
+
+#### Acceptance Criteria
+- [x] Audit codebase for agent-logger.js usage
+- [x] Verify agents call logging SDK in workflow
+- [x] Add integration hooks if missing
+- [x] Add logging examples to AGENTS.md
+- [x] Document logging patterns in QUICK_REFERENCE.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 271: Medium impact
+- File: Check for `agent-logger.js` or logging SDK usage
+- Impact: Medium - ensures proper logging
+
+---
+
+### [TASK-028] Add Automatic Task Lifecycle Triggering to CI
+- **Priority:** P1
+- **Status:** Completed
+- **Created:** 2026-01-23
+- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, archive-task.py and promote-task.sh exist but require manual execution. Should be auto-triggered in CI.
+- **Completed:** 2026-01-25
+
+#### Acceptance Criteria
+- [x] Add GitHub Actions workflow to trigger archive-task.py on task completion
+- [x] Add webhook or scheduled job to auto-promote tasks
+- [x] Ensure task lifecycle runs automatically after PR merge
+- [x] Add error handling and notifications for lifecycle failures
+- [x] Document auto-triggering in CONTRIBUTING.md
+
+#### Notes
+- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 283: High priority enhancement
+- Scripts exist: `scripts/archive-task.py`, `scripts/promote-task.sh`
+- Impact: Medium - improves automation
+- Files: `.github/workflows/task-lifecycle.yml`, `CONTRIBUTING.md`
+- All acceptance criteria met - ready to archive
+
+---
 # ✅ Completed Tasks Archive
 
 > **Historical Record** — All completed tasks with outcomes and completion dates.
@@ -36,16 +98,13 @@
 ## Statistics
 | Metric | Count |
 |--------|-------|
-| Total Completed | 15 |
+| Total Completed | 18 |
 | P0 Completed | 8 |
-| P1 Completed | 7 |
-| P2 Completed | 0 |
+| P1 Completed | 9 |
+| P2 Completed | 1 |
 | P3 Completed | 0 |
 
-*Update statistics when archiving tasks.*
-
----
-
+*Statistics auto-updated on 2026-01-25*
 ## Completed Tasks
 
 ### [TASK-006] Expand docs/ARCHITECTURE.md ✓

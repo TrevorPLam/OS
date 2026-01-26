@@ -98,6 +98,53 @@ For a one-page cheat sheet, see `.repo/agents/QUICK_REFERENCE.md`.
 - **Trace log** = What changed (files, commands, evidence)
 - **Agent log** = Why/how (reasoning, decisions, assumptions)
 
+## Agent Interaction Logging (SDK)
+
+**When to use:** Optional but recommended for metrics collection during all passes (0, 1, 2, 3).
+
+**What it tracks:** Low-level agent interactions (file reads, searches, edits, test runs) for performance metrics and debugging.
+
+**How:**
+1. Use the logging SDK in Node.js scripts: `const logger = require('.repo/automation/scripts/agent-logger.js')`
+2. Log interactions: `logger.logInteraction({ agent, action, file, duration_ms, success, context })`
+3. Log errors: `logger.logError({ agent, action, error, context })`
+
+**Example usage in a script:**
+```javascript
+const logger = require('.repo/automation/scripts/agent-logger.js');
+const startTime = Date.now();
+
+try {
+  // Perform some operation
+  const result = performOperation();
+  
+  logger.logInteraction({
+    agent: 'automation-script',
+    action: 'perform_operation',
+    file: 'path/to/file.js',
+    duration_ms: Date.now() - startTime,
+    success: true,
+    context: { task: 'TASK-029', details: 'operation completed' }
+  });
+} catch (err) {
+  logger.logError({
+    agent: 'automation-script',
+    action: 'perform_operation',
+    error: err.message,
+    context: { file: 'path/to/file.js' }
+  });
+}
+```
+
+**Storage:**
+- Interactions: `.agent-logs/interactions/YYYY-MM-DD.jsonl`
+- Errors: `.agent-logs/errors/YYYY-MM-DD.jsonl`
+- Metrics: `.agent-logs/metrics/YYYY-MM-DD.json`
+
+**Note:** Logging SDK is currently used by automation scripts (e.g., `governance-verify.js`). GitHub Copilot and Claude agents don't directly execute JavaScript but can use the logger by creating Node.js scripts or calling it via bash.
+
+See `.repo/agents/QUICK_REFERENCE.md` section "Agent Interaction Logging" for detailed examples.
+
 ## Examples
 
 See `.repo/templates/examples/` for example files:

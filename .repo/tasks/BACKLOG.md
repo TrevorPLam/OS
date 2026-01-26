@@ -49,57 +49,6 @@
 
 ## P1 — High
 
-### [TASK-016] Implement React Hook Form in All Forms
-- **Priority:** P1
-- **Status:** Blocked
-- **Created:** 2026-01-23
-- **Blocked By:** HITL-0001 (security review for login/register form changes)
-- **Context:** Per ANALYSIS.md Section 1.3, React Hook Form is installed but ZERO usage found. All 15+ forms use manual useState, causing code duplication (~300-450 lines) and missing validation.
-
-#### Acceptance Criteria
-- [ ] Implement React Hook Form in `frontend/src/pages/Login.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Register.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/Clients.tsx`
-- [ ] Implement React Hook Form in `frontend/src/pages/crm/Deals.tsx`
-- [ ] Implement React Hook Form in all remaining forms (10+ pages)
-- [ ] Add proper validation rules to all forms
-- [ ] Remove manual form state management (useState patterns)
-- [ ] Verify all forms work correctly
-
-#### Notes
-- Per ANALYSIS.md Section 0.10, 1.3: 0% usage, 15+ forms need conversion
-- Would eliminate ~300-450 lines of duplicate code
-- Estimated: 12-16 hours for all forms
-- Files: All page components with forms
-- Blocked on HITL-0001 (security review for login/register form changes)
-
----
-
-## P2 — Medium
-
-### [TASK-021] Increase Frontend Test Coverage to 60%
-- **Priority:** P2
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per ANALYSIS.md Section 1.4, 11.9, test coverage is <15% but vite.config.ts sets 60% thresholds. Only 8 test files exist for ~96 source files.
-
-#### Acceptance Criteria
-- [ ] Add tests for all API functions in `frontend/src/api/` (currently 0% coverage)
-- [ ] Add tests for all page components (currently <15% coverage)
-- [ ] Add tests for React Query hooks
-- [ ] Add integration tests for data fetching flows
-- [ ] Achieve 60%+ coverage (lines, functions, branches, statements)
-- [ ] Add coverage reporting to CI
-- [ ] Update coverage thresholds in vite.config.ts if needed
-
-#### Notes
-- Per ANALYSIS.md Section 1.4: 8 test files for 96 source files
-- Per Section 11.9: API layer 0% coverage, pages <15%
-- Critical paths not tested: Client CRUD, Deal pipeline, Proposal workflow
-- Estimated: 20-30 hours
-- Files: New test files in `frontend/src/**/__tests__/`
-
----
 
 ### [TASK-022] Refactor Remaining Pages to Use React Query Hooks
 - **Priority:** P2
@@ -142,23 +91,6 @@
 - Depends on TASK-019 (ErrorDisplay component)
 - Estimated: 8-10 hours
 - Files: All page components, API hooks, ErrorBoundary
-
----
-
-### [TASK-007] Create docs/adr/ Folder with ADR Template
-- **Priority:** P2
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Architecture Decision Records document WHY decisions were made.
-
-#### Acceptance Criteria
-- [ ] Create `docs/adr/` directory
-- [ ] Add ADR template (ADR-000-template.md)
-- [ ] Create first ADR for multi-tenancy model
-- [ ] Document ADR process in docs/architecture/decisions/
-
-#### Notes
-- ADRs help AI understand historical context
 
 ---
 
@@ -264,26 +196,6 @@
 - Would improve frontend-backend alignment
 - Estimated: 8-10 hours
 - Files: New OpenAPI spec file, update API client docs
-
----
-
-### [TASK-029] Verify Agent Logger Integration
-- **Priority:** P1
-- **Status:** Pending
-- **Created:** 2026-01-23
-- **Context:** Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md, need to verify if agents actually call agent-logger.js. Logging SDK exists but usage may not be integrated.
-
-#### Acceptance Criteria
-- [ ] Audit codebase for agent-logger.js usage
-- [ ] Verify agents call logging SDK in workflow
-- [ ] Add integration hooks if missing
-- [ ] Add logging examples to AGENTS.md
-- [ ] Document logging patterns in QUICK_REFERENCE.md
-
-#### Notes
-- Per AGENTIC_SYSTEM_ASSESSMENT_REVISED.md Section 271: Medium impact
-- File: Check for `agent-logger.js` or logging SDK usage
-- Impact: Medium - ensures proper logging
 
 ---
 
