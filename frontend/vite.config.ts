@@ -22,6 +22,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
+    exclude: ['**/node_modules/**', '**/dist/**', '**/e2e/**', '**/*.e2e.spec.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json-summary'],
@@ -30,7 +31,7 @@ export default defineConfig({
       branches: 60,
       statements: 60,
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/setupTests.ts', 'src/main.tsx', 'src/App.tsx'],
+      exclude: ['src/setupTests.ts', 'src/main.tsx', 'src/App.tsx', 'e2e/**'],
     },
   },
 })
