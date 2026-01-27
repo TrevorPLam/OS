@@ -1,0 +1,7 @@
+type: task_list
+version: 1.0.0
+purpose: Active tasks for agents to work on
+
+tasks: []
+
+note: Add tasks here as they are created. Tasks should follow the task format defined in AGENTS.toon.

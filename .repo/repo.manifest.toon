@@ -1,0 +1,33 @@
+type: repo_manifest
+version: 3
+last_updated: "2026-01-25"
+
+governance:
+  authority_order[7]:
+    CODEBASECONSTITUTION.md
+    READMEAI.md
+    AGENTS.md
+    P0TODO.md
+    P1TODO.md
+    P2TODO.md
+    P3TODO.md
+  task_truth_source: P0TODO.md, P1TODO.md, P2TODO.md, P3TODO.md
+  completed_tasks: TODOCOMPLETED.md
+  github_actions:
+    status: off_by_default
+    storage_path: githubactions/
+    enable_instructions: githubactions/README.md
+
+verification:
+  notes: >
+    Commands are repo-specific. If a command is missing, record UNKNOWN and create a task
+    to add it. Prefer cost-free local verification.
+  recommended[3]:
+    make verify
+    make -C backend test
+    make -C frontend test
+
+commands:
+  check:quick: make lint
+  check:ci: make verify
+  check:governance: make check-governance

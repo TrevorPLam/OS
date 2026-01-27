@@ -1,0 +1,7 @@
+type: task_list
+version: 1.0.0
+purpose: Backlog of tasks waiting to be promoted
+
+tasks: []
+
+note: Tasks in backlog are lower priority or blocked. Promote to TODO.toon when ready.
