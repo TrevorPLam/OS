@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  web-app:
+    build:
+      context: ./apps/web-app
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./apps/web-app:/app
+      - /app/node_modules
+    depends_on:
+      - api-service
+
+  api-service:
+    build:
+      context: ./services/api-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - ./services/api-service:/app
+    command: python manage.py runserver 0.0.0.0:8000

@@ -7,7 +7,7 @@
     "purpose": "Django backend application with domain modules, API endpoints, and configuration",
     "layer": "api",
     "depends_on": [],
-    "used_by": ["frontend/"]
+    "used_by": ["apps/web-app/frontend/"]
   },
   "agent_rules": {
     "can_do": [

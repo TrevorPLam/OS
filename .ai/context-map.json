@@ -1,0 +1,18 @@
+{
+  "repository": "OS",
+  "type": "full-stack",
+  "backend": {
+    "framework": "django-rest-framework",
+    "location": "backend/",
+    "modules": "backend/modules/ - Domain modules",
+    "api": "backend/api/ - API endpoints",
+    "config": "backend/config/ - Django settings"
+  },
+  "frontend": {
+    "framework": "react-vite",
+    "location": "frontend/",
+    "components": "frontend/components/",
+    "features": "frontend/features/",
+    "pages": "frontend/pages/"
+  }
+}

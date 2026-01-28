@@ -1,0 +1,5 @@
+# Django REST Framework backend requirements
+# This file should contain your Python dependencies
+# Example:
+# Django>=4.2.0
+# djangorestframework>=3.14.0
