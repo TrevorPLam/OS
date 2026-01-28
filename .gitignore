@@ -1,177 +1,61 @@
-# ============================================================================
-# Standard Base Patterns (Common across all repos)
-# ============================================================================
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+/static
 
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-.yarn/install-state.gz
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-
-# Environment variables
-.env
-.env*.local
-.env.development.local
-.env.test.local
-.env.production.local
-.dev.vars
-
-# Build outputs
-dist/
-build/
-out/
-*.tsbuildinfo
+# Node.js / React (frontend)
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+frontend/.vite/
 
 # Testing
-coverage/
-.nyc_output/
-*.lcov
-.coverage
-htmlcov/
-.pytest_cache/
-.tox/
-.hypothesis/
-coverage.xml
-*.cover
-.cache
-nosetests.xml
+/coverage
+frontend/coverage/
 
-# Debug logs
+# Misc
+.DS_Store
+*.pem
+
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-.pnpm-debug.log*
 
-# Logs
-logs/
-*.log
+# Local env files
+.env*.local
+.env
+.env.local
 
 # IDE
 .vscode/
-!.vscode/tasks.json
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/launch.json
 .idea/
 *.swp
 *.swo
 *~
 
-# OS files
-.DS_Store
+# OS
 Thumbs.db
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Desktop.ini
 
-# Secrets
-*.pem
-*.key
-*.cert
-credentials.json
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Cache directories
-.cache/
-.lycheecache
-.mypy_cache/
-node_modules/.cache/
-
-# ============================================================================
-# Repo-Specific: Python / Django (OS)
-# ============================================================================
-
-# Python
-*.py[cod]
-*$py.class
-*.so
-.Python
-develop-eggs/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-pip-log.txt
-pip-delete-this-directory.txt
-__pycache__/
-*.pyc
-
-# Virtual Environments
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-.venv/
-
-# Django
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-/staticfiles/
-/media/
-*.pot
-
-# Django migrations (comment out if you want to commit them)
+# Django migrations (uncomment if you want to ignore migrations)
 # */migrations/*.py
 # !*/migrations/__init__.py
-
-# React / Frontend
-dist-ssr/
-*.local
-/src/frontend/build/
-/src/frontend/.vite/
-
-# Local toolchain/cache (project-contained)
-.mise/
-.pip-cache/
-backend/.venv/
-frontend/.npm-cache/
-tools/mise/
-tools/python/
-tools/node/
-tools/downloads/
-
-# Docker
-*.pid
-*.seed
-*.pid.lock
-
-# Temporary PDF extraction files
-*_text.txt
-C_text.txt
-C2_text.txt
-AC_text.txt
-AC2_text.txt
-HS_text.txt
-HS2_text.txt
-K_text.txt
-K2_text.txt
-SF_text.txt
-SF2_text.txt
-
-# Generated governance artifacts
-TODO.generated.md
-.TODO.generated.md
-frontend/coverage/
