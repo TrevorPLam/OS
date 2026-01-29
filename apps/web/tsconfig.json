@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./frontend/*"],
+      "@os/ui": ["../../packages/ui"],
+      "@os/utils": ["../../packages/utils"],
+      "@os/contracts": ["../../packages/contracts"],
+      "@os/api-sdk": ["../../packages/api-sdk"]
+    }
+  },
+  "include": [
+    "frontend/**/*.ts",
+    "frontend/**/*.tsx"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

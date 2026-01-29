@@ -1,5 +1,5 @@
 {
-  "name": "web-app",
+  "name": "@os/web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -7,9 +7,14 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@os/ui": "workspace:*",
+    "@os/utils": "workspace:*",
+    "@os/contracts": "workspace:*",
+    "@os/api-sdk": "workspace:*",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },

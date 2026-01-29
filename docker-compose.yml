@@ -1,16 +1,16 @@
 version: '3.8'
 
 services:
-  web-app:
+  web:
     build:
-      context: ./apps/web-app
+      context: ./apps/web
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=development
     volumes:
-      - ./apps/web-app:/app
+      - ./apps/web:/app
       - /app/node_modules
     depends_on:
       - api-service
