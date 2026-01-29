@@ -3,13 +3,8 @@
   "extends": "../../packages/config/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    "composite": true,
-    "baseUrl": ".",
-    "paths": {
-      "@os/contracts": ["../contracts"]
-    }
+    "rootDir": "./src"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

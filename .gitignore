@@ -18,20 +18,21 @@ db.sqlite3-journal
 /staticfiles
 /static
 
-# Node.js / React (frontend)
-frontend/node_modules/
-frontend/.pnp
-frontend/.pnp.js
-frontend/.next/
-frontend/out/
-frontend/build/
-frontend/dist/
-frontend/.vite/
+# Node.js / TypeScript
+node_modules/
+.pnp
+.pnp.js
+.next/
+out/
+build/
+dist/
+.vite/
 **/.npm-cache/
+*.tsbuildinfo
 
 # Testing
-/coverage
-frontend/coverage/
+coverage/
+*.lcov
 
 # Misc
 .DS_Store
@@ -44,8 +45,9 @@ yarn-error.log*
 
 # Local env files
 .env*.local
-.env
 .env.local
+.env
+!.env.example
 
 # IDE
 .vscode/

@@ -1,18 +1,15 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../packages/config/typescript-config/node.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "types": ["node"],
+    "baseUrl": ".",
     "paths": {
       "@os/contracts": ["../../packages/contracts"],
-      "@os/api-sdk": ["../../packages/api-sdk"]
-    }
+      "@os/api-sdk": ["../../packages/api-sdk/src"]
+    },
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]

@@ -1,69 +1,78 @@
 # OS
 
-Operating system for professional services with React frontend and Django backend.
+Operating system for professional services with TypeScript-first architecture.
 
 ## Installation
 
-### Frontend
-
 ```bash
-# Install dependencies
+# Install all dependencies (monorepo)
 pnpm install
-```
-
-### Backend
-
-```bash
-# Navigate to backend directory
-cd services/api-service/backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r ../requirements.txt
-
-# Run migrations
-python manage.py migrate
 ```
 
 ## Usage
 
-### Frontend
+### Development
 
 ```bash
-# Run development server
+# Run all development servers
 pnpm dev
 
-# Build
+# Build all packages and apps
 pnpm build
 
-# Run linter
+# Run linter across all packages
 pnpm lint
 
-# Type check
+# Type check across all packages
 pnpm type-check
+
+# Run tests
+pnpm test
 ```
 
-### Backend
+### Individual Packages
 
 ```bash
-# Run development server
-python manage.py runserver
+# Web app
+cd apps/web
+pnpm dev
 
-# Run Django checks
-python manage.py check
+# API Gateway
+cd services/api-gateway
+pnpm dev
+
+# Django Backend (legacy, being migrated)
+cd services/api-service/backend
+python manage.py runserver
 ```
 
 ## Project Structure
 
-- `apps/web/` - React frontend application
-- `services/api-service/` - Django REST API backend
-- `packages/ui/` - Shared design system components
-- `packages/utils/` - Shared utilities
-- `infrastructure/` - Deployment and infrastructure configs
-- `docs/` - Documentation
+This monorepo follows a TypeScript-first architecture:
+
+```
+apps/
+  web/              # React + Vite frontend application
+packages/
+  ui/               # Shared UI components
+  utils/            # Shared utilities
+  contracts/        # Zod schemas + types (source of truth)
+  api-sdk/          # Generated client SDK from contracts
+  config/           # Shared configs (eslint, prettier, typescript)
+services/
+  api-gateway/      # TypeScript backend (canonical)
+  api-service/      # Django backend (legacy, being migrated)
+```
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+- `GATEWAY_PORT` - API Gateway port (default: 3000)
+- `DJANGO_BACKEND_URL` - Django backend URL (default: http://localhost:8000)
+- `ALLOWED_ORIGINS` - CORS allowed origins
+- `VITE_SENTRY_DSN` - Sentry DSN for frontend error tracking
+- `VITE_TRACKING_KEY` - Analytics tracking key
 
 ## Contributing
 
