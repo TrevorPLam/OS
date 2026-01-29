@@ -1,3 +1,53 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+
+# Generated files
+*.tsbuildinfo
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Environment files
+.env
+.env.local
+.env*.local
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
 # Python / Django
 __pycache__/
 *.py[cod]
@@ -10,7 +60,6 @@ ENV/
 .venv
 pip-log.txt
 pip-delete-this-directory.txt
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -18,47 +67,6 @@ db.sqlite3-journal
 /staticfiles
 /static
 
-# Node.js / TypeScript
-node_modules/
-.pnp
-.pnp.js
-.next/
-out/
-build/
-dist/
-.vite/
-**/.npm-cache/
-*.tsbuildinfo
-
-# Testing
-coverage/
-*.lcov
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env*.local
-.env.local
-.env
-!.env.example
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-Thumbs.db
-
-# Django migrations (uncomment if you want to ignore migrations)
-# */migrations/*.py
-# !*/migrations/__init__.py
+# Temporary files
+*.tmp
+*.temp
